@@ -2,19 +2,19 @@ import 'package:flutter/material.dart' hide Route;
 import 'package:unrouter/unrouter.dart';
 
 const routes = <Route>[
-  .new(
+  Route<RootLayout>(
     '/',
     RootLayout.new,
     children: [
-      .new('', Home.new),
-      .new('about', About.new),
-      .new('users/:id', Profile.new),
+      Route<Home>('', Home.new),
+      Route<About>('about', About.new),
+      Route<Profile>('users/:id', Profile.new),
     ],
   ),
-  .new('**', NotFound.new),
+  Route<NotFound>('**', NotFound.new),
 ];
 
-final router = Unrouter(routes: routes);
+final router = createRouter(routes: routes);
 
 void main() {
   runApp(const DemoApp());
@@ -27,8 +27,8 @@ class DemoApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp.router(
       title: 'Unrouter Example',
-      routerDelegate: router.routerDelegate,
-      routeInformationParser: router.routeInformationParser,
+      routerDelegate: router.delegate,
+      routeInformationParser: router.informationParser,
       theme: ThemeData.light(),
     );
   }
@@ -58,11 +58,12 @@ class Home extends StatelessWidget {
         const Text('Home', style: TextStyle(fontSize: 20)),
         const SizedBox(height: 8),
         ElevatedButton(
-          onPressed: () => router.go('/about?tab=info'),
+          onPressed: () =>
+              router.push(const .path('/about', query: {'tab': 'info'})),
           child: const Text('Go /about'),
         ),
         ElevatedButton(
-          onPressed: () => router.go('/users/42'),
+          onPressed: () => router.push(const .path('/users/42')),
           child: const Text('Go /users/42'),
         ),
       ],

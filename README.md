@@ -2,7 +2,7 @@ Unrouter 是一个基于 **zenrouter** 的极简路由：
 
 - routes 表描述路径、组件、嵌套路由
 - `<RouterView>` 递归渲染当前深度组件
-- 字符串导航：`go('/path')` / `pushPath('/path')`
+- 字符串导航：`router.push(RouteLocation.path('/path'))`
 - 顶级函数式 API：`useRouter`、`useRoute`、`useRouterParams`、`useQueryParams`
 
 ## 安装
@@ -34,13 +34,13 @@ const routes = <Route>[
   Route<NotFound>('**', NotFound.new),
 ];
 
-final router = Unrouter(routes: routes);
+final router = createRouter(routes: routes);
 
 void main() {
   runApp(
     MaterialApp.router(
-      routerDelegate: router.routerDelegate,
-      routeInformationParser: router.routeInformationParser,
+      routerDelegate: router.delegate,
+      routeInformationParser: router.informationParser,
     ),
   );
 }
@@ -67,11 +67,15 @@ class Home extends StatelessWidget {
       children: [
         const Text('Home'),
         ElevatedButton(
-          onPressed: () => router.go('/about?tab=info'),
+          onPressed: () => router.push(
+            const RouteLocation.path('/about', query: {'tab': 'info'}),
+          ),
           child: const Text('Go About'),
         ),
         ElevatedButton(
-          onPressed: () => router.go('/users/42'),
+          onPressed: () => router.push(
+            const RouteLocation.path('/users/42'),
+          ),
           child: const Text('Go Profile 42'),
         ),
       ],

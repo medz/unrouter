@@ -1,6 +1,46 @@
 import 'package:flutter/widgets.dart' as flutter;
 import 'package:zenrouter/zenrouter.dart' as zenrouter;
 
+/// Represents a navigation target.
+class RouteLocation<T> {
+  const RouteLocation.path(
+    this.path, {
+    this.state,
+    this.hash,
+    Map<String, String>? query,
+    this.replace = false,
+    this.force = false,
+  }) : query = query ?? const {};
+
+  final String path;
+  final T? state;
+  final String? hash;
+  final Map<String, String> query;
+  final bool replace;
+  final bool force;
+
+  Uri get uri => Uri(
+        path: path,
+        queryParameters: query.isEmpty ? null : query,
+        fragment: hash,
+      );
+}
+
+/// Public router surface (zenrouter hidden).
+abstract interface class Router {
+  void back();
+  void forward();
+  void go(int delta);
+  void push(RouteLocation location);
+  void replace(RouteLocation location);
+
+  flutter.RouterDelegate<Uri> get delegate;
+  flutter.RouteInformationParser<Uri> get informationParser;
+
+  /// Access to the underlying zenrouter coordinator when needed.
+  zenrouter.Coordinator toZenRouterCoordinator();
+}
+
 /// Factory type for a route component (usually `.new`).
 typedef RouteFactory<T extends flutter.Widget> = T Function();
 
@@ -57,31 +97,32 @@ class RouteSnapshot {
   String? get name => current?.name;
 }
 
-/// Main router built on zenrouter Coordinator.
-class Unrouter extends zenrouter.Coordinator<UnRoutePage> {
-  Unrouter({required Iterable<Route> routes, String initialPath = '/'})
+/// Internal coordinator that handles route parsing/rendering.
+class _CoreCoordinator extends zenrouter.Coordinator<RoutePage> {
+  _CoreCoordinator({required Iterable<Route> routes, String initialPath = '/'})
     : _tree = _RouteTree(routes.toList()),
       _initialUri = _normalize(initialPath);
+
+  late Router router;
 
   final _RouteTree _tree;
   final Uri _initialUri;
 
-  late final UnRoutePage _initialPage = parseRouteFromUri(_initialUri);
+  late final RoutePage _initialPage = parseRouteFromUri(_initialUri);
 
   /// Replace stack with [path].
-  void go(String path) => replace(parseRouteFromUri(_normalize(path)));
+  void goPath(String path) => replace(parseRouteFromUri(_normalize(path)));
 
   /// Push new page.
   Future<dynamic> pushPath(String path) =>
       push(parseRouteFromUri(_normalize(path)));
 
-  /// Pop current.
   @override
   void pop([Object? result]) => super.pop(result);
 
   @override
   flutter.Widget layoutBuilder(flutter.BuildContext context) =>
-      zenrouter.NavigationStack<UnRoutePage>(
+      zenrouter.NavigationStack<RoutePage>(
         path: root,
         coordinator: this,
         defaultRoute: _initialPage,
@@ -91,18 +132,65 @@ class Unrouter extends zenrouter.Coordinator<UnRoutePage> {
       );
 
   @override
-  UnRoutePage parseRouteFromUri(Uri uri) {
+  RoutePage parseRouteFromUri(Uri uri) {
     final matches = _tree.match(uri);
-    if (matches != null) return UnRoutePage(uri: uri, matches: matches);
+    if (matches != null) return RoutePage(uri: uri, matches: matches);
 
     final fallback = _tree.matchFallback(uri);
-    if (fallback != null) return UnRoutePage(uri: uri, matches: fallback);
+    if (fallback != null) return RoutePage(uri: uri, matches: fallback);
 
     throw StateError('No route matched for ${uri.path}');
   }
 
   static Uri _normalize(String path) =>
       path.startsWith('/') ? Uri.parse(path) : Uri.parse('/$path');
+}
+
+/// Public router facade built on top of [_CoreCoordinator].
+class _RouterImpl implements Router {
+  _RouterImpl({required Iterable<Route> routes, String initialPath = '/'})
+    : _core = _CoreCoordinator(routes: routes, initialPath: initialPath) {
+    _core.router = this;
+  }
+
+  final _CoreCoordinator _core;
+
+  @override
+  void back() => _core.pop();
+
+  @override
+  void forward() {
+    // No forward stack support.
+  }
+
+  @override
+  void go(int delta) {
+    if (delta < 0) {
+      for (int i = 0; i < delta.abs(); i++) {
+        _core.pop();
+      }
+    } else if (delta > 0) {
+      forward();
+    }
+  }
+
+  @override
+  void push(RouteLocation location) =>
+      _core.pushPath(location.uri.toString());
+
+  @override
+  void replace(RouteLocation location) =>
+      _core.goPath(location.uri.toString());
+
+  @override
+  flutter.RouterDelegate<Uri> get delegate => _core.routerDelegate;
+
+  @override
+  flutter.RouteInformationParser<Uri> get informationParser =>
+      _core.routeInformationParser;
+
+  @override
+  zenrouter.Coordinator<RoutePage> toZenRouterCoordinator() => _core;
 }
 
 /// Scope to expose router + snapshot.
@@ -114,7 +202,7 @@ class RouterScope extends flutter.InheritedWidget {
     required super.child,
   });
 
-  final Unrouter router;
+  final Router router;
   final RouteSnapshot route;
 
   static RouterScope of(flutter.BuildContext context) {
@@ -172,7 +260,7 @@ class _DepthMarker extends flutter.InheritedWidget {
 // Hooks-style helpers
 // ---------------------------------------------------------------------------
 
-Unrouter useRouter(flutter.BuildContext context) =>
+Router useRouter(flutter.BuildContext context) =>
     RouterScope.of(context).router;
 
 RouteSnapshot useRoute(flutter.BuildContext context) =>
@@ -184,18 +272,23 @@ Map<String, String> useRouterParams(flutter.BuildContext context) =>
 Map<String, String> useQueryParams(flutter.BuildContext context) =>
     useRoute(context).query;
 
+/// Create a router instance.
+Router createRouter({
+  required Iterable<Route> routes,
+  String initialPath = '/',
+}) => _RouterImpl(routes: routes, initialPath: initialPath);
+
 // ---------------------------------------------------------------------------
 // zenrouter page wrapper
 // ---------------------------------------------------------------------------
 
-class UnRoutePage extends zenrouter.RouteTarget with zenrouter.RouteUnique {
-  UnRoutePage({required this.uri, required List<RouteMatch> matches})
+class RoutePage extends zenrouter.RouteTarget with zenrouter.RouteUnique {
+  RoutePage({required this.uri, required List<RouteMatch> matches})
     : matches = List.unmodifiable(matches);
 
   final Uri uri;
   final List<RouteMatch> matches;
 
-  @override
   @override
   List<Object?> get props => [uri.toString()];
 
@@ -205,8 +298,9 @@ class UnRoutePage extends zenrouter.RouteTarget with zenrouter.RouteUnique {
     flutter.BuildContext context,
   ) {
     final snapshot = RouteSnapshot(uri: uri, matches: matches);
+    final router = (coordinator as _CoreCoordinator).router;
     return RouterScope(
-      router: coordinator as Unrouter,
+      router: router,
       route: snapshot,
       child: const RouterView(),
     );
@@ -275,15 +369,24 @@ class _RouteTree {
       return _MatchResult(cursor, [match]);
     }
 
+    _MatchResult? best;
     for (final child in node.children) {
       final childResult = _matchNode(child, segments, cursor);
       if (childResult != null && childResult.consumed <= segments.length) {
-        return _MatchResult(childResult.consumed, [
-          match,
-          ...childResult.matches,
-        ]);
+        final combined = _MatchResult(
+          childResult.consumed,
+          [match, ...childResult.matches],
+        );
+        if (combined.consumed == segments.length) {
+          return combined; // perfect match
+        }
+        if (best == null || combined.consumed > best.consumed) {
+          best = combined;
+        }
       }
     }
+
+    if (best != null) return best;
 
     if (cursor == segments.length || node.hasWildcard) {
       return _MatchResult(cursor, [match]);

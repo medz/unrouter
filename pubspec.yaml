@@ -2,7 +2,7 @@ name: unrouter
 description: "Minimal router built on zenrouter with Route/RouterView/useRouter APIs."
 version: 0.0.1
 
-homepage:
+repository: https://github.com/medz/unrouter
 
 environment:
   sdk: ^3.10.3

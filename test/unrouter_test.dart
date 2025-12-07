@@ -34,16 +34,17 @@ void main() {
       Route('**', NotFound.new),
     ];
 
-    final router = Unrouter(routes: routes);
+    final router = createRouter(routes: routes);
+    final core = router.toZenRouterCoordinator() as dynamic;
 
-    final page = router.parseRouteFromUri(Uri.parse('/profile/123?tab=posts'));
+    final page = core.parseRouteFromUri(Uri.parse('/profile/123?tab=posts'));
 
     expect(page.matches.length, 2);
     expect(page.matches.first.route.path, '/');
     expect(page.matches.last.route.path, 'profile/:id');
     expect(page.matches.last.params['id'], '123');
 
-    final notFound = router.parseRouteFromUri(Uri.parse('/missing/path'));
+    final notFound = core.parseRouteFromUri(Uri.parse('/missing/path'));
     expect(notFound.matches.single.route.path, '**');
     expect(notFound.matches.single.params['pathMatch'], 'missing/path');
   });
