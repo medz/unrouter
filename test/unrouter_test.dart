@@ -26,24 +26,18 @@ class NotFound extends StatelessWidget {
 void main() {
   test('matches nested routes and params', () {
     final routes = <Route>[
-      Route.new(
+      .new(
         path: '/',
-        builder: (context) => const RootLayout(),
+        builder: (_) => const RootLayout(),
         children: [
-          Route.new(
-            path: 'profile/:id',
-            builder: (context) => const ProfilePage(),
-          ),
+          .new(path: 'profile/:id', builder: (_) => const ProfilePage()),
         ],
       ),
-      Route.new(
-        path: '**',
-        builder: (context) => const NotFound(),
-      ),
+      .new(path: '**', builder: (_) => const NotFound()),
     ];
 
     final router = createRouter(routes: routes);
-    final core = toZenRouterCoordinator(router) as dynamic;
+    final core = toZenRouterCoordinator(router);
 
     final page = core.parseRouteFromUri(Uri.parse('/profile/123?tab=posts'));
 
