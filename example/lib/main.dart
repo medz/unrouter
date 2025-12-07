@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart' hide Route;
 import 'package:unrouter/unrouter.dart';
 
-const routes = <Route>[
+final routes = <Route>[
   .new(
-    '/',
-    RootLayout.new,
+    path: '/',
+    builder: (context) => const RootLayout(),
     children: [
-      .new('', Home.new, name: 'home'),
-      .new('about', About.new, name: 'about'),
-      .new('users/:id', Profile.new, name: 'profile'),
+      .new(path: '', builder: (_) => const Home(), name: 'home'),
+      .new(path: 'about', builder: (_) => const About(), name: 'about'),
+      .new(path: 'users/:id', builder: (_) => const Profile(), name: 'profile'),
     ],
   ),
-  .new('**', NotFound.new),
+  .new(path: '**', builder: (_) => const NotFound()),
 ];
 
 final router = createRouter(routes: routes);
@@ -58,15 +58,13 @@ class Home extends StatelessWidget {
         const Text('Home', style: TextStyle(fontSize: 20)),
         const SizedBox(height: 8),
         ElevatedButton(
-          onPressed: () => router.push(
-            const .name('about', query: {'tab': 'info'}),
-          ),
+          onPressed: () =>
+              router.push(const .name('about', query: {'tab': 'info'})),
           child: const Text('Go about'),
         ),
         ElevatedButton(
-          onPressed: () => router.push(
-            const .name('profile', params: {'id': '42'}),
-          ),
+          onPressed: () =>
+              router.push(const .name('profile', params: {'id': '42'})),
           child: const Text('Go profile 42'),
         ),
       ],

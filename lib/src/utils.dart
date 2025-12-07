@@ -5,10 +5,11 @@ import 'router_base.dart';
 
 Router useRouter(BuildContext context) => RouterScope.of(context).router;
 
-RouteSnapshot useRoute(BuildContext context) => RouterScope.of(context).route;
+RouteSnapshot useRoute(BuildContext context) =>
+    RouterScope.of(context, aspect: .route).route;
 
 Map<String, String> useRouterParams(BuildContext context) =>
-    useRoute(context).params;
+    RouterScope.of(context, aspect: .params).route.params;
 
 Map<String, String> useQueryParams(BuildContext context) =>
-    useRoute(context).query;
+    RouterScope.of(context, aspect: .query).route.query;

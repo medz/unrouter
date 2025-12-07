@@ -1,14 +1,18 @@
-import 'package:flutter/widgets.dart' show Widget;
+import 'package:flutter/widgets.dart' show WidgetBuilder;
 
 /// Route definition.
-class Route<T extends Widget> {
-  const Route(this.path, this.factory, {this.name, this.children = const []});
+class Route {
+  const Route({
+    this.name,
+    this.children = const [],
+    required this.path,
+    required this.builder,
+  });
 
   /// Path pattern (e.g. `/`, `about`, `:id`, `**`).
   final String path;
 
-  /// Component factory (constructor tear-off).
-  final WidgetFactory<T> factory;
+  final WidgetBuilder builder;
 
   /// Nested routes (rendered by RouterView).
   final Iterable<Route> children;
@@ -16,9 +20,6 @@ class Route<T extends Widget> {
   /// Optional name.
   final String? name;
 }
-
-/// Factory type for a route component (usually `.new`).
-typedef WidgetFactory<T extends Widget> = T Function();
 
 /// Match info for a single route.
 class RouteMatch {

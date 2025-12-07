@@ -23,15 +23,11 @@ class RouteTree {
   List<RouteMatch>? matchFallback(Uri uri) {
     if (_catchAll == null) return null;
     final segments = uri.pathSegments.where((e) => e.isNotEmpty).toList();
-    final result = _matchNode(_catchAll!, segments, 0);
+    final result = _matchNode(_catchAll, segments, 0);
     return result?.matches;
   }
 
-  MatchResult? _matchNode(
-    RouteNode node,
-    List<String> segments,
-    int index,
-  ) {
+  MatchResult? _matchNode(RouteNode node, List<String> segments, int index) {
     var cursor = index;
     final params = <String, String>{};
 
@@ -102,7 +98,9 @@ class RouteTree {
       if (seg.isParam) {
         final value = params[seg.name];
         if (value == null) {
-          throw StateError('Missing param "${seg.name}" for route name "$name"');
+          throw StateError(
+            'Missing param "${seg.name}" for route name "$name"',
+          );
         }
         parts.add(value);
       } else if (seg.value.isNotEmpty) {
