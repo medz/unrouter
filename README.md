@@ -1,9 +1,9 @@
 Unrouter is a tiny wrapper on **zenrouter**:
 
 - Describe routes with path + builder + children
-- `<RouterView>` renders nested routes
+- `RouterView` renders nested routes
 - Navigate by path or name: `router.push(.path('/path'))` / `router.push(.name('foo'))`
-- Hooks: `useRouter`, `useRoute`, `useRouterParams`, `useQueryParams`
+- Utils: `useRouter`, `useRoute`, `useRouterParams`, `useQueryParams`
 
 ## Install
 
