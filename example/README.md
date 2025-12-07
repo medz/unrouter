@@ -1,16 +1,16 @@
-# example
+# Unrouter example
 
-A new Flutter project.
+This example simulates a small workspace app with nested layouts:
 
-## Getting Started
+- Root shell with navigation rail.
+- `projects` layout renders a list + details side-by-side via nested `RouterView`.
+- `account` layout switches between overview/settings routes.
+- `dashboard` shows a simple stats panel.
 
-This project is a starting point for a Flutter application.
+## Run
 
-A few resources to get you started if this is your first Flutter project:
+```sh
+flutter run -d chrome lib/main.dart
+```
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Switch to hash URLs on web by changing `strategy: RouterUrlStrategy.hash` in `main.dart`.
