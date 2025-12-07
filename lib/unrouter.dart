@@ -10,20 +10,29 @@ class RouteLocation<T> {
     Map<String, String>? query,
     this.replace = false,
     this.force = false,
-  }) : query = query ?? const {};
+  }) : query = query ?? const {},
+      name = null,
+      params = const {};
 
-  final String path;
+  const RouteLocation.name(
+    this.name, {
+    this.params = const {},
+    this.state,
+    this.hash,
+    Map<String, String>? query,
+    this.replace = false,
+    this.force = false,
+  }) : path = null,
+      query = query ?? const {};
+
+  final String? path;
+  final String? name;
+  final Map<String, String> params;
   final T? state;
   final String? hash;
   final Map<String, String> query;
   final bool replace;
   final bool force;
-
-  Uri get uri => Uri(
-        path: path,
-        queryParameters: query.isEmpty ? null : query,
-        fragment: hash,
-      );
 }
 
 /// Public router surface (zenrouter hidden).
@@ -36,9 +45,6 @@ abstract interface class Router {
 
   flutter.RouterDelegate<Uri> get delegate;
   flutter.RouteInformationParser<Uri> get informationParser;
-
-  /// Access to the underlying zenrouter coordinator when needed.
-  zenrouter.Coordinator toZenRouterCoordinator();
 }
 
 /// Factory type for a route component (usually `.new`).
@@ -118,9 +124,6 @@ class _CoreCoordinator extends zenrouter.Coordinator<RoutePage> {
       push(parseRouteFromUri(_normalize(path)));
 
   @override
-  void pop([Object? result]) => super.pop(result);
-
-  @override
   flutter.Widget layoutBuilder(flutter.BuildContext context) =>
       zenrouter.NavigationStack<RoutePage>(
         path: root,
@@ -134,13 +137,16 @@ class _CoreCoordinator extends zenrouter.Coordinator<RoutePage> {
   @override
   RoutePage parseRouteFromUri(Uri uri) {
     final matches = _tree.match(uri);
-    if (matches != null) return RoutePage(uri: uri, matches: matches);
+    if (matches != null) return RoutePage(uri: uri, matches: matches, router: router);
 
     final fallback = _tree.matchFallback(uri);
-    if (fallback != null) return RoutePage(uri: uri, matches: fallback);
+    if (fallback != null) return RoutePage(uri: uri, matches: fallback, router: router);
 
     throw StateError('No route matched for ${uri.path}');
   }
+
+  String? pathForName(String name, Map<String, String> params) =>
+      _tree.buildPathForName(name, params);
 
   static Uri _normalize(String path) =>
       path.startsWith('/') ? Uri.parse(path) : Uri.parse('/$path');
@@ -176,11 +182,11 @@ class _RouterImpl implements Router {
 
   @override
   void push(RouteLocation location) =>
-      _core.pushPath(location.uri.toString());
+      _core.pushPath(_locationToUri(location).toString());
 
   @override
   void replace(RouteLocation location) =>
-      _core.goPath(location.uri.toString());
+      _core.goPath(_locationToUri(location).toString());
 
   @override
   flutter.RouterDelegate<Uri> get delegate => _core.routerDelegate;
@@ -189,8 +195,33 @@ class _RouterImpl implements Router {
   flutter.RouteInformationParser<Uri> get informationParser =>
       _core.routeInformationParser;
 
-  @override
-  zenrouter.Coordinator<RoutePage> toZenRouterCoordinator() => _core;
+  zenrouter.Coordinator<RoutePage> _asCoordinator() => _core;
+
+  Uri _locationToUri(RouteLocation location) {
+    if (location.path != null) {
+      return Uri(
+        path: location.path,
+        queryParameters: location.query.isEmpty
+            ? null
+            : Map<String, String>.from(location.query),
+        fragment: location.hash,
+      );
+    }
+    if (location.name != null) {
+      final path = _core.pathForName(location.name!, location.params);
+      if (path == null) {
+        throw StateError('No route found with name ${location.name}');
+      }
+      return Uri(
+        path: path,
+        queryParameters: location.query.isEmpty
+            ? null
+            : Map<String, String>.from(location.query),
+        fragment: location.hash,
+      );
+    }
+    throw StateError('RouteLocation must have either path or name');
+  }
 }
 
 /// Scope to expose router + snapshot.
@@ -213,7 +244,6 @@ class RouterScope extends flutter.InheritedWidget {
     return scope;
   }
 
-  @override
   @override
   bool updateShouldNotify(RouterScope oldWidget) =>
       route.uri != oldWidget.route.uri ||
@@ -278,16 +308,26 @@ Router createRouter({
   String initialPath = '/',
 }) => _RouterImpl(routes: routes, initialPath: initialPath);
 
+/// Access underlying zenrouter coordinator when needed.
+zenrouter.Coordinator<RoutePage> toZenRouterCoordinator(Router router) {
+  if (router is _RouterImpl) return router._asCoordinator();
+  throw StateError('Unknown router implementation');
+}
+
 // ---------------------------------------------------------------------------
 // zenrouter page wrapper
 // ---------------------------------------------------------------------------
 
 class RoutePage extends zenrouter.RouteTarget with zenrouter.RouteUnique {
-  RoutePage({required this.uri, required List<RouteMatch> matches})
-    : matches = List.unmodifiable(matches);
+  RoutePage({
+    required this.uri,
+    required List<RouteMatch> matches,
+    required this.router,
+  }) : matches = List.unmodifiable(matches);
 
   final Uri uri;
   final List<RouteMatch> matches;
+  final Router router;
 
   @override
   List<Object?> get props => [uri.toString()];
@@ -298,7 +338,6 @@ class RoutePage extends zenrouter.RouteTarget with zenrouter.RouteUnique {
     flutter.BuildContext context,
   ) {
     final snapshot = RouteSnapshot(uri: uri, matches: matches);
-    final router = (coordinator as _CoreCoordinator).router;
     return RouterScope(
       router: router,
       route: snapshot,
@@ -373,10 +412,10 @@ class _RouteTree {
     for (final child in node.children) {
       final childResult = _matchNode(child, segments, cursor);
       if (childResult != null && childResult.consumed <= segments.length) {
-        final combined = _MatchResult(
-          childResult.consumed,
-          [match, ...childResult.matches],
-        );
+        final combined = _MatchResult(childResult.consumed, [
+          match,
+          ...childResult.matches,
+        ]);
         if (combined.consumed == segments.length) {
           return combined; // perfect match
         }
@@ -398,6 +437,39 @@ class _RouteTree {
     for (final node in nodes) {
       if (node.isCatchAll) return node;
       final child = _findCatchAll(node.children);
+      if (child != null) return child;
+    }
+    return null;
+  }
+
+  String? buildPathForName(String name, Map<String, String> params) {
+    final segments = _findByName(roots, const [], name);
+    if (segments == null) return null;
+    final parts = <String>[];
+    for (final seg in segments) {
+      if (seg.isWildcard) continue;
+      if (seg.isParam) {
+        final value = params[seg.name];
+        if (value == null) {
+          throw StateError('Missing param "${seg.name}" for route name "$name"');
+        }
+        parts.add(value);
+      } else if (seg.value.isNotEmpty) {
+        parts.add(seg.value);
+      }
+    }
+    return '/${parts.join('/')}';
+  }
+
+  List<_Segment>? _findByName(
+    List<_RouteNode> nodes,
+    List<_Segment> acc,
+    String name,
+  ) {
+    for (final node in nodes) {
+      final combined = [...acc, ...node.segments];
+      if (node.route.name == name) return combined;
+      final child = _findByName(node.children, combined, name);
       if (child != null) return child;
     }
     return null;

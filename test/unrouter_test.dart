@@ -35,7 +35,7 @@ void main() {
     ];
 
     final router = createRouter(routes: routes);
-    final core = router.toZenRouterCoordinator() as dynamic;
+    final core = toZenRouterCoordinator(router) as dynamic;
 
     final page = core.parseRouteFromUri(Uri.parse('/profile/123?tab=posts'));
 
