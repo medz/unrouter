@@ -4,11 +4,10 @@ class RouteLocation<T> {
     this.path, {
     this.state,
     this.hash,
-    Map<String, String>? query,
+    this.query = const {},
     this.replace = false,
     this.force = false,
-  }) : query = query ?? const {},
-       name = null,
+  }) : name = null,
        params = const {};
 
   const RouteLocation.name(
@@ -16,11 +15,10 @@ class RouteLocation<T> {
     this.params = const {},
     this.state,
     this.hash,
-    Map<String, String>? query,
+    this.query = const {},
     this.replace = false,
     this.force = false,
-  }) : path = null,
-       query = query ?? const {};
+  }) : path = null;
 
   final String? path;
   final String? name;

@@ -1,11 +1,22 @@
-import 'package:flutter/widgets.dart' show RouteInformationParser, RouterDelegate;
+import 'package:flutter/widgets.dart'
+    show RouteInformationParser, RouterDelegate;
 import 'package:zenrouter/zenrouter.dart';
 
 import 'location.dart';
 import 'page.dart';
 import 'route.dart';
-import 'router_base.dart';
 import '_internal/core.dart';
+
+abstract interface class Router {
+  void back();
+  void forward();
+  void go(int delta);
+  void push(RouteLocation location);
+  void replace(RouteLocation location);
+
+  RouterDelegate<Uri> get delegate;
+  RouteInformationParser<Uri> get informationParser;
+}
 
 /// Public router facade built on top of [CoreCoordinator].
 class _RouterImpl implements Router {

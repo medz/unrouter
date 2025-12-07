@@ -33,7 +33,7 @@ class RouteMatch {
 
 /// Snapshot of current navigation state.
 class RouteSnapshot {
-  RouteSnapshot({required this.uri, required this.matches});
+  const RouteSnapshot({required this.uri, required this.matches});
 
   final Uri uri;
   final List<RouteMatch> matches;

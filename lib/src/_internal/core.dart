@@ -2,8 +2,8 @@ import 'package:flutter/widgets.dart' show BuildContext, Widget, Builder;
 import 'package:zenrouter/zenrouter.dart';
 
 import '../route.dart';
-import '../router_base.dart';
 import '../page.dart';
+import '../router.dart';
 import 'tree.dart';
 
 /// Internal coordinator that handles route parsing/rendering.
@@ -27,27 +27,26 @@ class CoreCoordinator extends Coordinator<RoutePage> {
       push(parseRouteFromUri(_normalize(path)));
 
   @override
-  void pop([Object? result]) => super.pop(result);
-
-  @override
-  @override
-  Widget layoutBuilder(BuildContext context) =>
-      NavigationStack<RoutePage>(
-        path: root,
-        coordinator: this,
-        defaultRoute: _initialPage,
-        resolver: (route) => StackTransition.material(
-          Builder(builder: (ctx) => route.build(this, ctx)),
-        ),
-      );
+  Widget layoutBuilder(BuildContext context) => NavigationStack<RoutePage>(
+    path: root,
+    coordinator: this,
+    defaultRoute: _initialPage,
+    resolver: (route) => StackTransition.material(
+      Builder(builder: (ctx) => route.build(this, ctx)),
+    ),
+  );
 
   @override
   RoutePage parseRouteFromUri(Uri uri) {
     final matches = _tree.match(uri);
-    if (matches != null) return RoutePage(uri: uri, matches: matches, router: router);
+    if (matches != null) {
+      return RoutePage(uri: uri, matches: matches, router: router);
+    }
 
     final fallback = _tree.matchFallback(uri);
-    if (fallback != null) return RoutePage(uri: uri, matches: fallback, router: router);
+    if (fallback != null) {
+      return RoutePage(uri: uri, matches: fallback, router: router);
+    }
 
     throw StateError('No route matched for ${uri.path}');
   }

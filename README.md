@@ -19,24 +19,22 @@ dependencies:
 import 'package:flutter/material.dart' hide Route;
 import 'package:unrouter/unrouter.dart';
 
-final routes = <Route>[
+final router = createRouter(routes: [
   .new(
     path: '/',
-    builder: (context) => const RootLayout(),
+    builder: (_) => const RootLayout(),
     children: [
-      .new(path: '', builder: (context) => const Home(), name: 'home'),
-      .new(path: 'about', builder: (context) => const About(), name: 'about'),
+      .new(path: '', builder: (_) => const Home(), name: 'home'),
+      .new(path: 'about', builder: (_) => const About(), name: 'about'),
       .new(
         path: 'users/:id',
-        builder: (context) => const Profile(),
+        builder: (_) => const Profile(),
         name: 'profile',
       ),
     ],
   ),
-  .new(path: '**', builder: (context) => const NotFound()),
-];
-
-final router = createRouter(routes: routes);
+  .new(path: '**', builder: (_) => const NotFound()),
+]);
 
 void main() {
   runApp(

@@ -1,9 +1,9 @@
 import 'package:flutter/widgets.dart' show BuildContext, Widget;
 import 'package:zenrouter/zenrouter.dart';
 
+import 'router.dart';
 import 'router_view.dart';
 import 'route.dart';
-import 'router_base.dart';
 import '_internal/scope.dart';
 
 class RoutePage extends RouteTarget with RouteUnique {
@@ -21,10 +21,7 @@ class RoutePage extends RouteTarget with RouteUnique {
   List<Object?> get props => [uri.toString()];
 
   @override
-  Widget build(
-    covariant Coordinator coordinator,
-    BuildContext context,
-  ) {
+  Widget build(covariant Coordinator coordinator, BuildContext context) {
     final snapshot = RouteSnapshot(uri: uri, matches: matches);
     return RouterScope(
       router: router,

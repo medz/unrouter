@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart' show BuildContext, InheritedModel;
 
 import '../route.dart';
-import '../router_base.dart';
+import '../router.dart';
 
 enum Scope { route, query, params }
 

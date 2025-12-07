@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart'
     show BuildContext, InheritedWidget, SizedBox, StatelessWidget, Widget;
+
 import '_internal/scope.dart';
 
 /// Render the matched component at the current depth.
@@ -16,12 +17,12 @@ class RouterView extends StatelessWidget {
     }
 
     final match = scope.route.matches[currentDepth];
-    final component = match.route.builder(context);
+    final child = match.route.builder(context);
 
     return RouterScope(
       router: scope.router,
       route: scope.route,
-      child: _DepthMarker(depth: currentDepth + 1, child: component),
+      child: _DepthMarker(depth: currentDepth + 1, child: child),
     );
   }
 }

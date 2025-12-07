@@ -1,7 +1,8 @@
 import 'package:flutter/widgets.dart' show BuildContext;
+
 import '_internal/scope.dart';
 import 'route.dart';
-import 'router_base.dart';
+import 'router.dart';
 
 Router useRouter(BuildContext context) => RouterScope.of(context).router;
 
