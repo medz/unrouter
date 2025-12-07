@@ -30,6 +30,11 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.0.0"
+  flutter_web_plugins:
+    dependency: transitive
+    description: flutter
+    source: sdk
+    version: "0.0.0"
   lints:
     dependency: transitive
     description:
@@ -77,9 +82,10 @@ packages:
   zenrouter:
     dependency: transitive
     description:
-      path: "../zenrouter/packages/zenrouter"
-      relative: true
-    source: path
+      name: zenrouter
+      sha256: "8be8f9486dccc98129d9d893262b33814507be6329a490c4b583f766716916a9"
+      url: "https://pub.dev"
+    source: hosted
     version: "0.2.3"
 sdks:
   dart: ">=3.10.3 <4.0.0"

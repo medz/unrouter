@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter/widgets.dart'
     show RouteInformationParser, RouterDelegate;
 import 'package:zenrouter/zenrouter.dart';
@@ -6,6 +7,28 @@ import 'location.dart';
 import 'page.dart';
 import 'route.dart';
 import '_internal/core.dart';
+import 'platform/url_strategy_stub.dart'
+    if (dart.library.html) 'platform/url_strategy_web.dart';
+import 'url_strategy.dart';
+
+bool _urlStrategyConfigured = false;
+
+@visibleForTesting
+RouterUrlStrategy? debugConfiguredUrlStrategy;
+
+@visibleForTesting
+void resetUrlStrategyForTest() {
+  _urlStrategyConfigured = false;
+  debugConfiguredUrlStrategy = null;
+}
+
+void _configureUrlStrategy(RouterUrlStrategy strategy) {
+  if (_urlStrategyConfigured) return;
+  _urlStrategyConfigured = true;
+  debugConfiguredUrlStrategy = strategy;
+
+  applyUrlStrategy(strategy);
+}
 
 abstract interface class Router {
   void back();
@@ -20,8 +43,12 @@ abstract interface class Router {
 
 /// Public router facade built on top of [CoreCoordinator].
 class _RouterImpl implements Router {
-  _RouterImpl({required Iterable<Route> routes, String initialPath = '/'})
-    : _core = CoreCoordinator(routes: routes, initialPath: initialPath) {
+  _RouterImpl({
+    required Iterable<Route> routes,
+    String initialPath = '/',
+    RouterUrlStrategy strategy = RouterUrlStrategy.path,
+  }) : _core = CoreCoordinator(routes: routes, initialPath: initialPath) {
+    _configureUrlStrategy(strategy);
     _core.router = this;
   }
 
@@ -94,7 +121,8 @@ class _RouterImpl implements Router {
 Router createRouter({
   required Iterable<Route> routes,
   String initialPath = '/',
-}) => _RouterImpl(routes: routes, initialPath: initialPath);
+  RouterUrlStrategy strategy = RouterUrlStrategy.path,
+}) => _RouterImpl(routes: routes, initialPath: initialPath, strategy: strategy);
 
 /// Access underlying zenrouter coordinator when needed.
 Coordinator<RoutePage> toZenRouterCoordinator(Router router) {

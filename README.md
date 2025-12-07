@@ -18,22 +18,26 @@ dependencies:
 import 'package:flutter/material.dart' hide Route;
 import 'package:unrouter/unrouter.dart';
 
-final router = createRouter(routes: [
-  .new(
-    path: '/',
-    builder: (_) => const RootLayout(),
-    children: [
-      .new(path: '', builder: (_) => const Home(), name: 'home'),
-      .new(path: 'about', builder: (_) => const About(), name: 'about'),
-      .new(
-        path: 'users/:id',
-        builder: (_) => const Profile(),
-        name: 'profile',
-      ),
-    ],
-  ),
-  .new(path: '**', builder: (_) => const NotFound()),
-]);
+final router = createRouter(
+  // Optional: pick URL strategy for web builds (hash/path).
+  strategy: .path,
+  routes: [
+    .new(
+      path: '/',
+      builder: (_) => const RootLayout(),
+      children: [
+        .new(path: '', builder: (_) => const Home(), name: 'home'),
+        .new(path: 'about', builder: (_) => const About(), name: 'about'),
+        .new(
+          path: 'users/:id',
+          builder: (_) => const Profile(),
+          name: 'profile',
+        ),
+      ],
+    ),
+    .new(path: '**', builder: (_) => const NotFound()),
+  ],
+);
 
 void main() {
   runApp(
