@@ -26,12 +26,14 @@ class NotFound extends StatelessWidget {
 void main() {
   test('matches nested routes and params', () {
     const routes = <Route>[
-      Route(
+      .new(
         '/',
         RootLayout.new,
-        children: [Route<ProfilePage>('profile/:id', ProfilePage.new)],
+        children: [
+          .new('profile/:id', ProfilePage.new),
+        ],
       ),
-      Route('**', NotFound.new),
+      .new('**', NotFound.new),
     ];
 
     final router = createRouter(routes: routes);

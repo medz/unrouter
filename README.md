@@ -2,7 +2,7 @@ Unrouter 是一个基于 **zenrouter** 的极简路由：
 
 - routes 表描述路径、组件、嵌套路由
 - `<RouterView>` 递归渲染当前深度组件
-- 字符串导航：`router.push(RouteLocation.path('/path'))`
+- 字符串/命名导航：`router.push(.path('/path'))` / `router.push(.name('foo'))`
 - 顶级函数式 API：`useRouter`、`useRoute`、`useRouterParams`、`useQueryParams`
 
 ## 安装
@@ -22,16 +22,16 @@ import 'package:flutter/material.dart';
 import 'package:unrouter/unrouter.dart';
 
 const routes = <Route>[
-  Route<RootLayout>(
+  .new(
     '/',
     RootLayout.new,
     children: [
-      Route<Home>('', Home.new), // `/`
-      Route<About>('about', About.new), // `/about`
-      Route<Profile>('users/:id', Profile.new), // `/users/:id`
+      .new('', Home.new, name: 'home'), // `/`
+      .new('about', About.new, name: 'about'), // `/about`
+      .new('users/:id', Profile.new, name: 'profile'), // `/users/:id`
     ],
   ),
-  Route<NotFound>('**', NotFound.new),
+  .new('**', NotFound.new),
 ];
 
 final router = createRouter(routes: routes);
@@ -67,15 +67,13 @@ class Home extends StatelessWidget {
       children: [
         const Text('Home'),
         ElevatedButton(
-          onPressed: () => router.push(
-            const RouteLocation.path('/about', query: {'tab': 'info'}),
-          ),
+          onPressed: () =>
+              router.push(const .name('about', query: {'tab': 'info'})),
           child: const Text('Go About'),
         ),
         ElevatedButton(
-          onPressed: () => router.push(
-            const RouteLocation.path('/users/42'),
-          ),
+          onPressed: () =>
+              router.push(const .name('profile', params: {'id': '42'})),
           child: const Text('Go Profile 42'),
         ),
       ],

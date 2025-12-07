@@ -2,16 +2,16 @@ import 'package:flutter/material.dart' hide Route;
 import 'package:unrouter/unrouter.dart';
 
 const routes = <Route>[
-  Route<RootLayout>(
+  .new(
     '/',
     RootLayout.new,
     children: [
-      Route<Home>('', Home.new),
-      Route<About>('about', About.new),
-      Route<Profile>('users/:id', Profile.new),
+      .new('', Home.new, name: 'home'),
+      .new('about', About.new, name: 'about'),
+      .new('users/:id', Profile.new, name: 'profile'),
     ],
   ),
-  Route<NotFound>('**', NotFound.new),
+  .new('**', NotFound.new),
 ];
 
 final router = createRouter(routes: routes);
@@ -58,13 +58,16 @@ class Home extends StatelessWidget {
         const Text('Home', style: TextStyle(fontSize: 20)),
         const SizedBox(height: 8),
         ElevatedButton(
-          onPressed: () =>
-              router.push(const .path('/about', query: {'tab': 'info'})),
-          child: const Text('Go /about'),
+          onPressed: () => router.push(
+            const .name('about', query: {'tab': 'info'}),
+          ),
+          child: const Text('Go about'),
         ),
         ElevatedButton(
-          onPressed: () => router.push(const .path('/users/42')),
-          child: const Text('Go /users/42'),
+          onPressed: () => router.push(
+            const .name('profile', params: {'id': '42'}),
+          ),
+          child: const Text('Go profile 42'),
         ),
       ],
     );
