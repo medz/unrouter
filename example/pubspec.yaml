@@ -1,0 +1,20 @@
+name: unrouter_example
+description: "Demo app for unrouter."
+publish_to: "none"
+version: 0.0.1
+
+environment:
+  sdk: ^3.10.3
+  flutter: ">=1.17.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  unrouter:
+    path: ../
+
+dev_dependencies:
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
