@@ -9,8 +9,7 @@ Unrouter is a tiny wrapper on **zenrouter**:
 
 ```yaml
 dependencies:
-  unrouter:
-    path: ../unrouter # adjust to your source
+  unrouter: any
 ```
 
 ## Usage
