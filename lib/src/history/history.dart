@@ -10,6 +10,8 @@ import 'update.dart';
 /// 所有的 History 实现都提供相同的 API，使得可以在不同环境间
 /// 无缝切换，而无需修改应用代码。
 abstract class History {
+  const History();
+
   /// 获取当前位置。
   Location get location;
 

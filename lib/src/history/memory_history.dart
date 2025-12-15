@@ -60,14 +60,14 @@ class MemoryHistory extends History {
   ///   initialIndex: 1, // 从 '/b' 开始
   /// );
   /// ```
-  MemoryHistory({
-    Iterable<Location>? initialEntries,
-    int? initialIndex,
-  })  : _entries = initialEntries?.toList() ?? [Location(pathname: '/')],
-        _index = initialIndex ?? (initialEntries?.length ?? 1) - 1 {
+  MemoryHistory({Iterable<Location>? initialEntries, int? initialIndex})
+    : _entries = initialEntries?.toList() ?? [Location(pathname: '/')],
+      _index = initialIndex ?? (initialEntries?.length ?? 1) - 1 {
     // 验证初始索引有效
     if (_index < 0 || _index >= _entries.length) {
-      throw RangeError('initialIndex must be between 0 and ${_entries.length - 1}');
+      throw RangeError(
+        'initialIndex must be between 0 and ${_entries.length - 1}',
+      );
     }
   }
 
