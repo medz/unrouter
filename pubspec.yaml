@@ -1,6 +1,6 @@
 name: unrouter
-description: "Minimal router built on zenrouter with Route/RouterView/useRouter APIs."
-version: 0.0.1
+description: "Declarative Flutter router with Navigator 2 pages, Navigator 1 bridge, and routingkit matching."
+version: 0.1.0
 
 repository: https://github.com/medz/unrouter
 
@@ -11,9 +11,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  flutter_web_plugins:
-    sdk: flutter
-  zenrouter: ^0.2.3
+  routingkit: ^5.1.2
+  web: ^1.1.1
 
 dev_dependencies:
   flutter_test:

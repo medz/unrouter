@@ -1,119 +1,62 @@
-Unrouter is a tiny wrapper on **zenrouter**:
+Unrouter is a minimal Flutter router built on `routingkit`. It renders nested routes via `RouterView`, bridges Navigator 1 `pushNamed`, and keeps a platform-aware history (memory or web hash/path).
 
-- Describe routes with path + builder + children
-- `RouterView` renders nested routes
-- Navigate by path or name: `router.push(.path('/path'))` / `router.push(.name('foo'))`
-- Utils: `useRouter`, `useRoute`, `useRouterParams`, `useQueryParams`
+- Install
+  ```yaml
+  dependencies:
+    unrouter: ^0.1.0
+  ```
 
-## Install
-
-```yaml
-dependencies:
-  unrouter: any
-```
-
-## Usage
-
-```dart
-import 'package:flutter/material.dart' hide Route;
-import 'package:unrouter/unrouter.dart';
-
-final router = createRouter(
-  // Optional: pick URL strategy for web builds (hash/path).
-  strategy: .path,
-  routes: [
-    .new(
+- Define routes
+  ```dart
+  final routes = <Route>[
+    Route(
       path: '/',
-      builder: (_) => const RootLayout(),
+      builder: (_) => const Layout(),
       children: [
-        .new(path: '', builder: (_) => const Home(), name: 'home'),
-        .new(path: 'about', builder: (_) => const About(), name: 'about'),
-        .new(
-          path: 'users/:id',
-          builder: (_) => const Profile(),
-          name: 'profile',
-        ),
+        Route(path: '', builder: (_) => const HomePage(), name: 'home'),
+        Route(path: 'users/:id', builder: (_) => const UserPage(), name: 'user'),
+        Route(path: '**', builder: (_) => const NotFoundPage()),
       ],
     ),
-    .new(path: '**', builder: (_) => const NotFound()),
-  ],
-);
+  ];
+  ```
 
-void main() {
-  runApp(
-    MaterialApp.router(
-      routerDelegate: router.delegate,
-      routeInformationParser: router.informationParser,
-    ),
+- Build a router (defaults: web → hash history, others → memory)
+  ```dart
+  final router = createRouter(
+    routes: routes,
+    // optional: history: createWebHistory(), createWebHashHistory(), createMemoryHistory(),
+    // optional: initialPath: '/home',
   );
-}
+  ```
 
-class RootLayout extends StatelessWidget {
-  const RootLayout({super.key});
+- Wire into your app
+  ```dart
+  MaterialApp.router(
+    routerDelegate: router.delegate,
+    routeInformationParser: router.informationParser,
+  );
+  ```
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Unrouter demo')),
-      body: const RouterView(),
-    );
+- Navigate inside widgets
+  ```dart
+  final router = useRouter(context);
+  final route = useRoute(context); // uri, params, query, state
+  router.push(const RouteLocation.name('user', params: {'id': '42'}));
+  ```
+
+- Render nested content and links
+  ```dart
+  class Layout extends StatelessWidget {
+    const Layout({super.key});
+    @override
+    Widget build(BuildContext context) => const RouterView();
   }
-}
 
-class Home extends StatelessWidget {
-  const Home({super.key});
+  const RouterLink(
+    location: RouteLocation.path('/settings'),
+    child: Text('Go settings'),
+  );
+  ```
 
-  @override
-  Widget build(BuildContext context) {
-    final router = useRouter(context);
-    return Column(
-      children: [
-        const Text('Home'),
-        ElevatedButton(
-          onPressed: () =>
-              router.push(const .name('about', query: {'tab': 'info'})),
-          child: const Text('Go About'),
-        ),
-        ElevatedButton(
-          onPressed: () =>
-              router.push(const .name('profile', params: {'id': '42'})),
-          child: const Text('Go Profile 42'),
-        ),
-      ],
-    );
-  }
-}
-
-class About extends StatelessWidget {
-  const About({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final query = useQueryParams(context);
-    return Text('About page, tab=${query['tab']}');
-  }
-}
-
-class Profile extends StatelessWidget {
-  const Profile({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final params = useRouterParams(context);
-    return Text('Profile id=${params['id']}');
-  }
-}
-
-class NotFound extends StatelessWidget {
-  const NotFound({super.key});
-
-  @override
-  Widget build(BuildContext context) => const Text('404');
-}
-```
-
-See `example/` for a runnable app:
-
-```sh
-flutter run -d chrome example/lib/main.dart
-```
+- Navigator compatibility: `Navigator.of(context).pushNamed('/users/42')` is bridged into the same history stack; `pop` delegates to router history.
