@@ -1,4 +1,4 @@
-import '../route.dart';
+import '../inlet.dart';
 
 /// Cache key for route widgets that should be reused across navigation.
 ///
@@ -7,7 +7,7 @@ import '../route.dart';
 class RouteCacheKey {
   const RouteCacheKey(this.route, this.params);
 
-  final Route route;
+  final Inlet route;
   final Map<String, String> params;
 
   @override

@@ -5,7 +5,7 @@ void main() {
   group('Base Path', () {
     test('history uses provided base path', () {
       final router = Unrouter(
-        [Route.index(() => throw UnimplementedError())],
+        [Inlet.index(() => throw UnimplementedError())],
         mode: HistoryMode.memory,
         base: '/my-app',
       );
@@ -15,7 +15,7 @@ void main() {
 
     test('history defaults to / when base not provided', () {
       final router = Unrouter([
-        Route.index(() => throw UnimplementedError()),
+        Inlet.index(() => throw UnimplementedError()),
       ], mode: HistoryMode.memory);
 
       expect(router.history.base, '/');
@@ -23,7 +23,7 @@ void main() {
 
     test('createHref uses base path', () {
       final router = Unrouter(
-        [Route.index(() => throw UnimplementedError())],
+        [Inlet.index(() => throw UnimplementedError())],
         mode: HistoryMode.memory,
         base: '/my-app',
       );
@@ -34,7 +34,7 @@ void main() {
 
     test('createHref with default base', () {
       final router = Unrouter([
-        Route.index(() => throw UnimplementedError()),
+        Inlet.index(() => throw UnimplementedError()),
       ], mode: HistoryMode.memory);
 
       final href = router.history.createHref('/about');
@@ -43,7 +43,7 @@ void main() {
 
     test('base path is normalized', () {
       final router = Unrouter(
-        [Route.index(() => throw UnimplementedError())],
+        [Inlet.index(() => throw UnimplementedError())],
         mode: HistoryMode.memory,
         base: '/my-app/', // Trailing slash
       );

@@ -1,8 +1,8 @@
-import 'package:flutter/widgets.dart' hide Route;
+import 'package:flutter/widgets.dart';
 
 import 'history/memory.dart';
 import 'history/types.dart';
-import 'route.dart';
+import 'inlet.dart';
 import '_internal/route_information_parser.dart';
 import '_internal/route_information_provider.dart';
 import '_internal/router_delegate.dart';
@@ -19,11 +19,11 @@ enum HistoryMode { memory, browser, hash }
 /// Example:
 /// ```dart
 /// final router = Unrouter([
-///   Route.index(HomePage.new),
-///   Route.path('about', AboutPage.new),
-///   Route.nested('users', UsersLayout.new, [
-///     Route.index(UsersIndexPage.new),
-///     Route.path(':id', UserDetailPage.new),
+///   Inlet.index(HomePage.new),
+///   Inlet.path('about', AboutPage.new),
+///   Inlet.nested('users', UsersLayout.new, [
+///     Inlet.index(UsersIndexPage.new),
+///     Inlet.path(':id', UserDetailPage.new),
 ///   ]),
 /// ], mode: HistoryMode.memory);
 ///
@@ -31,7 +31,7 @@ enum HistoryMode { memory, browser, hash }
 /// ```
 class Unrouter extends RouterConfig<RouteInformation> {
   factory Unrouter(
-    List<Route> routes, {
+    List<Inlet> routes, {
     required HistoryMode mode,
     String? initialLocation,
     String base = '/',
@@ -68,7 +68,7 @@ class Unrouter extends RouterConfig<RouteInformation> {
        _delegate = delegate;
 
   /// The route configuration.
-  final Iterable<Route> routes;
+  final Iterable<Inlet> routes;
 
   final RouterHistory _history;
   final UnrouterDelegate _delegate;

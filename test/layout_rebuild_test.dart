@@ -1,4 +1,4 @@
-import 'package:flutter/widgets.dart' hide Route;
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:unrouter/unrouter.dart';
 
@@ -34,7 +34,10 @@ void main() {
       return _BuildCounter(
         onBuild: () => counts.build++,
         child: Column(
-          children: [Text(header), const Expanded(child: RouterView())],
+          children: [
+            Text(header),
+            const Expanded(child: Outlet()),
+          ],
         ),
       );
     };
@@ -43,10 +46,7 @@ void main() {
   Widget Function() trackedLeafFactory(String label, _Counts counts) {
     return () {
       counts.factory++;
-      return _BuildCounter(
-        onBuild: () => counts.build++,
-        child: Text(label),
-      );
+      return _BuildCounter(onBuild: () => counts.build++, child: Text(label));
     };
   }
 
@@ -68,9 +68,9 @@ void main() {
 
       final router = Unrouter(
         [
-          Route.layout(trackedLayoutFactory('Auth', auth), [
-            Route.path('login', trackedLeafFactory('Login', login)),
-            Route.path('register', trackedLeafFactory('Register', register)),
+          Inlet.layout(trackedLayoutFactory('Auth', auth), [
+            Inlet.path('login', trackedLeafFactory('Login', login)),
+            Inlet.path('register', trackedLeafFactory('Register', register)),
           ]),
         ],
         mode: HistoryMode.memory,
@@ -147,9 +147,9 @@ void main() {
 
       final router = Unrouter(
         [
-          Route.nested('parent', trackedLayoutFactory('Parent', parent), [
-            Route.path('child1', trackedLeafFactory('Child 1', child1)),
-            Route.path('child2', trackedLeafFactory('Child 2', child2)),
+          Inlet.nested('parent', trackedLayoutFactory('Parent', parent), [
+            Inlet.path('child1', trackedLeafFactory('Child 1', child1)),
+            Inlet.path('child2', trackedLeafFactory('Child 2', child2)),
           ]),
         ],
         mode: HistoryMode.memory,
@@ -220,4 +220,3 @@ void main() {
     });
   });
 }
-

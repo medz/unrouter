@@ -1,10 +1,10 @@
-import 'package:flutter/widgets.dart' hide Route;
+import 'package:flutter/widgets.dart';
 
 import '../history/types.dart';
-import 'route_cache_key.dart';
-import '../route.dart';
+import '../inlet.dart';
 import '../router_state.dart';
 import 'route_matcher.dart';
+import 'stacked_route_view.dart';
 
 /// The router delegate that manages navigation state and builds the widget tree.
 class UnrouterDelegate extends RouterDelegate<RouteInformation>
@@ -12,7 +12,7 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
   UnrouterDelegate({required this.routes});
 
   /// The root routes configuration.
-  final List<Route> routes;
+  final List<Inlet> routes;
 
   /// The underlying history implementation.
   RouterHistory? _history;
@@ -33,15 +33,6 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
 
   /// Current navigation type (push or pop).
   NavigationType _navigationType = NavigationType.push;
-
-  /// Root page stack.
-  ///
-  /// - Leaf routes are keyed by history index (so they can be stacked).
-  /// - Layout/nested routes are keyed by [RouteCacheKey] (so they can be reused).
-  final Map<Object, _PageEntry> _pageStack = {};
-
-  /// Stack key order, for IndexedStack rendering.
-  final List<Object> _indexOrder = [];
 
   /// Attaches the history implementation.
   void attachHistory(RouterHistory history) {
@@ -128,16 +119,6 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
       return const SizedBox.shrink();
     }
 
-    final firstMatched = _matchedRoutes[0];
-    final pageKey = firstMatched.route.children.isNotEmpty
-        ? RouteCacheKey(firstMatched.route, firstMatched.params)
-        : _historyIndex;
-
-    // On push/replace, remove any leaf indices that are no longer reachable.
-    if (_navigationType == NavigationType.push) {
-      _indexOrder.removeWhere((key) => key is int && key > _historyIndex);
-    }
-
     // Create router state
     final state = RouterState(
       location: _currentConfiguration.uri.path,
@@ -146,61 +127,7 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
       historyIndex: _historyIndex,
       navigationType: _navigationType,
     );
-
-    // Get or create page for this key.
-    _PageEntry? pageEntry = _pageStack[pageKey];
-    final shouldRecreate =
-        _navigationType == NavigationType.push && pageKey is int;
-
-    if (pageEntry == null || shouldRecreate) {
-      // Create new page for push/replace navigation
-      final widget = RouterStateProvider(
-        state: state,
-        child: KeyedSubtree(
-          key: UniqueKey(),
-          child: firstMatched.route.factory(),
-        ),
-      );
-      pageEntry = _PageEntry(route: firstMatched.route, widget: widget, state: state);
-      _pageStack[pageKey] = pageEntry;
-
-      if (!_indexOrder.contains(pageKey)) {
-        _indexOrder.add(pageKey);
-      }
-    } else {
-      // Update state but keep widget tree
-      final existingPage = pageEntry;
-      pageEntry = _PageEntry(
-        route: existingPage.route,
-        widget: RouterStateProvider(
-          state: state,
-          child: (existingPage.widget as RouterStateProvider).child,
-        ),
-        state: state,
-      );
-      _pageStack[pageKey] = pageEntry;
-      if (!_indexOrder.contains(pageKey)) {
-        _indexOrder.add(pageKey);
-      }
-    }
-
-    // Find current index in stack
-    final stackIndex = _indexOrder.indexOf(pageKey);
-
-    // Build all pages in stack
-    final children = _indexOrder.map((key) {
-      return _pageStack[key]?.widget ?? const SizedBox.shrink();
-    }).toList();
-
-    if (children.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    // Use IndexedStack to preserve all pages
-    return IndexedStack(
-      index: stackIndex >= 0 ? stackIndex : children.length - 1,
-      children: children,
-    );
+    return StackedRouteView(state: state, levelOffset: 0);
   }
 
   @override
@@ -218,16 +145,4 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
     _unlistenHistory?.call();
     super.dispose();
   }
-}
-
-class _PageEntry {
-  const _PageEntry({
-    required this.route,
-    required this.widget,
-    required this.state,
-  });
-
-  final Route route;
-  final Widget widget;
-  final RouterState state;
 }

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart' hide Route;
+import 'package:flutter/material.dart';
 import 'package:unrouter/unrouter.dart';
 
 void main() {
@@ -8,19 +8,19 @@ void main() {
 // Router configuration
 final router = Unrouter(const [
   .index(Home.new),
-  Route.path('about', About.new),
+  .path('about', About.new),
 
   // Layout route - wraps children without adding path segment
   .layout(AuthLayout.new, [
-    Route.path('login', Login.new),
-    Route.path('register', Register.new),
+    .path('login', Login.new),
+    .path('register', Register.new),
   ]),
 
   // Nested route - has path segment + children
   .nested('concerts', ConcertsLayout.new, [
-    Route.index(ConcertsHome.new),
-    Route.path(':city', CityPage.new),
-    Route.path('trending', TrendingPage.new),
+    .index(ConcertsHome.new),
+    .path(':city', CityPage.new),
+    .path('trending', TrendingPage.new),
   ]),
 ], mode: HistoryMode.memory);
 
@@ -198,7 +198,7 @@ class AuthLayout extends StatelessWidget {
                 ),
               ),
               // Child routes render here
-              const Expanded(child: RouterView()),
+              const Expanded(child: Outlet()),
             ],
           ),
         ),
@@ -378,7 +378,7 @@ class ConcertsLayout extends StatelessWidget {
             ),
           ),
           // Child routes render here
-          const Expanded(child: RouterView()),
+          const Expanded(child: Outlet()),
         ],
       ),
     );

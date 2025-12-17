@@ -1,4 +1,4 @@
-import 'package:flutter/widgets.dart' hide Route;
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:unrouter/unrouter.dart';
 
@@ -13,8 +13,8 @@ void main() {
   group('Basic Routing', () {
     testWidgets('renders index route', (tester) async {
       final router = Unrouter([
-        Route.index(() => const Text('Index')),
-        Route.path('about', () => const Text('About')),
+        Inlet.index(() => const Text('Index')),
+        Inlet.path('about', () => const Text('About')),
       ], mode: HistoryMode.memory);
 
       await tester.pumpWidget(wrapRouter(router));
@@ -26,8 +26,8 @@ void main() {
     testWidgets('renders path route', (tester) async {
       final router = Unrouter(
         [
-          Route.index(() => const Text('Index')),
-          Route.path('about', () => const Text('About')),
+          Inlet.index(() => const Text('Index')),
+          Inlet.path('about', () => const Text('About')),
         ],
         mode: HistoryMode.memory,
         initialLocation: '/about',
@@ -43,8 +43,8 @@ void main() {
       late Unrouter router;
 
       router = Unrouter([
-        Route.index(() => const Text('Index')),
-        Route.path('about', () => const Text('About')),
+        Inlet.index(() => const Text('Index')),
+        Inlet.path('about', () => const Text('About')),
       ], mode: HistoryMode.memory);
 
       await tester.pumpWidget(wrapRouter(router));
@@ -60,18 +60,18 @@ void main() {
   });
 
   group('Nested Routing', () {
-    testWidgets('renders nested routes with RouterView', (tester) async {
+    testWidgets('renders nested routes with Outlet', (tester) async {
       Widget createConcerts() {
         return Column(
-          children: [const Text('Concerts Layout'), const RouterView()],
+          children: [const Text('Concerts Layout'), const Outlet()],
         );
       }
 
       final router = Unrouter(
         [
-          Route.nested('concerts', createConcerts, [
-            Route.index(() => const Text('All Concerts')),
-            Route.path('trending', () => const Text('Trending')),
+          Inlet.nested('concerts', createConcerts, [
+            Inlet.index(() => const Text('All Concerts')),
+            Inlet.path('trending', () => const Text('Trending')),
           ]),
         ],
         mode: HistoryMode.memory,
@@ -90,15 +90,15 @@ void main() {
 
       Widget createConcerts() {
         return Column(
-          children: [const Text('Concerts Layout'), const RouterView()],
+          children: [const Text('Concerts Layout'), const Outlet()],
         );
       }
 
       router = Unrouter(
         [
-          Route.nested('concerts', createConcerts, [
-            Route.index(() => const Text('All Concerts')),
-            Route.path('trending', () => const Text('Trending')),
+          Inlet.nested('concerts', createConcerts, [
+            Inlet.index(() => const Text('All Concerts')),
+            Inlet.path('trending', () => const Text('Trending')),
           ]),
         ],
         mode: HistoryMode.memory,
@@ -124,16 +124,14 @@ void main() {
       tester,
     ) async {
       Widget createAuth() {
-        return Column(
-          children: [const Text('Auth Layout'), const RouterView()],
-        );
+        return Column(children: [const Text('Auth Layout'), const Outlet()]);
       }
 
       final router = Unrouter(
         [
-          Route.layout(createAuth, [
-            Route.path('login', () => const Text('Login')),
-            Route.path('register', () => const Text('Register')),
+          Inlet.layout(createAuth, [
+            Inlet.path('login', () => const Text('Login')),
+            Inlet.path('register', () => const Text('Register')),
           ]),
         ],
         mode: HistoryMode.memory,
@@ -151,16 +149,14 @@ void main() {
       late Unrouter router;
 
       Widget createAuth() {
-        return Column(
-          children: [const Text('Auth Layout'), const RouterView()],
-        );
+        return Column(children: [const Text('Auth Layout'), const Outlet()]);
       }
 
       router = Unrouter(
         [
-          Route.layout(createAuth, [
-            Route.path('login', () => const Text('Login')),
-            Route.path('register', () => const Text('Register')),
+          Inlet.layout(createAuth, [
+            Inlet.path('login', () => const Text('Login')),
+            Inlet.path('register', () => const Text('Register')),
           ]),
         ],
         mode: HistoryMode.memory,
@@ -193,7 +189,7 @@ void main() {
       }
 
       final router = Unrouter(
-        [Route.path(':id', createUser)],
+        [Inlet.path(':id', createUser)],
         mode: HistoryMode.memory,
         initialLocation: '/123',
       );
@@ -205,7 +201,7 @@ void main() {
 
     testWidgets('extracts params from nested routes', (tester) async {
       Widget createUsers() {
-        return Column(children: [const Text('Users'), const RouterView()]);
+        return Column(children: [const Text('Users'), const Outlet()]);
       }
 
       Widget createUser() {
@@ -220,7 +216,7 @@ void main() {
 
       final router = Unrouter(
         [
-          Route.nested('users', createUsers, [Route.path(':id', createUser)]),
+          Inlet.nested('users', createUsers, [Inlet.path(':id', createUser)]),
         ],
         mode: HistoryMode.memory,
         initialLocation: '/users/123',
@@ -236,11 +232,11 @@ void main() {
   group('Complex Nesting', () {
     testWidgets('handles multiple levels of nesting', (tester) async {
       Widget createApp() {
-        return Column(children: [const Text('App'), const RouterView()]);
+        return Column(children: [const Text('App'), const Outlet()]);
       }
 
       Widget createUsers() {
-        return Column(children: [const Text('Users'), const RouterView()]);
+        return Column(children: [const Text('Users'), const Outlet()]);
       }
 
       Widget createUserDetail() {
@@ -248,9 +244,7 @@ void main() {
           builder: (context) {
             final state = RouterStateProvider.of(context);
             final userId = state.params['userId'] ?? 'unknown';
-            return Column(
-              children: [Text('User: $userId'), const RouterView()],
-            );
+            return Column(children: [Text('User: $userId'), const Outlet()]);
           },
         );
       }
@@ -268,10 +262,10 @@ void main() {
 
       final router = Unrouter(
         [
-          Route.layout(createApp, [
-            Route.nested('users', createUsers, [
-              Route.nested(':userId', createUserDetail, [
-                Route.path(':postId', createPost),
+          Inlet.layout(createApp, [
+            Inlet.nested('users', createUsers, [
+              Inlet.nested(':userId', createUserDetail, [
+                Inlet.path(':postId', createPost),
               ]),
             ]),
           ]),

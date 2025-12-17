@@ -1,4 +1,4 @@
-import 'package:flutter/widgets.dart' hide Route;
+import 'package:flutter/widgets.dart';
 
 import '_internal/route_matcher.dart';
 import 'history/types.dart';

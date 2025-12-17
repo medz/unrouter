@@ -1,12 +1,12 @@
 import 'path_matcher.dart';
 
-import '../route.dart';
+import '../inlet.dart';
 
 /// A matched route with extracted parameters.
 class MatchedRoute {
   const MatchedRoute(this.route, this.params);
 
-  final Route route;
+  final Inlet route;
   final Map<String, String> params;
 
   @override
@@ -32,7 +32,7 @@ class RouteMatchResult {
 ///
 /// Returns a [RouteMatchResult] containing the matched route stack.
 /// The first element is the root route, the last is the leaf route.
-RouteMatchResult matchRoutes(List<Route> routes, String location) {
+RouteMatchResult matchRoutes(List<Inlet> routes, String location) {
   final segments = normalizePath(location);
   final pathSegments = segments.isEmpty ? <String>[] : segments.split('/');
 
@@ -49,7 +49,7 @@ class _MatchResult {
 }
 
 _MatchResult _matchRecursive(
-  List<Route> routes,
+  List<Inlet> routes,
   List<String> segments,
   int offset,
 ) {
