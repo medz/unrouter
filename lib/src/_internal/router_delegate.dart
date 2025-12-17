@@ -67,7 +67,7 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
   void _updateMatchedRoutes() {
     final location = _currentConfiguration.uri.path;
     final result = matchRoutes(routes, location);
-    _matchedRoutes = result.matched ? result.matches : [];
+    _matchedRoutes = result.matched ? result.matches : const [];
   }
 
   @override

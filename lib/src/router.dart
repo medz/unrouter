@@ -48,7 +48,7 @@ class Unrouter extends RouterConfig<RouteInformation> {
     return Unrouter._(
       routes: routes,
       routeInformationProvider: UnrouteInformationProvider(history: history),
-      routeInformationParser: UnrouteInformationParser(),
+      routeInformationParser: const UnrouteInformationParser(),
       routerDelegate: delegate,
       backButtonDispatcher: RootBackButtonDispatcher(),
       history: history,
