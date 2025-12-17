@@ -33,8 +33,7 @@ enum HistoryMode { memory, browser, hash }
 /// MaterialApp.router(routerConfig: router);
 /// ```
 class Unrouter extends RouterConfig<RouteInformation> {
-  factory Unrouter(
-    {
+  factory Unrouter({
     required List<Inlet> routes,
     required HistoryMode mode,
     String? initialLocation,
