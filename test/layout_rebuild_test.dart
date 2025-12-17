@@ -2,6 +2,24 @@ import 'package:flutter/widgets.dart' hide Route;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:unrouter/unrouter.dart';
 
+class _Counts {
+  int factory = 0;
+  int build = 0;
+}
+
+class _BuildCounter extends StatelessWidget {
+  const _BuildCounter({required this.onBuild, required this.child});
+
+  final void Function() onBuild;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    onBuild();
+    return child;
+  }
+}
+
 void main() {
   Widget wrapRouter(Unrouter router) {
     return Directionality(
@@ -10,248 +28,196 @@ void main() {
     );
   }
 
-  group('Layout Rebuild Optimization', () {
-    testWidgets(
-      'layout route does not rebuild when switching between child routes',
-      (tester) async {
-        int layoutBuildCount = 0;
-        int loginBuildCount = 0;
-        int registerBuildCount = 0;
+  Widget Function() trackedLayoutFactory(String header, _Counts counts) {
+    return () {
+      counts.factory++;
+      return _BuildCounter(
+        onBuild: () => counts.build++,
+        child: Column(
+          children: [Text(header), const Expanded(child: RouterView())],
+        ),
+      );
+    };
+  }
 
-        Widget buildAuthLayout() {
-          layoutBuildCount++;
-          return Column(
-            children: [
-              const Text('Auth Header'),
-              const Expanded(child: RouterView()),
-            ],
-          );
-        }
+  Widget Function() trackedLeafFactory(String label, _Counts counts) {
+    return () {
+      counts.factory++;
+      return _BuildCounter(
+        onBuild: () => counts.build++,
+        child: Text(label),
+      );
+    };
+  }
 
-        Widget buildLogin() {
-          loginBuildCount++;
-          return const Text('Login');
-        }
+  void expectCounts(
+    _Counts counts, {
+    required String name,
+    required int factory,
+    required int build,
+  }) {
+    expect(counts.factory, factory, reason: '$name factory count mismatch');
+    expect(counts.build, build, reason: '$name build count mismatch');
+  }
 
-        Widget buildRegister() {
-          registerBuildCount++;
-          return const Text('Register');
-        }
+  group('Layout rebuild optimization', () {
+    testWidgets('layout route: factory + build counts', (tester) async {
+      final auth = _Counts();
+      final login = _Counts();
+      final register = _Counts();
 
-        final router = Unrouter(
-          [
-            Route.index(() => const Text('Home')),
-            Route.layout(buildAuthLayout, [
-              Route.path('login', buildLogin),
-              Route.path('register', buildRegister),
-            ]),
-          ],
-          mode: HistoryMode.memory,
-          initialLocation: '/login',
-        );
+      final router = Unrouter(
+        [
+          Route.layout(trackedLayoutFactory('Auth', auth), [
+            Route.path('login', trackedLeafFactory('Login', login)),
+            Route.path('register', trackedLeafFactory('Register', register)),
+          ]),
+        ],
+        mode: HistoryMode.memory,
+        initialLocation: '/login',
+      );
 
-        // Initial render at /login
-        await tester.pumpWidget(wrapRouter(router));
-        expect(find.text('Auth Header'), findsOneWidget);
-        expect(find.text('Login'), findsOneWidget);
-        expect(layoutBuildCount, 1);
-        expect(loginBuildCount, 1);
-        expect(registerBuildCount, 0);
+      await tester.pumpWidget(wrapRouter(router));
+      expect(find.text('Auth'), findsOneWidget);
+      expect(find.text('Login'), findsOneWidget);
+      expect(find.text('Register'), findsNothing);
+      expectCounts(auth, name: 'Auth', factory: 1, build: 1);
+      expectCounts(login, name: 'Login', factory: 1, build: 1);
+      expectCounts(register, name: 'Register', factory: 0, build: 0);
 
-        // Navigate to /register (push - creates new history entry)
-        router.push('/register');
-        await tester.pumpAndSettle();
+      router.push('/register');
+      await tester.pump();
+      expect(find.text('Auth'), findsOneWidget);
+      expect(find.text('Login'), findsNothing);
+      expect(find.text('Register'), findsOneWidget);
+      expectCounts(auth, name: 'Auth', factory: 1, build: 1);
+      expectCounts(login, name: 'Login', factory: 1, build: 1);
+      expectCounts(register, name: 'Register', factory: 1, build: 1);
 
-        expect(find.text('Auth Header'), findsOneWidget);
-        expect(find.text('Login'), findsNothing);
-        expect(find.text('Register'), findsOneWidget);
+      router.back();
+      await tester.pump();
+      expect(find.text('Auth'), findsOneWidget);
+      expect(find.text('Login'), findsOneWidget);
+      expect(find.text('Register'), findsNothing);
+      expectCounts(auth, name: 'Auth', factory: 1, build: 1);
+      expectCounts(login, name: 'Login', factory: 1, build: 1);
+      expectCounts(register, name: 'Register', factory: 1, build: 1);
 
-        // IMPORTANT: Layout should NOT rebuild when switching between children
-        expect(
-          layoutBuildCount,
-          1,
-          reason:
-              'Layout should not rebuild when switching between child routes',
-        );
-        expect(registerBuildCount, 1);
+      router.push('/register');
+      await tester.pump();
+      expect(find.text('Auth'), findsOneWidget);
+      expect(find.text('Login'), findsNothing);
+      expect(find.text('Register'), findsOneWidget);
+      expectCounts(auth, name: 'Auth', factory: 1, build: 1);
+      expectCounts(login, name: 'Login', factory: 1, build: 1);
+      expectCounts(register, name: 'Register', factory: 2, build: 2);
 
-        // Navigate back to /login using back() - should reuse existing widget
-        router.back();
-        await tester.pumpAndSettle();
+      router.push('/login');
+      await tester.pump();
+      expect(find.text('Auth'), findsOneWidget);
+      expect(find.text('Login'), findsOneWidget);
+      expect(find.text('Register'), findsNothing);
+      expectCounts(auth, name: 'Auth', factory: 1, build: 1);
+      expectCounts(login, name: 'Login', factory: 2, build: 2);
+      expectCounts(register, name: 'Register', factory: 2, build: 2);
 
-        expect(find.text('Auth Header'), findsOneWidget);
-        expect(find.text('Login'), findsOneWidget);
-        expect(find.text('Register'), findsNothing);
+      router.back();
+      await tester.pump();
+      expect(find.text('Auth'), findsOneWidget);
+      expect(find.text('Login'), findsNothing);
+      expect(find.text('Register'), findsOneWidget);
+      expectCounts(auth, name: 'Auth', factory: 1, build: 1);
+      expectCounts(login, name: 'Login', factory: 2, build: 2);
+      expectCounts(register, name: 'Register', factory: 2, build: 2);
 
-        // Layout and Login should not rebuild - back navigation reuses cached widgets
-        expect(
-          layoutBuildCount,
-          1,
-          reason:
-              'Layout should not rebuild when switching between child routes',
-        );
-        expect(
-          loginBuildCount,
-          1,
-          reason: 'Login should not rebuild when navigating back (Stack mode)',
-        );
-      },
-    );
+      router.back();
+      await tester.pump();
+      expect(find.text('Auth'), findsOneWidget);
+      expect(find.text('Login'), findsOneWidget);
+      expect(find.text('Register'), findsNothing);
+      expectCounts(auth, name: 'Auth', factory: 1, build: 1);
+      expectCounts(login, name: 'Login', factory: 2, build: 2);
+      expectCounts(register, name: 'Register', factory: 2, build: 2);
+    });
 
-    testWidgets(
-      'nested route does not rebuild when switching between child routes',
-      (tester) async {
-        int nestedBuildCount = 0;
-        int child1BuildCount = 0;
-        int child2BuildCount = 0;
+    testWidgets('nested route: factory + build counts', (tester) async {
+      final parent = _Counts();
+      final child1 = _Counts();
+      final child2 = _Counts();
 
-        Widget buildNested() {
-          nestedBuildCount++;
-          return Column(
-            children: [
-              const Text('Nested Header'),
-              const Expanded(child: RouterView()),
-            ],
-          );
-        }
+      final router = Unrouter(
+        [
+          Route.nested('parent', trackedLayoutFactory('Parent', parent), [
+            Route.path('child1', trackedLeafFactory('Child 1', child1)),
+            Route.path('child2', trackedLeafFactory('Child 2', child2)),
+          ]),
+        ],
+        mode: HistoryMode.memory,
+        initialLocation: '/parent/child1',
+      );
 
-        Widget buildChild1() {
-          child1BuildCount++;
-          return const Text('Child 1');
-        }
+      await tester.pumpWidget(wrapRouter(router));
+      expect(find.text('Parent'), findsOneWidget);
+      expect(find.text('Child 1'), findsOneWidget);
+      expect(find.text('Child 2'), findsNothing);
+      expectCounts(parent, name: 'Parent', factory: 1, build: 1);
+      expectCounts(child1, name: 'Child 1', factory: 1, build: 1);
+      expectCounts(child2, name: 'Child 2', factory: 0, build: 0);
 
-        Widget buildChild2() {
-          child2BuildCount++;
-          return const Text('Child 2');
-        }
+      router.push('/parent/child2');
+      await tester.pump();
+      expect(find.text('Parent'), findsOneWidget);
+      expect(find.text('Child 1'), findsNothing);
+      expect(find.text('Child 2'), findsOneWidget);
+      expectCounts(parent, name: 'Parent', factory: 1, build: 1);
+      expectCounts(child1, name: 'Child 1', factory: 1, build: 1);
+      expectCounts(child2, name: 'Child 2', factory: 1, build: 1);
 
-        final router = Unrouter(
-          [
-            Route.index(() => const Text('Home')),
-            Route.nested('parent', buildNested, [
-              Route.path('child1', buildChild1),
-              Route.path('child2', buildChild2),
-            ]),
-          ],
-          mode: HistoryMode.memory,
-          initialLocation: '/parent/child1',
-        );
+      router.back();
+      await tester.pump();
+      expect(find.text('Parent'), findsOneWidget);
+      expect(find.text('Child 1'), findsOneWidget);
+      expect(find.text('Child 2'), findsNothing);
+      expectCounts(parent, name: 'Parent', factory: 1, build: 1);
+      expectCounts(child1, name: 'Child 1', factory: 1, build: 1);
+      expectCounts(child2, name: 'Child 2', factory: 1, build: 1);
 
-        // Initial render at /parent/child1
-        await tester.pumpWidget(wrapRouter(router));
-        expect(find.text('Nested Header'), findsOneWidget);
-        expect(find.text('Child 1'), findsOneWidget);
-        expect(nestedBuildCount, 1);
-        expect(child2BuildCount, 0);
+      router.push('/parent/child2');
+      await tester.pump();
+      expect(find.text('Parent'), findsOneWidget);
+      expect(find.text('Child 1'), findsNothing);
+      expect(find.text('Child 2'), findsOneWidget);
+      expectCounts(parent, name: 'Parent', factory: 1, build: 1);
+      expectCounts(child1, name: 'Child 1', factory: 1, build: 1);
+      expectCounts(child2, name: 'Child 2', factory: 2, build: 2);
 
-        // Navigate to /parent/child2
-        router.push('/parent/child2');
-        await tester.pumpAndSettle();
+      router.push('/parent/child1');
+      await tester.pump();
+      expect(find.text('Parent'), findsOneWidget);
+      expect(find.text('Child 1'), findsOneWidget);
+      expect(find.text('Child 2'), findsNothing);
+      expectCounts(parent, name: 'Parent', factory: 1, build: 1);
+      expectCounts(child1, name: 'Child 1', factory: 2, build: 2);
+      expectCounts(child2, name: 'Child 2', factory: 2, build: 2);
 
-        expect(find.text('Nested Header'), findsOneWidget);
-        expect(find.text('Child 1'), findsNothing);
-        expect(find.text('Child 2'), findsOneWidget);
+      router.back();
+      await tester.pump();
+      expect(find.text('Parent'), findsOneWidget);
+      expect(find.text('Child 1'), findsNothing);
+      expect(find.text('Child 2'), findsOneWidget);
+      expectCounts(parent, name: 'Parent', factory: 1, build: 1);
+      expectCounts(child1, name: 'Child 1', factory: 2, build: 2);
+      expectCounts(child2, name: 'Child 2', factory: 2, build: 2);
 
-        // Nested route should NOT rebuild when switching between children
-        expect(
-          nestedBuildCount,
-          1,
-          reason:
-              'Nested route should not rebuild when switching between child routes',
-        );
-        expect(child2BuildCount, 1);
-      },
-    );
-
-    testWidgets(
-      'push after back recreates leaf route but not layout',
-      (tester) async {
-        int layoutBuildCount = 0;
-        int loginBuildCount = 0;
-        int registerBuildCount = 0;
-
-        Widget buildAuthLayout() {
-          layoutBuildCount++;
-          return Column(
-            children: [
-              const Text('Auth Header'),
-              const Expanded(child: RouterView()),
-            ],
-          );
-        }
-
-        Widget buildLogin() {
-          loginBuildCount++;
-          return const Text('Login');
-        }
-
-        Widget buildRegister() {
-          registerBuildCount++;
-          return const Text('Register');
-        }
-
-        final router = Unrouter(
-          [
-            Route.index(() => const Text('Home')),
-            Route.layout(buildAuthLayout, [
-              Route.path('login', buildLogin),
-              Route.path('register', buildRegister),
-            ]),
-          ],
-          mode: HistoryMode.memory,
-          initialLocation: '/login',
-        );
-
-        // Initial render at /login
-        await tester.pumpWidget(wrapRouter(router));
-        expect(find.text('Auth Header'), findsOneWidget);
-        expect(find.text('Login'), findsOneWidget);
-        expect(layoutBuildCount, 1);
-        expect(loginBuildCount, 1);
-        expect(registerBuildCount, 0);
-
-        // Push to /register - should create a new leaf widget.
-        router.push('/register');
-        await tester.pumpAndSettle();
-        expect(find.text('Register'), findsOneWidget);
-        expect(layoutBuildCount, 1);
-        expect(registerBuildCount, 1);
-
-        // Back to /login - should reuse existing widgets.
-        router.back();
-        await tester.pumpAndSettle();
-        expect(find.text('Login'), findsOneWidget);
-        expect(layoutBuildCount, 1);
-        expect(loginBuildCount, 1);
-
-        // Push to /register again (after back) - this is a new history entry,
-        // so leaf should be recreated, but layout should still be reused.
-        router.push('/register');
-        await tester.pumpAndSettle();
-        expect(find.text('Register'), findsOneWidget);
-        expect(layoutBuildCount, 1);
-        expect(registerBuildCount, 2);
-
-        // Push to /login again - new history entry, new leaf widget.
-        router.push('/login');
-        await tester.pumpAndSettle();
-        expect(find.text('Login'), findsOneWidget);
-        expect(layoutBuildCount, 1);
-        expect(loginBuildCount, 2);
-
-        // Back twice should reuse cached leaf widgets (no additional builds).
-        router.back();
-        await tester.pumpAndSettle();
-        expect(find.text('Register'), findsOneWidget);
-        expect(layoutBuildCount, 1);
-        expect(registerBuildCount, 2);
-
-        router.back();
-        await tester.pumpAndSettle();
-        expect(find.text('Login'), findsOneWidget);
-        expect(layoutBuildCount, 1);
-        expect(loginBuildCount, 2);
-      },
-    );
+      router.back();
+      await tester.pump();
+      expect(find.text('Parent'), findsOneWidget);
+      expect(find.text('Child 1'), findsOneWidget);
+      expect(find.text('Child 2'), findsNothing);
+      expectCounts(parent, name: 'Parent', factory: 1, build: 1);
+      expectCounts(child1, name: 'Child 1', factory: 2, build: 2);
+      expectCounts(child2, name: 'Child 2', factory: 2, build: 2);
+    });
   });
 }
+
