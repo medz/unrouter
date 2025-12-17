@@ -82,10 +82,12 @@ void main() {
     });
 
     test('matches multiple dynamic params', () {
-      final match = matchPath(
-        'users/:userId/posts/:postId',
-        ['users', 'alice', 'posts', '456'],
-      );
+      final match = matchPath('users/:userId/posts/:postId', [
+        'users',
+        'alice',
+        'posts',
+        '456',
+      ]);
       expect(match.matched, true);
       expect(match.params, {'userId': 'alice', 'postId': '456'});
       expect(match.remaining, []);

@@ -184,12 +184,7 @@ void main() {
       late Unrouter router;
 
       Widget createLayout() {
-        return Column(
-          children: [
-            const Text('Layout'),
-            const RouterView(),
-          ],
-        );
+        return Column(children: [const Text('Layout'), const RouterView()]);
       }
 
       router = Unrouter(

@@ -1,4 +1,3 @@
-import 'package:flutter/widgets.dart' hide Route;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:unrouter/unrouter.dart';
 
@@ -6,9 +5,7 @@ void main() {
   group('Base Path', () {
     test('history uses provided base path', () {
       final router = Unrouter(
-        [
-          Route.index(() => throw UnimplementedError()),
-        ],
+        [Route.index(() => throw UnimplementedError())],
         mode: HistoryMode.memory,
         base: '/my-app',
       );
@@ -17,21 +14,16 @@ void main() {
     });
 
     test('history defaults to / when base not provided', () {
-      final router = Unrouter(
-        [
-          Route.index(() => throw UnimplementedError()),
-        ],
-        mode: HistoryMode.memory,
-      );
+      final router = Unrouter([
+        Route.index(() => throw UnimplementedError()),
+      ], mode: HistoryMode.memory);
 
       expect(router.history.base, '/');
     });
 
     test('createHref uses base path', () {
       final router = Unrouter(
-        [
-          Route.index(() => throw UnimplementedError()),
-        ],
+        [Route.index(() => throw UnimplementedError())],
         mode: HistoryMode.memory,
         base: '/my-app',
       );
@@ -41,12 +33,9 @@ void main() {
     });
 
     test('createHref with default base', () {
-      final router = Unrouter(
-        [
-          Route.index(() => throw UnimplementedError()),
-        ],
-        mode: HistoryMode.memory,
-      );
+      final router = Unrouter([
+        Route.index(() => throw UnimplementedError()),
+      ], mode: HistoryMode.memory);
 
       final href = router.history.createHref('/about');
       expect(href, '/about');
@@ -54,11 +43,9 @@ void main() {
 
     test('base path is normalized', () {
       final router = Unrouter(
-        [
-          Route.index(() => throw UnimplementedError()),
-        ],
+        [Route.index(() => throw UnimplementedError())],
         mode: HistoryMode.memory,
-        base: '/my-app/',  // Trailing slash
+        base: '/my-app/', // Trailing slash
       );
 
       // Base should be normalized (trailing slash removed)

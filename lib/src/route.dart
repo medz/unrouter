@@ -37,13 +37,13 @@ class Route {
   final List<Route> children;
 
   /// Whether this is a layout route (no path segment, just wraps children).
-  final bool isLayout;
+  final bool layout;
 
-  const Route._({
+  const Route({
     required this.path,
     required this.factory,
-    required this.children,
-    required this.isLayout,
+    this.children = const [],
+    this.layout = false,
   });
 
   /// Creates an index route that matches when no path segment remains.
@@ -52,13 +52,10 @@ class Route {
   /// ```dart
   /// Route.index(HomePage.new)  // Matches '/' or when parent path is fully matched
   /// ```
-  const Route.index(Widget Function() factory)
-      : this._(
-          path: null,
-          factory: factory,
-          children: const [],
-          isLayout: false,
-        );
+  const Route.index(this.factory)
+    : path = null,
+      children = const [],
+      layout = false;
 
   /// Creates a path route that matches a specific path segment.
   ///
@@ -67,13 +64,9 @@ class Route {
   /// Route.path('about', AboutPage.new)  // Matches '/about'
   /// Route.path(':id', UserPage.new)     // Matches '/123', params={'id': '123'}
   /// ```
-  const Route.path(String path, Widget Function() factory)
-      : this._(
-          path: path,
-          factory: factory,
-          children: const [],
-          isLayout: false,
-        );
+  const Route.path(this.path, this.factory)
+    : children = const [],
+      layout = false;
 
   /// Creates a layout route that wraps children without adding a path segment.
   ///
@@ -87,13 +80,7 @@ class Route {
   ///   Route.path('register', RegisterPage.new), // Matches '/register'
   /// ])
   /// ```
-  const Route.layout(Widget Function() factory, List<Route> children)
-      : this._(
-          path: null,
-          factory: factory,
-          children: children,
-          isLayout: true,
-        );
+  const Route.layout(this.factory, this.children) : path = null, layout = true;
 
   /// Creates a nested route that has both a path segment and children.
   ///
@@ -107,17 +94,11 @@ class Route {
   ///   Route.path(':id', UserDetailPage.new), // Matches '/users/123'
   /// ])
   /// ```
-  const Route.nested(String path, Widget Function() factory, List<Route> children)
-      : this._(
-          path: path,
-          factory: factory,
-          children: children,
-          isLayout: false,
-        );
+  const Route.nested(this.path, this.factory, this.children) : layout = false;
 
   @override
   String toString() {
-    final pathStr = path ?? (isLayout ? '<layout>' : '<index>');
+    final pathStr = path ?? (layout ? '<layout>' : '<index>');
     if (children.isEmpty) {
       return 'Route($pathStr)';
     }
