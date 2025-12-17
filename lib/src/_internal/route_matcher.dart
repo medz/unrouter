@@ -55,7 +55,8 @@ _MatchResult _matchRecursive(
 ) {
   // Try each route
   for (final route in routes) {
-    if (route.layout) {
+    if ((route.path == null || route.path?.isEmpty == true) &&
+        route.children.isNotEmpty) {
       // Layout route - doesn't consume segment, just try children
       if (route.children.isNotEmpty) {
         final childResult = _matchRecursive(route.children, segments, offset);

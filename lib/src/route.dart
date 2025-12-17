@@ -36,27 +36,6 @@ class Route {
   /// Child routes.
   final List<Route> children;
 
-  /// Whether this is a layout route (no path segment, just wraps children).
-  final bool layout;
-
-  const Route({
-    required this.path,
-    required this.factory,
-    this.children = const [],
-    this.layout = false,
-  });
-
-  /// Creates an index route that matches when no path segment remains.
-  ///
-  /// Example:
-  /// ```dart
-  /// Route.index(HomePage.new)  // Matches '/' or when parent path is fully matched
-  /// ```
-  const Route.index(this.factory)
-    : path = null,
-      children = const [],
-      layout = false;
-
   /// Creates a path route that matches a specific path segment.
   ///
   /// Example:
@@ -64,9 +43,15 @@ class Route {
   /// Route.path('about', AboutPage.new)  // Matches '/about'
   /// Route.path(':id', UserPage.new)     // Matches '/123', params={'id': '123'}
   /// ```
-  const Route.path(this.path, this.factory)
-    : children = const [],
-      layout = false;
+  const Route.path(this.path, this.factory) : children = const [];
+
+  /// Creates an index route that matches when no path segment remains.
+  ///
+  /// Example:
+  /// ```dart
+  /// Route.index(HomePage.new)  // Matches '/' or when parent path is fully matched
+  /// ```
+  const Route.index(this.factory) : path = null, children = const [];
 
   /// Creates a layout route that wraps children without adding a path segment.
   ///
@@ -80,7 +65,7 @@ class Route {
   ///   Route.path('register', RegisterPage.new), // Matches '/register'
   /// ])
   /// ```
-  const Route.layout(this.factory, this.children) : path = null, layout = true;
+  const Route.layout(this.factory, this.children) : path = null;
 
   /// Creates a nested route that has both a path segment and children.
   ///
@@ -94,14 +79,31 @@ class Route {
   ///   Route.path(':id', UserDetailPage.new), // Matches '/users/123'
   /// ])
   /// ```
-  const Route.nested(this.path, this.factory, this.children) : layout = false;
+  const Route.nested(this.path, this.factory, this.children);
+
+  /// Creates a custom route that matches a specific path segment.
+  ///
+  /// Custom routes are used when the path segment is not a simple string.
+  /// They must use [RouterView] to render children.
+  ///
+  /// Example:
+  /// ```dart
+  /// Route.custom(path: '/:id', factory: UserPage.new) // Matches '/123', params={'id': '123'}
+  /// ```
+  const Route.custom({
+    required this.path,
+    required this.factory,
+    this.children = const [],
+  });
 
   @override
   String toString() {
-    final pathStr = path ?? (layout ? '<layout>' : '<index>');
-    if (children.isEmpty) {
-      return 'Route($pathStr)';
-    }
-    return 'Route($pathStr, children: ${children.length})';
+    final str = (path != null && path?.isNotEmpty == true)
+        ? path
+        : children.isNotEmpty
+        ? '<layout>'
+        : '<index>';
+    if (children.isEmpty) return 'Route($str)';
+    return 'Route($str, children: ${children.length})';
   }
 }
