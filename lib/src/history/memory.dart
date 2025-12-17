@@ -36,12 +36,18 @@ class MemoryHistory implements RouterHistory {
   }
 
   @override
-  void push(String to, [Object? state]) => set(to, state);
+  void push(String to, [Object? state]) {
+    final from = location;
+    set(to, state);
+    trigger(to, from, direction: .forward, delta: 1);
+  }
 
   @override
   void replace(String to, [Object? state]) {
+    final from = location;
     _queue.removeAt(_position--);
     set(to, state);
+    trigger(to, from, direction: .unknown, delta: 0);
   }
 
   @override
