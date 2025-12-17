@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart' hide Route;
 
 import '../history/types.dart';
+import 'route_cache_key.dart';
 import '../route.dart';
 import '../router_state.dart';
 import 'route_matcher.dart';
@@ -27,6 +28,21 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
   /// Unlisten callback from history.
   VoidCallback? _unlistenHistory;
 
+  /// Current history index.
+  int _historyIndex = 0;
+
+  /// Current navigation type (push or pop).
+  NavigationType _navigationType = NavigationType.push;
+
+  /// Root page stack.
+  ///
+  /// - Leaf routes are keyed by history index (so they can be stacked).
+  /// - Layout/nested routes are keyed by [RouteCacheKey] (so they can be reused).
+  final Map<Object, _PageEntry> _pageStack = {};
+
+  /// Stack key order, for IndexedStack rendering.
+  final List<Object> _indexOrder = [];
+
   /// Attaches the history implementation.
   void attachHistory(RouterHistory history) {
     _history = history;
@@ -37,6 +53,10 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
         uri: Uri.parse(to),
         state: history.state,
       );
+      _navigationType = info.type;
+      // Adjust history index based on navigation delta
+      _historyIndex += info.delta;
+      if (_historyIndex < 0) _historyIndex = 0;
       _updateMatchedRoutes();
       notifyListeners();
     });
@@ -54,11 +74,25 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
   /// This is called directly by Unrouter.push/replace because
   /// following browser semantics, pushState/replaceState do NOT
   /// trigger listeners. Only user navigation (popstate) does.
-  void navigateTo(String location, [Object? state]) {
+  void pushTo(String location, [Object? state]) {
     _currentConfiguration = RouteInformation(
       uri: Uri.parse(location),
       state: state,
     );
+    _navigationType = NavigationType.push;
+    _historyIndex++;
+    _updateMatchedRoutes();
+    notifyListeners();
+  }
+
+  /// Replace the current location (does not create a new history entry).
+  void replaceTo(String location, [Object? state]) {
+    _currentConfiguration = RouteInformation(
+      uri: Uri.parse(location),
+      state: state,
+    );
+    _navigationType = NavigationType.push;
+    // Note: do NOT change _historyIndex for replace.
     _updateMatchedRoutes();
     notifyListeners();
   }
@@ -94,17 +128,78 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
       return const SizedBox.shrink();
     }
 
-    // Render the first matched route with RouterStateProvider
     final firstMatched = _matchedRoutes[0];
-    final widget = firstMatched.route.factory();
+    final pageKey = firstMatched.route.children.isNotEmpty
+        ? RouteCacheKey(firstMatched.route, firstMatched.params)
+        : _historyIndex;
 
-    return RouterStateProvider(
-      state: RouterState(
-        location: _currentConfiguration.uri.path,
-        matchedRoutes: _matchedRoutes,
-        level: 0,
-      ),
-      child: widget,
+    // On push/replace, remove any leaf indices that are no longer reachable.
+    if (_navigationType == NavigationType.push) {
+      _indexOrder.removeWhere((key) => key is int && key > _historyIndex);
+    }
+
+    // Create router state
+    final state = RouterState(
+      location: _currentConfiguration.uri.path,
+      matchedRoutes: _matchedRoutes,
+      level: 0,
+      historyIndex: _historyIndex,
+      navigationType: _navigationType,
+    );
+
+    // Get or create page for this key.
+    _PageEntry? pageEntry = _pageStack[pageKey];
+    final shouldRecreate =
+        _navigationType == NavigationType.push && pageKey is int;
+
+    if (pageEntry == null || shouldRecreate) {
+      // Create new page for push/replace navigation
+      final widget = RouterStateProvider(
+        state: state,
+        child: KeyedSubtree(
+          key: UniqueKey(),
+          child: firstMatched.route.factory(),
+        ),
+      );
+      pageEntry = _PageEntry(route: firstMatched.route, widget: widget, state: state);
+      _pageStack[pageKey] = pageEntry;
+
+      if (!_indexOrder.contains(pageKey)) {
+        _indexOrder.add(pageKey);
+      }
+    } else {
+      // Update state but keep widget tree
+      final existingPage = pageEntry;
+      pageEntry = _PageEntry(
+        route: existingPage.route,
+        widget: RouterStateProvider(
+          state: state,
+          child: (existingPage.widget as RouterStateProvider).child,
+        ),
+        state: state,
+      );
+      _pageStack[pageKey] = pageEntry;
+      if (!_indexOrder.contains(pageKey)) {
+        _indexOrder.add(pageKey);
+      }
+    }
+
+    // Find current index in stack
+    final stackIndex = _indexOrder.indexOf(pageKey);
+
+    // Build all pages in stack
+    final children = _indexOrder.map((key) {
+      return _pageStack[key]?.widget ?? const SizedBox.shrink();
+    }).toList();
+
+    if (children.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    // Use IndexedStack to preserve all pages
+    return IndexedStack(
+      index: stackIndex >= 0 ? stackIndex : children.length - 1,
+      children: children,
     );
   }
 
@@ -123,4 +218,16 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
     _unlistenHistory?.call();
     super.dispose();
   }
+}
+
+class _PageEntry {
+  const _PageEntry({
+    required this.route,
+    required this.widget,
+    required this.state,
+  });
+
+  final Route route;
+  final Widget widget;
+  final RouterState state;
 }

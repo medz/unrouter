@@ -163,7 +163,7 @@ class AuthLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print(111);
+    print('Auth');
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
@@ -213,6 +213,7 @@ class Login extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print('Login');
     return Center(
       child: Card(
         margin: const EdgeInsets.all(32),
@@ -277,6 +278,7 @@ class Register extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print('Register');
     return Center(
       child: Card(
         margin: const EdgeInsets.all(32),

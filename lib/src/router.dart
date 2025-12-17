@@ -42,7 +42,7 @@ class Unrouter extends RouterConfig<RouteInformation> {
 
     if (initialLocation != null && initialLocation != '/') {
       history.push(initialLocation);
-      delegate.navigateTo(initialLocation);
+      delegate.pushTo(initialLocation);
     }
 
     return Unrouter._(
@@ -82,7 +82,7 @@ class Unrouter extends RouterConfig<RouteInformation> {
   /// listeners. The delegate is manually updated.
   void push(String location, [Object? state]) {
     _history.push(location, state);
-    _delegate.navigateTo(location, state);
+    _delegate.pushTo(location, state);
   }
 
   /// Replace the current location in the history stack.
@@ -91,7 +91,7 @@ class Unrouter extends RouterConfig<RouteInformation> {
   /// listeners. The delegate is manually updated.
   void replace(String location, [Object? state]) {
     _history.replace(location, state);
-    _delegate.navigateTo(location, state);
+    _delegate.replaceTo(location, state);
   }
 
   /// Go back in the history stack.
