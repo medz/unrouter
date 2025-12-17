@@ -67,11 +67,17 @@ void main() {
       final register = _Counts();
 
       final router = Unrouter(
-        [
-          Inlet.layout(trackedLayoutFactory('Auth', auth), [
-            Inlet.path('login', trackedLeafFactory('Login', login)),
-            Inlet.path('register', trackedLeafFactory('Register', register)),
-          ]),
+        routes: [
+          Inlet(
+            factory: trackedLayoutFactory('Auth', auth),
+            children: [
+              Inlet(path: 'login', factory: trackedLeafFactory('Login', login)),
+              Inlet(
+                path: 'register',
+                factory: trackedLeafFactory('Register', register),
+              ),
+            ],
+          ),
         ],
         mode: HistoryMode.memory,
         initialLocation: '/login',
@@ -146,11 +152,21 @@ void main() {
       final child2 = _Counts();
 
       final router = Unrouter(
-        [
-          Inlet.nested('parent', trackedLayoutFactory('Parent', parent), [
-            Inlet.path('child1', trackedLeafFactory('Child 1', child1)),
-            Inlet.path('child2', trackedLeafFactory('Child 2', child2)),
-          ]),
+        routes: [
+          Inlet(
+            path: 'parent',
+            factory: trackedLayoutFactory('Parent', parent),
+            children: [
+              Inlet(
+                path: 'child1',
+                factory: trackedLeafFactory('Child 1', child1),
+              ),
+              Inlet(
+                path: 'child2',
+                factory: trackedLeafFactory('Child 2', child2),
+              ),
+            ],
+          ),
         ],
         mode: HistoryMode.memory,
         initialLocation: '/parent/child1',

@@ -18,20 +18,24 @@ enum HistoryMode { memory, browser, hash }
 ///
 /// Example:
 /// ```dart
-/// final router = Unrouter([
-///   Inlet.index(HomePage.new),
-///   Inlet.path('about', AboutPage.new),
-///   Inlet.nested('users', UsersLayout.new, [
-///     Inlet.index(UsersIndexPage.new),
-///     Inlet.path(':id', UserDetailPage.new),
-///   ]),
-/// ], mode: HistoryMode.memory);
+/// final router = Unrouter(
+///   routes: [
+///     Inlet(factory: HomePage.new),
+///     Inlet(path: 'about', factory: AboutPage.new),
+///     Inlet(path: 'users', factory: UsersLayout.new, children: [
+///       Inlet(factory: UsersIndexPage.new),
+///       Inlet(path: ':id', factory: UserDetailPage.new),
+///     ]),
+///   ],
+///   mode: HistoryMode.memory,
+/// );
 ///
 /// MaterialApp.router(routerConfig: router);
 /// ```
 class Unrouter extends RouterConfig<RouteInformation> {
   factory Unrouter(
-    List<Inlet> routes, {
+    {
+    required List<Inlet> routes,
     required HistoryMode mode,
     String? initialLocation,
     String base = '/',

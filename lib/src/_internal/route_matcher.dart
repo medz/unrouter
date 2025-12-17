@@ -11,7 +11,7 @@ class MatchedRoute {
 
   @override
   String toString() =>
-      'MatchedRoute(${route.path ?? '<index>'}, params: $params)';
+      'MatchedRoute(${route.path.isNotEmpty ? route.path : '<index>'}, params: $params)';
 }
 
 /// Result of route matching.
@@ -55,8 +55,7 @@ _MatchResult _matchRecursive(
 ) {
   // Try each route
   for (final route in routes) {
-    if ((route.path == null || route.path?.isEmpty == true) &&
-        route.children.isNotEmpty) {
+    if (route.path.isEmpty && route.children.isNotEmpty) {
       // Layout route - doesn't consume segment, just try children
       if (route.children.isNotEmpty) {
         final childResult = _matchRecursive(route.children, segments, offset);
@@ -69,7 +68,7 @@ _MatchResult _matchRecursive(
           );
         }
       }
-    } else if (route.path == null) {
+    } else if (route.path.isEmpty) {
       // Index route - matches when no segments left
       if (offset >= segments.length) {
         return _MatchResult([MatchedRoute(route, const {})], true, 0);
@@ -78,7 +77,7 @@ _MatchResult _matchRecursive(
       // Path route - try to match current segment
       if (offset < segments.length) {
         final remainingPath = segments.sublist(offset);
-        final match = matchPath(route.path!, remainingPath);
+        final match = matchPath(route.path, remainingPath);
 
         if (match.matched) {
           // Calculate how many segments were consumed

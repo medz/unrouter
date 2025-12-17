@@ -12,10 +12,13 @@ void main() {
 
   group('Basic Routing', () {
     testWidgets('renders index route', (tester) async {
-      final router = Unrouter([
-        Inlet.index(() => const Text('Index')),
-        Inlet.path('about', () => const Text('About')),
-      ], mode: HistoryMode.memory);
+      final router = Unrouter(
+        routes: [
+          Inlet(factory: () => const Text('Index')),
+          Inlet(path: 'about', factory: () => const Text('About')),
+        ],
+        mode: HistoryMode.memory,
+      );
 
       await tester.pumpWidget(wrapRouter(router));
 
@@ -25,9 +28,9 @@ void main() {
 
     testWidgets('renders path route', (tester) async {
       final router = Unrouter(
-        [
-          Inlet.index(() => const Text('Index')),
-          Inlet.path('about', () => const Text('About')),
+        routes: [
+          Inlet(factory: () => const Text('Index')),
+          Inlet(path: 'about', factory: () => const Text('About')),
         ],
         mode: HistoryMode.memory,
         initialLocation: '/about',
@@ -42,10 +45,13 @@ void main() {
     testWidgets('navigates between routes', (tester) async {
       late Unrouter router;
 
-      router = Unrouter([
-        Inlet.index(() => const Text('Index')),
-        Inlet.path('about', () => const Text('About')),
-      ], mode: HistoryMode.memory);
+      router = Unrouter(
+        routes: [
+          Inlet(factory: () => const Text('Index')),
+          Inlet(path: 'about', factory: () => const Text('About')),
+        ],
+        mode: HistoryMode.memory,
+      );
 
       await tester.pumpWidget(wrapRouter(router));
 
@@ -68,11 +74,15 @@ void main() {
       }
 
       final router = Unrouter(
-        [
-          Inlet.nested('concerts', createConcerts, [
-            Inlet.index(() => const Text('All Concerts')),
-            Inlet.path('trending', () => const Text('Trending')),
-          ]),
+        routes: [
+          Inlet(
+            path: 'concerts',
+            factory: createConcerts,
+            children: [
+              Inlet(factory: () => const Text('All Concerts')),
+              Inlet(path: 'trending', factory: () => const Text('Trending')),
+            ],
+          ),
         ],
         mode: HistoryMode.memory,
         initialLocation: '/concerts',
@@ -95,11 +105,15 @@ void main() {
       }
 
       router = Unrouter(
-        [
-          Inlet.nested('concerts', createConcerts, [
-            Inlet.index(() => const Text('All Concerts')),
-            Inlet.path('trending', () => const Text('Trending')),
-          ]),
+        routes: [
+          Inlet(
+            path: 'concerts',
+            factory: createConcerts,
+            children: [
+              Inlet(factory: () => const Text('All Concerts')),
+              Inlet(path: 'trending', factory: () => const Text('Trending')),
+            ],
+          ),
         ],
         mode: HistoryMode.memory,
         initialLocation: '/concerts',
@@ -128,11 +142,14 @@ void main() {
       }
 
       final router = Unrouter(
-        [
-          Inlet.layout(createAuth, [
-            Inlet.path('login', () => const Text('Login')),
-            Inlet.path('register', () => const Text('Register')),
-          ]),
+        routes: [
+          Inlet(
+            factory: createAuth,
+            children: [
+              Inlet(path: 'login', factory: () => const Text('Login')),
+              Inlet(path: 'register', factory: () => const Text('Register')),
+            ],
+          ),
         ],
         mode: HistoryMode.memory,
         initialLocation: '/login',
@@ -153,11 +170,14 @@ void main() {
       }
 
       router = Unrouter(
-        [
-          Inlet.layout(createAuth, [
-            Inlet.path('login', () => const Text('Login')),
-            Inlet.path('register', () => const Text('Register')),
-          ]),
+        routes: [
+          Inlet(
+            factory: createAuth,
+            children: [
+              Inlet(path: 'login', factory: () => const Text('Login')),
+              Inlet(path: 'register', factory: () => const Text('Register')),
+            ],
+          ),
         ],
         mode: HistoryMode.memory,
         initialLocation: '/login',
@@ -189,7 +209,7 @@ void main() {
       }
 
       final router = Unrouter(
-        [Inlet.path(':id', createUser)],
+        routes: [Inlet(path: ':id', factory: createUser)],
         mode: HistoryMode.memory,
         initialLocation: '/123',
       );
@@ -215,8 +235,12 @@ void main() {
       }
 
       final router = Unrouter(
-        [
-          Inlet.nested('users', createUsers, [Inlet.path(':id', createUser)]),
+        routes: [
+          Inlet(
+            path: 'users',
+            factory: createUsers,
+            children: [Inlet(path: ':id', factory: createUser)],
+          ),
         ],
         mode: HistoryMode.memory,
         initialLocation: '/users/123',
@@ -261,14 +285,23 @@ void main() {
       }
 
       final router = Unrouter(
-        [
-          Inlet.layout(createApp, [
-            Inlet.nested('users', createUsers, [
-              Inlet.nested(':userId', createUserDetail, [
-                Inlet.path(':postId', createPost),
-              ]),
-            ]),
-          ]),
+        routes: [
+          Inlet(
+            factory: createApp,
+            children: [
+              Inlet(
+                path: 'users',
+                factory: createUsers,
+                children: [
+                  Inlet(
+                    path: ':userId',
+                    factory: createUserDetail,
+                    children: [Inlet(path: ':postId', factory: createPost)],
+                  ),
+                ],
+              ),
+            ],
+          ),
         ],
         mode: HistoryMode.memory,
         initialLocation: '/users/123/456',

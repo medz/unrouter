@@ -16,8 +16,3 @@ class Outlet extends StatelessWidget {
     return StackedRouteView(state: state, levelOffset: 1);
   }
 }
-
-@Deprecated('Use Outlet instead.')
-class RouterView extends Outlet {
-  const RouterView({super.key});
-}

@@ -6,23 +6,33 @@ void main() {
 }
 
 // Router configuration
-final router = Unrouter(const [
-  .index(Home.new),
-  .path('about', About.new),
+final router = Unrouter(
+  routes: const [
+    Inlet(factory: Home.new),
+    Inlet(path: 'about', factory: About.new),
 
-  // Layout route - wraps children without adding path segment
-  .layout(AuthLayout.new, [
-    .path('login', Login.new),
-    .path('register', Register.new),
-  ]),
+    // Layout route - wraps children without adding path segment
+    Inlet(
+      factory: AuthLayout.new,
+      children: [
+        Inlet(path: 'login', factory: Login.new),
+        Inlet(path: 'register', factory: Register.new),
+      ],
+    ),
 
-  // Nested route - has path segment + children
-  .nested('concerts', ConcertsLayout.new, [
-    .index(ConcertsHome.new),
-    .path(':city', CityPage.new),
-    .path('trending', TrendingPage.new),
-  ]),
-], mode: HistoryMode.memory);
+    // Nested route - has path segment + children
+    Inlet(
+      path: 'concerts',
+      factory: ConcertsLayout.new,
+      children: [
+        Inlet(factory: ConcertsHome.new),
+        Inlet(path: ':city', factory: CityPage.new),
+        Inlet(path: 'trending', factory: TrendingPage.new),
+      ],
+    ),
+  ],
+  mode: HistoryMode.memory,
+);
 
 class App extends StatelessWidget {
   const App({super.key});

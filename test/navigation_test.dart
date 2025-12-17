@@ -15,9 +15,9 @@ void main() {
       late Unrouter router;
 
       router = Unrouter(
-        [
-          Inlet.index(() => const Text('Home')),
-          Inlet.path('about', () => const Text('About')),
+        routes: [
+          Inlet(factory: () => const Text('Home')),
+          Inlet(path: 'about', factory: () => const Text('About')),
         ],
         mode: HistoryMode.memory,
         initialLocation: '/',
@@ -40,10 +40,10 @@ void main() {
       late Unrouter router;
 
       router = Unrouter(
-        [
-          Inlet.index(() => const Text('Home')),
-          Inlet.path('about', () => const Text('About')),
-          Inlet.path('contact', () => const Text('Contact')),
+        routes: [
+          Inlet(factory: () => const Text('Home')),
+          Inlet(path: 'about', factory: () => const Text('About')),
+          Inlet(path: 'contact', factory: () => const Text('Contact')),
         ],
         mode: HistoryMode.memory,
         initialLocation: '/',
@@ -71,9 +71,9 @@ void main() {
       late Unrouter router;
 
       router = Unrouter(
-        [
-          Inlet.index(() => const Text('Home')),
-          Inlet.path('about', () => const Text('About')),
+        routes: [
+          Inlet(factory: () => const Text('Home')),
+          Inlet(path: 'about', factory: () => const Text('About')),
         ],
         mode: HistoryMode.memory,
         initialLocation: '/',
@@ -94,9 +94,9 @@ void main() {
       late Unrouter router;
 
       router = Unrouter(
-        [
-          Inlet.index(() => const Text('Home')),
-          Inlet.path('about', () => const Text('About')),
+        routes: [
+          Inlet(factory: () => const Text('Home')),
+          Inlet(path: 'about', factory: () => const Text('About')),
         ],
         mode: HistoryMode.memory,
         initialLocation: '/',
@@ -120,10 +120,10 @@ void main() {
       late Unrouter router;
 
       router = Unrouter(
-        [
-          Inlet.index(() => const Text('Page 0')),
-          Inlet.path('1', () => const Text('Page 1')),
-          Inlet.path('2', () => const Text('Page 2')),
+        routes: [
+          Inlet(factory: () => const Text('Page 0')),
+          Inlet(path: '1', factory: () => const Text('Page 1')),
+          Inlet(path: '2', factory: () => const Text('Page 2')),
         ],
         mode: HistoryMode.memory,
         initialLocation: '/',
@@ -153,10 +153,10 @@ void main() {
       late Unrouter router;
 
       router = Unrouter(
-        [
-          Inlet.index(() => const Text('Page 0')),
-          Inlet.path('1', () => const Text('Page 1')),
-          Inlet.path('2', () => const Text('Page 2')),
+        routes: [
+          Inlet(factory: () => const Text('Page 0')),
+          Inlet(path: '1', factory: () => const Text('Page 1')),
+          Inlet(path: '2', factory: () => const Text('Page 2')),
         ],
         mode: HistoryMode.memory,
         initialLocation: '/',
@@ -188,11 +188,15 @@ void main() {
       }
 
       router = Unrouter(
-        [
-          Inlet.nested('section', createLayout, [
-            Inlet.path('a', () => const Text('Page A')),
-            Inlet.path('b', () => const Text('Page B')),
-          ]),
+        routes: [
+          Inlet(
+            path: 'section',
+            factory: createLayout,
+            children: [
+              Inlet(path: 'a', factory: () => const Text('Page A')),
+              Inlet(path: 'b', factory: () => const Text('Page B')),
+            ],
+          ),
         ],
         mode: HistoryMode.memory,
         initialLocation: '/section/a',
