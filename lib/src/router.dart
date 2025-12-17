@@ -68,7 +68,7 @@ class Unrouter extends RouterConfig<RouteInformation> {
        _delegate = delegate;
 
   /// The route configuration.
-  final List<Route> routes;
+  final Iterable<Route> routes;
 
   final RouterHistory _history;
   final UnrouterDelegate _delegate;
