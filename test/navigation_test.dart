@@ -1,4 +1,4 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/widgets.dart' hide Route;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:unrouter/unrouter.dart';
 
@@ -15,10 +15,10 @@ void main() {
       late Unrouter router;
 
       router = Unrouter(
-        Routes([
-          Unroute(path: null, factory: () => const Text('Home')),
-          Unroute(path: 'about', factory: () => const Text('About')),
-        ]),
+        [
+          Route.index(() => const Text('Home')),
+          Route.path('about', () => const Text('About')),
+        ],
         mode: HistoryMode.memory,
         initialLocation: '/',
       );
@@ -40,11 +40,11 @@ void main() {
       late Unrouter router;
 
       router = Unrouter(
-        Routes([
-          Unroute(path: null, factory: () => const Text('Home')),
-          Unroute(path: 'about', factory: () => const Text('About')),
-          Unroute(path: 'contact', factory: () => const Text('Contact')),
-        ]),
+        [
+          Route.index(() => const Text('Home')),
+          Route.path('about', () => const Text('About')),
+          Route.path('contact', () => const Text('Contact')),
+        ],
         mode: HistoryMode.memory,
         initialLocation: '/',
       );
@@ -71,10 +71,10 @@ void main() {
       late Unrouter router;
 
       router = Unrouter(
-        Routes([
-          Unroute(path: null, factory: () => const Text('Home')),
-          Unroute(path: 'about', factory: () => const Text('About')),
-        ]),
+        [
+          Route.index(() => const Text('Home')),
+          Route.path('about', () => const Text('About')),
+        ],
         mode: HistoryMode.memory,
         initialLocation: '/',
       );
@@ -94,10 +94,10 @@ void main() {
       late Unrouter router;
 
       router = Unrouter(
-        Routes([
-          Unroute(path: null, factory: () => const Text('Home')),
-          Unroute(path: 'about', factory: () => const Text('About')),
-        ]),
+        [
+          Route.index(() => const Text('Home')),
+          Route.path('about', () => const Text('About')),
+        ],
         mode: HistoryMode.memory,
         initialLocation: '/',
       );
@@ -120,11 +120,11 @@ void main() {
       late Unrouter router;
 
       router = Unrouter(
-        Routes([
-          Unroute(path: null, factory: () => const Text('Page 0')),
-          Unroute(path: '1', factory: () => const Text('Page 1')),
-          Unroute(path: '2', factory: () => const Text('Page 2')),
-        ]),
+        [
+          Route.index(() => const Text('Page 0')),
+          Route.path('1', () => const Text('Page 1')),
+          Route.path('2', () => const Text('Page 2')),
+        ],
         mode: HistoryMode.memory,
         initialLocation: '/',
       );
@@ -153,11 +153,11 @@ void main() {
       late Unrouter router;
 
       router = Unrouter(
-        Routes([
-          Unroute(path: null, factory: () => const Text('Page 0')),
-          Unroute(path: '1', factory: () => const Text('Page 1')),
-          Unroute(path: '2', factory: () => const Text('Page 2')),
-        ]),
+        [
+          Route.index(() => const Text('Page 0')),
+          Route.path('1', () => const Text('Page 1')),
+          Route.path('2', () => const Text('Page 2')),
+        ],
         mode: HistoryMode.memory,
         initialLocation: '/',
       );
@@ -187,18 +187,18 @@ void main() {
         return Column(
           children: [
             const Text('Layout'),
-            Routes([
-              Unroute(path: 'a', factory: () => const Text('Page A')),
-              Unroute(path: 'b', factory: () => const Text('Page B')),
-            ]),
+            const RouterView(),
           ],
         );
       }
 
       router = Unrouter(
-        Routes([
-          Unroute(path: 'section', factory: createLayout),
-        ]),
+        [
+          Route.nested('section', createLayout, [
+            Route.path('a', () => const Text('Page A')),
+            Route.path('b', () => const Text('Page B')),
+          ]),
+        ],
         mode: HistoryMode.memory,
         initialLocation: '/section/a',
       );

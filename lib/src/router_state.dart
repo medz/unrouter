@@ -1,34 +1,42 @@
 import 'package:flutter/widgets.dart';
 
+import 'route_matcher.dart';
+
 /// Router state that flows through the widget tree.
 ///
-/// This contains the current location, extracted parameters,
-/// and the remaining path to be matched by nested Routes.
+/// This contains the current location, matched routes, and the current level
+/// for rendering nested routes.
 class RouterState {
   const RouterState({
     required this.location,
-    required this.params,
-    required this.remainingPath,
+    required this.matchedRoutes,
+    required this.level,
   });
 
   /// The full current location (e.g., '/users/123/posts').
   final String location;
 
-  /// Extracted path parameters (e.g., {'id': '123', 'postId': '456'}).
-  final Map<String, String> params;
+  /// Stack of matched routes from root to leaf.
+  final List<MatchedRoute> matchedRoutes;
 
-  /// Remaining path segments to be matched by child Routes.
-  final List<String> remainingPath;
+  /// Current rendering level (0 = root, 1 = first child, etc.).
+  final int level;
 
-  /// Creates a new state with updated remaining path.
-  RouterState withRemainingPath(
-    List<String> remaining,
-    Map<String, String> newParams,
-  ) {
+  /// Get all params from matched routes up to current level.
+  Map<String, String> get params {
+    final result = <String, String>{};
+    for (var i = 0; i <= level && i < matchedRoutes.length; i++) {
+      result.addAll(matchedRoutes[i].params);
+    }
+    return result;
+  }
+
+  /// Creates a new state with updated level.
+  RouterState withLevel(int newLevel) {
     return RouterState(
       location: location,
-      params: {...params, ...newParams},
-      remainingPath: remaining,
+      matchedRoutes: matchedRoutes,
+      level: newLevel,
     );
   }
 
@@ -37,25 +45,16 @@ class RouterState {
     if (identical(this, other)) return true;
     return other is RouterState &&
         other.location == location &&
-        _mapEquals(other.params, params) &&
-        _listEquals(other.remainingPath, remainingPath);
+        other.level == level &&
+        _listEquals(other.matchedRoutes, matchedRoutes);
   }
 
   @override
   int get hashCode => Object.hash(
         location,
-        Object.hashAll(params.entries.map((e) => '${e.key}:${e.value}')),
-        Object.hashAll(remainingPath),
+        level,
+        Object.hashAll(matchedRoutes),
       );
-
-  static bool _mapEquals<K, V>(Map<K, V>? a, Map<K, V>? b) {
-    if (a == null) return b == null;
-    if (b == null || a.length != b.length) return false;
-    for (final key in a.keys) {
-      if (!b.containsKey(key) || a[key] != b[key]) return false;
-    }
-    return true;
-  }
 
   static bool _listEquals<T>(List<T>? a, List<T>? b) {
     if (a == null) return b == null;
@@ -65,6 +64,10 @@ class RouterState {
     }
     return true;
   }
+
+  @override
+  String toString() =>
+      'RouterState(location: $location, level: $level, matched: ${matchedRoutes.length})';
 }
 
 /// Provides router state to the widget tree.
@@ -83,7 +86,7 @@ class RouterStateProvider extends InheritedWidget {
     assert(
       provider != null,
       'No RouterStateProvider found in context. '
-      'Make sure your Routes widget is a descendant of Unrouter.',
+      'Make sure your widget is a descendant of Unrouter.',
     );
     return provider!.state;
   }

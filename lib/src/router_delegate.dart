@@ -1,7 +1,8 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/widgets.dart' hide Route;
 
 import 'history/types.dart';
-import 'routes.dart';
+import 'route.dart';
+import 'route_matcher.dart';
 import 'router_state.dart';
 
 /// The router delegate that manages navigation state and builds the widget tree.
@@ -10,7 +11,7 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
   UnrouterDelegate({required this.routes});
 
   /// The root routes configuration.
-  final Routes routes;
+  final List<Route> routes;
 
   /// The underlying history implementation.
   RouterHistory? _history;
@@ -19,6 +20,9 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
   RouteInformation _currentConfiguration = RouteInformation(
     uri: Uri.parse('/'),
   );
+
+  /// Currently matched routes.
+  List<MatchedRoute> _matchedRoutes = const [];
 
   /// Unlisten callback from history.
   VoidCallback? _unlistenHistory;
@@ -33,6 +37,7 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
         uri: Uri.parse(to),
         state: history.state,
       );
+      _updateMatchedRoutes();
       notifyListeners();
     });
 
@@ -41,6 +46,7 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
       uri: Uri.parse(history.location),
       state: history.state,
     );
+    _updateMatchedRoutes();
   }
 
   /// Manually navigate to a location (for push/replace).
@@ -53,7 +59,15 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
       uri: Uri.parse(location),
       state: state,
     );
+    _updateMatchedRoutes();
     notifyListeners();
+  }
+
+  /// Update matched routes based on current location.
+  void _updateMatchedRoutes() {
+    final location = _currentConfiguration.uri.path;
+    final result = matchRoutes(routes, location);
+    _matchedRoutes = result.matched ? result.matches : [];
   }
 
   @override
@@ -69,20 +83,28 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
       _history!.push(location, configuration.state);
     }
 
+    _updateMatchedRoutes();
     notifyListeners();
   }
 
   @override
   Widget build(BuildContext context) {
-    // Create router state and provide it to the widget tree
+    // If no match, render empty
+    if (_matchedRoutes.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    // Render the first matched route with RouterStateProvider
+    final firstMatched = _matchedRoutes[0];
+    final widget = firstMatched.route.factory();
+
     return RouterStateProvider(
       state: RouterState(
         location: _currentConfiguration.uri.path,
-        params: {},
-        remainingPath: _currentConfiguration.uri.path.split('/')
-          ..removeWhere((s) => s.isEmpty),
+        matchedRoutes: _matchedRoutes,
+        level: 0,
       ),
-      child: routes,
+      child: widget,
     );
   }
 

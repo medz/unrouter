@@ -1,144 +1,110 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/widgets.dart' hide Route;
 
-import 'history/types.dart';
 import 'history/memory.dart';
+import 'history/types.dart';
 import 'history_mode.dart';
-import 'routes.dart';
-import 'router_delegate.dart';
+import 'route.dart';
 import 'route_information_parser.dart';
 import 'route_information_provider.dart';
+import 'router_delegate.dart';
 
-/// The main router that integrates with Flutter's Router API.
+/// The main router for declarative routing.
 ///
 /// Example:
 /// ```dart
-/// final router = Unrouter(
-///   Routes([
-///     Unroute(path: null, factory: Home.new),
-///     Unroute(path: 'about', factory: About.new),
+/// final router = Unrouter([
+///   Route.index(HomePage.new),
+///   Route.path('about', AboutPage.new),
+///   Route.nested('users', UsersLayout.new, [
+///     Route.index(UsersIndexPage.new),
+///     Route.path(':id', UserDetailPage.new),
 ///   ]),
-///   mode: HistoryMode.memory,
-/// );
+/// ], mode: HistoryMode.memory);
 ///
-/// MaterialApp.router(
-///   routerConfig: router,
-/// );
-/// ```
-///
-/// For apps deployed on a subpath:
-/// ```dart
-/// final router = Unrouter(
-///   Routes([...]),
-///   mode: HistoryMode.browser,
-///   base: '/my-app',  // Deployed at example.com/my-app
-/// );
+/// MaterialApp.router(routerConfig: router);
 /// ```
 class Unrouter extends RouterConfig<RouteInformation> {
   factory Unrouter(
-    Routes routes, {
+    List<Route> routes, {
     required HistoryMode mode,
     String? initialLocation,
     String base = '/',
   }) {
-    final location = initialLocation ?? '/';
     final history = _createHistory(mode, base);
-    final provider = UnrouteInformationProvider(history: history);
     final delegate = UnrouterDelegate(routes: routes);
-
-    // Connect history to router delegate
     delegate.attachHistory(history);
 
-    // Set initial location
-    if (location != '/' && location.isNotEmpty) {
-      history.push(location);
-      // Manually update delegate since push doesn't trigger listeners
-      delegate.navigateTo(location);
+    if (initialLocation != null && initialLocation != '/') {
+      history.push(initialLocation);
+      delegate.navigateTo(initialLocation);
     }
 
     return Unrouter._(
       routes: routes,
-      mode: mode,
+      routeInformationProvider: UnrouteInformationProvider(history: history),
+      routeInformationParser: UnrouteInformationParser(),
+      routerDelegate: delegate,
+      backButtonDispatcher: RootBackButtonDispatcher(),
       history: history,
-      provider: provider,
       delegate: delegate,
     );
   }
 
   Unrouter._({
     required this.routes,
-    required this.mode,
-    required this.history,
-    required UnrouteInformationProvider provider,
+    required super.routeInformationProvider,
+    required super.routeInformationParser,
+    required super.routerDelegate,
+    required super.backButtonDispatcher,
+    required RouterHistory history,
     required UnrouterDelegate delegate,
-  }) : _delegate = delegate,
-       super(
-          routeInformationProvider: provider,
-          routeInformationParser: UnrouteInformationParser(),
-          routerDelegate: delegate,
-        );
+  })  : _history = history,
+        _delegate = delegate;
 
+  /// The route configuration.
+  final List<Route> routes;
+
+  final RouterHistory _history;
   final UnrouterDelegate _delegate;
 
-  /// The history mode for this router.
-  final HistoryMode mode;
+  /// Gets the underlying history object.
+  RouterHistory get history => _history;
 
-  /// The root routes configuration.
-  final Routes routes;
+  /// Push a new location onto the history stack.
+  ///
+  /// Following browser history.pushState() semantics, this does NOT trigger
+  /// listeners. The delegate is manually updated.
+  void push(String location, [Object? state]) {
+    _history.push(location, state);
+    _delegate.navigateTo(location, state);
+  }
 
-  /// The underlying history implementation.
-  final RouterHistory history;
+  /// Replace the current location in the history stack.
+  ///
+  /// Following browser history.replaceState() semantics, this does NOT trigger
+  /// listeners. The delegate is manually updated.
+  void replace(String location, [Object? state]) {
+    _history.replace(location, state);
+    _delegate.navigateTo(location, state);
+  }
 
-  /// Creates the appropriate history implementation based on mode.
+  /// Go back in the history stack.
+  void back() => _history.back();
+
+  /// Go forward in the history stack.
+  void forward() => _history.forward();
+
+  /// Go to a specific point in the history stack.
+  void go(int delta) => _history.go(delta);
+
   static RouterHistory _createHistory(HistoryMode mode, String base) {
     switch (mode) {
       case HistoryMode.memory:
         return MemoryHistory(base);
       case HistoryMode.browser:
-        // TODO: Implement browser history
         throw UnimplementedError('Browser history not yet implemented');
       case HistoryMode.hash:
-        // TODO: Implement hash history
         throw UnimplementedError('Hash history not yet implemented');
     }
-  }
-
-  /// Navigates to a new location.
-  ///
-  /// Following browser history.pushState() semantics, this updates
-  /// the history stack but the delegate must be notified manually.
-  void push(String location, [Object? state]) {
-    history.push(location, state);
-    // Manually update delegate since pushState doesn't trigger popstate
-    _delegate.navigateTo(location, state);
-  }
-
-  /// Replaces the current location.
-  ///
-  /// Following browser history.replaceState() semantics, this updates
-  /// the current history entry but the delegate must be notified manually.
-  void replace(String location, [Object? state]) {
-    history.replace(location, state);
-    // Manually update delegate since replaceState doesn't trigger popstate
-    _delegate.navigateTo(location, state);
-  }
-
-  /// Goes back n steps in history.
-  void go(int delta) {
-    history.go(delta);
-  }
-
-  /// Goes back one step in history.
-  void back() {
-    history.back();
-  }
-
-  /// Goes forward one step in history.
-  void forward() {
-    history.forward();
-  }
-
-  /// Cleans up resources.
-  void dispose() {
-    history.destroy();
   }
 }
