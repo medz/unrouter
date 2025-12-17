@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
-import 'history/types.dart';
+
+import '../history/types.dart';
 
 /// Provides route information and listens to history changes.
 class UnrouteInformationProvider extends RouteInformationProvider

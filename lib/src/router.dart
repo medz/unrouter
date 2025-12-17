@@ -3,9 +3,9 @@ import 'package:flutter/widgets.dart' hide Route;
 import 'history/memory.dart';
 import 'history/types.dart';
 import 'route.dart';
-import 'route_information_parser.dart';
-import 'route_information_provider.dart';
-import 'router_delegate.dart';
+import '_internal/route_information_parser.dart';
+import '_internal/route_information_provider.dart';
+import '_internal/router_delegate.dart';
 
 /// History mode for the router.
 ///

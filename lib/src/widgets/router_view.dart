@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 
-import 'router_state.dart';
+import '../router_state.dart';
 
 /// A widget that renders the next matched child route.
 ///

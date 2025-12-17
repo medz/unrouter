@@ -1,5 +1,6 @@
 import 'path_matcher.dart';
-import 'route.dart';
+
+import '../route.dart';
 
 /// A matched route with extracted parameters.
 class MatchedRoute {
