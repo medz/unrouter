@@ -12,13 +12,15 @@ void main() {
 
   group('Standalone Unroute', () {
     testWidgets('Unroute caches widget - only creates once', (tester) async {
+      var layoutBuildCount = 0;
       var bBuildCount = 0;
       var cBuildCount = 0;
 
       Widget createLayout() {
+        layoutBuildCount++;
         return Column(
           children: [
-            const Text('Layout'),
+            Text('Layout (built $layoutBuildCount times)'),
             Unroute(
               path: 'b',
               factory: () {
@@ -50,6 +52,7 @@ void main() {
       await tester.pumpWidget(wrapRouter(router));
 
       // Initial: /a/b
+      expect(layoutBuildCount, 1, reason: 'Layout created once');
       expect(bBuildCount, 1, reason: 'B created once');
       expect(cBuildCount, 0, reason: 'C not created yet');
 
@@ -57,6 +60,7 @@ void main() {
       router.push('/a/c');
       await tester.pumpAndSettle();
 
+      expect(layoutBuildCount, 1, reason: 'Layout NOT rebuilt (cached)');
       expect(bBuildCount, 1, reason: 'B not rebuilt (cached)');
       expect(cBuildCount, 1, reason: 'C created once');
 
@@ -64,6 +68,7 @@ void main() {
       router.push('/a/b');
       await tester.pumpAndSettle();
 
+      expect(layoutBuildCount, 1, reason: 'Layout still NOT rebuilt');
       expect(bBuildCount, 1, reason: 'B still not rebuilt (reused cache)');
       expect(cBuildCount, 1, reason: 'C still cached');
 
@@ -71,6 +76,7 @@ void main() {
       router.push('/a/c');
       await tester.pumpAndSettle();
 
+      expect(layoutBuildCount, 1, reason: 'Layout never rebuilt');
       expect(bBuildCount, 1, reason: 'B never rebuilt');
       expect(cBuildCount, 1, reason: 'C reused cache');
     });
