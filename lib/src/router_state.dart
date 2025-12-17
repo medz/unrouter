@@ -50,11 +50,8 @@ class RouterState {
   }
 
   @override
-  int get hashCode => Object.hash(
-        location,
-        level,
-        Object.hashAll(matchedRoutes),
-      );
+  int get hashCode =>
+      Object.hash(location, level, Object.hashAll(matchedRoutes));
 
   static bool _listEquals<T>(List<T>? a, List<T>? b) {
     if (a == null) return b == null;
@@ -81,8 +78,8 @@ class RouterStateProvider extends InheritedWidget {
   final RouterState state;
 
   static RouterState of(BuildContext context) {
-    final provider =
-        context.dependOnInheritedWidgetOfExactType<RouterStateProvider>();
+    final provider = context
+        .dependOnInheritedWidgetOfExactType<RouterStateProvider>();
     assert(
       provider != null,
       'No RouterStateProvider found in context. '
@@ -92,8 +89,8 @@ class RouterStateProvider extends InheritedWidget {
   }
 
   static RouterState? maybeOf(BuildContext context) {
-    final provider =
-        context.dependOnInheritedWidgetOfExactType<RouterStateProvider>();
+    final provider = context
+        .dependOnInheritedWidgetOfExactType<RouterStateProvider>();
     return provider?.state;
   }
 

@@ -2,11 +2,17 @@ import 'package:flutter/widgets.dart' hide Route;
 
 import 'history/memory.dart';
 import 'history/types.dart';
-import 'history_mode.dart';
 import 'route.dart';
 import 'route_information_parser.dart';
 import 'route_information_provider.dart';
 import 'router_delegate.dart';
+
+/// History mode for the router.
+///
+/// - [memory]: In-memory history (for testing or mobile apps)
+/// - [browser]: Browser history using pushState API
+/// - [hash]: Hash-based history (legacy browser support)
+enum HistoryMode { memory, browser, hash }
 
 /// The main router for declarative routing.
 ///
@@ -58,8 +64,8 @@ class Unrouter extends RouterConfig<RouteInformation> {
     required super.backButtonDispatcher,
     required RouterHistory history,
     required UnrouterDelegate delegate,
-  })  : _history = history,
-        _delegate = delegate;
+  }) : _history = history,
+       _delegate = delegate;
 
   /// The route configuration.
   final List<Route> routes;

@@ -110,11 +110,7 @@ PathMatch matchPath(String? pattern, List<String> pathSegments) {
           .every((s) => s.endsWith('?'));
 
       if (remainingOptional) {
-        return PathMatch(
-          matched: true,
-          params: params,
-          remaining: [],
-        );
+        return PathMatch(matched: true, params: params, remaining: []);
       }
 
       return PathMatch.noMatch;

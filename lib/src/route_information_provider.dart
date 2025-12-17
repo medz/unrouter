@@ -4,19 +4,15 @@ import 'history/types.dart';
 /// Provides route information and listens to history changes.
 class UnrouteInformationProvider extends RouteInformationProvider
     with ChangeNotifier {
-  UnrouteInformationProvider({
-    required RouterHistory history,
-  })  : _history = history,
-        _value = RouteInformation(
-          uri: Uri.parse(history.location),
-          state: history.state,
-        ) {
+  UnrouteInformationProvider({required RouterHistory history})
+    : _history = history,
+      _value = RouteInformation(
+        uri: Uri.parse(history.location),
+        state: history.state,
+      ) {
     // Listen to history changes
     _unlisten = history.listen((to, from, info) {
-      _value = RouteInformation(
-        uri: Uri.parse(to),
-        state: history.state,
-      );
+      _value = RouteInformation(uri: Uri.parse(to), state: history.state);
       notifyListeners();
     });
   }
