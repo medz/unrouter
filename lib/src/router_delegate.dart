@@ -27,7 +27,7 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
   void attachHistory(RouterHistory history) {
     _history = history;
 
-    // Listen to history changes
+    // Listen to history changes (only back/forward/go - popstate events)
     _unlistenHistory = history.listen((to, from, info) {
       _currentConfiguration = RouteInformation(
         uri: Uri.parse(to),
@@ -41,6 +41,19 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
       uri: Uri.parse(history.location),
       state: history.state,
     );
+  }
+
+  /// Manually navigate to a location (for push/replace).
+  ///
+  /// This is called directly by Unrouter.push/replace because
+  /// following browser semantics, pushState/replaceState do NOT
+  /// trigger listeners. Only user navigation (popstate) does.
+  void navigateTo(String location, [Object? state]) {
+    _currentConfiguration = RouteInformation(
+      uri: Uri.parse(location),
+      state: state,
+    );
+    notifyListeners();
   }
 
   @override

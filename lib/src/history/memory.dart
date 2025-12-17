@@ -30,24 +30,23 @@ class MemoryHistory implements RouterHistory {
   @override
   void go(int delta) {
     final from = location;
-    final NavigationDirection direction = delta > 0 ? .back : .forward;
+    // delta > 0 means forward, delta < 0 means back
+    final NavigationDirection direction = delta > 0
+        ? NavigationDirection.forward
+        : (delta < 0 ? NavigationDirection.back : NavigationDirection.unknown);
     _position = math.max(0, math.min(_position + delta, _queue.length - 1));
     trigger(location, from, direction: direction, delta: delta);
   }
 
   @override
   void push(String to, [Object? state]) {
-    final from = location;
     set(to, state);
-    trigger(to, from, direction: .forward, delta: 1);
   }
 
   @override
   void replace(String to, [Object? state]) {
-    final from = location;
     _queue.removeAt(_position--);
     set(to, state);
-    trigger(to, from, direction: .unknown, delta: 0);
   }
 
   @override
