@@ -5,10 +5,13 @@ import 'package:flutter/widgets.dart';
 /// The semantics are based on [path] and [children]:
 /// - **Index**: `path == ''` and `children.isEmpty`
 /// - **Layout**: `path == ''` and `children.isNotEmpty` (does not consume a
-///   segment; must use [Outlet] to render children)
+///   segment; must use `Outlet` to render children)
 /// - **Leaf**: `path != ''` and `children.isEmpty`
-/// - **Nested**: `path != ''` and `children.isNotEmpty` (consumes a segment;
-///   must use [Outlet] to render children)
+/// - **Nested**: `path != ''` and `children.isNotEmpty` (consumes one or more
+///   path segments; must use `Outlet` to render children)
+///
+/// Tip: Keep [Inlet] instances stable (prefer `const` routes). `unrouter`
+/// reuses layout widgets across navigation based on route identity.
 ///
 /// Example:
 /// ```dart
@@ -27,9 +30,15 @@ import 'package:flutter/widgets.dart';
 /// ```
 class Inlet {
   /// Path pattern for this route.
+  ///
+  /// Patterns are typically written without a leading slash (e.g. `users/:id`).
+  ///
+  /// Supported syntax:
   /// - `''` for index routes and layout routes
   /// - Static segments: `'about'`, `'users'`
   /// - Dynamic params: `':id'`, `':userId'`
+  /// - Optional params/segments: `':id?'`, `'edit?'`
+  /// - Wildcard: `'*'`
   final String path;
 
   /// Factory function that creates the widget for this route.

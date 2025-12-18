@@ -5,8 +5,9 @@ import 'history/history.dart';
 
 /// Router state that flows through the widget tree.
 ///
-/// This contains the current location, matched routes, and the current level
-/// for rendering nested routes.
+/// `unrouter` provides this state to every routed widget via [RouterStateProvider].
+/// It contains the current [RouteInformation], the matched route stack, and the
+/// current rendering [level] for nested routing.
 class RouterState {
   const RouterState({
     required this.info,
@@ -16,22 +17,33 @@ class RouterState {
     this.historyAction = HistoryAction.push,
   });
 
-  /// The full current location (e.g., '/users/123/posts').
+  /// The current location (path/query/fragment) and the optional per-entry state.
+  ///
+  /// The state is the value passed to `navigate(..., state: ...)` /
+  /// `Navigate.call(..., state: ...)`.
   final RouteInformation info;
 
   /// Stack of matched routes from root to leaf.
   final List<MatchedRoute> matchedRoutes;
 
-  /// Current rendering level (0 = root, 1 = first child, etc.).
+  /// Current rendering level (0 = root, 1 = first child, ...).
+  ///
+  /// `Outlet` increments this as it renders nested children.
   final int level;
 
-  /// Current position in history stack.
+  /// Current position in the history stack.
+  ///
+  /// This is primarily used internally to keep leaf widgets stacked across
+  /// navigation.
   final int historyIndex;
 
-  /// Type of navigation that led to this state.
+  /// The navigation type that produced this state.
   final HistoryAction historyAction;
 
-  /// Get all params from matched routes up to current level.
+  /// Merged params from matched routes up to (and including) [level].
+  ///
+  /// If the same param name appears multiple times, deeper (more specific)
+  /// routes win.
   Map<String, String> get params {
     final result = <String, String>{};
     for (var i = 0; i <= level && i < matchedRoutes.length; i++) {
@@ -77,7 +89,15 @@ class RouterState {
       'RouterState(info: $info, level: $level, matched: ${matchedRoutes.length})';
 }
 
-/// Provides router state to the widget tree.
+/// Provides [RouterState] to the widget tree.
+///
+/// You usually don't create this widget yourself; it is inserted by `unrouter`.
+///
+/// ```dart
+/// final state = RouterStateProvider.of(context);
+/// final uri = state.info.uri;
+/// final id = state.params['id'];
+/// ```
 class RouterStateProvider extends InheritedWidget {
   const RouterStateProvider({
     super.key,
@@ -85,8 +105,12 @@ class RouterStateProvider extends InheritedWidget {
     required super.child,
   });
 
+  /// The current router state.
   final RouterState state;
 
+  /// Returns the nearest [RouterState] and registers this build for updates.
+  ///
+  /// Asserts if no provider exists in the widget tree.
   static RouterState of(BuildContext context) {
     final provider = context
         .dependOnInheritedWidgetOfExactType<RouterStateProvider>();
@@ -98,6 +122,7 @@ class RouterStateProvider extends InheritedWidget {
     return provider!.state;
   }
 
+  /// Like [of], but returns `null` when no provider exists.
   static RouterState? maybeOf(BuildContext context) {
     final provider = context
         .dependOnInheritedWidgetOfExactType<RouterStateProvider>();

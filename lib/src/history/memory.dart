@@ -13,12 +13,29 @@ class _MemoryEntry {
   const _MemoryEntry({required this.info, required this.identifier});
 }
 
+/// An in-memory [History] implementation.
+///
+/// This is the default history used by `Unrouter` on non-web platforms and is
+/// convenient for tests.
+///
+/// Browser semantics:
+/// - [push] and [replace] update [location] immediately and do **not** notify
+///   listeners.
+/// - [go] / [back] / [forward] notify listeners synchronously.
 class MemoryHistory extends History {
+  /// Creates a [MemoryHistory] with an optional initial stack.
+  ///
+  /// If [initialEntries] is omitted (or empty), the stack starts with a single
+  /// entry at `/`.
+  ///
+  /// If provided, [initialIndex] is clamped to the valid range.
   MemoryHistory({
     List<RouteInformation>? initialEntries,
     int? initialIndex,
   }) {
-    final entries = initialEntries ?? [RouteInformation(uri: Uri.parse('/'))];
+    final entries = (initialEntries == null || initialEntries.isEmpty)
+        ? [RouteInformation(uri: Uri.parse('/'))]
+        : initialEntries;
     _entries = entries
         .map((info) => _MemoryEntry(info: info, identifier: generateIdentifier()))
         .toList();

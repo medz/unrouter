@@ -1,5 +1,5 @@
 name: unrouter
-description: "Declarative Flutter router with Navigator 2 pages, Navigator 1 bridge, and routingkit matching."
+description: "A declarative Flutter router that feels like the browser’s history & SwiftUI’s NavigationStack philosophy."
 version: 0.1.0
 
 repository: https://github.com/medz/unrouter

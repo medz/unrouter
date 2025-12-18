@@ -6,20 +6,54 @@ import 'router_state.dart';
 import 'route_matcher.dart';
 import '_internal/stacked_route_view.dart';
 
+/// Browser-style navigation operations exposed by `unrouter`.
+///
+/// `Navigate` is implemented by [UnrouterDelegate]. In a widget tree you can
+/// access it via [Navigate.of].
 abstract interface class Navigate {
+  /// Navigates to [uri].
+  ///
+  /// - If `uri.path` starts with `/`, navigation is absolute.
+  /// - Otherwise, the path is appended to the current location (relative
+  ///   navigation).
+  ///
+  /// The optional [state] is stored on the history entry and can be read via
+  /// [RouteInformation.state] (see [RouterState.info]).
+  ///
+  /// If [replace] is `true`, the current history entry is replaced instead of
+  /// pushing a new one.
   void call(Uri uri, {Object? state, bool replace = false});
+
+  /// Moves within the history stack by [delta] entries.
   void go(int delta);
+
+  /// Equivalent to calling [go] with `-1`.
   void back();
+
+  /// Equivalent to calling [go] with `+1`.
   void forward();
 
+  /// Retrieves the current [Navigate] implementation from the nearest [Router].
+  ///
+  /// This assumes the app is using a router delegate that implements
+  /// [Navigate] (such as [UnrouterDelegate]).
   static Navigate of(BuildContext context) =>
       Router.of(context).routerDelegate as Navigate;
 }
 
-/// The router delegate that manages navigation state and builds the widget tree.
+/// A [RouterDelegate] that matches URLs and builds the routed widget tree.
+///
+/// The delegate:
+/// - Listens to [History] `pop` events and updates [currentConfiguration].
+/// - Matches the current path against a tree of [Inlet] routes.
+/// - Provides [RouterState] to descendants via [RouterStateProvider].
 class UnrouterDelegate extends RouterDelegate<RouteInformation>
     with ChangeNotifier
     implements Navigate {
+  /// Creates a delegate with a fixed route tree and a backing [History].
+  ///
+  /// You typically don't create this directly; use `Unrouter`, which wires it
+  /// into Flutter's `Router` and sets up a matching [RouteInformationProvider].
   UnrouterDelegate({required this.routes, required this.history})
     : currentConfiguration = history.location {
     // Listen to history changes (only back/forward/go - popstate events)
@@ -62,8 +96,13 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
 
   /// Resolves a URI, handling relative paths.
   ///
-  /// If [uri.path] starts with '/', it's treated as an absolute path.
-  /// Otherwise, it's a relative path appended to the current location.
+  /// If `uri.path` starts with `/`, it's treated as an absolute path.
+  /// Otherwise, it's appended to the current path by segment.
+  ///
+  /// Notes:
+  /// - This does not support `.` / `..` normalization.
+  /// - The returned URI uses [uri]'s query/fragment (it does not inherit the
+  ///   current location's query/fragment).
   Uri resolveUri(Uri uri) {
     // Absolute path - starts with '/'
     if (uri.path.startsWith('/')) {

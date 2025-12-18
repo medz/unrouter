@@ -1,4 +1,33 @@
-export 'src/history/history.dart';
+/// Declarative routing for Flutter.
+///
+/// `unrouter` provides a small, declarative router built on Flutter's `Router`
+/// API (Navigator 2.0).
+///
+/// - Define a route tree with [Inlet]
+/// - Render nested routes with [Outlet]
+/// - Navigate with browser-like history operations via [Unrouter] or
+///   [Navigate.of]
+///
+/// Basic usage:
+/// ```dart
+/// import 'package:flutter/material.dart';
+/// import 'package:unrouter/unrouter.dart';
+///
+/// final router = Unrouter(
+///   routes: const [
+///     Inlet(factory: HomePage.new),
+///     Inlet(path: 'about', factory: AboutPage.new),
+///   ],
+/// );
+///
+/// void main() => runApp(MaterialApp.router(routerConfig: router));
+/// ```
+///
+/// For web-only history implementations (`BrowserHistory` / `HashHistory`),
+/// import `package:unrouter/browser.dart`.
+library;
+
+export 'src/history/history.dart' hide HistoryState;
 export 'src/history/memory.dart';
 
 export 'src/widgets/outlet.dart';

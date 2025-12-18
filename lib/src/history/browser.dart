@@ -6,6 +6,18 @@ import 'package:web/web.dart' as web;
 import '_utils.dart';
 import 'history.dart';
 
+/// Base class for web [History] implementations backed by `window.history`.
+///
+/// This class wires up the browser `popstate` event and implements:
+/// - [push] / [replace] (synchronous, do not emit events)
+/// - [go] / [back] / [forward] (emit events asynchronously via `popstate`)
+///
+/// Subclasses are responsible for:
+/// - Exposing the current [location] by reading from `window.location`
+/// - Converting a target [Uri] into an `href` string via [createHref]
+///
+/// `unrouter` stores additional metadata in `window.history.state` so it can
+/// compute a [HistoryEvent.delta] when navigating back/forward.
 abstract class UrlBasedHistory extends History {
   UrlBasedHistory({web.Window? window}) {
     this.window = window ?? web.document.defaultView ?? web.window;
@@ -83,7 +95,16 @@ abstract class UrlBasedHistory extends History {
   }
 }
 
+/// A web [History] that uses path-based URLs (e.g. `/about`).
+///
+/// The current location is read from `window.location` using:
+/// - `pathname` as [Uri.path]
+/// - `search` as [Uri.query]
+/// - `hash` as [Uri.fragment]
 class BrowserHistory extends UrlBasedHistory {
+  /// Creates a [BrowserHistory] that reads/writes path-based URLs.
+  ///
+  /// If [window] is omitted, the default browser window is used.
   BrowserHistory({super.window});
 
   @override
@@ -101,7 +122,14 @@ class BrowserHistory extends UrlBasedHistory {
   String createHref(Uri uri) => uri.toString();
 }
 
+/// A web [History] that stores the route inside the URL fragment (e.g. `/#/about`).
+///
+/// This strategy commonly works on static hosts without server-side rewrite
+/// rules, because the browser will only request `/` from the server.
 class HashHistory extends UrlBasedHistory {
+  /// Creates a [HashHistory] that stores the route in `location.hash`.
+  ///
+  /// If [window] is omitted, the default browser window is used.
   HashHistory({super.window});
 
   @override

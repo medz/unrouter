@@ -5,8 +5,12 @@ import '../router_state.dart';
 
 /// A widget that renders the next matched child route.
 ///
-/// Outlet must be used inside layout and nested routes to render their children.
-/// It maintains a stack of child widgets to preserve state across navigation.
+/// `Outlet` must be used inside layout and nested routes to render their
+/// children.
+///
+/// It keeps child widgets stacked so their state is preserved across
+/// navigation. `Outlet` must be a descendant of `Unrouter` (it relies on
+/// [RouterStateProvider]).
 class Outlet extends StatelessWidget {
   const Outlet({super.key});
 

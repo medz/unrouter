@@ -1,11 +1,18 @@
 import '_internal/path_matcher.dart';
 import 'inlet.dart';
 
-/// A matched route with extracted parameters.
+/// A matched [Inlet] with extracted path parameters.
+///
+/// [params] contains only the parameters captured by this route's own
+/// [Inlet.path]. To get merged params for the currently-rendering widget, use
+/// `RouterState.params`.
 class MatchedRoute {
   const MatchedRoute(this.route, this.params);
 
+  /// The matched route definition.
   final Inlet route;
+
+  /// Parameters extracted from the matched portion of [route]'s path.
   final Map<String, String> params;
 
   @override
