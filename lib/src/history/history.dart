@@ -1,5 +1,4 @@
 import 'package:flutter/widgets.dart';
-import 'package:meta/meta.dart';
 
 /// The kind of navigation that produced the current [History.location].
 enum HistoryAction {
@@ -14,40 +13,6 @@ enum HistoryAction {
 
   /// The current entry was replaced via [History.replace].
   replace,
-}
-
-/// Internal state stored in a browser history entry.
-///
-/// This is used by `unrouter`'s web history implementation to keep extra
-/// metadata (like an index) alongside the user-provided entry state.
-///
-/// Do not rely on the shape of this object; it is an implementation detail.
-@internal
-class HistoryState {
-  /// The user-provided state passed to [History.push] / [History.replace].
-  final Object? userData;
-
-  /// The current position in the history stack, as tracked by `unrouter`.
-  final int index;
-
-  /// An internal identifier for the entry.
-  final String? identifier;
-
-  const HistoryState({required this.index, this.identifier, this.userData});
-
-  /// Converts this object into a plain `Map` suitable for serialization.
-  Map<String, dynamic> toJson() => {
-        'index': index,
-        'identifier': identifier,
-        'userData': userData,
-      };
-
-  /// Creates an instance from a JSON-like `Map`.
-  factory HistoryState.fromJson(Map<dynamic, dynamic> json) => HistoryState(
-        index: json['index'] as int? ?? 0,
-        identifier: json['identifier'] as String?,
-        userData: json['userData'],
-      );
 }
 
 /// A navigation event emitted by [History.listen].

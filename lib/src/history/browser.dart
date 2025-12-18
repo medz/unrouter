@@ -6,6 +6,37 @@ import 'package:web/web.dart' as web;
 import '_utils.dart';
 import 'history.dart';
 
+/// Internal state stored in a browser history entry.
+///
+/// This is used to keep extra metadata (like an index) alongside the
+/// user-provided entry state.
+class _HistoryState {
+  /// The user-provided state passed to [History.push] / [History.replace].
+  final Object? userData;
+
+  /// The current position in the history stack, as tracked by `unrouter`.
+  final int index;
+
+  /// An internal identifier for the entry.
+  final String? identifier;
+
+  const _HistoryState({required this.index, this.identifier, this.userData});
+
+  /// Converts this object into a plain `Map` suitable for serialization.
+  Map<String, dynamic> toJson() => {
+        'index': index,
+        'identifier': identifier,
+        'userData': userData,
+      };
+
+  /// Creates an instance from a JSON-like `Map`.
+  factory _HistoryState.fromJson(Map<dynamic, dynamic> json) => _HistoryState(
+        index: json['index'] as int? ?? 0,
+        identifier: json['identifier'] as String?,
+        userData: json['userData'],
+      );
+}
+
 /// Base class for web [History] implementations backed by `window.history`.
 ///
 /// This class wires up the browser `popstate` event and implements:
@@ -23,7 +54,7 @@ abstract class UrlBasedHistory extends History {
     this.window = window ?? web.document.defaultView ?? web.window;
     index = state?.index ?? 0;
     if (index == 0) {
-      final state = HistoryState(
+      final state = _HistoryState(
         identifier: this.state?.identifier ?? generateIdentifier(),
         userData: this.state?.userData,
         index: index,
@@ -47,7 +78,7 @@ abstract class UrlBasedHistory extends History {
   void push(Uri uri, [Object? state]) {
     action = .push;
     index = (this.state?.index ?? 0) + 1;
-    final historyState = HistoryState(
+    final historyState = _HistoryState(
       userData: state,
       index: index,
       identifier: generateIdentifier(),
@@ -64,7 +95,7 @@ abstract class UrlBasedHistory extends History {
   void replace(Uri uri, [Object? state]) {
     action = .replace;
     index = this.state?.index ?? 0;
-    final historyState = HistoryState(
+    final historyState = _HistoryState(
       identifier: this.state?.identifier ?? generateIdentifier(),
       index: index,
       userData: state,
@@ -167,10 +198,10 @@ class HashHistory extends UrlBasedHistory {
 }
 
 extension on UrlBasedHistory {
-  HistoryState? get state {
+  _HistoryState? get state {
     final dartified = window.history.state.dartify();
     if (dartified is Map) {
-      return HistoryState.fromJson(dartified);
+      return _HistoryState.fromJson(dartified);
     }
     return null;
   }

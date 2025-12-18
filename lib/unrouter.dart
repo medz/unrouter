@@ -27,7 +27,7 @@
 /// import `package:unrouter/browser.dart`.
 library;
 
-export 'src/history/history.dart' hide HistoryState;
+export 'src/history/history.dart';
 export 'src/history/memory.dart';
 
 export 'src/widgets/outlet.dart';
