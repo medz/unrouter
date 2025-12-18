@@ -50,32 +50,50 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
   /// Current history action.
   HistoryAction _historyAction = HistoryAction.push;
 
-  /// Manually navigate to a location (for push/replace).
+  /// Navigates to a location (for push/replace).
   ///
   /// This is called directly by Unrouter.push/replace because
   /// following browser semantics, pushState/replaceState do NOT
   /// trigger listeners. Only user navigation (popstate) does.
-  void pushTo(String location, [Object? state]) {
+  ///
+  /// If [uri.path] starts with '/', it's treated as an absolute path.
+  /// Otherwise, it's a relative path appended to the current location.
+  void navigate(Uri uri, {Object? state, bool replace = false}) {
     _currentConfiguration = RouteInformation(
-      uri: Uri.parse(location),
+      uri: resolveUri(uri),
       state: state,
     );
-    _historyAction = HistoryAction.push;
-    _historyIndex++;
+    _historyAction = replace ? HistoryAction.replace : HistoryAction.push;
+    if (!replace) _historyIndex++;
+
     _updateMatchedRoutes();
     notifyListeners();
   }
 
-  /// Replace the current location (does not create a new history entry).
-  void replaceTo(String location, [Object? state]) {
-    _currentConfiguration = RouteInformation(
-      uri: Uri.parse(location),
-      state: state,
+  /// Resolves a URI, handling relative paths.
+  ///
+  /// If [uri.path] starts with '/', it's treated as an absolute path.
+  /// Otherwise, it's a relative path appended to the current location.
+  Uri resolveUri(Uri uri) {
+    // Absolute path - starts with '/'
+    if (uri.path.startsWith('/')) {
+      return uri;
+    }
+
+    // Relative path - append to current location
+    final segments =
+        _currentConfiguration.uri.path
+            .split('/')
+            .where((s) => s.isNotEmpty)
+            .toList()
+          ..addAll(uri.path.split('/').where((s) => s.isNotEmpty));
+
+    final resolvedPath = '/${segments.join('/')}';
+    return Uri(
+      path: resolvedPath,
+      query: uri.query.isEmpty ? null : uri.query,
+      fragment: uri.fragment.isEmpty ? null : uri.fragment,
     );
-    _historyAction = HistoryAction.replace;
-    // Note: do NOT change _historyIndex for replace.
-    _updateMatchedRoutes();
-    notifyListeners();
   }
 
   /// Update matched routes based on current location.

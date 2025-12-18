@@ -71,18 +71,28 @@ class Unrouter extends RouterConfig<RouteInformation> {
   ///
   /// Following browser history.pushState() semantics, this does NOT trigger
   /// listeners. The delegate is manually updated.
+  ///
+  /// If [location] starts with '/', it's treated as an absolute path.
+  /// Otherwise, it's a relative path appended to the current location.
   void push(String location, [Object? state]) {
-    _history.push(Uri.parse(location), state);
-    _delegate.pushTo(location, state);
+    final uri = Uri.parse(location);
+    final resolvedUri = _delegate.resolveUri(uri);
+    _history.push(resolvedUri, state);
+    _delegate.navigate(uri, state: state);
   }
 
   /// Replace the current location in the history stack.
   ///
   /// Following browser history.replaceState() semantics, this does NOT trigger
   /// listeners. The delegate is manually updated.
+  ///
+  /// If [location] starts with '/', it's treated as an absolute path.
+  /// Otherwise, it's a relative path appended to the current location.
   void replace(String location, [Object? state]) {
-    _history.replace(Uri.parse(location), state);
-    _delegate.replaceTo(location, state);
+    final uri = Uri.parse(location);
+    final resolvedUri = _delegate.resolveUri(uri);
+    _history.replace(resolvedUri, state);
+    _delegate.navigate(uri, state: state, replace: true);
   }
 
   /// Go back in the history stack.
