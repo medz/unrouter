@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 
-import '_internal/route_matcher.dart';
+import 'route_matcher.dart';
 import 'history/history.dart';
 
 /// Router state that flows through the widget tree.

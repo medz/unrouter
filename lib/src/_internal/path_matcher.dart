@@ -1,6 +1,3 @@
-/// Path matching utilities for route resolution.
-library;
-
 /// Normalizes a path by removing leading/trailing slashes and empty segments.
 ///
 /// Examples:

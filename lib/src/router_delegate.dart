@@ -1,10 +1,10 @@
 import 'package:flutter/widgets.dart';
 
-import '../history/history.dart';
-import '../inlet.dart';
-import '../router_state.dart';
+import 'history/history.dart';
+import 'inlet.dart';
+import 'router_state.dart';
 import 'route_matcher.dart';
-import 'stacked_route_view.dart';
+import '_internal/stacked_route_view.dart';
 
 /// The router delegate that manages navigation state and builds the widget tree.
 class UnrouterDelegate extends RouterDelegate<RouteInformation>

@@ -1,6 +1,5 @@
-import 'path_matcher.dart';
-
-import '../inlet.dart';
+import '_internal/path_matcher.dart';
+import 'inlet.dart';
 
 /// A matched route with extracted parameters.
 class MatchedRoute {

@@ -4,9 +4,9 @@ import 'package:flutter/widgets.dart';
 ///
 /// This is a simple pass-through parser that just extracts the location
 /// from RouteInformation.
-class UnrouteInformationParser
+class UnrouterInformationParser
     extends RouteInformationParser<RouteInformation> {
-  const UnrouteInformationParser();
+  const UnrouterInformationParser();
 
   @override
   Future<RouteInformation> parseRouteInformation(

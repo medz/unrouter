@@ -2,9 +2,9 @@ import 'package:flutter/widgets.dart';
 
 import 'history/history.dart';
 import 'inlet.dart';
-import '_internal/route_information_parser.dart';
-import '_internal/route_information_provider.dart';
-import '_internal/router_delegate.dart';
+import 'route_information_parser.dart';
+import 'route_information_provider.dart';
+import 'router_delegate.dart';
 import 'url_strategy.dart';
 
 import '_internal/create_history.memory.dart'
@@ -38,34 +38,30 @@ class Unrouter extends RouterConfig<RouteInformation> {
 
     return Unrouter._(
       routes: routes,
-      routeInformationProvider: UnrouteInformationProvider(history: history),
-      routeInformationParser: const UnrouteInformationParser(),
+      routeInformationProvider: UnrouterInformationProvider(history: history),
+      routeInformationParser: const UnrouterInformationParser(),
       routerDelegate: delegate,
       backButtonDispatcher: RootBackButtonDispatcher(),
       history: history,
-      delegate: delegate,
     );
   }
 
   Unrouter._({
-    required this.routes,
     required super.routeInformationProvider,
     required super.routeInformationParser,
     required super.routerDelegate,
     required super.backButtonDispatcher,
-    required History history,
-    required UnrouterDelegate delegate,
-  }) : _history = history,
-       _delegate = delegate;
+    required this.routes,
+    required this.history,
+  });
 
   /// The route configuration.
   final Iterable<Inlet> routes;
+  final History history;
 
-  final History _history;
-  final UnrouterDelegate _delegate;
-
-  /// Gets the underlying history object.
-  History get history => _history;
+  @override
+  UnrouterDelegate get routerDelegate =>
+      super.routerDelegate as UnrouterDelegate;
 
   /// Push a new location onto the history stack.
   ///
@@ -76,9 +72,10 @@ class Unrouter extends RouterConfig<RouteInformation> {
   /// Otherwise, it's a relative path appended to the current location.
   void push(String location, [Object? state]) {
     final uri = Uri.parse(location);
-    final resolvedUri = _delegate.resolveUri(uri);
-    _history.push(resolvedUri, state);
-    _delegate.navigate(uri, state: state);
+    final resolvedUri = routerDelegate.resolveUri(uri);
+
+    history.push(resolvedUri, state);
+    routerDelegate.navigate(uri, state: state);
   }
 
   /// Replace the current location in the history stack.
@@ -90,17 +87,17 @@ class Unrouter extends RouterConfig<RouteInformation> {
   /// Otherwise, it's a relative path appended to the current location.
   void replace(String location, [Object? state]) {
     final uri = Uri.parse(location);
-    final resolvedUri = _delegate.resolveUri(uri);
-    _history.replace(resolvedUri, state);
-    _delegate.navigate(uri, state: state, replace: true);
+    final resolvedUri = routerDelegate.resolveUri(uri);
+    history.replace(resolvedUri, state);
+    routerDelegate.navigate(uri, state: state, replace: true);
   }
 
   /// Go back in the history stack.
-  void back() => _history.back();
+  void back() => history.back();
 
   /// Go forward in the history stack.
-  void forward() => _history.forward();
+  void forward() => history.forward();
 
   /// Go to a specific point in the history stack.
-  void go(int delta) => _history.go(delta);
+  void go(int delta) => history.go(delta);
 }

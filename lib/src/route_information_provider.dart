@@ -1,11 +1,11 @@
 import 'package:flutter/widgets.dart';
 
-import '../history/history.dart';
+import 'history/history.dart';
 
 /// Provides route information and listens to history changes.
-class UnrouteInformationProvider extends RouteInformationProvider
+class UnrouterInformationProvider extends RouteInformationProvider
     with ChangeNotifier {
-  UnrouteInformationProvider({required History history})
+  UnrouterInformationProvider({required History history})
     : _history = history,
       _value = history.location {
     // Listen to history changes
