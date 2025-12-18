@@ -6,13 +6,10 @@ import 'inlet.dart';
 import '_internal/route_information_parser.dart';
 import '_internal/route_information_provider.dart';
 import '_internal/router_delegate.dart';
+import 'url_strategy.dart';
 
-/// History mode for the router.
-///
-/// - [memory]: In-memory history (for testing or mobile apps)
-/// - [browser]: Browser history using pushState API
-/// - [hash]: Hash-based history (legacy browser support)
-enum HistoryMode { memory, browser, hash }
+import '_internal/create_history.memory.dart'
+    if (dart.library.js_interop) '_internal/create_history.browser.dart';
 
 /// The main router for declarative routing.
 ///
@@ -27,7 +24,6 @@ enum HistoryMode { memory, browser, hash }
 ///       Inlet(path: ':id', factory: UserDetailPage.new),
 ///     ]),
 ///   ],
-///   mode: HistoryMode.memory,
 /// );
 ///
 /// MaterialApp.router(routerConfig: router);
@@ -35,11 +31,10 @@ enum HistoryMode { memory, browser, hash }
 class Unrouter extends RouterConfig<RouteInformation> {
   factory Unrouter({
     required List<Inlet> routes,
-    required HistoryMode mode,
-    String? initialLocation,
-    String base = '/',
+    UrlStrategy strategy = .hash,
+    History? history,
   }) {
-    final history = _createHistory(mode, base);
+    history ??= createHistory(strategy);
     final delegate = UnrouterDelegate(routes: routes);
     delegate.attachHistory(history);
 
@@ -105,15 +100,4 @@ class Unrouter extends RouterConfig<RouteInformation> {
 
   /// Go to a specific point in the history stack.
   void go(int delta) => _history.go(delta);
-
-  static RouterHistory _createHistory(HistoryMode mode, String base) {
-    switch (mode) {
-      case HistoryMode.memory:
-        return MemoryHistory(base);
-      case HistoryMode.browser:
-        throw UnimplementedError('Browser history not yet implemented');
-      case HistoryMode.hash:
-        throw UnimplementedError('Hash history not yet implemented');
-    }
-  }
 }

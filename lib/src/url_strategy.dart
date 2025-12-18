@@ -1,0 +1,1 @@
+enum UrlStrategy { browser, hash }

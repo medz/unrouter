@@ -85,6 +85,8 @@ abstract class UrlBasedHistory extends History {
 }
 
 class BrowserHistory extends UrlBasedHistory {
+  BrowserHistory({super.window});
+
   @override
   Location get location {
     final web.Location(:pathname, :search, :hash) = window.location;
@@ -105,6 +107,8 @@ class BrowserHistory extends UrlBasedHistory {
 }
 
 class HashHistory extends UrlBasedHistory {
+  HashHistory({super.window});
+
   @override
   Location get location {
     final web.Location(:hash) = window.location;
