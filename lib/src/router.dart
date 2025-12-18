@@ -34,8 +34,7 @@ class Unrouter extends RouterConfig<RouteInformation> {
     History? history,
   }) {
     history ??= createHistory(strategy);
-    final delegate = UnrouterDelegate(routes: routes);
-    delegate.attachHistory(history);
+    final delegate = UnrouterDelegate(routes: routes, history: history);
 
     return Unrouter._(
       routes: routes,

@@ -9,35 +9,9 @@ import 'stacked_route_view.dart';
 /// The router delegate that manages navigation state and builds the widget tree.
 class UnrouterDelegate extends RouterDelegate<RouteInformation>
     with ChangeNotifier {
-  UnrouterDelegate({required this.routes});
-
-  /// The root routes configuration.
-  final List<Inlet> routes;
-
-  /// The underlying history implementation.
-  History? _history;
-
-  /// Current route information.
-  RouteInformation _currentConfiguration = RouteInformation(
-    uri: Uri.parse('/'),
-  );
-
-  /// Currently matched routes.
-  List<MatchedRoute> _matchedRoutes = const [];
-
-  /// Unlisten callback from history.
-  void Function()? _unlistenHistory;
-
-  /// Current history index.
-  int _historyIndex = 0;
-
-  /// Current history action.
-  HistoryAction _historyAction = HistoryAction.push;
-
-  /// Attaches the history implementation.
-  void attachHistory(History history) {
-    _history = history;
-
+  UnrouterDelegate({required this.routes, required History history})
+    : _history = history,
+      _currentConfiguration = history.location {
     // Listen to history changes (only back/forward/go - popstate events)
     _unlistenHistory = history.listen((event) {
       _currentConfiguration = event.location;
@@ -51,10 +25,30 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
       notifyListeners();
     });
 
-    // Initialize with current location
-    _currentConfiguration = history.location;
+    // Initialize matched routes
     _updateMatchedRoutes();
   }
+
+  /// The root routes configuration.
+  final List<Inlet> routes;
+
+  /// The underlying history implementation.
+  final History _history;
+
+  /// Current route information.
+  RouteInformation _currentConfiguration;
+
+  /// Currently matched routes.
+  List<MatchedRoute> _matchedRoutes = const [];
+
+  /// Unlisten callback from history.
+  void Function()? _unlistenHistory;
+
+  /// Current history index.
+  int _historyIndex = 0;
+
+  /// Current history action.
+  HistoryAction _historyAction = HistoryAction.push;
 
   /// Manually navigate to a location (for push/replace).
   ///
@@ -100,11 +94,9 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
 
     // Update history if needed
     final newUri = configuration.uri;
-    if (_history != null) {
-      final currentUri = _history!.location.uri;
-      if (newUri != currentUri) {
-        _history!.push(newUri, configuration.state);
-      }
+    final currentUri = _history.location.uri;
+    if (newUri != currentUri) {
+      _history.push(newUri, configuration.state);
     }
 
     _updateMatchedRoutes();
@@ -132,11 +124,8 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
   @override
   Future<bool> popRoute() async {
     // Handle back button press
-    if (_history != null) {
-      _history!.back();
-      return true;
-    }
-    return false;
+    _history.back();
+    return true;
   }
 
   @override
