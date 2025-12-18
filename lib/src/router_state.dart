@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart';
 
 import '_internal/route_matcher.dart';
-import 'history/types.dart';
+import 'history/history.dart';
 
 /// Router state that flows through the widget tree.
 ///
@@ -13,7 +13,7 @@ class RouterState {
     required this.matchedRoutes,
     required this.level,
     required this.historyIndex,
-    this.navigationType = NavigationType.push,
+    this.historyAction = HistoryAction.push,
   });
 
   /// The full current location (e.g., '/users/123/posts').
@@ -28,8 +28,8 @@ class RouterState {
   /// Current position in history stack.
   final int historyIndex;
 
-  /// Type of navigation that led to this state (push or pop/back).
-  final NavigationType navigationType;
+  /// Type of navigation that led to this state.
+  final HistoryAction historyAction;
 
   /// Get all params from matched routes up to current level.
   Map<String, String> get params {
@@ -47,7 +47,7 @@ class RouterState {
       matchedRoutes: matchedRoutes,
       level: newLevel,
       historyIndex: historyIndex,
-      navigationType: navigationType,
+      historyAction: historyAction,
     );
   }
 

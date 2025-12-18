@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 
-import '../history/types.dart';
+import '../history/history.dart';
 import '../inlet.dart';
 import '../router_state.dart';
 import 'route_cache_key.dart';
@@ -38,14 +38,14 @@ class _StackedRouteViewState extends State<StackedRouteView> {
 
     final matched = state.matchedRoutes[routeIndex];
     final historyIndex = state.historyIndex;
-    final navigationType = state.navigationType;
+    final historyAction = state.historyAction;
 
     final cacheKey = matched.route.children.isNotEmpty
         ? RouteCacheKey(matched.route, matched.params)
         : historyIndex;
 
     // On push/replace, remove any leaf indices that are no longer reachable.
-    if (navigationType == NavigationType.push) {
+    if (historyAction == HistoryAction.push) {
       _indexOrder.removeWhere((key) => key is int && key > historyIndex);
     }
 
@@ -53,7 +53,8 @@ class _StackedRouteViewState extends State<StackedRouteView> {
 
     _PageEntry? pageEntry = _pageStack[cacheKey];
     final shouldRecreate =
-        navigationType == NavigationType.push && cacheKey is int;
+        (historyAction == HistoryAction.push && cacheKey is int) ||
+        (historyAction == HistoryAction.replace && pageEntry?.route != matched.route);
 
     if (pageEntry == null || shouldRecreate) {
       final widget = RouterStateProvider(

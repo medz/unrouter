@@ -7,6 +7,7 @@ void main() {
 
 // Router configuration
 final router = Unrouter(
+  strategy: .browser,
   routes: const [
     Inlet(factory: Home.new),
     Inlet(path: 'about', factory: About.new),
@@ -31,7 +32,6 @@ final router = Unrouter(
       ],
     ),
   ],
-  mode: HistoryMode.memory,
 );
 
 class App extends StatelessWidget {

@@ -19,8 +19,7 @@ void main() {
           Inlet(factory: () => const Text('Home')),
           Inlet(path: 'about', factory: () => const Text('About')),
         ],
-        mode: HistoryMode.memory,
-        initialLocation: '/',
+        history: MemoryHistory(),
       );
 
       await tester.pumpWidget(wrapRouter(router));
@@ -45,8 +44,7 @@ void main() {
           Inlet(path: 'about', factory: () => const Text('About')),
           Inlet(path: 'contact', factory: () => const Text('Contact')),
         ],
-        mode: HistoryMode.memory,
-        initialLocation: '/',
+        history: MemoryHistory(),
       );
 
       await tester.pumpWidget(wrapRouter(router));
@@ -75,8 +73,7 @@ void main() {
           Inlet(factory: () => const Text('Home')),
           Inlet(path: 'about', factory: () => const Text('About')),
         ],
-        mode: HistoryMode.memory,
-        initialLocation: '/',
+        history: MemoryHistory(),
       );
 
       await tester.pumpWidget(wrapRouter(router));
@@ -98,8 +95,7 @@ void main() {
           Inlet(factory: () => const Text('Home')),
           Inlet(path: 'about', factory: () => const Text('About')),
         ],
-        mode: HistoryMode.memory,
-        initialLocation: '/',
+        history: MemoryHistory(),
       );
 
       await tester.pumpWidget(wrapRouter(router));
@@ -125,8 +121,7 @@ void main() {
           Inlet(path: '1', factory: () => const Text('Page 1')),
           Inlet(path: '2', factory: () => const Text('Page 2')),
         ],
-        mode: HistoryMode.memory,
-        initialLocation: '/',
+        history: MemoryHistory(),
       );
 
       await tester.pumpWidget(wrapRouter(router));
@@ -158,8 +153,7 @@ void main() {
           Inlet(path: '1', factory: () => const Text('Page 1')),
           Inlet(path: '2', factory: () => const Text('Page 2')),
         ],
-        mode: HistoryMode.memory,
-        initialLocation: '/',
+        history: MemoryHistory(),
       );
 
       await tester.pumpWidget(wrapRouter(router));
@@ -198,8 +192,7 @@ void main() {
             ],
           ),
         ],
-        mode: HistoryMode.memory,
-        initialLocation: '/section/a',
+        history: MemoryHistory(initialEntries: [Location(pathname: '/section/a', identifier: 'default')]),
       );
 
       await tester.pumpWidget(wrapRouter(router));

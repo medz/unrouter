@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 
-import '../history/types.dart';
+import '../history/history.dart';
 import '../inlet.dart';
 import '../router_state.dart';
 import 'route_matcher.dart';
@@ -15,7 +15,7 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
   final List<Inlet> routes;
 
   /// The underlying history implementation.
-  RouterHistory? _history;
+  History? _history;
 
   /// Current route information.
   RouteInformation _currentConfiguration = RouteInformation(
@@ -26,38 +26,48 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
   List<MatchedRoute> _matchedRoutes = const [];
 
   /// Unlisten callback from history.
-  VoidCallback? _unlistenHistory;
+  void Function()? _unlistenHistory;
 
   /// Current history index.
   int _historyIndex = 0;
 
-  /// Current navigation type (push or pop).
-  NavigationType _navigationType = NavigationType.push;
+  /// Current history action.
+  HistoryAction _historyAction = HistoryAction.push;
 
   /// Attaches the history implementation.
-  void attachHistory(RouterHistory history) {
+  void attachHistory(History history) {
     _history = history;
 
     // Listen to history changes (only back/forward/go - popstate events)
-    _unlistenHistory = history.listen((to, from, info) {
+    _unlistenHistory = history.listen((event) {
       _currentConfiguration = RouteInformation(
-        uri: Uri.parse(to),
-        state: history.state,
+        uri: _locationToUri(event.location),
+        state: event.location.state,
       );
-      _navigationType = info.type;
+      _historyAction = event.action;
       // Adjust history index based on navigation delta
-      _historyIndex += info.delta;
-      if (_historyIndex < 0) _historyIndex = 0;
+      if (event.delta != null) {
+        _historyIndex += event.delta!;
+        if (_historyIndex < 0) _historyIndex = 0;
+      }
       _updateMatchedRoutes();
       notifyListeners();
     });
 
     // Initialize with current location
     _currentConfiguration = RouteInformation(
-      uri: Uri.parse(history.location),
-      state: history.state,
+      uri: _locationToUri(history.location),
+      state: history.location.state,
     );
     _updateMatchedRoutes();
+  }
+
+  static Uri _locationToUri(Location location) {
+    return Uri(
+      path: location.pathname,
+      query: location.search.isEmpty ? null : location.search,
+      fragment: location.hash.isEmpty ? null : location.hash,
+    );
   }
 
   /// Manually navigate to a location (for push/replace).
@@ -70,7 +80,7 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
       uri: Uri.parse(location),
       state: state,
     );
-    _navigationType = NavigationType.push;
+    _historyAction = HistoryAction.push;
     _historyIndex++;
     _updateMatchedRoutes();
     notifyListeners();
@@ -82,7 +92,7 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
       uri: Uri.parse(location),
       state: state,
     );
-    _navigationType = NavigationType.push;
+    _historyAction = HistoryAction.replace;
     // Note: do NOT change _historyIndex for replace.
     _updateMatchedRoutes();
     notifyListeners();
@@ -103,9 +113,17 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
     _currentConfiguration = configuration;
 
     // Update history if needed
-    final location = configuration.uri.path;
-    if (_history != null && _history!.location != location) {
-      _history!.push(location, configuration.state);
+    final newUri = configuration.uri;
+    if (_history != null) {
+      final currentUri = _locationToUri(_history!.location);
+      if (newUri != currentUri) {
+        final path = Path(
+          pathname: newUri.path,
+          search: newUri.query,
+          hash: newUri.fragment,
+        );
+        _history!.push(path, configuration.state);
+      }
     }
 
     _updateMatchedRoutes();
@@ -125,7 +143,7 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
       matchedRoutes: _matchedRoutes,
       level: 0,
       historyIndex: _historyIndex,
-      navigationType: _navigationType,
+      historyAction: _historyAction,
     );
     return StackedRouteView(state: state, levelOffset: 0);
   }

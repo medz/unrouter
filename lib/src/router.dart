@@ -1,7 +1,6 @@
 import 'package:flutter/widgets.dart';
 
-import 'history/memory.dart';
-import 'history/types.dart';
+import 'history/history.dart';
 import 'inlet.dart';
 import '_internal/route_information_parser.dart';
 import '_internal/route_information_provider.dart';
@@ -38,11 +37,6 @@ class Unrouter extends RouterConfig<RouteInformation> {
     final delegate = UnrouterDelegate(routes: routes);
     delegate.attachHistory(history);
 
-    if (initialLocation != null && initialLocation != '/') {
-      history.push(initialLocation);
-      delegate.pushTo(initialLocation);
-    }
-
     return Unrouter._(
       routes: routes,
       routeInformationProvider: UnrouteInformationProvider(history: history),
@@ -60,7 +54,7 @@ class Unrouter extends RouterConfig<RouteInformation> {
     required super.routeInformationParser,
     required super.routerDelegate,
     required super.backButtonDispatcher,
-    required RouterHistory history,
+    required History history,
     required UnrouterDelegate delegate,
   }) : _history = history,
        _delegate = delegate;
@@ -68,18 +62,18 @@ class Unrouter extends RouterConfig<RouteInformation> {
   /// The route configuration.
   final Iterable<Inlet> routes;
 
-  final RouterHistory _history;
+  final History _history;
   final UnrouterDelegate _delegate;
 
   /// Gets the underlying history object.
-  RouterHistory get history => _history;
+  History get history => _history;
 
   /// Push a new location onto the history stack.
   ///
   /// Following browser history.pushState() semantics, this does NOT trigger
   /// listeners. The delegate is manually updated.
   void push(String location, [Object? state]) {
-    _history.push(location, state);
+    _history.push(Path.parse(location), state);
     _delegate.pushTo(location, state);
   }
 
@@ -88,7 +82,7 @@ class Unrouter extends RouterConfig<RouteInformation> {
   /// Following browser history.replaceState() semantics, this does NOT trigger
   /// listeners. The delegate is manually updated.
   void replace(String location, [Object? state]) {
-    _history.replace(location, state);
+    _history.replace(Path.parse(location), state);
     _delegate.replaceTo(location, state);
   }
 

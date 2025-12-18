@@ -17,7 +17,7 @@ void main() {
           Inlet(factory: () => const Text('Index')),
           Inlet(path: 'about', factory: () => const Text('About')),
         ],
-        mode: HistoryMode.memory,
+        history: MemoryHistory(),
       );
 
       await tester.pumpWidget(wrapRouter(router));
@@ -32,8 +32,7 @@ void main() {
           Inlet(factory: () => const Text('Index')),
           Inlet(path: 'about', factory: () => const Text('About')),
         ],
-        mode: HistoryMode.memory,
-        initialLocation: '/about',
+        history: MemoryHistory(initialEntries: [Location(pathname: '/about', identifier: 'default')]),
       );
 
       await tester.pumpWidget(wrapRouter(router));
@@ -50,7 +49,7 @@ void main() {
           Inlet(factory: () => const Text('Index')),
           Inlet(path: 'about', factory: () => const Text('About')),
         ],
-        mode: HistoryMode.memory,
+        history: MemoryHistory(),
       );
 
       await tester.pumpWidget(wrapRouter(router));
@@ -84,8 +83,7 @@ void main() {
             ],
           ),
         ],
-        mode: HistoryMode.memory,
-        initialLocation: '/concerts',
+        history: MemoryHistory(initialEntries: [Location(pathname: '/concerts', identifier: 'default')]),
       );
 
       await tester.pumpWidget(wrapRouter(router));
@@ -115,8 +113,7 @@ void main() {
             ],
           ),
         ],
-        mode: HistoryMode.memory,
-        initialLocation: '/concerts',
+        history: MemoryHistory(initialEntries: [Location(pathname: '/concerts', identifier: 'default')]),
       );
 
       await tester.pumpWidget(wrapRouter(router));
@@ -151,8 +148,7 @@ void main() {
             ],
           ),
         ],
-        mode: HistoryMode.memory,
-        initialLocation: '/login',
+        history: MemoryHistory(initialEntries: [Location(pathname: '/login', identifier: 'default')]),
       );
 
       await tester.pumpWidget(wrapRouter(router));
@@ -179,8 +175,7 @@ void main() {
             ],
           ),
         ],
-        mode: HistoryMode.memory,
-        initialLocation: '/login',
+        history: MemoryHistory(initialEntries: [Location(pathname: '/login', identifier: 'default')]),
       );
 
       await tester.pumpWidget(wrapRouter(router));
@@ -210,8 +205,7 @@ void main() {
 
       final router = Unrouter(
         routes: [Inlet(path: ':id', factory: createUser)],
-        mode: HistoryMode.memory,
-        initialLocation: '/123',
+        history: MemoryHistory(initialEntries: [Location(pathname: '/123', identifier: 'default')]),
       );
 
       await tester.pumpWidget(wrapRouter(router));
@@ -242,8 +236,7 @@ void main() {
             children: [Inlet(path: ':id', factory: createUser)],
           ),
         ],
-        mode: HistoryMode.memory,
-        initialLocation: '/users/123',
+        history: MemoryHistory(initialEntries: [Location(pathname: '/users/123', identifier: 'default')]),
       );
 
       await tester.pumpWidget(wrapRouter(router));
@@ -303,8 +296,7 @@ void main() {
             ],
           ),
         ],
-        mode: HistoryMode.memory,
-        initialLocation: '/users/123/456',
+        history: MemoryHistory(initialEntries: [Location(pathname: '/users/123/456', identifier: 'default')]),
       );
 
       await tester.pumpWidget(wrapRouter(router));

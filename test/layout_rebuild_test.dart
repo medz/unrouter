@@ -79,8 +79,7 @@ void main() {
             ],
           ),
         ],
-        mode: HistoryMode.memory,
-        initialLocation: '/login',
+        history: MemoryHistory(initialEntries: [Location(pathname: '/login', identifier: 'default')]),
       );
 
       await tester.pumpWidget(wrapRouter(router));
@@ -168,8 +167,7 @@ void main() {
             ],
           ),
         ],
-        mode: HistoryMode.memory,
-        initialLocation: '/parent/child1',
+        history: MemoryHistory(initialEntries: [Location(pathname: '/parent/child1', identifier: 'default')]),
       );
 
       await tester.pumpWidget(wrapRouter(router));

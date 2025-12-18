@@ -1,26 +1,37 @@
 import 'package:flutter/widgets.dart';
 
-import '../history/types.dart';
+import '../history/history.dart';
 
 /// Provides route information and listens to history changes.
 class UnrouteInformationProvider extends RouteInformationProvider
     with ChangeNotifier {
-  UnrouteInformationProvider({required RouterHistory history})
+  UnrouteInformationProvider({required History history})
     : _history = history,
       _value = RouteInformation(
-        uri: Uri.parse(history.location),
-        state: history.state,
+        uri: _locationToUri(history.location),
+        state: history.location.state,
       ) {
     // Listen to history changes
-    _unlisten = history.listen((to, from, info) {
-      _value = RouteInformation(uri: Uri.parse(to), state: history.state);
+    _unlisten = history.listen((event) {
+      _value = RouteInformation(
+        uri: _locationToUri(event.location),
+        state: event.location.state,
+      );
       notifyListeners();
     });
   }
 
-  final RouterHistory _history;
+  final History _history;
   RouteInformation _value;
-  VoidCallback? _unlisten;
+  void Function()? _unlisten;
+
+  static Uri _locationToUri(Location location) {
+    return Uri(
+      path: location.pathname,
+      query: location.search.isEmpty ? null : location.search,
+      fragment: location.hash.isEmpty ? null : location.hash,
+    );
+  }
 
   @override
   RouteInformation get value => _value;
@@ -30,15 +41,22 @@ class UnrouteInformationProvider extends RouteInformationProvider
     RouteInformation routeInformation, {
     RouteInformationReportingType type = RouteInformationReportingType.none,
   }) {
-    final location = routeInformation.uri.path;
-    if (location != _history.location) {
+    final newUri = routeInformation.uri;
+    final currentUri = _locationToUri(_history.location);
+
+    if (newUri != currentUri) {
       switch (type) {
         case RouteInformationReportingType.none:
         case RouteInformationReportingType.neglect:
           // Don't update history
           break;
         case RouteInformationReportingType.navigate:
-          _history.push(location, routeInformation.state);
+          final path = Path(
+            pathname: newUri.path,
+            search: newUri.query,
+            hash: newUri.fragment,
+          );
+          _history.push(path, routeInformation.state);
           break;
       }
     }

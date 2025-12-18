@@ -102,5 +102,9 @@ extension on MemoryHistory {
 }
 
 extension on Path {
-  Uri toUri() => Uri(path: pathname, query: search, fragment: hash);
+  Uri toUri() => Uri(
+        path: pathname,
+        query: search.isEmpty ? null : search,
+        fragment: hash.isEmpty ? null : hash,
+      );
 }
