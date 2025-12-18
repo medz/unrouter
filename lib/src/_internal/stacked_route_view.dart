@@ -5,11 +5,14 @@ import '../inlet.dart';
 import '../router_state.dart';
 import 'route_cache_key.dart';
 
-/// A stateful view that renders a matched route and keeps a stack of pages.
+/// Renders a matched route and keeps a stack of pages.
 ///
 /// - Leaf routes are keyed by history index (so they can be stacked).
 /// - Routes with children (layout/nested) are keyed by [RouteCacheKey] (so they can be reused).
-class StackedRouteView extends StatefulWidget {
+///
+/// This is implemented with a custom [Element] so the page cache lives on the
+/// element (like a [StatefulWidget] would), without creating a [State] object.
+class StackedRouteView extends Widget {
   const StackedRouteView({
     super.key,
     required this.state,
@@ -20,15 +23,26 @@ class StackedRouteView extends StatefulWidget {
   final int levelOffset;
 
   @override
-  State<StackedRouteView> createState() => _StackedRouteViewState();
+  Element createElement() => _StackedRouteViewElement(this);
 }
 
-class _StackedRouteViewState extends State<StackedRouteView> {
+class _StackedRouteViewElement extends ComponentElement {
+  _StackedRouteViewElement(super.widget);
+
   final Map<Object, _PageEntry> _pageStack = {};
   final List<Object> _indexOrder = [];
 
   @override
-  Widget build(BuildContext context) {
+  StackedRouteView get widget => super.widget as StackedRouteView;
+
+  @override
+  void update(covariant StackedRouteView newWidget) {
+    super.update(newWidget);
+    rebuild(force: true);
+  }
+
+  @override
+  Widget build() {
     final state = widget.state;
     final routeIndex = state.level + widget.levelOffset;
 
@@ -54,7 +68,8 @@ class _StackedRouteViewState extends State<StackedRouteView> {
     _PageEntry? pageEntry = _pageStack[cacheKey];
     final shouldRecreate =
         (historyAction == HistoryAction.push && cacheKey is int) ||
-        (historyAction == HistoryAction.replace && pageEntry?.route != matched.route);
+        (historyAction == HistoryAction.replace &&
+            pageEntry?.route != matched.route);
 
     if (pageEntry == null || shouldRecreate) {
       final widget = RouterStateProvider(
