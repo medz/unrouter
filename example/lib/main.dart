@@ -396,7 +396,7 @@ class ConcertsLayout extends StatelessWidget {
 
   Widget _buildTab(BuildContext context, String label, String path) {
     final state = RouterStateProvider.maybeOf(context);
-    final isActive = state?.info.uri.path == path;
+    final isActive = state?.location.uri.path == path;
 
     return Expanded(
       child: InkWell(

@@ -52,14 +52,14 @@ class _StackedRouteViewElement extends ComponentElement {
 
     final matched = state.matchedRoutes[routeIndex];
     final historyIndex = state.historyIndex;
-    final historyAction = state.historyAction;
+    final action = state.action;
 
     final cacheKey = matched.route.children.isNotEmpty
         ? RouteCacheKey(matched.route, matched.params)
         : historyIndex;
 
     // On push/replace, remove any leaf indices that are no longer reachable.
-    if (historyAction == HistoryAction.push) {
+    if (action == HistoryAction.push) {
       _indexOrder.removeWhere((key) => key is int && key > historyIndex);
     }
 
@@ -67,8 +67,8 @@ class _StackedRouteViewElement extends ComponentElement {
 
     _PageEntry? pageEntry = _pageStack[cacheKey];
     final shouldRecreate =
-        (historyAction == HistoryAction.push && cacheKey is int) ||
-        (historyAction == HistoryAction.replace &&
+        (action == HistoryAction.push && cacheKey is int) ||
+        (action == HistoryAction.replace &&
             pageEntry?.route != matched.route);
 
     if (pageEntry == null || shouldRecreate) {

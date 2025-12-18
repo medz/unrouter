@@ -10,18 +10,18 @@ import 'history/history.dart';
 /// current rendering [level] for nested routing.
 class RouterState {
   const RouterState({
-    required this.info,
+    required this.location,
     required this.matchedRoutes,
     required this.level,
     required this.historyIndex,
-    this.historyAction = HistoryAction.push,
+    this.action = HistoryAction.push,
   });
 
   /// The current location (path/query/fragment) and the optional per-entry state.
   ///
   /// The state is the value passed to `navigate(..., state: ...)` /
   /// `Navigate.call(..., state: ...)`.
-  final RouteInformation info;
+  final RouteInformation location;
 
   /// Stack of matched routes from root to leaf.
   final List<MatchedRoute> matchedRoutes;
@@ -38,7 +38,7 @@ class RouterState {
   final int historyIndex;
 
   /// The navigation type that produced this state.
-  final HistoryAction historyAction;
+  final HistoryAction action;
 
   /// Merged params from matched routes up to (and including) [level].
   ///
@@ -55,11 +55,11 @@ class RouterState {
   /// Creates a new state with updated level.
   RouterState withLevel(int newLevel) {
     return RouterState(
-      info: info,
+      location: location,
       matchedRoutes: matchedRoutes,
       level: newLevel,
       historyIndex: historyIndex,
-      historyAction: historyAction,
+      action: action,
     );
   }
 
@@ -67,13 +67,13 @@ class RouterState {
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     return other is RouterState &&
-        other.info.uri == info.uri &&
+        other.location.uri == location.uri &&
         other.level == level &&
         _listEquals(other.matchedRoutes, matchedRoutes);
   }
 
   @override
-  int get hashCode => Object.hash(info, level, Object.hashAll(matchedRoutes));
+  int get hashCode => Object.hash(location, level, Object.hashAll(matchedRoutes));
 
   static bool _listEquals<T>(List<T>? a, List<T>? b) {
     if (a == null) return b == null;
@@ -86,7 +86,7 @@ class RouterState {
 
   @override
   String toString() =>
-      'RouterState(info: $info, level: $level, matched: ${matchedRoutes.length})';
+      'RouterState(location: $location, level: $level, matched: ${matchedRoutes.length})';
 }
 
 /// Provides [RouterState] to the widget tree.
@@ -95,7 +95,7 @@ class RouterState {
 ///
 /// ```dart
 /// final state = RouterStateProvider.of(context);
-/// final uri = state.info.uri;
+/// final uri = state.location.uri;
 /// final id = state.params['id'];
 /// ```
 class RouterStateProvider extends InheritedWidget {

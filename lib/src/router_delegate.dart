@@ -18,7 +18,7 @@ abstract interface class Navigate {
   ///   navigation).
   ///
   /// The optional [state] is stored on the history entry and can be read via
-  /// [RouteInformation.state] (see [RouterState.info]).
+  /// [RouteInformation.state] (see [RouterState.location]).
   ///
   /// If [replace] is `true`, the current history entry is replaced instead of
   /// pushing a new one.
@@ -156,11 +156,11 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
 
     // Create router state
     final state = RouterState(
-      info: currentConfiguration,
+      location: currentConfiguration,
       matchedRoutes: _matchedRoutes,
       level: 0,
       historyIndex: _historyIndex,
-      historyAction: _historyAction,
+      action: _historyAction,
     );
     return StackedRouteView(state: state, levelOffset: 0);
   }
