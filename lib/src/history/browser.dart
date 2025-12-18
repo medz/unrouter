@@ -30,7 +30,7 @@ abstract class UrlBasedHistory extends History {
 
   @override
   void push(Path to, [Object? state]) {
-    action = .pop;
+    action = .push;
     index = (this.state?.index ?? 0) + 1;
     final location = createLocation(to, state: state);
     final historyState = HistoryState(
@@ -98,8 +98,9 @@ class BrowserHistory extends UrlBasedHistory {
   @override
   Location get location {
     final web.Location(:pathname, :search, :hash) = window.location;
+    final url = Uri(path: pathname, query: search, fragment: hash);
     return createLocation(
-      Path(pathname: pathname, search: search, hash: hash.substring(1)),
+      Path(pathname: url.path, search: url.query, hash: url.fragment),
       state: state?.userData,
       key: state?.key ?? const DefaultKey(),
     );
