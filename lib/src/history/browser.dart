@@ -1,11 +1,10 @@
 import 'dart:js_interop';
 
 import 'package:flutter/foundation.dart';
+import 'package:web/web.dart' as web;
 
 import '_internal.dart';
 import 'history.dart';
-
-import 'package:web/web.dart' as web;
 
 abstract class UrlBasedHistory extends History {
   UrlBasedHistory({web.Window? window}) {
