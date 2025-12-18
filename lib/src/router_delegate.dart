@@ -6,9 +6,20 @@ import 'router_state.dart';
 import 'route_matcher.dart';
 import '_internal/stacked_route_view.dart';
 
+abstract interface class Navigate {
+  void call(Uri uri, {Object? state, bool replace = false});
+  void go(int delta);
+  void back();
+  void forward();
+
+  static Navigate of(BuildContext context) =>
+      Router.of(context).routerDelegate as Navigate;
+}
+
 /// The router delegate that manages navigation state and builds the widget tree.
 class UnrouterDelegate extends RouterDelegate<RouteInformation>
-    with ChangeNotifier {
+    with ChangeNotifier
+    implements Navigate {
   UnrouterDelegate({required this.routes, required this.history})
     : currentConfiguration = history.location {
     // Listen to history changes (only back/forward/go - popstate events)
@@ -48,15 +59,6 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
 
   @override
   RouteInformation currentConfiguration;
-
-  void requestNavigation(Uri uri, {Object? state, bool replace = false}) {
-    currentConfiguration = RouteInformation(uri: resolveUri(uri), state: state);
-    _historyAction = replace ? HistoryAction.replace : HistoryAction.push;
-    if (!replace) _historyIndex++;
-
-    _updateMatchedRoutes();
-    notifyListeners();
-  }
 
   /// Resolves a URI, handling relative paths.
   ///
@@ -135,4 +137,30 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
     _unlistenHistory?.call();
     super.dispose();
   }
+
+  @override
+  void call(Uri uri, {Object? state, bool replace = false}) {
+    final resolvedUri = resolveUri(uri);
+    if (replace) {
+      history.replace(resolvedUri, state);
+    } else {
+      history.push(resolvedUri, state);
+    }
+
+    currentConfiguration = RouteInformation(uri: resolveUri(uri), state: state);
+    _historyAction = replace ? HistoryAction.replace : HistoryAction.push;
+    if (!replace) _historyIndex++;
+
+    _updateMatchedRoutes();
+    notifyListeners();
+  }
+
+  @override
+  void back() => history.back();
+
+  @override
+  void forward() => history.forward();
+
+  @override
+  void go(int delta) => history.go(delta);
 }

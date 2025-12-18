@@ -38,27 +38,18 @@ class Unrouter extends StatelessWidget
   RouteInformationParser<RouteInformation> get routeInformationParser =>
       const _InformationParser();
 
-  void navigate(Uri uri, {Object? state, bool replace = false}) {
-    final resolvedUri = routerDelegate.resolveUri(uri);
-
-    if (replace) {
-      history.replace(resolvedUri, state);
-    } else {
-      history.push(resolvedUri, state);
-    }
-
-    routerDelegate.requestNavigation(uri, state: state, replace: replace);
+  @override
+  @protected
+  Widget build(BuildContext context) {
+    return Router.withConfig(config: this, restorationScopeId: 'unrouter');
   }
+
+  void navigate(Uri uri, {Object? state, bool replace = false}) =>
+      routerDelegate(uri, state: state, replace: replace);
 
   void go(int delta) => history.go(delta);
   void back() => history.back();
   void forward() => history.forward();
-
-  @override
-  @protected
-  Widget build(BuildContext context) {
-    return Router.withConfig(config: this);
-  }
 }
 
 class _InformationProvider extends RouteInformationProvider
