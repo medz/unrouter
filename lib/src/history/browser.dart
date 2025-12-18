@@ -98,7 +98,11 @@ class BrowserHistory extends UrlBasedHistory {
   @override
   Location get location {
     final web.Location(:pathname, :search, :hash) = window.location;
-    final url = Uri(path: pathname, query: search, fragment: hash);
+    final url = Uri(
+      path: pathname.startsWith('/') ? pathname : '/$pathname',
+      query: search.startsWith('?') ? search.substring(1) : search,
+      fragment: hash.startsWith('#') ? hash.substring(1) : hash,
+    );
     return createLocation(
       Path(pathname: url.path, search: url.query, hash: url.fragment),
       state: state?.userData,
@@ -114,7 +118,7 @@ class HashHistory extends UrlBasedHistory {
   @override
   Location get location {
     final web.Location(:hash) = window.location;
-    final path = hash.startsWith('#') ? hash.substring(0) : hash;
+    final path = hash.startsWith('#') ? hash.substring(1) : hash;
     final uri = Uri.parse(path.startsWith('/') ? path : '/$path');
     return createLocation(
       Path(pathname: uri.path, search: uri.query, hash: uri.fragment),
