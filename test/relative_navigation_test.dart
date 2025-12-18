@@ -21,12 +21,12 @@ void main() {
     expect(find.text('Home'), findsOneWidget);
 
     // Absolute navigation to /users/123
-    router.push('/users/123');
+    router.navigate(.parse('/users/123'));
     await tester.pumpAndSettle();
     expect(find.text('User Detail'), findsOneWidget);
 
     // Relative navigation: 'edit' should resolve to /users/123/edit
-    router.push('edit');
+    router.navigate(.parse('edit'));
     await tester.pumpAndSettle();
     expect(find.text('Edit User'), findsOneWidget);
 
@@ -47,12 +47,12 @@ void main() {
     await tester.pumpWidget(MaterialApp.router(routerConfig: router));
 
     // Navigate to users
-    router.push('/users');
+    router.navigate(.parse('/users'));
     await tester.pumpAndSettle();
     expect(find.text('Users'), findsOneWidget);
 
     // Absolute navigation to /about
-    router.push('/about');
+    router.navigate(.parse('/about'));
     await tester.pumpAndSettle();
     expect(find.text('About'), findsOneWidget);
     expect(router.history.location.uri.path, '/about');
@@ -70,11 +70,11 @@ void main() {
     await tester.pumpWidget(MaterialApp.router(routerConfig: router));
 
     // Navigate to /users
-    router.push('/users');
+    router.navigate(.parse('/users'));
     await tester.pumpAndSettle();
 
     // Relative navigation with query: '123?tab=profile#top'
-    router.push('123?tab=profile#top');
+    router.navigate(.parse('123?tab=profile#top'));
     await tester.pumpAndSettle();
 
     final location = router.history.location;

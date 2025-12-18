@@ -79,7 +79,9 @@ void main() {
             ],
           ),
         ],
-        history: MemoryHistory(initialEntries: [RouteInformation(uri: Uri.parse('/login'))]),
+        history: MemoryHistory(
+          initialEntries: [RouteInformation(uri: .parse('/login'))],
+        ),
       );
 
       await tester.pumpWidget(wrapRouter(router));
@@ -90,7 +92,7 @@ void main() {
       expectCounts(login, name: 'Login', factory: 1, build: 1);
       expectCounts(register, name: 'Register', factory: 0, build: 0);
 
-      router.push('/register');
+      router.navigate(.parse('/register'));
       await tester.pump();
       expect(find.text('Auth'), findsOneWidget);
       expect(find.text('Login'), findsNothing);
@@ -108,7 +110,7 @@ void main() {
       expectCounts(login, name: 'Login', factory: 1, build: 1);
       expectCounts(register, name: 'Register', factory: 1, build: 1);
 
-      router.push('/register');
+      router.navigate(.parse('/register'));
       await tester.pump();
       expect(find.text('Auth'), findsOneWidget);
       expect(find.text('Login'), findsNothing);
@@ -117,7 +119,7 @@ void main() {
       expectCounts(login, name: 'Login', factory: 1, build: 1);
       expectCounts(register, name: 'Register', factory: 2, build: 2);
 
-      router.push('/login');
+      router.navigate(.parse('/login'));
       await tester.pump();
       expect(find.text('Auth'), findsOneWidget);
       expect(find.text('Login'), findsOneWidget);
@@ -167,7 +169,9 @@ void main() {
             ],
           ),
         ],
-        history: MemoryHistory(initialEntries: [RouteInformation(uri: Uri.parse('/parent/child1'))]),
+        history: MemoryHistory(
+          initialEntries: [RouteInformation(uri: Uri.parse('/parent/child1'))],
+        ),
       );
 
       await tester.pumpWidget(wrapRouter(router));
@@ -178,7 +182,7 @@ void main() {
       expectCounts(child1, name: 'Child 1', factory: 1, build: 1);
       expectCounts(child2, name: 'Child 2', factory: 0, build: 0);
 
-      router.push('/parent/child2');
+      router.navigate(.parse('/parent/child2'));
       await tester.pump();
       expect(find.text('Parent'), findsOneWidget);
       expect(find.text('Child 1'), findsNothing);
@@ -196,7 +200,7 @@ void main() {
       expectCounts(child1, name: 'Child 1', factory: 1, build: 1);
       expectCounts(child2, name: 'Child 2', factory: 1, build: 1);
 
-      router.push('/parent/child2');
+      router.navigate(.parse('/parent/child2'));
       await tester.pump();
       expect(find.text('Parent'), findsOneWidget);
       expect(find.text('Child 1'), findsNothing);
@@ -205,7 +209,7 @@ void main() {
       expectCounts(child1, name: 'Child 1', factory: 1, build: 1);
       expectCounts(child2, name: 'Child 2', factory: 2, build: 2);
 
-      router.push('/parent/child1');
+      router.navigate(.parse('/parent/child1'));
       await tester.pump();
       expect(find.text('Parent'), findsOneWidget);
       expect(find.text('Child 1'), findsOneWidget);

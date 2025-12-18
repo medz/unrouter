@@ -77,21 +77,21 @@ class Home extends StatelessWidget {
               'About',
               Icons.info,
               Colors.blue,
-              () => router.push('/about'),
+              () => router.navigate(.parse('/about')),
             ),
             _buildNavButton(
               context,
               'Login',
               Icons.login,
               Colors.green,
-              () => router.push('/login'),
+              () => router.navigate(.parse('/login')),
             ),
             _buildNavButton(
               context,
               'Concerts',
               Icons.music_note,
               Colors.orange,
-              () => router.push('/concerts'),
+              () => router.navigate(.parse('/concerts')),
             ),
           ],
         ),
@@ -157,7 +157,7 @@ class About extends StatelessWidget {
             ),
             const SizedBox(height: 32),
             ElevatedButton(
-              onPressed: () => router.push('/'),
+              onPressed: () => router.navigate(.parse('/')),
               child: const Text('Back to Home'),
             ),
           ],
@@ -271,7 +271,7 @@ class Login extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               TextButton(
-                onPressed: () => router.push('/register'),
+                onPressed: () => router.navigate(.parse('/register')),
                 child: const Text('Don\'t have an account? Register'),
               ),
             ],
@@ -346,7 +346,7 @@ class Register extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               TextButton(
-                onPressed: () => router.push('/login'),
+                onPressed: () => router.navigate(.parse('/login')),
                 child: const Text('Already have an account? Login'),
               ),
             ],
@@ -400,7 +400,7 @@ class ConcertsLayout extends StatelessWidget {
 
     return Expanded(
       child: InkWell(
-        onTap: () => router.push(path),
+        onTap: () => router.navigate(.parse(path)),
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 16),
           decoration: BoxDecoration(

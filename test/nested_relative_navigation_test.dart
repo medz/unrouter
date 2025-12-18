@@ -25,7 +25,7 @@ void main() {
     expect(find.text('Home'), findsOneWidget);
 
     // Absolute navigation to /users/123
-    router.push('/users/123');
+    router.navigate(.parse('/users/123'));
     await tester.pumpAndSettle();
 
     // Should see both layout and child
@@ -33,7 +33,7 @@ void main() {
     expect(find.text('User Detail: 123'), findsOneWidget);
 
     // Relative navigation: 'edit' should resolve to /users/123/edit
-    router.push('edit');
+    router.navigate(.parse('edit'));
     await tester.pumpAndSettle();
 
     expect(find.text('Users Layout'), findsOneWidget);

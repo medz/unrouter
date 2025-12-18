@@ -28,7 +28,7 @@ void main() {
       expect(find.text('About'), findsNothing);
 
       // Navigate to about
-      router.push('/about');
+      router.navigate(.parse('/about'));
       await tester.pumpAndSettle();
 
       expect(find.text('Home'), findsNothing);
@@ -50,12 +50,12 @@ void main() {
       await tester.pumpWidget(wrapRouter(router));
 
       // Go to about
-      router.push('/about');
+      router.navigate(.parse('/about'));
       await tester.pumpAndSettle();
       expect(find.text('About'), findsOneWidget);
 
       // Replace with contact
-      router.replace('/contact');
+      router.navigate(.parse('/contact'), replace: true);
       await tester.pumpAndSettle();
       expect(find.text('Contact'), findsOneWidget);
 
@@ -78,7 +78,7 @@ void main() {
 
       await tester.pumpWidget(wrapRouter(router));
 
-      router.push('/about');
+      router.navigate(.parse('/about'));
       await tester.pumpAndSettle();
       expect(find.text('About'), findsOneWidget);
 
@@ -100,7 +100,7 @@ void main() {
 
       await tester.pumpWidget(wrapRouter(router));
 
-      router.push('/about');
+      router.navigate(.parse('/about'));
       await tester.pumpAndSettle();
 
       router.back();
@@ -126,10 +126,10 @@ void main() {
 
       await tester.pumpWidget(wrapRouter(router));
 
-      router.push('/1');
+      router.navigate(.parse('/1'));
       await tester.pumpAndSettle();
 
-      router.push('/2');
+      router.navigate(.parse('/2'));
       await tester.pumpAndSettle();
       expect(find.text('Page 2'), findsOneWidget);
 
@@ -158,10 +158,10 @@ void main() {
 
       await tester.pumpWidget(wrapRouter(router));
 
-      router.push('/1');
+      router.navigate(.parse('/1'));
       await tester.pumpAndSettle();
 
-      router.push('/2');
+      router.navigate(.parse('/2'));
       await tester.pumpAndSettle();
       expect(find.text('Page 2'), findsOneWidget);
 
@@ -192,7 +192,9 @@ void main() {
             ],
           ),
         ],
-        history: MemoryHistory(initialEntries: [RouteInformation(uri: Uri.parse('/section/a'))]),
+        history: MemoryHistory(
+          initialEntries: [RouteInformation(uri: Uri.parse('/section/a'))],
+        ),
       );
 
       await tester.pumpWidget(wrapRouter(router));
@@ -200,7 +202,7 @@ void main() {
       expect(find.text('Layout'), findsOneWidget);
       expect(find.text('Page A'), findsOneWidget);
 
-      router.push('/section/b');
+      router.navigate(.parse('/section/b'));
       await tester.pumpAndSettle();
 
       expect(find.text('Layout'), findsOneWidget);

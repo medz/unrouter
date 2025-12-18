@@ -9,12 +9,11 @@ import '_internal/stacked_route_view.dart';
 /// The router delegate that manages navigation state and builds the widget tree.
 class UnrouterDelegate extends RouterDelegate<RouteInformation>
     with ChangeNotifier {
-  UnrouterDelegate({required this.routes, required History history})
-    : _history = history,
-      _currentConfiguration = history.location {
+  UnrouterDelegate({required this.routes, required this.history})
+    : currentConfiguration = history.location {
     // Listen to history changes (only back/forward/go - popstate events)
     _unlistenHistory = history.listen((event) {
-      _currentConfiguration = event.location;
+      currentConfiguration = event.location;
       _historyAction = event.action;
       // Adjust history index based on navigation delta
       if (event.delta != null) {
@@ -33,10 +32,7 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
   final List<Inlet> routes;
 
   /// The underlying history implementation.
-  final History _history;
-
-  /// Current route information.
-  RouteInformation _currentConfiguration;
+  final History history;
 
   /// Currently matched routes.
   List<MatchedRoute> _matchedRoutes = const [];
@@ -50,19 +46,11 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
   /// Current history action.
   HistoryAction _historyAction = HistoryAction.push;
 
-  /// Navigates to a location (for push/replace).
-  ///
-  /// This is called directly by Unrouter.push/replace because
-  /// following browser semantics, pushState/replaceState do NOT
-  /// trigger listeners. Only user navigation (popstate) does.
-  ///
-  /// If [uri.path] starts with '/', it's treated as an absolute path.
-  /// Otherwise, it's a relative path appended to the current location.
-  void navigate(Uri uri, {Object? state, bool replace = false}) {
-    _currentConfiguration = RouteInformation(
-      uri: resolveUri(uri),
-      state: state,
-    );
+  @override
+  RouteInformation currentConfiguration;
+
+  void requestNavigation(Uri uri, {Object? state, bool replace = false}) {
+    currentConfiguration = RouteInformation(uri: resolveUri(uri), state: state);
     _historyAction = replace ? HistoryAction.replace : HistoryAction.push;
     if (!replace) _historyIndex++;
 
@@ -82,7 +70,7 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
 
     // Relative path - append to current location
     final segments =
-        _currentConfiguration.uri.path
+        currentConfiguration.uri.path
             .split('/')
             .where((s) => s.isNotEmpty)
             .toList()
@@ -98,23 +86,20 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
 
   /// Update matched routes based on current location.
   void _updateMatchedRoutes() {
-    final location = _currentConfiguration.uri.path;
+    final location = currentConfiguration.uri.path;
     final result = matchRoutes(routes, location);
     _matchedRoutes = result.matched ? result.matches : const [];
   }
 
   @override
-  RouteInformation? get currentConfiguration => _currentConfiguration;
-
-  @override
   Future<void> setNewRoutePath(RouteInformation configuration) async {
-    _currentConfiguration = configuration;
+    currentConfiguration = configuration;
 
     // Update history if needed
     final newUri = configuration.uri;
-    final currentUri = _history.location.uri;
+    final currentUri = history.location.uri;
     if (newUri != currentUri) {
-      _history.push(newUri, configuration.state);
+      history.push(newUri, configuration.state);
     }
 
     _updateMatchedRoutes();
@@ -130,7 +115,7 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
 
     // Create router state
     final state = RouterState(
-      info: _currentConfiguration,
+      info: currentConfiguration,
       matchedRoutes: _matchedRoutes,
       level: 0,
       historyIndex: _historyIndex,
@@ -141,8 +126,7 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
 
   @override
   Future<bool> popRoute() async {
-    // Handle back button press
-    _history.back();
+    history.back();
     return true;
   }
 

@@ -1,26 +1,22 @@
 import 'package:flutter/widgets.dart';
 
-import 'history/history.dart';
+import '../history/history.dart';
 
 /// Provides route information and listens to history changes.
 class UnrouterInformationProvider extends RouteInformationProvider
     with ChangeNotifier {
-  UnrouterInformationProvider({required History history})
-    : _history = history,
-      _value = history.location {
-    // Listen to history changes
-    _unlisten = history.listen((event) {
-      _value = event.location;
+  UnrouterInformationProvider(this.history) : value = history.location {
+    unlisten = history.listen((event) {
+      value = event.location;
       notifyListeners();
     });
   }
 
-  final History _history;
-  RouteInformation _value;
-  void Function()? _unlisten;
+  final History history;
+  late final void Function() unlisten;
 
   @override
-  RouteInformation get value => _value;
+  RouteInformation value;
 
   @override
   void routerReportsNewRouteInformation(
@@ -28,7 +24,7 @@ class UnrouterInformationProvider extends RouteInformationProvider
     RouteInformationReportingType type = RouteInformationReportingType.none,
   }) {
     final newUri = routeInformation.uri;
-    final currentUri = _history.location.uri;
+    final currentUri = history.location.uri;
 
     if (newUri != currentUri) {
       switch (type) {
@@ -37,7 +33,7 @@ class UnrouterInformationProvider extends RouteInformationProvider
           // Don't update history
           break;
         case RouteInformationReportingType.navigate:
-          _history.push(newUri, routeInformation.state);
+          history.push(newUri, routeInformation.state);
           break;
       }
     }
@@ -45,7 +41,7 @@ class UnrouterInformationProvider extends RouteInformationProvider
 
   @override
   void dispose() {
-    _unlisten?.call();
+    unlisten();
     super.dispose();
   }
 }

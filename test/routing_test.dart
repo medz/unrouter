@@ -32,7 +32,9 @@ void main() {
           Inlet(factory: () => const Text('Index')),
           Inlet(path: 'about', factory: () => const Text('About')),
         ],
-        history: MemoryHistory(initialEntries: [RouteInformation(uri: Uri.parse('/about'))]),
+        history: MemoryHistory(
+          initialEntries: [RouteInformation(uri: Uri.parse('/about'))],
+        ),
       );
 
       await tester.pumpWidget(wrapRouter(router));
@@ -56,7 +58,7 @@ void main() {
 
       expect(find.text('Index'), findsOneWidget);
 
-      router.push('/about');
+      router.navigate(.parse('/about'));
       await tester.pumpAndSettle();
 
       expect(find.text('Index'), findsNothing);
@@ -83,7 +85,9 @@ void main() {
             ],
           ),
         ],
-        history: MemoryHistory(initialEntries: [RouteInformation(uri: Uri.parse('/concerts'))]),
+        history: MemoryHistory(
+          initialEntries: [RouteInformation(uri: Uri.parse('/concerts'))],
+        ),
       );
 
       await tester.pumpWidget(wrapRouter(router));
@@ -113,7 +117,9 @@ void main() {
             ],
           ),
         ],
-        history: MemoryHistory(initialEntries: [RouteInformation(uri: Uri.parse('/concerts'))]),
+        history: MemoryHistory(
+          initialEntries: [RouteInformation(uri: Uri.parse('/concerts'))],
+        ),
       );
 
       await tester.pumpWidget(wrapRouter(router));
@@ -121,7 +127,7 @@ void main() {
       expect(find.text('Concerts Layout'), findsOneWidget);
       expect(find.text('All Concerts'), findsOneWidget);
 
-      router.push('/concerts/trending');
+      router.navigate(.parse('/concerts/trending'));
       await tester.pumpAndSettle();
 
       expect(find.text('Concerts Layout'), findsOneWidget);
@@ -148,7 +154,9 @@ void main() {
             ],
           ),
         ],
-        history: MemoryHistory(initialEntries: [RouteInformation(uri: Uri.parse('/login'))]),
+        history: MemoryHistory(
+          initialEntries: [RouteInformation(uri: Uri.parse('/login'))],
+        ),
       );
 
       await tester.pumpWidget(wrapRouter(router));
@@ -175,14 +183,16 @@ void main() {
             ],
           ),
         ],
-        history: MemoryHistory(initialEntries: [RouteInformation(uri: Uri.parse('/login'))]),
+        history: MemoryHistory(
+          initialEntries: [RouteInformation(uri: Uri.parse('/login'))],
+        ),
       );
 
       await tester.pumpWidget(wrapRouter(router));
 
       expect(find.text('Login'), findsOneWidget);
 
-      router.push('/register');
+      router.navigate(.parse('/register'));
       await tester.pumpAndSettle();
 
       expect(find.text('Auth Layout'), findsOneWidget);
@@ -205,7 +215,9 @@ void main() {
 
       final router = Unrouter(
         routes: [Inlet(path: ':id', factory: createUser)],
-        history: MemoryHistory(initialEntries: [RouteInformation(uri: Uri.parse('/123'))]),
+        history: MemoryHistory(
+          initialEntries: [RouteInformation(uri: Uri.parse('/123'))],
+        ),
       );
 
       await tester.pumpWidget(wrapRouter(router));
@@ -236,7 +248,9 @@ void main() {
             children: [Inlet(path: ':id', factory: createUser)],
           ),
         ],
-        history: MemoryHistory(initialEntries: [RouteInformation(uri: Uri.parse('/users/123'))]),
+        history: MemoryHistory(
+          initialEntries: [RouteInformation(uri: Uri.parse('/users/123'))],
+        ),
       );
 
       await tester.pumpWidget(wrapRouter(router));
@@ -296,7 +310,9 @@ void main() {
             ],
           ),
         ],
-        history: MemoryHistory(initialEntries: [RouteInformation(uri: Uri.parse('/users/123/456'))]),
+        history: MemoryHistory(
+          initialEntries: [RouteInformation(uri: Uri.parse('/users/123/456'))],
+        ),
       );
 
       await tester.pumpWidget(wrapRouter(router));
