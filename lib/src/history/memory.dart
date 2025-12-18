@@ -29,7 +29,8 @@ class MemoryHistory extends History {
 
   late final List<Location> entries;
   late int index;
-  void Function(HistoryEvent event)? listener;
+
+  final listeners = <void Function(HistoryEvent event)>[];
 
   @override
   HistoryAction action = .pop;
@@ -73,23 +74,28 @@ class MemoryHistory extends History {
   void go(int delta) {
     action = .pop;
     index = clampIndex(index + delta);
-    if (listener != null) {
-      listener!.call(
-        HistoryEvent(action: action, location: location, delta: delta),
-      );
+    final event = HistoryEvent(
+      action: action,
+      location: location,
+      delta: delta,
+    );
+    for (final e in listeners) {
+      e(event);
     }
   }
 
   @override
   void Function() listen(void Function(HistoryEvent event) listener) {
-    this.listener = listener;
-    return () => this.listener = null;
+    listeners.add(listener);
+    return () {
+      listeners.removeWhere((e) => e == listener);
+    };
   }
 
   @override
   void dispose() {
     entries.clear();
-    listener = null;
+    listeners.clear();
   }
 }
 

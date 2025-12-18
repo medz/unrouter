@@ -8,7 +8,7 @@ import 'history.dart';
 
 abstract class UrlBasedHistory extends History {
   UrlBasedHistory({web.Window? window}) {
-    this.window = window ?? web.document.defaultView ?? web.window;
+    this.window = window = window ?? web.document.defaultView ?? web.window;
     index = state?.index ?? 0;
     if (index == 0) {
       final state = HistoryState(
@@ -16,14 +16,17 @@ abstract class UrlBasedHistory extends History {
         userData: this.state?.userData,
         index: index,
       );
-      this.window.history.replaceState(state.jsify(), '');
+      window.history.replaceState(state.jsify(), '');
     }
+
+    window.addEventListener('popstate', didPopJsFunction);
   }
 
   late final web.Window window;
   late int index;
 
-  JSFunction? listener;
+  final listeners = <void Function(HistoryEvent event)>[];
+  late final JSFunction didPopJsFunction = didPop.toJS;
 
   @override
   HistoryAction action = .pop;
@@ -61,36 +64,16 @@ abstract class UrlBasedHistory extends History {
 
   @override
   void Function() listen(void Function(HistoryEvent event) listener) {
-    void cancel() {
-      window.removeEventListener('popstate', this.listener);
-      this.listener = null;
-    }
-
-    void didPop(web.PopStateEvent _) {
-      action = .pop;
-      final nextIndex = state?.index;
-      final delta = nextIndex == null ? null : nextIndex - index;
-      index = nextIndex ?? 0;
-      final event = HistoryEvent(
-        action: action,
-        location: location,
-        delta: delta,
-      );
-      listener(event);
-    }
-
-    if (this.listener != null) cancel();
-
-    this.listener = didPop.toJS;
-    window.addEventListener('popstate', this.listener);
-
-    return cancel;
+    listeners.add(listener);
+    return () {
+      listeners.removeWhere((e) => e == listener);
+    };
   }
 
   @override
   void dispose() {
-    window.removeEventListener('popstate', listener);
-    listener = null;
+    window.removeEventListener('popstate', didPopJsFunction);
+    listeners.clear();
   }
 }
 
@@ -162,5 +145,21 @@ extension on UrlBasedHistory {
       hash: to.hash,
       state: state,
     );
+  }
+
+  void didPop(web.PopStateEvent _) {
+    action = .pop;
+    final nextIndex = state?.index;
+    final delta = nextIndex == null ? null : nextIndex - index;
+    index = nextIndex ?? 0;
+    final event = HistoryEvent(
+      action: action,
+      location: location,
+      delta: delta,
+    );
+
+    for (final e in listeners) {
+      e(event);
+    }
   }
 }
