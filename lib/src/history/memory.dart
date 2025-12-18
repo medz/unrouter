@@ -1,93 +1,102 @@
 import 'dart:math' as math;
 
-import '_utils.dart' as utils;
-import 'types.dart';
+import 'package:flutter/foundation.dart';
 
-class MemoryHistory implements RouterHistory {
-  MemoryHistory([String base = '/']) {
-    this.base = utils.normalizeBase(base);
+import '_internal.dart';
+import 'history.dart';
+
+class MemoryHistory extends History {
+  MemoryHistory({
+    List<Location> initialEntries = const [Location(key: DefaultKey())],
+    int? initialIndex,
+  }) {
+    final [defaults, ...rest] = initialEntries;
+    entries = [
+      switch (defaults) {
+        Location(key: const DefaultKey()) => defaults,
+        _ => Location(
+          key: const DefaultKey(),
+          pathname: defaults.pathname,
+          search: defaults.search,
+          hash: defaults.hash,
+          state: defaults.state,
+        ),
+      },
+      ...rest,
+    ];
+    index = clampIndex(initialIndex ?? entries.length - 1);
   }
 
-  late final _listeners = <NavigationCallback>[];
-  late final _queue = <(String, Object?)>[('', null)];
-  int _position = 0;
+  late final List<Location> entries;
+  late int index;
+  void Function(HistoryEvent event)? listener;
 
   @override
-  late final String base;
+  HistoryAction action = .pop;
 
   @override
-  String get location => _queue[_position].$1;
+  Location get location => entries.elementAt(index);
 
   @override
-  Object? get state => _queue[_position].$2;
+  String createHref(Path to) => to.toUri().toString();
 
   @override
-  void back() => go(-1);
+  void push(Path to, [Object? state]) {
+    action = .push;
+    index += 1;
+    entries
+      ..length = index
+      ..add(
+        Location(
+          pathname: to.pathname,
+          search: to.search,
+          hash: to.hash,
+          state: state,
+          key: UniqueKey(),
+        ),
+      );
+  }
 
   @override
-  void forward() => go(1);
+  void replace(Path to, [Object? state]) {
+    action = .replace;
+    entries[index] = Location(
+      pathname: to.pathname,
+      search: to.search,
+      hash: to.hash,
+      state: state,
+      key: UniqueKey(),
+    );
+  }
 
   @override
   void go(int delta) {
-    final from = location;
-    // delta > 0 means forward, delta < 0 means back
-    final NavigationDirection direction = delta > 0
-        ? NavigationDirection.forward
-        : (delta < 0 ? NavigationDirection.back : NavigationDirection.unknown);
-    _position = math.max(0, math.min(_position + delta, _queue.length - 1));
-    trigger(location, from, direction: direction, delta: delta);
+    action = .pop;
+    index = clampIndex(index + delta);
+    if (listener != null) {
+      listener!.call(
+        HistoryEvent(action: action, location: location, delta: delta),
+      );
+    }
   }
 
   @override
-  void push(String to, [Object? state]) {
-    set(to, state);
+  void Function() listen(void Function(HistoryEvent event) listener) {
+    this.listener = listener;
+    return () => this.listener = null;
   }
 
   @override
-  void replace(String to, [Object? state]) {
-    _queue.removeAt(_position--);
-    set(to, state);
-  }
-
-  @override
-  String createHref(String location) => utils.createHref(base, location);
-
-  @override
-  VoidCallback listen(NavigationCallback callback) {
-    _listeners.add(callback);
-    return () => _listeners.removeWhere((e) => e == callback);
-  }
-
-  @override
-  void destroy() {
-    _listeners.clear();
-    _queue.length = 1;
-    _position = 0;
+  void dispose() {
+    entries.clear();
+    listener = null;
   }
 }
 
 extension on MemoryHistory {
-  void trigger(
-    String to,
-    String from, {
-    required NavigationDirection direction,
-    required int delta,
-  }) {
-    final info = NavigationInformation(
-      direction: direction,
-      type: .pop,
-      delta: delta,
-    );
-    for (final listener in _listeners) {
-      listener(to, from, info);
-    }
-  }
+  int clampIndex(int value) => math.min(math.max(value, 0), entries.length - 1);
+}
 
-  void set(String location, Object? state) {
-    _position++;
-    if (_position != _queue.length) {
-      _queue.length = _position;
-    }
-    _queue.add((location, state));
-  }
+extension on Path {
+  Uri toUri() => Uri(path: pathname, query: search, fragment: hash);
 }
