@@ -139,7 +139,7 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
 
     // Create router state
     final state = RouterState(
-      location: _currentConfiguration.uri.path,
+      info: _currentConfiguration,
       matchedRoutes: _matchedRoutes,
       level: 0,
       historyIndex: _historyIndex,

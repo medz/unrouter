@@ -9,7 +9,7 @@ import 'history/history.dart';
 /// for rendering nested routes.
 class RouterState {
   const RouterState({
-    required this.location,
+    required this.info,
     required this.matchedRoutes,
     required this.level,
     required this.historyIndex,
@@ -17,7 +17,7 @@ class RouterState {
   });
 
   /// The full current location (e.g., '/users/123/posts').
-  final String location;
+  final RouteInformation info;
 
   /// Stack of matched routes from root to leaf.
   final List<MatchedRoute> matchedRoutes;
@@ -43,7 +43,7 @@ class RouterState {
   /// Creates a new state with updated level.
   RouterState withLevel(int newLevel) {
     return RouterState(
-      location: location,
+      info: info,
       matchedRoutes: matchedRoutes,
       level: newLevel,
       historyIndex: historyIndex,
@@ -55,14 +55,13 @@ class RouterState {
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     return other is RouterState &&
-        other.location == location &&
+        other.info.uri == info.uri &&
         other.level == level &&
         _listEquals(other.matchedRoutes, matchedRoutes);
   }
 
   @override
-  int get hashCode =>
-      Object.hash(location, level, Object.hashAll(matchedRoutes));
+  int get hashCode => Object.hash(info, level, Object.hashAll(matchedRoutes));
 
   static bool _listEquals<T>(List<T>? a, List<T>? b) {
     if (a == null) return b == null;
@@ -75,7 +74,7 @@ class RouterState {
 
   @override
   String toString() =>
-      'RouterState(location: $location, level: $level, matched: ${matchedRoutes.length})';
+      'RouterState(info: $info, level: $level, matched: ${matchedRoutes.length})';
 }
 
 /// Provides router state to the widget tree.

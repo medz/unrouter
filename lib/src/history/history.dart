@@ -35,17 +35,17 @@ class HistoryState {
 
   /// Convert to a plain Map for serialization
   Map<String, dynamic> toJson() => {
-        'index': index,
-        'identifier': identifier,
-        'userData': userData,
-      };
+    'index': index,
+    'identifier': identifier,
+    'userData': userData,
+  };
 
   /// Create from a plain Map
   factory HistoryState.fromJson(Map<dynamic, dynamic> json) => HistoryState(
-        index: json['index'] as int? ?? 0,
-        identifier: json['identifier'] as String?,
-        userData: json['userData'],
-      );
+    index: json['index'] as int? ?? 0,
+    identifier: json['identifier'] as String?,
+    userData: json['userData'],
+  );
 }
 
 class HistoryEvent {
