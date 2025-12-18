@@ -1,25 +1,24 @@
 import 'dart:js_interop';
 
-import 'package:flutter/foundation.dart';
 import 'package:web/web.dart' as web;
 
-import '_internal.dart';
+import '_utils.dart';
 import 'history.dart';
 
 abstract class UrlBasedHistory extends History {
   UrlBasedHistory({web.Window? window}) {
-    this.window = window = window ?? web.document.defaultView ?? web.window;
+    this.window = window ?? web.document.defaultView ?? web.window;
     index = state?.index ?? 0;
     if (index == 0) {
       final state = HistoryState(
-        key: this.state?.key,
+        identifier: this.state?.identifier ?? generateIdentifier(),
         userData: this.state?.userData,
         index: index,
       );
-      window.history.replaceState(state.jsify(), '');
+      this.window.history.replaceState(state.toJson().jsify(), '');
     }
 
-    window.addEventListener('popstate', didPopJsFunction);
+    this.window.addEventListener('popstate', didPopJsFunction);
   }
 
   late final web.Window window;
@@ -39,10 +38,14 @@ abstract class UrlBasedHistory extends History {
     final historyState = HistoryState(
       userData: state,
       index: index,
-      key: location.key,
+      identifier: location.identifier,
     );
 
-    window.history.pushState(historyState.jsify(), '', createHref(location));
+    window.history.pushState(
+      historyState.toJson().jsify(),
+      '',
+      createHref(location),
+    );
   }
 
   @override
@@ -51,12 +54,16 @@ abstract class UrlBasedHistory extends History {
     index = this.state?.index ?? 0;
     final location = createLocation(to, state: state);
     final historyState = HistoryState(
-      key: location.key,
+      identifier: location.identifier,
       index: index,
       userData: state,
     );
 
-    window.history.replaceState(historyState.jsify(), '', createHref(location));
+    window.history.replaceState(
+      historyState.toJson().jsify(),
+      '',
+      createHref(location),
+    );
   }
 
   @override
@@ -89,7 +96,7 @@ class BrowserHistory extends UrlBasedHistory {
     return createLocation(
       Path(pathname: url.path, search: url.query, hash: url.fragment),
       state: state?.userData,
-      key: state?.key ?? const DefaultKey(),
+      identifier: state?.identifier ?? 'default',
     );
   }
 
@@ -106,20 +113,33 @@ class HashHistory extends UrlBasedHistory {
     return createLocation(
       Path(pathname: uri.path, search: uri.query, hash: uri.fragment),
       state: state?.userData,
-      key: state?.key ?? const DefaultKey(),
+      identifier: state?.identifier ?? 'default',
     );
   }
 
   @override
   String createHref(Path to) {
-    final base = window.document.querySelector('base');
-    Uri href = Uri();
+    // For HashHistory, the entire path (pathname + search + hash) goes in the fragment
+    // Manually construct the URL to avoid encoding issues with nested #
+    final buffer = StringBuffer();
 
+    // Add base URL if there's a <base> tag
+    final base = window.document.querySelector('base');
     if (base != null && base.getAttribute('href') != null) {
-      href = Uri.parse(window.location.href).removeFragment();
+      final baseUri = Uri.parse(window.location.href).removeFragment();
+      buffer.write(baseUri.toString());
     }
 
-    return href.replace(fragment: to.toUri().toString()).toString();
+    // Add fragment with full path
+    buffer.write('#${to.pathname}');
+    if (to.search.isNotEmpty) {
+      buffer.write('?${to.search}');
+    }
+    if (to.hash.isNotEmpty) {
+      buffer.write('#${to.hash}');
+    }
+
+    return buffer.toString();
   }
 }
 
@@ -129,16 +149,18 @@ extension on Path {
 
 extension on UrlBasedHistory {
   HistoryState? get state {
-    final state = window.history.state.dartify();
-    if (state is HistoryState) return state;
+    final dartified = window.history.state.dartify();
+    if (dartified is Map) {
+      return HistoryState.fromJson(dartified);
+    }
     return null;
   }
 
-  Location createLocation(Path to, {Object? state, Key? key}) {
+  Location createLocation(Path to, {Object? state, String? identifier}) {
     return Location(
-      key: switch (to) {
-        Location() => to.key,
-        _ => key ?? UniqueKey(),
+      identifier: switch (to) {
+        Location() => to.identifier,
+        _ => identifier ?? generateIdentifier(),
       },
       pathname: to.pathname,
       search: to.search,

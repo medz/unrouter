@@ -1,21 +1,19 @@
 import 'dart:math' as math;
 
-import 'package:flutter/foundation.dart';
-
-import '_internal.dart';
+import '_utils.dart';
 import 'history.dart';
 
 class MemoryHistory extends History {
   MemoryHistory({
-    List<Location> initialEntries = const [Location(key: DefaultKey())],
+    List<Location> initialEntries = const [Location(identifier: 'default')],
     int? initialIndex,
   }) {
     final [defaults, ...rest] = initialEntries;
     entries = [
       switch (defaults) {
-        Location(key: const DefaultKey()) => defaults,
+        Location(identifier: 'default') => defaults,
         _ => Location(
-          key: const DefaultKey(),
+          identifier: 'default',
           pathname: defaults.pathname,
           search: defaults.search,
           hash: defaults.hash,
@@ -53,7 +51,7 @@ class MemoryHistory extends History {
           search: to.search,
           hash: to.hash,
           state: state,
-          key: UniqueKey(),
+          identifier: generateIdentifier(),
         ),
       );
   }
@@ -66,7 +64,7 @@ class MemoryHistory extends History {
       search: to.search,
       hash: to.hash,
       state: state,
-      key: UniqueKey(),
+      identifier: generateIdentifier(),
     );
   }
 
