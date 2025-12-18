@@ -60,7 +60,6 @@ class Unrouter extends StatelessWidget
   @override
   @protected
   Widget build(BuildContext context) {
-    // TODO: implement build
-    throw UnimplementedError();
+    return Router.withConfig(config: this);
   }
 }
