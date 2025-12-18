@@ -73,7 +73,7 @@ class Unrouter extends RouterConfig<RouteInformation> {
   /// Following browser history.pushState() semantics, this does NOT trigger
   /// listeners. The delegate is manually updated.
   void push(String location, [Object? state]) {
-    _history.push(Path.parse(location), state);
+    _history.push(Uri.parse(location), state);
     _delegate.pushTo(location, state);
   }
 
@@ -82,7 +82,7 @@ class Unrouter extends RouterConfig<RouteInformation> {
   /// Following browser history.replaceState() semantics, this does NOT trigger
   /// listeners. The delegate is manually updated.
   void replace(String location, [Object? state]) {
-    _history.replace(Path.parse(location), state);
+    _history.replace(Uri.parse(location), state);
     _delegate.replaceTo(location, state);
   }
 

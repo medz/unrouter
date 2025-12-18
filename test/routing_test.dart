@@ -32,7 +32,7 @@ void main() {
           Inlet(factory: () => const Text('Index')),
           Inlet(path: 'about', factory: () => const Text('About')),
         ],
-        history: MemoryHistory(initialEntries: [Location(pathname: '/about', identifier: 'default')]),
+        history: MemoryHistory(initialEntries: [RouteInformation(uri: Uri.parse('/about'))]),
       );
 
       await tester.pumpWidget(wrapRouter(router));
@@ -83,7 +83,7 @@ void main() {
             ],
           ),
         ],
-        history: MemoryHistory(initialEntries: [Location(pathname: '/concerts', identifier: 'default')]),
+        history: MemoryHistory(initialEntries: [RouteInformation(uri: Uri.parse('/concerts'))]),
       );
 
       await tester.pumpWidget(wrapRouter(router));
@@ -113,7 +113,7 @@ void main() {
             ],
           ),
         ],
-        history: MemoryHistory(initialEntries: [Location(pathname: '/concerts', identifier: 'default')]),
+        history: MemoryHistory(initialEntries: [RouteInformation(uri: Uri.parse('/concerts'))]),
       );
 
       await tester.pumpWidget(wrapRouter(router));
@@ -148,7 +148,7 @@ void main() {
             ],
           ),
         ],
-        history: MemoryHistory(initialEntries: [Location(pathname: '/login', identifier: 'default')]),
+        history: MemoryHistory(initialEntries: [RouteInformation(uri: Uri.parse('/login'))]),
       );
 
       await tester.pumpWidget(wrapRouter(router));
@@ -175,7 +175,7 @@ void main() {
             ],
           ),
         ],
-        history: MemoryHistory(initialEntries: [Location(pathname: '/login', identifier: 'default')]),
+        history: MemoryHistory(initialEntries: [RouteInformation(uri: Uri.parse('/login'))]),
       );
 
       await tester.pumpWidget(wrapRouter(router));
@@ -205,7 +205,7 @@ void main() {
 
       final router = Unrouter(
         routes: [Inlet(path: ':id', factory: createUser)],
-        history: MemoryHistory(initialEntries: [Location(pathname: '/123', identifier: 'default')]),
+        history: MemoryHistory(initialEntries: [RouteInformation(uri: Uri.parse('/123'))]),
       );
 
       await tester.pumpWidget(wrapRouter(router));
@@ -236,7 +236,7 @@ void main() {
             children: [Inlet(path: ':id', factory: createUser)],
           ),
         ],
-        history: MemoryHistory(initialEntries: [Location(pathname: '/users/123', identifier: 'default')]),
+        history: MemoryHistory(initialEntries: [RouteInformation(uri: Uri.parse('/users/123'))]),
       );
 
       await tester.pumpWidget(wrapRouter(router));
@@ -296,7 +296,7 @@ void main() {
             ],
           ),
         ],
-        history: MemoryHistory(initialEntries: [Location(pathname: '/users/123/456', identifier: 'default')]),
+        history: MemoryHistory(initialEntries: [RouteInformation(uri: Uri.parse('/users/123/456'))]),
       );
 
       await tester.pumpWidget(wrapRouter(router));

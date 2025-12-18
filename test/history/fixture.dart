@@ -25,62 +25,44 @@ void runHistoryTests(
 
     group('Basic Navigation', () {
       test('push updates location synchronously', () {
-        history.push(const Path(pathname: '/users'));
-        expect(history.location.pathname, '/users');
+        history.push(Uri.parse('/users'));
+        expect(history.location.uri.path, '/users');
         expect(history.action, HistoryAction.push);
       });
 
       test('push with search and hash', () {
-        history.push(
-          const Path(pathname: '/search', search: 'q=flutter', hash: 'results'),
-        );
+        history.push(Uri.parse('/search?q=flutter#results'));
 
-        expect(history.location.pathname, '/search');
-        expect(history.location.search, 'q=flutter');
-        expect(history.location.hash, 'results');
+        expect(history.location.uri.path, '/search');
+        expect(history.location.uri.query, 'q=flutter');
+        expect(history.location.uri.fragment, 'results');
         expect(history.action, HistoryAction.push);
       });
 
       test('replace updates location synchronously', () {
-        history.push(const Path(pathname: '/users'));
-        final identifierBefore = history.location.identifier;
+        history.push(Uri.parse('/users'));
 
-        history.replace(const Path(pathname: '/posts'));
+        history.replace(Uri.parse('/posts'));
 
-        expect(history.location.pathname, '/posts');
+        expect(history.location.uri.path, '/posts');
         expect(history.action, HistoryAction.replace);
-        expect(history.location.identifier, isNot(identifierBefore));
       });
 
       test('replace with state', () {
-        history.push(const Path(pathname: '/users'), {'count': 1});
-        history.replace(const Path(pathname: '/posts'), {'count': 2});
+        history.push(Uri.parse('/users'), {'count': 1});
+        history.replace(Uri.parse('/posts'), {'count': 2});
 
-        expect(history.location.pathname, '/posts');
+        expect(history.location.uri.path, '/posts');
         expect(history.location.state, {'count': 2});
-      });
-
-      test('each location has unique identifier', () {
-        final id0 = history.location.identifier;
-
-        history.push(const Path(pathname: '/page1'));
-        final id1 = history.location.identifier;
-
-        history.push(const Path(pathname: '/page2'));
-        final id2 = history.location.identifier;
-
-        expect(id1, isNot(id0));
-        expect(id2, isNot(id1));
-        expect(id2, isNot(id0));
       });
     });
 
     group('Navigation (go/back/forward)', () {
       if (isAsync) {
         test('go triggers async navigation with correct delta', () async {
-          history.push(const Path(pathname: '/page1'));
-          history.push(const Path(pathname: '/page2'));
-          history.push(const Path(pathname: '/page3'));
+          history.push(Uri.parse('/page1'));
+          history.push(Uri.parse('/page2'));
+          history.push(Uri.parse('/page3'));
 
           final completer = Completer<HistoryEvent>();
           history.listen((event) {
@@ -97,13 +79,13 @@ void runHistoryTests(
           );
 
           expect(event.action, HistoryAction.pop);
-          expect(event.location.pathname, '/page1');
+          expect(event.location.uri.path, '/page1');
           expect(event.delta, -2);
         });
 
         test('back triggers async navigation', () async {
-          history.push(const Path(pathname: '/page1'));
-          history.push(const Path(pathname: '/page2'));
+          history.push(Uri.parse('/page1'));
+          history.push(Uri.parse('/page2'));
 
           final completer = Completer<HistoryEvent>();
           history.listen((event) {
@@ -120,13 +102,13 @@ void runHistoryTests(
           );
 
           expect(event.action, HistoryAction.pop);
-          expect(event.location.pathname, '/page1');
+          expect(event.location.uri.path, '/page1');
           expect(event.delta, -1);
         });
 
         test('forward triggers async navigation', () async {
-          history.push(const Path(pathname: '/page1'));
-          history.push(const Path(pathname: '/page2'));
+          history.push(Uri.parse('/page1'));
+          history.push(Uri.parse('/page2'));
 
           // First go back
           var completer = Completer<void>();
@@ -154,34 +136,17 @@ void runHistoryTests(
           );
 
           expect(event.action, HistoryAction.pop);
-          expect(event.location.pathname, '/page2');
+          expect(event.location.uri.path, '/page2');
           expect(event.delta, 1);
         });
 
-        test('identifier persists when navigating back', () async {
-          history.push(const Path(pathname: '/page1'));
-          final id1 = history.location.identifier;
-
-          history.push(const Path(pathname: '/page2'));
-
-          final completer = Completer<void>();
-          history.listen((event) {
-            if (!completer.isCompleted) {
-              completer.complete();
-            }
-          });
-
-          history.back();
-          await completer.future.timeout(const Duration(seconds: 2));
-
-          expect(history.location.identifier, id1);
-        });
+        // identifier test removed - identifiers are now internal implementation details
       } else {
         // Synchronous navigation tests (for MemoryHistory)
         test('go navigates with correct delta', () {
-          history.push(const Path(pathname: '/page1'));
-          history.push(const Path(pathname: '/page2'));
-          history.push(const Path(pathname: '/page3'));
+          history.push(Uri.parse('/page1'));
+          history.push(Uri.parse('/page2'));
+          history.push(Uri.parse('/page3'));
 
           var eventReceived = false;
           HistoryEvent? lastEvent;
@@ -194,13 +159,13 @@ void runHistoryTests(
 
           expect(eventReceived, true);
           expect(lastEvent?.action, HistoryAction.pop);
-          expect(history.location.pathname, '/page1');
+          expect(history.location.uri.path, '/page1');
           expect(lastEvent?.delta, -2);
         });
 
         test('back navigates backward', () {
-          history.push(const Path(pathname: '/page1'));
-          history.push(const Path(pathname: '/page2'));
+          history.push(Uri.parse('/page1'));
+          history.push(Uri.parse('/page2'));
 
           var eventReceived = false;
           history.listen((event) {
@@ -210,12 +175,12 @@ void runHistoryTests(
           history.back();
 
           expect(eventReceived, true);
-          expect(history.location.pathname, '/page1');
+          expect(history.location.uri.path, '/page1');
         });
 
         test('forward navigates forward', () {
-          history.push(const Path(pathname: '/page1'));
-          history.push(const Path(pathname: '/page2'));
+          history.push(Uri.parse('/page1'));
+          history.push(Uri.parse('/page2'));
           history.back();
 
           var eventReceived = false;
@@ -226,7 +191,7 @@ void runHistoryTests(
           history.forward();
 
           expect(eventReceived, true);
-          expect(history.location.pathname, '/page2');
+          expect(history.location.uri.path, '/page2');
         });
       }
     });
@@ -238,34 +203,34 @@ void runHistoryTests(
           callCount++;
         });
 
-        history.push(const Path(pathname: '/page1'));
+        history.push(Uri.parse('/page1'));
 
         // Wait a bit to ensure no async listener call
         await Future.delayed(const Duration(milliseconds: 100));
 
         expect(callCount, 0);
-        expect(history.location.pathname, '/page1');
+        expect(history.location.uri.path, '/page1');
       });
 
       test('replace does NOT trigger listeners (browser semantics)', () async {
-        history.push(const Path(pathname: '/page1'));
+        history.push(Uri.parse('/page1'));
 
         var callCount = 0;
         history.listen((event) {
           callCount++;
         });
 
-        history.replace(const Path(pathname: '/page2'));
+        history.replace(Uri.parse('/page2'));
 
         // Wait a bit to ensure no async listener call
         await Future.delayed(const Duration(milliseconds: 100));
 
         expect(callCount, 0);
-        expect(history.location.pathname, '/page2');
+        expect(history.location.uri.path, '/page2');
       });
 
       test('multiple listeners are all called', () async {
-        history.push(const Path(pathname: '/page1'));
+        history.push(Uri.parse('/page1'));
 
         var count1 = 0;
         var count2 = 0;
@@ -296,8 +261,8 @@ void runHistoryTests(
       });
 
       test('unlisten stops receiving events', () async {
-        history.push(const Path(pathname: '/page1'));
-        history.push(const Path(pathname: '/page2'));
+        history.push(Uri.parse('/page1'));
+        history.push(Uri.parse('/page2'));
 
         var callCount = 0;
         final unlisten = history.listen((event) {
@@ -342,14 +307,12 @@ void runHistoryTests(
 
     group('createHref', () {
       test('creates href with pathname', () {
-        final href = history.createHref(const Path(pathname: '/users'));
+        final href = history.createHref(Uri.parse('/users'));
         expect(href, contains('/users'));
       });
 
       test('creates href with search and hash', () {
-        final href = history.createHref(
-          const Path(pathname: '/search', search: 'q=test', hash: 'top'),
-        );
+        final href = history.createHref(Uri.parse('/search?q=test#top'));
 
         expect(href, contains('/search'));
         expect(href, contains('q=test'));

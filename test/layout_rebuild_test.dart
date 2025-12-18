@@ -79,7 +79,7 @@ void main() {
             ],
           ),
         ],
-        history: MemoryHistory(initialEntries: [Location(pathname: '/login', identifier: 'default')]),
+        history: MemoryHistory(initialEntries: [RouteInformation(uri: Uri.parse('/login'))]),
       );
 
       await tester.pumpWidget(wrapRouter(router));
@@ -167,7 +167,7 @@ void main() {
             ],
           ),
         ],
-        history: MemoryHistory(initialEntries: [Location(pathname: '/parent/child1', identifier: 'default')]),
+        history: MemoryHistory(initialEntries: [RouteInformation(uri: Uri.parse('/parent/child1'))]),
       );
 
       await tester.pumpWidget(wrapRouter(router));

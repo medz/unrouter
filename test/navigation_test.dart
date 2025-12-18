@@ -192,7 +192,7 @@ void main() {
             ],
           ),
         ],
-        history: MemoryHistory(initialEntries: [Location(pathname: '/section/a', identifier: 'default')]),
+        history: MemoryHistory(initialEntries: [RouteInformation(uri: Uri.parse('/section/a'))]),
       );
 
       await tester.pumpWidget(wrapRouter(router));

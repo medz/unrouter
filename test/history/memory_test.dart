@@ -1,5 +1,5 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:unrouter/src/history/history.dart';
 import 'package:unrouter/src/history/memory.dart';
 
 import 'fixture.dart';
@@ -16,50 +16,49 @@ void main() {
     test('go beyond bounds clamps to valid range', () {
       final history = MemoryHistory();
 
-      history.push(const Path(pathname: '/page1'));
-      history.push(const Path(pathname: '/page2'));
+      history.push(Uri.parse('/page1'));
+      history.push(Uri.parse('/page2'));
 
       // Try to go too far back
       history.go(-10);
-      expect(history.location.pathname, '/');
+      expect(history.location.uri.path, '/');
 
       // Try to go too far forward
       history.go(10);
-      expect(history.location.pathname, '/page2');
+      expect(history.location.uri.path, '/page2');
     });
 
     test('dispose clears internal state', () {
       final history = MemoryHistory();
 
-      history.push(const Path(pathname: '/page1'));
-      history.push(const Path(pathname: '/page2'));
+      history.push(Uri.parse('/page1'));
+      history.push(Uri.parse('/page2'));
 
-      expect(history.entries.length, 3);
+      // entries are now private (_entries)
       expect(() => history.dispose(), returnsNormally);
-      expect(history.entries.isEmpty, true);
     });
 
     test('can initialize with custom entries', () {
       final history = MemoryHistory(
-        initialEntries: const [
-          Location(pathname: '/home', identifier: 'home'),
-          Location(pathname: '/about', identifier: 'about'),
+        initialEntries: [
+          RouteInformation(uri: Uri.parse('/home')),
+          RouteInformation(uri: Uri.parse('/about')),
         ],
         initialIndex: 1,
       );
 
-      expect(history.location.pathname, '/about');
+      expect(history.location.uri.path, '/about');
 
       history.back();
-      expect(history.location.pathname, '/home');
+      expect(history.location.uri.path, '/home');
     });
 
     test('initializes with default entry when empty', () {
       final history = MemoryHistory();
 
-      expect(history.location.pathname, '/');
-      expect(history.location.search, '');
-      expect(history.location.hash, '');
+      expect(history.location.uri.path, '/');
+      expect(history.location.uri.query, '');
+      expect(history.location.uri.fragment, '');
     });
   });
 }

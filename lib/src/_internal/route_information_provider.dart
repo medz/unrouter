@@ -7,16 +7,10 @@ class UnrouteInformationProvider extends RouteInformationProvider
     with ChangeNotifier {
   UnrouteInformationProvider({required History history})
     : _history = history,
-      _value = RouteInformation(
-        uri: _locationToUri(history.location),
-        state: history.location.state,
-      ) {
+      _value = history.location {
     // Listen to history changes
     _unlisten = history.listen((event) {
-      _value = RouteInformation(
-        uri: _locationToUri(event.location),
-        state: event.location.state,
-      );
+      _value = event.location;
       notifyListeners();
     });
   }
@@ -24,14 +18,6 @@ class UnrouteInformationProvider extends RouteInformationProvider
   final History _history;
   RouteInformation _value;
   void Function()? _unlisten;
-
-  static Uri _locationToUri(Location location) {
-    return Uri(
-      path: location.pathname,
-      query: location.search.isEmpty ? null : location.search,
-      fragment: location.hash.isEmpty ? null : location.hash,
-    );
-  }
 
   @override
   RouteInformation get value => _value;
@@ -42,7 +28,7 @@ class UnrouteInformationProvider extends RouteInformationProvider
     RouteInformationReportingType type = RouteInformationReportingType.none,
   }) {
     final newUri = routeInformation.uri;
-    final currentUri = _locationToUri(_history.location);
+    final currentUri = _history.location.uri;
 
     if (newUri != currentUri) {
       switch (type) {
@@ -51,12 +37,7 @@ class UnrouteInformationProvider extends RouteInformationProvider
           // Don't update history
           break;
         case RouteInformationReportingType.navigate:
-          final path = Path(
-            pathname: newUri.path,
-            search: newUri.query,
-            hash: newUri.fragment,
-          );
-          _history.push(path, routeInformation.state);
+          _history.push(newUri, routeInformation.state);
           break;
       }
     }

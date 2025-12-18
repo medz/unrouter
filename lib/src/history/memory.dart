@@ -1,31 +1,31 @@
 import 'dart:math' as math;
 
+import 'package:flutter/widgets.dart';
+
 import '_utils.dart';
 import 'history.dart';
 
+/// Internal entry for MemoryHistory that includes identifier
+class _MemoryEntry {
+  final RouteInformation info;
+  final String identifier;
+
+  const _MemoryEntry({required this.info, required this.identifier});
+}
+
 class MemoryHistory extends History {
   MemoryHistory({
-    List<Location> initialEntries = const [Location(identifier: 'default')],
+    List<RouteInformation>? initialEntries,
     int? initialIndex,
   }) {
-    final [defaults, ...rest] = initialEntries;
-    entries = [
-      switch (defaults) {
-        Location(identifier: 'default') => defaults,
-        _ => Location(
-          identifier: 'default',
-          pathname: defaults.pathname,
-          search: defaults.search,
-          hash: defaults.hash,
-          state: defaults.state,
-        ),
-      },
-      ...rest,
-    ];
-    index = clampIndex(initialIndex ?? entries.length - 1);
+    final entries = initialEntries ?? [RouteInformation(uri: Uri.parse('/'))];
+    _entries = entries
+        .map((info) => _MemoryEntry(info: info, identifier: generateIdentifier()))
+        .toList();
+    index = clampIndex(initialIndex ?? _entries.length - 1);
   }
 
-  late final List<Location> entries;
+  late final List<_MemoryEntry> _entries;
   late int index;
 
   final listeners = <void Function(HistoryEvent event)>[];
@@ -34,36 +34,33 @@ class MemoryHistory extends History {
   HistoryAction action = .pop;
 
   @override
-  Location get location => entries.elementAt(index);
+  RouteInformation get location => _entries.elementAt(index).info;
 
   @override
-  String createHref(Path to) => to.toUri().toString();
-
-  @override
-  void push(Path to, [Object? state]) {
-    action = .push;
-    index += 1;
-    entries
-      ..length = index
-      ..add(
-        Location(
-          pathname: to.pathname,
-          search: to.search,
-          hash: to.hash,
-          state: state,
-          identifier: generateIdentifier(),
-        ),
-      );
+  String createHref(Uri uri) {
+    final buffer = StringBuffer(uri.path);
+    if (uri.hasQuery) buffer.write('?${uri.query}');
+    if (uri.hasFragment) buffer.write('#${uri.fragment}');
+    return buffer.toString();
   }
 
   @override
-  void replace(Path to, [Object? state]) {
+  void push(Uri uri, [Object? state]) {
+    action = .push;
+    index += 1;
+    _entries
+      ..length = index
+      ..add(_MemoryEntry(
+        info: RouteInformation(uri: uri, state: state),
+        identifier: generateIdentifier(),
+      ));
+  }
+
+  @override
+  void replace(Uri uri, [Object? state]) {
     action = .replace;
-    entries[index] = Location(
-      pathname: to.pathname,
-      search: to.search,
-      hash: to.hash,
-      state: state,
+    _entries[index] = _MemoryEntry(
+      info: RouteInformation(uri: uri, state: state),
       identifier: generateIdentifier(),
     );
   }
@@ -92,19 +89,11 @@ class MemoryHistory extends History {
 
   @override
   void dispose() {
-    entries.clear();
+    _entries.clear();
     listeners.clear();
   }
 }
 
 extension on MemoryHistory {
-  int clampIndex(int value) => math.min(math.max(value, 0), entries.length - 1);
-}
-
-extension on Path {
-  Uri toUri() => Uri(
-        path: pathname,
-        query: search.isEmpty ? null : search,
-        fragment: hash.isEmpty ? null : hash,
-      );
+  int clampIndex(int value) => math.min(math.max(value, 0), _entries.length - 1);
 }

@@ -3,7 +3,6 @@ library;
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:unrouter/browser.dart';
-import 'package:unrouter/unrouter.dart';
 
 import 'fixture.dart';
 
@@ -35,26 +34,24 @@ void main() {
     });
 
     test('location parses fragment correctly', () {
-      history.push(const Path(pathname: '/users', search: 'page=1'));
+      history.push(Uri.parse('/users?page=1'));
 
       final location = history.location;
-      expect(location.pathname, '/users');
-      expect(location.search, 'page=1');
+      expect(location.uri.path, '/users');
+      expect(location.uri.query, 'page=1');
     });
 
     test('nested hash is preserved', () {
-      history.push(
-        const Path(pathname: '/docs', search: 'v=2', hash: 'section-1'),
-      );
+      history.push(Uri.parse('/docs?v=2#section-1'));
 
       final location = history.location;
-      expect(location.pathname, '/docs');
-      expect(location.search, 'v=2');
-      expect(location.hash, 'section-1');
+      expect(location.uri.path, '/docs');
+      expect(location.uri.query, 'v=2');
+      expect(location.uri.fragment, 'section-1');
     });
 
     test('href format uses fragment', () {
-      final href = history.createHref(const Path(pathname: '/users'));
+      final href = history.createHref(Uri.parse('/users'));
       // The href should contain a fragment marker (#) with the path
       expect(href, contains('#'));
     });

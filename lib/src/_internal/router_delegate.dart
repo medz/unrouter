@@ -40,10 +40,7 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
 
     // Listen to history changes (only back/forward/go - popstate events)
     _unlistenHistory = history.listen((event) {
-      _currentConfiguration = RouteInformation(
-        uri: _locationToUri(event.location),
-        state: event.location.state,
-      );
+      _currentConfiguration = event.location;
       _historyAction = event.action;
       // Adjust history index based on navigation delta
       if (event.delta != null) {
@@ -55,19 +52,8 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
     });
 
     // Initialize with current location
-    _currentConfiguration = RouteInformation(
-      uri: _locationToUri(history.location),
-      state: history.location.state,
-    );
+    _currentConfiguration = history.location;
     _updateMatchedRoutes();
-  }
-
-  static Uri _locationToUri(Location location) {
-    return Uri(
-      path: location.pathname,
-      query: location.search.isEmpty ? null : location.search,
-      fragment: location.hash.isEmpty ? null : location.hash,
-    );
   }
 
   /// Manually navigate to a location (for push/replace).
@@ -115,14 +101,9 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
     // Update history if needed
     final newUri = configuration.uri;
     if (_history != null) {
-      final currentUri = _locationToUri(_history!.location);
+      final currentUri = _history!.location.uri;
       if (newUri != currentUri) {
-        final path = Path(
-          pathname: newUri.path,
-          search: newUri.query,
-          hash: newUri.fragment,
-        );
-        _history!.push(path, configuration.state);
+        _history!.push(newUri, configuration.state);
       }
     }
 
