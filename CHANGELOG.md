@@ -1,4 +1,4 @@
-## 0.2.0 [WIP]
+## 0.2.0
 
 ### Breaking Changes
 

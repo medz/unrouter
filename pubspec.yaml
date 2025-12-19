@@ -1,6 +1,6 @@
 name: unrouter
 description: "A Flutter router that gives you routing flexibility: define routes centrally, scope them to widgets, or mix both - with browser-style history navigation."
-version: 0.1.1
+version: 0.2.0
 
 repository: https://github.com/medz/unrouter
 topics:
