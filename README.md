@@ -51,7 +51,7 @@ Add to `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  unrouter: ^0.2.0
+  unrouter: ^0.3.0
 ```
 
 </details>
