@@ -284,28 +284,39 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
   /// Otherwise, it's appended to the current path by segment.
   ///
   /// Notes:
-  /// - This does not support `.` / `..` normalization.
+  /// - Dot segments (`.` / `..`) are normalized and attempts to walk above
+  ///   root are clamped.
   /// - The returned URI uses [uri]'s query/fragment (it does not inherit the
   ///   current location's query/fragment).
   Uri resolveUri(Uri uri) {
-    // Absolute path - starts with '/'
-    if (uri.path.startsWith('/')) {
-      return uri;
-    }
-
-    // Relative path - append to current location
-    final segments =
+    final resolvedSegments = switch (uri.path.startsWith('/')) {
+      false =>
         currentConfiguration.uri.path
             .split('/')
             .where((s) => s.isNotEmpty)
-            .toList()
-          ..addAll(uri.path.split('/').where((s) => s.isNotEmpty));
+            .toList(),
+      _ => <String>[],
+    };
+    for (final segment in uri.path.split('/')) {
+      if (segment.isEmpty || segment == '.') {
+        continue;
+      }
+      if (segment == '..') {
+        if (resolvedSegments.isNotEmpty) {
+          resolvedSegments.removeLast();
+        }
+        continue;
+      }
+      resolvedSegments.add(segment);
+    }
 
-    final resolvedPath = '/${segments.join('/')}';
+    final resolvedPath = '/${resolvedSegments.join('/')}';
     return Uri(
       path: resolvedPath,
-      query: uri.query.isEmpty ? null : uri.query,
-      fragment: uri.fragment.isEmpty ? null : uri.fragment,
+      query: (uri.hasQuery && uri.query.isNotEmpty) ? uri.query : null,
+      fragment: (uri.hasFragment && uri.fragment.isNotEmpty)
+          ? uri.fragment
+          : null,
     );
   }
 
