@@ -22,7 +22,7 @@ Add to `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  unrouter: ^0.1.0
+  unrouter: ^0.1.1
 ```
 
 ## Quick start
