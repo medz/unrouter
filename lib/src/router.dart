@@ -46,10 +46,12 @@ class Unrouter extends StatelessWidget
     this.child,
     this.strategy = .hash,
     History? history,
-  })  : assert(routes != null || child != null,
-            'Either routes or child must be provided'),
-        history = history ?? createHistory(strategy),
-        backButtonDispatcher = RootBackButtonDispatcher();
+  }) : assert(
+         routes != null || child != null,
+         'Either routes or child must be provided',
+       ),
+       history = history ?? createHistory(strategy),
+       backButtonDispatcher = RootBackButtonDispatcher();
 
   /// Declarative routes for centralized route configuration.
   ///

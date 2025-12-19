@@ -110,7 +110,8 @@ _MatchResult _matchRecursive(
                 consumedCount,
               );
               if (bestPartialMatch == null ||
-                  partialMatch.consumedSegments > bestPartialMatch.consumedSegments) {
+                  partialMatch.consumedSegments >
+                      bestPartialMatch.consumedSegments) {
                 bestPartialMatch = partialMatch;
               }
             }

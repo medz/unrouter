@@ -17,10 +17,9 @@ void main() {
         ]),
       );
 
-      await tester.pumpWidget(Directionality(
-        textDirection: TextDirection.ltr,
-        child: router,
-      ));
+      await tester.pumpWidget(
+        Directionality(textDirection: TextDirection.ltr, child: router),
+      );
 
       expect(find.text('Home'), findsOneWidget);
       expect(find.text('About'), findsNothing);
@@ -37,10 +36,9 @@ void main() {
         ]),
       );
 
-      await tester.pumpWidget(Directionality(
-        textDirection: TextDirection.ltr,
-        child: router,
-      ));
+      await tester.pumpWidget(
+        Directionality(textDirection: TextDirection.ltr, child: router),
+      );
 
       expect(find.text('Home'), findsOneWidget);
 
@@ -65,10 +63,9 @@ void main() {
         ]),
       );
 
-      await tester.pumpWidget(Directionality(
-        textDirection: TextDirection.ltr,
-        child: router,
-      ));
+      await tester.pumpWidget(
+        Directionality(textDirection: TextDirection.ltr, child: router),
+      );
 
       expect(find.text('About'), findsOneWidget);
       expect(find.text('About Home'), findsOneWidget);
@@ -88,19 +85,16 @@ void main() {
 
       router = Unrouter(
         history: MemoryHistory(),
-        routes: const [
-          Inlet(path: 'static', factory: StaticPage.new),
-        ],
+        routes: const [Inlet(path: 'static', factory: StaticPage.new)],
         child: Routes(const [
           Inlet(factory: HomePage.new),
           Inlet(path: 'about', factory: AboutPage.new),
         ]),
       );
 
-      await tester.pumpWidget(Directionality(
-        textDirection: TextDirection.ltr,
-        child: router,
-      ));
+      await tester.pumpWidget(
+        Directionality(textDirection: TextDirection.ltr, child: router),
+      );
 
       // Should render dynamic route (child)
       expect(find.text('Home'), findsOneWidget);
@@ -133,10 +127,9 @@ void main() {
         ]),
       );
 
-      await tester.pumpWidget(Directionality(
-        textDirection: TextDirection.ltr,
-        child: router,
-      ));
+      await tester.pumpWidget(
+        Directionality(textDirection: TextDirection.ltr, child: router),
+      );
 
       expect(find.text('Home'), findsOneWidget);
     });

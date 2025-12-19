@@ -73,7 +73,8 @@ class RouterState {
   }
 
   @override
-  int get hashCode => Object.hash(location, level, Object.hashAll(matchedRoutes));
+  int get hashCode =>
+      Object.hash(location, level, Object.hashAll(matchedRoutes));
 
   static bool _listEquals<T>(List<T>? a, List<T>? b) {
     if (a == null) return b == null;

@@ -4,7 +4,9 @@ import 'package:unrouter/unrouter.dart';
 
 void main() {
   group('Routes widget rebuild/recreate behavior', () {
-    testWidgets('Routes does not recreate widget on navigation', (tester) async {
+    testWidgets('Routes does not recreate widget on navigation', (
+      tester,
+    ) async {
       int homeBuilds = 0;
       int aboutBuilds = 0;
 
@@ -28,10 +30,9 @@ void main() {
         ]),
       );
 
-      await tester.pumpWidget(Directionality(
-        textDirection: TextDirection.ltr,
-        child: router,
-      ));
+      await tester.pumpWidget(
+        Directionality(textDirection: TextDirection.ltr, child: router),
+      );
 
       // Initial render - Home should be built once
       expect(homeBuilds, 1);
@@ -57,7 +58,9 @@ void main() {
       expect(find.text('Home'), findsOneWidget);
     });
 
-    testWidgets('Nested Routes preserve parent state on child navigation', (tester) async {
+    testWidgets('Nested Routes preserve parent state on child navigation', (
+      tester,
+    ) async {
       int parentBuilds = 0;
       int child1Builds = 0;
       int child2Builds = 0;
@@ -67,31 +70,38 @@ void main() {
       router = Unrouter(
         history: MemoryHistory(),
         child: Routes([
-          Inlet(path: 'parent', factory: () {
-            parentBuilds++;
-            return Column(
-              children: [
-                const Text('Parent'),
-                Routes([
-                  Inlet(factory: () {
-                    child1Builds++;
-                    return const Text('Child1');
-                  }),
-                  Inlet(path: 'child2', factory: () {
-                    child2Builds++;
-                    return const Text('Child2');
-                  }),
-                ]),
-              ],
-            );
-          }),
+          Inlet(
+            path: 'parent',
+            factory: () {
+              parentBuilds++;
+              return Column(
+                children: [
+                  const Text('Parent'),
+                  Routes([
+                    Inlet(
+                      factory: () {
+                        child1Builds++;
+                        return const Text('Child1');
+                      },
+                    ),
+                    Inlet(
+                      path: 'child2',
+                      factory: () {
+                        child2Builds++;
+                        return const Text('Child2');
+                      },
+                    ),
+                  ]),
+                ],
+              );
+            },
+          ),
         ]),
       );
 
-      await tester.pumpWidget(Directionality(
-        textDirection: TextDirection.ltr,
-        child: router,
-      ));
+      await tester.pumpWidget(
+        Directionality(textDirection: TextDirection.ltr, child: router),
+      );
 
       // Navigate to /parent (index child)
       router.navigate(.parse('/parent'));
@@ -118,7 +128,9 @@ void main() {
       expect(find.text('Child1'), findsOneWidget);
     });
 
-    testWidgets('Routes recreates widget on push (new history entry)', (tester) async {
+    testWidgets('Routes recreates widget on push (new history entry)', (
+      tester,
+    ) async {
       int detailBuilds = 0;
 
       Widget createDetail() {
@@ -142,10 +154,9 @@ void main() {
         ]),
       );
 
-      await tester.pumpWidget(Directionality(
-        textDirection: TextDirection.ltr,
-        child: router,
-      ));
+      await tester.pumpWidget(
+        Directionality(textDirection: TextDirection.ltr, child: router),
+      );
 
       expect(find.text('Home'), findsOneWidget);
 
@@ -166,7 +177,9 @@ void main() {
   });
 
   group('Routes and declarative routes conflict resolution', () {
-    testWidgets('declarative routes take precedence over child Routes', (tester) async {
+    testWidgets('declarative routes take precedence over child Routes', (
+      tester,
+    ) async {
       late Unrouter router;
 
       router = Unrouter(
@@ -182,10 +195,9 @@ void main() {
         ]),
       );
 
-      await tester.pumpWidget(Directionality(
-        textDirection: TextDirection.ltr,
-        child: router,
-      ));
+      await tester.pumpWidget(
+        Directionality(textDirection: TextDirection.ltr, child: router),
+      );
 
       // Navigate to /admin
       router.navigate(.parse('/admin'));
@@ -196,24 +208,23 @@ void main() {
       expect(find.text('Dynamic Admin'), findsNothing);
     });
 
-    testWidgets('child Routes handles paths not in declarative routes', (tester) async {
+    testWidgets('child Routes handles paths not in declarative routes', (
+      tester,
+    ) async {
       late Unrouter router;
 
       router = Unrouter(
         history: MemoryHistory(),
-        routes: const [
-          Inlet(path: 'admin', factory: StaticAdminPage.new),
-        ],
+        routes: const [Inlet(path: 'admin', factory: StaticAdminPage.new)],
         child: Routes(const [
           Inlet(factory: HomePage.new),
           Inlet(path: 'about', factory: AboutPage.new),
         ]),
       );
 
-      await tester.pumpWidget(Directionality(
-        textDirection: TextDirection.ltr,
-        child: router,
-      ));
+      await tester.pumpWidget(
+        Directionality(textDirection: TextDirection.ltr, child: router),
+      );
 
       // Navigate to /about (not in declarative routes)
       router.navigate(.parse('/about'));
@@ -235,7 +246,6 @@ void main() {
 
       expect(find.text('Home'), findsOneWidget);
     });
-
   });
 }
 
@@ -280,12 +290,7 @@ class SettingsWithDynamicRoutes extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        const Text('Settings'),
-        const Outlet(),
-      ],
-    );
+    return Column(children: [const Text('Settings'), const Outlet()]);
   }
 }
 

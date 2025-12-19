@@ -4,8 +4,9 @@ import 'package:unrouter/unrouter.dart';
 
 void main() {
   group('Hybrid routing - routes + child with complex scenarios', () {
-    testWidgets('routes take precedence over child Routes widget',
-        (tester) async {
+    testWidgets('routes take precedence over child Routes widget', (
+      tester,
+    ) async {
       late Unrouter router;
 
       router = Unrouter(
@@ -20,10 +21,9 @@ void main() {
         ]),
       );
 
-      await tester.pumpWidget(Directionality(
-        textDirection: TextDirection.ltr,
-        child: router,
-      ));
+      await tester.pumpWidget(
+        Directionality(textDirection: TextDirection.ltr, child: router),
+      );
 
       // Navigate to /admin - should match static routes, not child Routes
       router.navigate(.parse('/admin'));
@@ -39,8 +39,9 @@ void main() {
       expect(find.text('Settings'), findsOneWidget);
     });
 
-    testWidgets('child with nested widget containing Routes widget',
-        (tester) async {
+    testWidgets('child with nested widget containing Routes widget', (
+      tester,
+    ) async {
       late Unrouter router;
 
       router = Unrouter(
@@ -53,10 +54,9 @@ void main() {
         child: const WrapperWidget(),
       );
 
-      await tester.pumpWidget(Directionality(
-        textDirection: TextDirection.ltr,
-        child: router,
-      ));
+      await tester.pumpWidget(
+        Directionality(textDirection: TextDirection.ltr, child: router),
+      );
 
       // Navigate to / - should match static routes
       expect(find.text('Home'), findsOneWidget);
@@ -77,65 +77,63 @@ void main() {
     });
 
     testWidgets(
-        'static route partial match with child Routes as fallback for different paths',
-        (tester) async {
+      'static route partial match with child Routes as fallback for different paths',
+      (tester) async {
+        late Unrouter router;
+
+        router = Unrouter(
+          history: MemoryHistory(),
+          routes: const [
+            Inlet(path: 'products', factory: ProductsPageWithRoutes.new),
+          ],
+          child: Routes(const [
+            Inlet(path: 'users/:id', factory: UserDetailPage.new),
+            Inlet(path: 'posts/:id', factory: PostDetailPage.new),
+          ]),
+        );
+
+        await tester.pumpWidget(
+          Directionality(textDirection: TextDirection.ltr, child: router),
+        );
+
+        // Navigate to /products/123 - partial match on static route
+        router.navigate(.parse('/products/123'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Products Container'), findsOneWidget);
+        expect(find.text('Product: 123'), findsOneWidget);
+
+        // Navigate to /users/456 - no match in static routes, use child Routes
+        router.navigate(.parse('/users/456'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('User: 456'), findsOneWidget);
+
+        // Navigate to /posts/789 - no match in static routes, use child Routes
+        router.navigate(.parse('/posts/789'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Post: 789'), findsOneWidget);
+      },
+    );
+
+    testWidgets('overlapping routes in static and child - static wins', (
+      tester,
+    ) async {
       late Unrouter router;
 
       router = Unrouter(
         history: MemoryHistory(),
-        routes: const [
-          Inlet(path: 'products', factory: ProductsPageWithRoutes.new),
-        ],
-        child: Routes(const [
-          Inlet(path: 'users/:id', factory: UserDetailPage.new),
-          Inlet(path: 'posts/:id', factory: PostDetailPage.new),
-        ]),
-      );
-
-      await tester.pumpWidget(Directionality(
-        textDirection: TextDirection.ltr,
-        child: router,
-      ));
-
-      // Navigate to /products/123 - partial match on static route
-      router.navigate(.parse('/products/123'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Products Container'), findsOneWidget);
-      expect(find.text('Product: 123'), findsOneWidget);
-
-      // Navigate to /users/456 - no match in static routes, use child Routes
-      router.navigate(.parse('/users/456'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('User: 456'), findsOneWidget);
-
-      // Navigate to /posts/789 - no match in static routes, use child Routes
-      router.navigate(.parse('/posts/789'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Post: 789'), findsOneWidget);
-    });
-
-    testWidgets('overlapping routes in static and child - static wins',
-        (tester) async {
-      late Unrouter router;
-
-      router = Unrouter(
-        history: MemoryHistory(),
-        routes: const [
-          Inlet(path: 'items/:id', factory: StaticItemPage.new),
-        ],
+        routes: const [Inlet(path: 'items/:id', factory: StaticItemPage.new)],
         child: Routes(const [
           Inlet(path: 'items/:id', factory: DynamicItemPage.new),
           Inlet(path: 'categories/:name', factory: CategoryPage.new),
         ]),
       );
 
-      await tester.pumpWidget(Directionality(
-        textDirection: TextDirection.ltr,
-        child: router,
-      ));
+      await tester.pumpWidget(
+        Directionality(textDirection: TextDirection.ltr, child: router),
+      );
 
       // Navigate to /items/123 - both routes match, static should win
       router.navigate(.parse('/items/123'));
@@ -151,64 +149,61 @@ void main() {
       expect(find.text('Category: electronics'), findsOneWidget);
     });
 
-    testWidgets('static partial match route with Routes + child Routes fallback',
-        (tester) async {
+    testWidgets(
+      'static partial match route with Routes + child Routes fallback',
+      (tester) async {
+        late Unrouter router;
+
+        router = Unrouter(
+          history: MemoryHistory(),
+          routes: const [Inlet(path: 'shop', factory: ShopPageWithRoutes.new)],
+          child: Routes(const [
+            Inlet(path: 'account/:section', factory: AccountPage.new),
+          ]),
+        );
+
+        await tester.pumpWidget(
+          Directionality(textDirection: TextDirection.ltr, child: router),
+        );
+
+        // Navigate to /shop/products/123
+        // Static route partially matches 'shop', ShopPageWithRoutes handles rest
+        router.navigate(.parse('/shop/products/123'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Shop Container'), findsOneWidget);
+        expect(find.text('Shop Product: 123'), findsOneWidget);
+
+        // Navigate to /shop/categories/toys
+        router.navigate(.parse('/shop/categories/toys'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Shop Container'), findsOneWidget);
+        expect(find.text('Shop Category: toys'), findsOneWidget);
+
+        // Navigate to /account/profile - no match in static, use child Routes
+        router.navigate(.parse('/account/profile'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Account: profile'), findsOneWidget);
+        expect(find.text('Shop Container'), findsNothing);
+      },
+    );
+
+    testWidgets('deeply nested child widget with Routes - multiple levels', (
+      tester,
+    ) async {
       late Unrouter router;
 
       router = Unrouter(
         history: MemoryHistory(),
-        routes: const [
-          Inlet(path: 'shop', factory: ShopPageWithRoutes.new),
-        ],
-        child: Routes(const [
-          Inlet(path: 'account/:section', factory: AccountPage.new),
-        ]),
-      );
-
-      await tester.pumpWidget(Directionality(
-        textDirection: TextDirection.ltr,
-        child: router,
-      ));
-
-      // Navigate to /shop/products/123
-      // Static route partially matches 'shop', ShopPageWithRoutes handles rest
-      router.navigate(.parse('/shop/products/123'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Shop Container'), findsOneWidget);
-      expect(find.text('Shop Product: 123'), findsOneWidget);
-
-      // Navigate to /shop/categories/toys
-      router.navigate(.parse('/shop/categories/toys'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Shop Container'), findsOneWidget);
-      expect(find.text('Shop Category: toys'), findsOneWidget);
-
-      // Navigate to /account/profile - no match in static, use child Routes
-      router.navigate(.parse('/account/profile'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Account: profile'), findsOneWidget);
-      expect(find.text('Shop Container'), findsNothing);
-    });
-
-    testWidgets('deeply nested child widget with Routes - multiple levels',
-        (tester) async {
-      late Unrouter router;
-
-      router = Unrouter(
-        history: MemoryHistory(),
-        routes: const [
-          Inlet(factory: HomePage.new),
-        ],
+        routes: const [Inlet(factory: HomePage.new)],
         child: const DeepWrapper(),
       );
 
-      await tester.pumpWidget(Directionality(
-        textDirection: TextDirection.ltr,
-        child: router,
-      ));
+      await tester.pumpWidget(
+        Directionality(textDirection: TextDirection.ltr, child: router),
+      );
 
       // Navigate to / - matches static route
       expect(find.text('Home'), findsOneWidget);
@@ -222,22 +217,20 @@ void main() {
       expect(find.text('Deep Page'), findsOneWidget);
     });
 
-    testWidgets('static route with no match falls back to complex child widget',
-        (tester) async {
+    testWidgets('static route with no match falls back to complex child widget', (
+      tester,
+    ) async {
       late Unrouter router;
 
       router = Unrouter(
         history: MemoryHistory(),
-        routes: const [
-          Inlet(path: 'exact', factory: ExactPage.new),
-        ],
+        routes: const [Inlet(path: 'exact', factory: ExactPage.new)],
         child: const ComplexFallback(),
       );
 
-      await tester.pumpWidget(Directionality(
-        textDirection: TextDirection.ltr,
-        child: router,
-      ));
+      await tester.pumpWidget(
+        Directionality(textDirection: TextDirection.ltr, child: router),
+      );
 
       // Navigate to /exact - matches static route
       router.navigate(.parse('/exact'));
@@ -332,9 +325,7 @@ class ProductsPageWithRoutes extends StatelessWidget {
     return Column(
       children: [
         const Text('Products Container'),
-        Routes(const [
-          Inlet(path: ':id', factory: ProductDetailInner.new),
-        ]),
+        Routes(const [Inlet(path: ':id', factory: ProductDetailInner.new)]),
       ],
     );
   }
@@ -465,9 +456,7 @@ class DeepWrapper extends StatelessWidget {
     return Column(
       children: [
         const Text('Deep Wrapper Level 1'),
-        Container(
-          child: const DeepWrapperLevel2(),
-        ),
+        Container(child: const DeepWrapperLevel2()),
       ],
     );
   }
@@ -481,9 +470,7 @@ class DeepWrapperLevel2 extends StatelessWidget {
     return Column(
       children: [
         const Text('Deep Wrapper Level 2'),
-        Routes(const [
-          Inlet(path: 'deep', factory: DeepPage.new),
-        ]),
+        Routes(const [Inlet(path: 'deep', factory: DeepPage.new)]),
       ],
     );
   }

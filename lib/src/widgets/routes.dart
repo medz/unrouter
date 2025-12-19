@@ -69,9 +69,14 @@ class Routes extends StatelessWidget {
       for (int i = 0; i <= state.level && i < state.matchedRoutes.length; i++) {
         final route = state.matchedRoutes[i].route;
         if (route.path.isNotEmpty) {
-          final match = matchPath(route.path, pathSegments.sublist(consumedSegments));
+          final match = matchPath(
+            route.path,
+            pathSegments.sublist(consumedSegments),
+          );
           if (match.matched) {
-            final consumed = pathSegments.sublist(consumedSegments).length - match.remaining.length;
+            final consumed =
+                pathSegments.sublist(consumedSegments).length -
+                match.remaining.length;
             consumedSegments += consumed;
           }
         }
@@ -81,7 +86,9 @@ class Routes extends StatelessWidget {
       final remainingSegments = consumedSegments < pathSegments.length
           ? pathSegments.sublist(consumedSegments)
           : <String>[];
-      pathToMatch = remainingSegments.isEmpty ? '/' : '/${remainingSegments.join('/')}';
+      pathToMatch = remainingSegments.isEmpty
+          ? '/'
+          : '/${remainingSegments.join('/')}';
     }
 
     // Match routes against the determined path
@@ -127,10 +134,10 @@ class Routes extends StatelessWidget {
         // Layout route - try children
         final childResult = _matchRoutesGreedy(route.children, location);
         if (childResult.matches.isNotEmpty) {
-          return RouteMatchResult(
-            [MatchedRoute(route, const {}), ...childResult.matches],
-            childResult.matched,
-          );
+          return RouteMatchResult([
+            MatchedRoute(route, const {}),
+            ...childResult.matches,
+          ], childResult.matched);
         }
       } else {
         // Path route - try to match
@@ -142,12 +149,15 @@ class Routes extends StatelessWidget {
           if (route.children.isNotEmpty && match.remaining.isNotEmpty) {
             // Try to match children with remaining path
             final remainingPath = match.remaining.join('/');
-            final childResult = _matchRoutesGreedy(route.children, remainingPath);
+            final childResult = _matchRoutesGreedy(
+              route.children,
+              remainingPath,
+            );
             if (childResult.matches.isNotEmpty) {
-              return RouteMatchResult(
-                [...matched, ...childResult.matches],
-                childResult.matched,
-              );
+              return RouteMatchResult([
+                ...matched,
+                ...childResult.matches,
+              ], childResult.matched);
             }
           }
 
@@ -172,5 +182,4 @@ class Routes extends StatelessWidget {
 
     return const RouteMatchResult([], false);
   }
-
 }

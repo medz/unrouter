@@ -4,8 +4,9 @@ import 'package:unrouter/unrouter.dart';
 
 void main() {
   group('Declarative routes with partial matching for nested Routes widget', () {
-    testWidgets('declarative route with Routes widget matches nested paths',
-        (tester) async {
+    testWidgets('declarative route with Routes widget matches nested paths', (
+      tester,
+    ) async {
       late Unrouter router;
 
       router = Unrouter(
@@ -17,10 +18,9 @@ void main() {
         ],
       );
 
-      await tester.pumpWidget(Directionality(
-        textDirection: TextDirection.ltr,
-        child: router,
-      ));
+      await tester.pumpWidget(
+        Directionality(textDirection: TextDirection.ltr, child: router),
+      );
 
       // Navigate to /products (should match and render ProductsPage)
       router.navigate(.parse('/products'));
@@ -38,8 +38,9 @@ void main() {
       expect(find.text('Product Detail: 123'), findsOneWidget);
     });
 
-    testWidgets('partial match allows component to handle remaining segments',
-        (tester) async {
+    testWidgets('partial match allows component to handle remaining segments', (
+      tester,
+    ) async {
       late Unrouter router;
 
       router = Unrouter(
@@ -50,10 +51,9 @@ void main() {
         ],
       );
 
-      await tester.pumpWidget(Directionality(
-        textDirection: TextDirection.ltr,
-        child: router,
-      ));
+      await tester.pumpWidget(
+        Directionality(textDirection: TextDirection.ltr, child: router),
+      );
 
       // Navigate to /shop/category/electronics
       router.navigate(.parse('/shop/category/electronics'));
@@ -64,8 +64,9 @@ void main() {
       expect(find.text('Category: electronics'), findsOneWidget);
     });
 
-    testWidgets('full match takes precedence over partial match',
-        (tester) async {
+    testWidgets('full match takes precedence over partial match', (
+      tester,
+    ) async {
       late Unrouter router;
 
       router = Unrouter(
@@ -76,10 +77,9 @@ void main() {
         ],
       );
 
-      await tester.pumpWidget(Directionality(
-        textDirection: TextDirection.ltr,
-        child: router,
-      ));
+      await tester.pumpWidget(
+        Directionality(textDirection: TextDirection.ltr, child: router),
+      );
 
       // Navigate to /products/special (should fully match second route)
       router.navigate(.parse('/products/special'));

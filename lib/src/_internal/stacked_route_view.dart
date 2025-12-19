@@ -68,8 +68,7 @@ class _StackedRouteViewElement extends ComponentElement {
     _PageEntry? pageEntry = _pageStack[cacheKey];
     final shouldRecreate =
         (action == HistoryAction.push && cacheKey is int) ||
-        (action == HistoryAction.replace &&
-            pageEntry?.route != matched.route);
+        (action == HistoryAction.replace && pageEntry?.route != matched.route);
 
     if (pageEntry == null || shouldRecreate) {
       final widget = RouterStateProvider(
