@@ -83,7 +83,7 @@ class Home extends StatelessWidget {
               'About',
               Icons.info,
               Colors.blue,
-              () => router.navigate(.parse('/about')),
+              () => context.navigate(.parse('/about')),
             ),
             _buildNavButton(
               context,
@@ -146,7 +146,7 @@ class About extends StatelessWidget {
         title: const Text('About'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => router.back(),
+          onPressed: () => context.navigate.back(),
         ),
       ),
       body: Center(
@@ -170,7 +170,7 @@ class About extends StatelessWidget {
             ),
             const SizedBox(height: 32),
             ElevatedButton(
-              onPressed: () => router.navigate(.parse('/')),
+              onPressed: () => context.navigate(.parse('/')),
               child: const Text('Back to Home'),
             ),
           ],
@@ -206,7 +206,7 @@ class AuthLayout extends StatelessWidget {
                   children: [
                     IconButton(
                       icon: const Icon(Icons.arrow_back, color: Colors.white),
-                      onPressed: () => router.back(),
+                      onPressed: () => context.navigate.back(),
                     ),
                     const SizedBox(width: 8),
                     const Text(
@@ -284,7 +284,7 @@ class Login extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               TextButton(
-                onPressed: () => router.navigate(.parse('/register')),
+                onPressed: () => context.navigate(.parse('/register')),
                 child: const Text('Don\'t have an account? Register'),
               ),
             ],
@@ -359,7 +359,7 @@ class Register extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               TextButton(
-                onPressed: () => router.navigate(.parse('/login')),
+                onPressed: () => context.navigate(.parse('/login')),
                 child: const Text('Already have an account? Login'),
               ),
             ],
@@ -383,7 +383,7 @@ class ConcertsLayout extends StatelessWidget {
         foregroundColor: Colors.white,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => router.back(),
+          onPressed: () => context.navigate.back(),
         ),
       ),
       body: Column(
@@ -606,7 +606,7 @@ class ProductsPage extends StatelessWidget {
         foregroundColor: Colors.white,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => router.back(),
+          onPressed: () => context.navigate.back(),
         ),
       ),
       body: Column(
@@ -755,7 +755,7 @@ class ProductDetail extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 ElevatedButton.icon(
-                  onPressed: () => router.back(),
+                  onPressed: () => context.navigate.back(),
                   icon: const Icon(Icons.arrow_back),
                   label: const Text('Back to List'),
                   style: ElevatedButton.styleFrom(

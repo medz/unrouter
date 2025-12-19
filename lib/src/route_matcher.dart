@@ -38,7 +38,7 @@ class RouteMatchResult {
 ///
 /// Returns a [RouteMatchResult] containing the matched route stack.
 /// The first element is the root route, the last is the leaf route.
-RouteMatchResult matchRoutes(List<Inlet> routes, String location) {
+RouteMatchResult matchRoutes(Iterable<Inlet> routes, String location) {
   final segments = normalizePath(location);
   final pathSegments = segments.isEmpty ? <String>[] : segments.split('/');
 
@@ -55,7 +55,7 @@ class _MatchResult {
 }
 
 _MatchResult _matchRecursive(
-  List<Inlet> routes,
+  Iterable<Inlet> routes,
   List<String> segments,
   int offset,
 ) {

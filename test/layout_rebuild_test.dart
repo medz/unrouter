@@ -101,7 +101,7 @@ void main() {
       expectCounts(login, name: 'Login', factory: 1, build: 1);
       expectCounts(register, name: 'Register', factory: 1, build: 1);
 
-      router.back();
+      router.navigate.back();
       await tester.pump();
       expect(find.text('Auth'), findsOneWidget);
       expect(find.text('Login'), findsOneWidget);
@@ -128,7 +128,7 @@ void main() {
       expectCounts(login, name: 'Login', factory: 2, build: 2);
       expectCounts(register, name: 'Register', factory: 2, build: 2);
 
-      router.back();
+      router.navigate.back();
       await tester.pump();
       expect(find.text('Auth'), findsOneWidget);
       expect(find.text('Login'), findsNothing);
@@ -137,7 +137,7 @@ void main() {
       expectCounts(login, name: 'Login', factory: 2, build: 2);
       expectCounts(register, name: 'Register', factory: 2, build: 2);
 
-      router.back();
+      router.navigate.back();
       await tester.pump();
       expect(find.text('Auth'), findsOneWidget);
       expect(find.text('Login'), findsOneWidget);
@@ -191,7 +191,7 @@ void main() {
       expectCounts(child1, name: 'Child 1', factory: 1, build: 1);
       expectCounts(child2, name: 'Child 2', factory: 1, build: 1);
 
-      router.back();
+      router.navigate.back();
       await tester.pump();
       expect(find.text('Parent'), findsOneWidget);
       expect(find.text('Child 1'), findsOneWidget);
@@ -218,7 +218,7 @@ void main() {
       expectCounts(child1, name: 'Child 1', factory: 2, build: 2);
       expectCounts(child2, name: 'Child 2', factory: 2, build: 2);
 
-      router.back();
+      router.navigate.back();
       await tester.pump();
       expect(find.text('Parent'), findsOneWidget);
       expect(find.text('Child 1'), findsNothing);
@@ -227,7 +227,7 @@ void main() {
       expectCounts(child1, name: 'Child 1', factory: 2, build: 2);
       expectCounts(child2, name: 'Child 2', factory: 2, build: 2);
 
-      router.back();
+      router.navigate.back();
       await tester.pump();
       expect(find.text('Parent'), findsOneWidget);
       expect(find.text('Child 1'), findsOneWidget);
