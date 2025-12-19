@@ -16,7 +16,6 @@ dependencies:
   flutter:
     sdk: flutter
   meta: ^1.17.0
-  routingkit: ^5.1.2
   web: ^1.1.1
 
 dev_dependencies:

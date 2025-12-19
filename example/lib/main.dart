@@ -663,7 +663,13 @@ class ProductsList extends StatelessWidget {
         _buildProductCard(context, '1', 'Laptop', '\$999', Icons.laptop),
         _buildProductCard(context, '2', 'Phone', '\$699', Icons.phone_android),
         _buildProductCard(context, '3', 'Tablet', '\$499', Icons.tablet),
-        _buildProductCard(context, '4', 'Headphones', '\$199', Icons.headphones),
+        _buildProductCard(
+          context,
+          '4',
+          'Headphones',
+          '\$199',
+          Icons.headphones,
+        ),
         _buildProductCard(context, '5', 'Watch', '\$299', Icons.watch),
       ],
     );
