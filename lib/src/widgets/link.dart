@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 
-import '../router.dart';
+import '../navigation.dart';
 
 /// Signature for the builder callback used by [Link.builder].
 ///
@@ -96,11 +96,8 @@ class Link extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final location = RouteInformation(uri: to, state: state);
-
     void navigate({Object? state, bool? replace}) {
-      final navigate = Navigate.of(context);
-      navigate(
+      context.navigate(
         to,
         state: state ?? this.state,
         replace: replace ?? this.replace,
@@ -109,6 +106,7 @@ class Link extends StatelessWidget {
 
     // If builder is provided, use it
     if (builder != null) {
+      final location = RouteInformation(uri: to, state: state);
       return builder!(context, location, navigate);
     }
 
