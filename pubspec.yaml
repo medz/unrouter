@@ -1,8 +1,12 @@
 name: unrouter
-description: "A declarative Flutter router that feels like the browser’s history & SwiftUI’s NavigationStack philosophy."
+description: "A Flutter router that gives you routing flexibility: define routes centrally, scope them to widgets, or mix both - with browser-style history navigation."
 version: 0.1.0
 
 repository: https://github.com/medz/unrouter
+topics:
+  - router
+  - routing
+  - navigation
 
 environment:
   sdk: ^3.10.3
