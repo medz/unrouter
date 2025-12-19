@@ -5,8 +5,8 @@ void main() {
   runApp(const App());
 }
 
-// Router configuration - demonstrates hybrid routing
-// Static routes defined here, dynamic routes in components via Routes widget
+// Router configuration - demonstrates static routes with dynamic nested routing
+// Static routes can use Routes widget internally for progressive routing
 final router = Unrouter(
   strategy: .browser,
   routes: const [
@@ -33,7 +33,9 @@ final router = Unrouter(
       ],
     ),
 
-    // Dynamic routing example - uses Routes widget internally
+    // Static route that uses Routes widget internally for dynamic nested routing
+    // This demonstrates partial matching - /products matches this route,
+    // then ProductsPage uses Routes widget to match remaining segments like /123
     Inlet(path: 'products', factory: ProductsPage.new),
   ],
 );

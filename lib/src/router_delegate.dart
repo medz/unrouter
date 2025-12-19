@@ -141,7 +141,8 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
 
     final location = currentConfiguration.uri.path;
     final result = matchRoutes(routes!, location);
-    _matchedRoutes = result.matched ? result.matches : const [];
+    // Accept both full matches and partial matches (for Routes widget support)
+    _matchedRoutes = result.matches;
   }
 
   @override

@@ -59,6 +59,8 @@ _MatchResult _matchRecursive(
   List<String> segments,
   int offset,
 ) {
+  _MatchResult? bestPartialMatch;
+
   // Try each route
   for (final route in routes) {
     if (route.path.isEmpty && route.children.isNotEmpty) {
@@ -91,13 +93,26 @@ _MatchResult _matchRecursive(
           final newOffset = offset + consumedCount;
 
           if (route.children.isEmpty) {
-            // Leaf route - check if all segments consumed
+            // Leaf route
             if (newOffset >= segments.length) {
+              // Full match - return immediately
               return _MatchResult(
                 [MatchedRoute(route, match.params)],
                 true,
                 consumedCount,
               );
+            } else {
+              // Partial match - save as potential candidate
+              // This allows components to use Routes widget for sub-paths
+              final partialMatch = _MatchResult(
+                [MatchedRoute(route, match.params)],
+                false,
+                consumedCount,
+              );
+              if (bestPartialMatch == null ||
+                  partialMatch.consumedSegments > bestPartialMatch.consumedSegments) {
+                bestPartialMatch = partialMatch;
+              }
             }
           } else {
             // Has children - try to match remaining
@@ -117,6 +132,11 @@ _MatchResult _matchRecursive(
         }
       }
     }
+  }
+
+  // Return best partial match if found (for dynamic routing with Routes widget)
+  if (bestPartialMatch != null) {
+    return bestPartialMatch;
   }
 
   // No match found
