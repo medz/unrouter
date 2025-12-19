@@ -246,6 +246,18 @@ final router = context.router;
 Relative paths append to the current location and normalize dot segments.
 Query and fragment come from the provided URI and do not inherit.
 
+### Building paths
+
+`unrouter` uses `Uri` as the first-class navigation input. You can build paths
+directly with templates or `Uri` helpers:
+
+```dart
+final id = '123';
+final uri = Uri.parse('/users/$id');
+final withQuery = Uri(path: '/users/$id', queryParameters: {'tab': 'profile'});
+context.navigate(withQuery);
+```
+
 </details>
 
 <a id="navigator-10-compatibility"></a>
