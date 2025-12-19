@@ -29,20 +29,21 @@ class MemoryHistory extends History {
   /// entry at `/`.
   ///
   /// If provided, [initialIndex] is clamped to the valid range.
-  MemoryHistory({
-    List<RouteInformation>? initialEntries,
-    int? initialIndex,
-  }) {
+  MemoryHistory({List<RouteInformation>? initialEntries, int? initialIndex}) {
     final entries = (initialEntries == null || initialEntries.isEmpty)
         ? [RouteInformation(uri: Uri.parse('/'))]
         : initialEntries;
     _entries = entries
-        .map((info) => _MemoryEntry(info: info, identifier: generateIdentifier()))
+        .map(
+          (info) => _MemoryEntry(info: info, identifier: generateIdentifier()),
+        )
         .toList();
     index = clampIndex(initialIndex ?? _entries.length - 1);
   }
 
   late final List<_MemoryEntry> _entries;
+
+  @override
   late int index;
 
   final listeners = <void Function(HistoryEvent event)>[];
@@ -67,10 +68,12 @@ class MemoryHistory extends History {
     index += 1;
     _entries
       ..length = index
-      ..add(_MemoryEntry(
-        info: RouteInformation(uri: uri, state: state),
-        identifier: generateIdentifier(),
-      ));
+      ..add(
+        _MemoryEntry(
+          info: RouteInformation(uri: uri, state: state),
+          identifier: generateIdentifier(),
+        ),
+      );
   }
 
   @override
@@ -112,5 +115,6 @@ class MemoryHistory extends History {
 }
 
 extension on MemoryHistory {
-  int clampIndex(int value) => math.min(math.max(value, 0), _entries.length - 1);
+  int clampIndex(int value) =>
+      math.min(math.max(value, 0), _entries.length - 1);
 }

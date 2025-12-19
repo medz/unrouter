@@ -53,6 +53,13 @@ abstract class History {
   /// The current location, including the optional per-entry [RouteInformation.state].
   RouteInformation get location;
 
+  /// The current index in the history stack.
+  ///
+  /// This is useful for tracking the position in the history stack after page
+  /// refresh, especially on the web where the browser maintains the history stack
+  /// but application state is lost.
+  int get index;
+
   /// Formats a [Uri] as an `href` for this history implementation.
   ///
   /// This is primarily useful on the web (e.g. when calling

@@ -24,17 +24,17 @@ class _HistoryState {
 
   /// Converts this object into a plain `Map` suitable for serialization.
   Map<String, dynamic> toJson() => {
-        'index': index,
-        'identifier': identifier,
-        'userData': userData,
-      };
+    'index': index,
+    'identifier': identifier,
+    'userData': userData,
+  };
 
   /// Creates an instance from a JSON-like `Map`.
   factory _HistoryState.fromJson(Map<dynamic, dynamic> json) => _HistoryState(
-        index: json['index'] as int? ?? 0,
-        identifier: json['identifier'] as String?,
-        userData: json['userData'],
-      );
+    index: json['index'] as int? ?? 0,
+    identifier: json['identifier'] as String?,
+    userData: json['userData'],
+  );
 }
 
 /// Base class for web [History] implementations backed by `window.history`.
@@ -66,6 +66,8 @@ abstract class UrlBasedHistory extends History {
   }
 
   late final web.Window window;
+
+  @override
   late int index;
 
   final listeners = <void Function(HistoryEvent event)>[];

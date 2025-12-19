@@ -56,18 +56,15 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
   /// You typically don't create this directly; use `Unrouter`, which wires it
   /// into Flutter's `Router` and sets up a matching [RouteInformationProvider].
   UnrouterDelegate({this.routes, this.child, required this.history})
-    : assert(routes != null || child != null,
-          'Either routes or child must be provided'),
+    : assert(
+        routes != null || child != null,
+        'Either routes or child must be provided',
+      ),
       currentConfiguration = history.location {
     // Listen to history changes (only back/forward/go - popstate events)
     _unlistenHistory = history.listen((event) {
       currentConfiguration = event.location;
       _historyAction = event.action;
-      // Adjust history index based on navigation delta
-      if (event.delta != null) {
-        _historyIndex += event.delta!;
-        if (_historyIndex < 0) _historyIndex = 0;
-      }
       _updateMatchedRoutes();
       notifyListeners();
     });
@@ -90,9 +87,6 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
 
   /// Unlisten callback from history.
   void Function()? _unlistenHistory;
-
-  /// Current history index.
-  int _historyIndex = 0;
 
   /// Current history action.
   HistoryAction _historyAction = HistoryAction.push;
@@ -168,7 +162,7 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
         location: currentConfiguration,
         matchedRoutes: _matchedRoutes,
         level: 0,
-        historyIndex: _historyIndex,
+        historyIndex: history.index,
         action: _historyAction,
       );
       return StackedRouteView(state: state, levelOffset: 0);
@@ -180,7 +174,7 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
         location: currentConfiguration,
         matchedRoutes: const [],
         level: 0,
-        historyIndex: _historyIndex,
+        historyIndex: history.index,
         action: _historyAction,
       );
       return RouterStateProvider(state: state, child: child!);
@@ -213,7 +207,6 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
 
     currentConfiguration = RouteInformation(uri: resolveUri(uri), state: state);
     _historyAction = replace ? HistoryAction.replace : HistoryAction.push;
-    if (!replace) _historyIndex++;
 
     _updateMatchedRoutes();
     notifyListeners();
