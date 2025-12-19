@@ -3,8 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:unrouter/unrouter.dart';
 
 void main() {
-  group('Static routes with partial matching for nested Routes widget', () {
-    testWidgets('static route with Routes widget matches nested paths',
+  group('Declarative routes with partial matching for nested Routes widget', () {
+    testWidgets('declarative route with Routes widget matches nested paths',
         (tester) async {
       late Unrouter router;
 
@@ -12,7 +12,7 @@ void main() {
         history: MemoryHistory(),
         routes: const [
           Inlet(factory: HomePage.new),
-          // Static route that will be partially matched
+          // Declarative route that will be partially matched
           Inlet(path: 'products', factory: ProductsPage.new),
         ],
       );
@@ -45,7 +45,7 @@ void main() {
       router = Unrouter(
         history: MemoryHistory(),
         routes: const [
-          // Static route without children - should still partially match
+          // Declarative route without children - should still partially match
           Inlet(path: 'shop', factory: ShopPage.new),
         ],
       );

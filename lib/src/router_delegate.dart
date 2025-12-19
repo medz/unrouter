@@ -45,13 +45,13 @@ abstract interface class Navigate {
 ///
 /// The delegate:
 /// - Listens to [History] `pop` events and updates [currentConfiguration].
-/// - Matches the current path against a tree of [Inlet] routes (if provided).
+/// - Matches the current path against declarative [Inlet] routes (if provided).
 /// - Provides [RouterState] to descendants via [RouterStateProvider].
-/// - Renders [child] if routes don't match or if no routes are provided.
+/// - Renders widget-scoped [child] if declarative routes don't match or if no routes are provided.
 class UnrouterDelegate extends RouterDelegate<RouteInformation>
     with ChangeNotifier
     implements Navigate {
-  /// Creates a delegate with optional static routes and/or a dynamic child.
+  /// Creates a delegate with optional declarative routes and/or a widget-scoped child.
   ///
   /// You typically don't create this directly; use `Unrouter`, which wires it
   /// into Flutter's `Router` and sets up a matching [RouteInformationProvider].
@@ -76,10 +76,10 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
     _updateMatchedRoutes();
   }
 
-  /// The root routes configuration for static route matching.
+  /// Declarative routes configuration for centralized route matching.
   final List<Inlet>? routes;
 
-  /// The child widget to render when routes don't match or when no routes are provided.
+  /// Widget-scoped child to render when declarative routes don't match or when no routes are provided.
   final Widget? child;
 
   /// The underlying history implementation.
@@ -134,14 +134,14 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
   /// Update matched routes based on current location.
   void _updateMatchedRoutes() {
     if (routes == null) {
-      // No static routes to match
+      // No declarative routes to match
       _matchedRoutes = const [];
       return;
     }
 
     final location = currentConfiguration.uri.path;
     final result = matchRoutes(routes!, location);
-    // Accept both full matches and partial matches (for Routes widget support)
+    // Accept both full matches and partial matches (for widget-scoped Routes support)
     _matchedRoutes = result.matches;
   }
 

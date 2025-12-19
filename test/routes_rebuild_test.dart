@@ -165,18 +165,18 @@ void main() {
     });
   });
 
-  group('Routes and static routes conflict resolution', () {
-    testWidgets('static routes take precedence over child Routes', (tester) async {
+  group('Routes and declarative routes conflict resolution', () {
+    testWidgets('declarative routes take precedence over child Routes', (tester) async {
       late Unrouter router;
 
       router = Unrouter(
         history: MemoryHistory(),
         routes: const [
-          // Static route for /admin
+          // Declarative route for /admin
           Inlet(path: 'admin', factory: StaticAdminPage.new),
         ],
         child: Routes(const [
-          // Dynamic route also tries to handle /admin
+          // Widget-scoped route also tries to handle /admin
           Inlet(factory: HomePage.new),
           Inlet(path: 'admin', factory: DynamicAdminPage.new),
         ]),
@@ -191,12 +191,12 @@ void main() {
       router.navigate(.parse('/admin'));
       await tester.pumpAndSettle();
 
-      // Should render static route, not dynamic
+      // Should render declarative route, not widget-scoped
       expect(find.text('Static Admin'), findsOneWidget);
       expect(find.text('Dynamic Admin'), findsNothing);
     });
 
-    testWidgets('child Routes handles paths not in static routes', (tester) async {
+    testWidgets('child Routes handles paths not in declarative routes', (tester) async {
       late Unrouter router;
 
       router = Unrouter(
@@ -215,21 +215,21 @@ void main() {
         child: router,
       ));
 
-      // Navigate to /about (not in static routes)
+      // Navigate to /about (not in declarative routes)
       router.navigate(.parse('/about'));
       await tester.pumpAndSettle();
 
       // Should render from child Routes
       expect(find.text('About'), findsOneWidget);
 
-      // Navigate to /admin (in static routes)
+      // Navigate to /admin (in declarative routes)
       router.navigate(.parse('/admin'));
       await tester.pumpAndSettle();
 
-      // Should render from static routes
+      // Should render from declarative routes
       expect(find.text('Static Admin'), findsOneWidget);
 
-      // Navigate to / (not in static routes, should use child Routes)
+      // Navigate to / (not in declarative routes, should use child Routes)
       router.navigate(.parse('/'));
       await tester.pumpAndSettle();
 

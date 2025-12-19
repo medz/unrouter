@@ -7,14 +7,14 @@ A declarative Flutter router that feels like the browser’s `history` and Swift
 
 ## Features
 
-- **Declarative route tree** (`Inlet`) with static and dynamic configuration
-- **Dynamic component-scoped routing** via the `Routes` widget
-- **Nested routes + layouts** (`Outlet` for pre-defined routes, `Routes` for dynamic routes)
+- **Declarative routes** defined via `Unrouter(routes: ...)` for centralized configuration
+- **Widget-scoped routes** via the `Routes` widget for component-level routing
+- **Hybrid routing** combining declarative routes with widget-scoped fallback
+- **Nested routes + layouts** (`Outlet` for declarative routes, `Routes` for widget-scoped routes)
 - **URL patterns**: static segments, params (`:id`), optionals (`?`), wildcard (`*`)
 - **Browser-style navigation**: `push`, `replace`, `back`, `forward`, `go(delta)`
 - **Web URL strategies**: `UrlStrategy.browser` and `UrlStrategy.hash`
 - **Relative navigation** (e.g. `Uri.parse('edit')` → `/users/123/edit`)
-- **Flexible routing modes**: static-only, dynamic-only, or hybrid (static + dynamic fallback)
 
 ## Install
 
@@ -27,7 +27,7 @@ dependencies:
 
 ## Quick start
 
-### Static routing (traditional approach)
+### Declarative routing
 
 ```dart
 import 'package:flutter/material.dart';
@@ -69,7 +69,7 @@ final router = Unrouter(
 void main() => runApp(MaterialApp.router(routerConfig: router));
 ```
 
-### Dynamic routing (component-scoped approach)
+### Widget-scoped routing
 
 Define routes directly in your component tree using the `Routes` widget:
 
@@ -89,9 +89,9 @@ class App extends StatelessWidget {
 }
 ```
 
-### Nested dynamic routing
+### Nested widget-scoped routing
 
-Components can define their own child routes:
+Components can define their own child routes using the `Routes` widget:
 
 ```dart
 class DashboardPage extends StatelessWidget {
@@ -111,19 +111,19 @@ class DashboardPage extends StatelessWidget {
 }
 ```
 
-### Hybrid routing (static + dynamic fallback)
+### Hybrid routing
 
-Combine static routes with dynamic fallback:
+Combine declarative routes with widget-scoped fallback:
 
 ```dart
 final router = Unrouter(
   strategy: .browser,
   routes: const [
-    // Static routes matched first
+    // Declarative routes matched first
     Inlet(path: 'admin', factory: AdminPage.new),
     Inlet(path: 'settings', factory: SettingsPage.new),
   ],
-  child: Routes([  // Dynamic fallback when static routes don't match
+  child: Routes([  // Widget-scoped fallback when declarative routes don't match
     Inlet(factory: HomePage.new),
     Inlet(path: 'about', factory: AboutPage.new),
   ]),
@@ -132,9 +132,9 @@ final router = Unrouter(
 
 ## Layouts and nested routes
 
-### With static routes (using `Outlet`)
+### With declarative routes (using `Outlet`)
 
-Layout and nested routes defined in the static `routes` tree must render an `Outlet` to show their matched child:
+Layout and nested routes defined in the declarative `routes` tree must render an `Outlet` to show their matched child:
 
 ```dart
 class AuthLayout extends StatelessWidget {
@@ -147,7 +147,7 @@ class AuthLayout extends StatelessWidget {
 }
 ```
 
-### With dynamic routes (using `Routes`)
+### With widget-scoped routes (using `Routes`)
 
 Define child routes directly in the component using the `Routes` widget:
 
@@ -198,8 +198,8 @@ nav(.parse('edit')); // relative -> /users/123/edit
 
 - `Unrouter`: a `RouterConfig<RouteInformation>` (drop into `MaterialApp.router` or use as a widget)
 - `Inlet`: route definition (index/layout/leaf/nested)
-- `Outlet`: renders the next matched child route (for static pre-defined routes)
-- `Routes`: dynamic route matching widget (for component-scoped routes)
+- `Outlet`: renders the next matched child route (for declarative routes)
+- `Routes`: widget-scoped route matching widget (for component-level routing)
 - `Navigate.of(context)`: access navigation without a global router
 - `RouterStateProvider`: read `RouteInformation` + merged params
 - `History` / `MemoryHistory`: injectable history (great for tests)
@@ -208,25 +208,69 @@ nav(.parse('edit')); // relative -> /users/123/edit
 
 `unrouter` supports three routing approaches:
 
-### 1. Static routing (traditional)
-All routes defined upfront in a centralized configuration:
+### 1. Declarative routing
+All routes defined upfront in a centralized configuration via the `routes` parameter:
 ```dart
-Unrouter(routes: [...])
+Unrouter(routes: [
+  Inlet(factory: HomePage.new),
+  Inlet(path: 'about', factory: AboutPage.new),
+])
 ```
 
-### 2. Dynamic routing (component-scoped)
-Routes defined within components using `Routes` widget:
+### 2. Widget-scoped routing
+Routes defined within components using the `Routes` widget:
 ```dart
-Unrouter(child: Routes([...]))
+Unrouter(child: Routes([
+  Inlet(factory: HomePage.new),
+  Inlet(path: 'about', factory: AboutPage.new),
+]))
 ```
 
-### 3. Hybrid routing (static + dynamic)
-Static routes matched first, dynamic fallback:
+You can also use `Routes` widget inside any component for nested routing:
+```dart
+class ProductsPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Routes([  // Widget-scoped routes
+      Inlet(factory: ProductsList.new),
+      Inlet(path: ':id', factory: ProductDetail.new),
+    ]);
+  }
+}
+```
+
+### 3. Hybrid routing
+Combines declarative routes with widget-scoped routes. Declarative routes are matched first, then widget-scoped routes serve as fallback:
 ```dart
 Unrouter(
-  routes: [...],     // Matched first
-  child: Routes([...]), // Fallback
+  routes: [
+    Inlet(path: 'admin', factory: AdminPage.new),  // Declarative routes
+  ],
+  child: Routes([  // Widget-scoped fallback
+    Inlet(factory: HomePage.new),
+    Inlet(path: 'about', factory: AboutPage.new),
+  ]),
 )
+```
+
+Hybrid routing also includes cases where declarative routes use `Routes` widget internally:
+```dart
+Unrouter(
+  routes: [
+    // Partial match: /products matches, then ProductsPage handles nested paths
+    Inlet(path: 'products', factory: ProductsPage.new),
+  ],
+)
+
+class ProductsPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Routes([  // Nested widget-scoped routes
+      Inlet(factory: ProductsList.new),
+      Inlet(path: ':id', factory: ProductDetail.new),  // Matches /products/123
+    ]);
+  }
+}
 ```
 
 The `Routes` widget enables React Router-style component-scoped routing, where routes are defined close to the components that use them, enabling better code organization and lazy loading.

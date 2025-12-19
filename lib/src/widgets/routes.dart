@@ -8,12 +8,12 @@ import '../_internal/stacked_route_view.dart';
 
 /// A widget that matches and renders routes based on the current location.
 ///
-/// Unlike [Outlet], which renders the next child in a pre-matched route stack,
-/// `Routes` accepts its own [routes] list and performs dynamic matching based
+/// Unlike [Outlet], which renders the next child in a pre-matched declarative route stack,
+/// `Routes` accepts its own [routes] list and performs matching based
 /// on the current location and rendering level.
 ///
-/// This enables declarative, component-scoped routing where routes are defined
-/// directly within the widget tree rather than centrally.
+/// This enables widget-scoped routing where routes are defined directly within
+/// the component tree rather than centrally in `Unrouter.routes`.
 ///
 /// Example:
 /// ```dart

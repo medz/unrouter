@@ -5,8 +5,8 @@ void main() {
   runApp(const App());
 }
 
-// Router configuration - demonstrates static routes with dynamic nested routing
-// Static routes can use Routes widget internally for progressive routing
+// Router configuration - demonstrates hybrid routing (declarative + widget-scoped)
+// Declarative routes can use Routes widget internally for progressive routing
 final router = Unrouter(
   strategy: .browser,
   routes: const [
@@ -33,9 +33,9 @@ final router = Unrouter(
       ],
     ),
 
-    // Static route that uses Routes widget internally for dynamic nested routing
-    // This demonstrates partial matching - /products matches this route,
-    // then ProductsPage uses Routes widget to match remaining segments like /123
+    // Hybrid routing: declarative route that uses Routes widget internally
+    // This demonstrates partial matching - /products matches this declarative route,
+    // then ProductsPage uses Routes widget (widget-scoped) to match remaining segments like /123
     Inlet(path: 'products', factory: ProductsPage.new),
   ],
 );
@@ -101,7 +101,7 @@ class Home extends StatelessWidget {
             ),
             _buildNavButton(
               context,
-              'Products (Dynamic Routes)',
+              'Products (Widget-Scoped Routes)',
               Icons.shopping_bag,
               Colors.purple,
               () => router.navigate(.parse('/products')),
@@ -593,7 +593,7 @@ class TrendingPage extends StatelessWidget {
   }
 }
 
-// Products Page - demonstrates dynamic routing with Routes widget
+// Products Page - demonstrates widget-scoped routing with Routes widget
 class ProductsPage extends StatelessWidget {
   const ProductsPage({super.key});
 
@@ -621,7 +621,7 @@ class ProductsPage extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'This page uses Routes widget for dynamic nested routing',
+                    'This page uses Routes widget for widget-scoped routing',
                     style: TextStyle(
                       fontSize: 12,
                       color: Colors.purple.shade700,
@@ -632,7 +632,7 @@ class ProductsPage extends StatelessWidget {
               ],
             ),
           ),
-          // Dynamic routes defined with Routes widget
+          // Widget-scoped routes defined with Routes widget
           Expanded(
             child: Routes(const [
               Inlet(factory: ProductsList.new),

@@ -26,12 +26,12 @@ import 'url_strategy.dart';
 /// default.
 ///
 /// You can provide either [routes], [child], or both:
-/// - If only [routes] is provided: static route matching (traditional approach)
-/// - If only [child] is provided: dynamic route matching via [Routes] widgets
-/// - If both are provided: [routes] are matched first, [child] is rendered if no match
+/// - If only [routes] is provided: declarative routing
+/// - If only [child] is provided: widget-scoped routing (typically using [Routes] widget)
+/// - If both are provided: hybrid routing ([routes] matched first, [child] as fallback)
 class Unrouter extends StatelessWidget
     implements RouterConfig<RouteInformation> {
-  /// Creates a router with optional static routes and/or a dynamic child.
+  /// Creates a router with optional declarative routes and/or widget-scoped child.
   ///
   /// At least one of [routes] or [child] must be provided.
   ///
@@ -51,13 +51,13 @@ class Unrouter extends StatelessWidget
         history = history ?? createHistory(strategy),
         backButtonDispatcher = RootBackButtonDispatcher();
 
-  /// The root route tree for static route matching.
+  /// Declarative routes for centralized route configuration.
   ///
   /// If provided, these routes are matched first. If [child] is also provided
-  /// and no route matches, [child] is rendered.
+  /// and no route matches, [child] is rendered as fallback.
   final List<Inlet>? routes;
 
-  /// The child widget to render when routes don't match or when no routes are provided.
+  /// Widget-scoped child to render when declarative routes don't match or when no routes are provided.
   ///
   /// Typically contains a [Routes] widget for dynamic route matching.
   final Widget? child;
