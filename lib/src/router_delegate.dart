@@ -64,7 +64,6 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
     // Listen to history changes (only back/forward/go - popstate events)
     _unlistenHistory = history.listen((event) {
       currentConfiguration = event.location;
-      _historyAction = event.action;
       _updateMatchedRoutes();
       notifyListeners();
     });
@@ -87,9 +86,6 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
 
   /// Unlisten callback from history.
   void Function()? _unlistenHistory;
-
-  /// Current history action.
-  HistoryAction _historyAction = HistoryAction.push;
 
   @override
   RouteInformation currentConfiguration;
@@ -163,7 +159,7 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
         matchedRoutes: _matchedRoutes,
         level: 0,
         historyIndex: history.index,
-        action: _historyAction,
+        action: history.action,
       );
       return StackedRouteView(state: state, levelOffset: 0);
     }
@@ -175,7 +171,7 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
         matchedRoutes: const [],
         level: 0,
         historyIndex: history.index,
-        action: _historyAction,
+        action: history.action,
       );
       return RouterStateProvider(state: state, child: child!);
     }
@@ -206,7 +202,6 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
     }
 
     currentConfiguration = RouteInformation(uri: resolveUri(uri), state: state);
-    _historyAction = replace ? HistoryAction.replace : HistoryAction.push;
 
     _updateMatchedRoutes();
     notifyListeners();
