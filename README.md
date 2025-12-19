@@ -93,6 +93,12 @@ final router = Unrouter(
 void main() => runApp(MaterialApp.router(routerConfig: router));
 ```
 
+Use `Unrouter` directly as an entry widget (no `MaterialApp` required):
+
+```dart
+void main() => runApp(router);
+```
+
 </details>
 
 <a id="routing-approaches"></a>
@@ -315,8 +321,9 @@ Link.builder(
 - `strategy: .browser` uses path URLs like `/about` (requires server rewrites).
 - `strategy: .hash` uses hash URLs like `/#/about` (no rewrites required).
 
-If you pass a custom `history`, `strategy` is ignored. On non-web platforms,
-`Unrouter` falls back to `MemoryHistory`.
+`UrlStrategy` only applies to Flutter web. On native platforms
+(Android/iOS/macOS/Windows/Linux), `Unrouter` uses `MemoryHistory` by default.
+If you pass a custom `history`, `strategy` is ignored.
 
 </details>
 
@@ -350,7 +357,7 @@ flutter test
 <details>
 <summary><strong>API overview</strong></summary>
 
-- `Unrouter`: `RouterConfig<RouteInformation>` (use in `MaterialApp.router`)
+- `Unrouter`: widget + `RouterConfig<RouteInformation>` (use directly or pass to `MaterialApp.router`)
 - `Inlet`: route definition (index/layout/leaf/nested)
 - `Outlet`: renders the next matched child route (declarative routes)
 - `Routes`: widget-scoped route matcher
@@ -379,8 +386,8 @@ flutter run
 <details>
 <summary><strong>Troubleshooting</strong></summary>
 
-- `Navigate.of()` throws: ensure your widget is inside `MaterialApp.router`
-  with `routerConfig: Unrouter(...)`.
+- `Navigate.of()` throws: ensure your widget is under an `Unrouter` router
+  (either `MaterialApp.router(routerConfig: Unrouter(...))` or `runApp(Unrouter(...))`).
 - `Routes` renders nothing: it must be a descendant of `Unrouter`
   (needs a `RouterStateProvider`).
 - `showDialog` not working: keep `enableNavigator1: true` (default).
