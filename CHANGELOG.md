@@ -1,3 +1,18 @@
+## 0.3.0-wip
+
+### Features
+
+- **Navigator 1.0 compatibility**: added `enableNavigator1` (default `true`) so APIs like `showDialog`, `showModalBottomSheet`, `showMenu`, and `Navigator.push/pop` work when using `Unrouter`.
+- **Example updates**: the example app now demonstrates Navigator 1.0 APIs alongside existing routing patterns.
+
+### Improvements
+
+- `popRoute` now delegates to the embedded Navigator first (when enabled) before falling back to history navigation.
+
+### Testing
+
+- Added comprehensive widget tests covering Navigator 1.0 overlays, push/pop/popUntil, and nested Navigator behavior.
+
 ## 0.2.0
 
 ### Breaking Changes

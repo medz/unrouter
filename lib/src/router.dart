@@ -105,6 +105,7 @@ class Unrouter extends StatelessWidget
     this.routes,
     this.child,
     this.strategy = .hash,
+    this.enableNavigator1 = true,
     History? history,
   }) : assert(
          routes != null || child != null,
@@ -132,6 +133,12 @@ class Unrouter extends StatelessWidget
 
   /// The history implementation backing this router.
   final History history;
+
+  /// Enables an embedded Navigator 1.0 for APIs like `showDialog`.
+  ///
+  /// When set to `false`, the router renders its content directly, matching
+  /// the previous (Navigator 2.0-only) behavior.
+  final bool enableNavigator1;
 
   @override
   /// Handles system back button integration.
@@ -266,6 +273,8 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
   /// Unlisten callback from history.
   void Function()? _unlistenHistory;
 
+  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
+
   @override
   RouteInformation currentConfiguration;
 
@@ -331,6 +340,20 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
 
   @override
   Widget build(BuildContext context) {
+    if (!router.enableNavigator1) {
+      return _buildContent();
+    }
+
+    return Navigator(
+      key: _navigatorKey,
+      pages: [const _UnrouterPage(key: ValueKey<String>('unrouter-root'))],
+      onDidRemovePage: (_) {
+        // Root page is not expected to be removed; keep as a no-op.
+      },
+    );
+  }
+
+  Widget _buildContent() {
     // If we have matched routes, render them
     if (_matchedRoutes.isNotEmpty) {
       final state = RouterState(
@@ -361,6 +384,16 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
 
   @override
   Future<bool> popRoute() async {
+    if (router.enableNavigator1) {
+      final navigator = _navigatorKey.currentState;
+      if (navigator != null && navigator.canPop()) {
+        final popped = await navigator.maybePop();
+        if (popped) {
+          return true;
+        }
+      }
+    }
+
     history.back();
     return true;
   }
@@ -394,4 +427,42 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
 
   @override
   void go(int delta) => history.go(delta);
+}
+
+class _UnrouterPage extends Page {
+  const _UnrouterPage({super.key}) : super(canPop: false);
+
+  @override
+  Route createRoute(BuildContext context) {
+    return PageRouteBuilder<void>(
+      settings: this,
+      transitionDuration: Duration.zero,
+      pageBuilder: (context, animation, secondaryAnimation) =>
+          const _UnrouterNavigatorHost(),
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        return child;
+      },
+    );
+  }
+}
+
+class _UnrouterNavigatorHost extends StatelessWidget {
+  const _UnrouterNavigatorHost();
+
+  @override
+  Widget build(BuildContext context) {
+    final router = Router.of(context);
+    final delegate = router.routerDelegate;
+    assert(
+      delegate is UnrouterDelegate,
+      'UnrouterNavigatorHost must be used with UnrouterDelegate.',
+    );
+    if (delegate is! UnrouterDelegate) {
+      return const SizedBox.shrink();
+    }
+    return AnimatedBuilder(
+      animation: delegate,
+      builder: (context, _) => delegate._buildContent(),
+    );
+  }
 }
