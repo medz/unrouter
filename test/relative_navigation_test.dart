@@ -82,4 +82,56 @@ void main() {
     expect(location.uri.query, 'tab=profile');
     expect(location.uri.fragment, 'top');
   });
+
+  testWidgets('relative navigation normalizes dot segments', (tester) async {
+    final router = Unrouter(
+      routes: [
+        Inlet(factory: () => const Text('Home')),
+        Inlet(path: 'users/:id', factory: () => const Text('User Detail')),
+        Inlet(path: 'users/:id/edit', factory: () => const Text('Edit User')),
+        Inlet(
+          path: 'users/:id/settings',
+          factory: () => const Text('User Settings'),
+        ),
+      ],
+      history: MemoryHistory(),
+    );
+
+    await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+
+    // Start at /users/123
+    router.navigate(.parse('/users/123'));
+    await tester.pumpAndSettle();
+    expect(find.text('User Detail'), findsOneWidget);
+
+    // './edit' should resolve to /users/123/edit
+    router.navigate(.parse('./edit'));
+    await tester.pumpAndSettle();
+    expect(find.text('Edit User'), findsOneWidget);
+    expect(router.history.location.uri.path, '/users/123/edit');
+
+    // '../settings' should resolve to /users/123/settings
+    router.navigate(.parse('../settings'));
+    await tester.pumpAndSettle();
+    expect(find.text('User Settings'), findsOneWidget);
+    expect(router.history.location.uri.path, '/users/123/settings');
+  });
+
+  testWidgets('relative navigation clamps ".." at root', (tester) async {
+    final router = Unrouter(
+      routes: [
+        Inlet(factory: () => const Text('Home')),
+        Inlet(path: 'users', factory: () => const Text('Users')),
+      ],
+      history: MemoryHistory(),
+    );
+
+    await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+
+    // From root, navigating above root should clamp to '/' then append segment.
+    router.navigate(.parse('../../users'));
+    await tester.pumpAndSettle();
+    expect(find.text('Users'), findsOneWidget);
+    expect(router.history.location.uri.path, '/users');
+  });
 }

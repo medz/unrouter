@@ -8,10 +8,12 @@
 ### Improvements
 
 - `popRoute` now delegates to the embedded Navigator first (when enabled) before falling back to history navigation.
+- Relative navigation now normalizes dot segments (`.` / `..`) and clamps above-root paths.
 
 ### Testing
 
 - Added comprehensive widget tests covering Navigator 1.0 overlays, push/pop/popUntil, and nested Navigator behavior.
+- Added tests for relative navigation dot-segment normalization.
 
 ## 0.2.0
 
