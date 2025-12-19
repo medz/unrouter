@@ -30,6 +30,7 @@ library;
 export 'src/history/history.dart';
 export 'src/history/memory.dart';
 
+export 'src/widgets/link.dart';
 export 'src/widgets/outlet.dart';
 export 'src/widgets/routes.dart';
 

@@ -9,6 +9,12 @@
 
 ### Features
 
+- **Link widget**: Added declarative navigation with the new `Link` widget (#5)
+  - Simple usage: `Link(to: Uri.parse('/about'), child: Text('About'))`
+  - Advanced usage: `Link.builder` for custom gesture handling
+  - Supports `replace` and `state` parameters
+  - Automatic mouse cursor (click) and accessibility semantics (link role)
+  - Example: Build navigation links without imperative callbacks
 - **BuildContext extensions**: Added convenient extensions for navigation (#6)
   - Use `context.navigate` to access navigation methods from any widget
   - Use `context.router` to access the router instance

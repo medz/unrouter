@@ -77,7 +77,12 @@ class Home extends StatelessWidget {
               'Welcome to Unrouter Example',
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 48),
+            const SizedBox(height: 32),
+            const Text(
+              'Imperative Navigation (using buttons)',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 16),
             _buildNavButton(
               context,
               'About',
@@ -92,19 +97,67 @@ class Home extends StatelessWidget {
               Colors.green,
               () => router.navigate(.parse('/login')),
             ),
-            _buildNavButton(
-              context,
-              'Concerts',
-              Icons.music_note,
-              Colors.orange,
-              () => router.navigate(.parse('/concerts')),
+            const SizedBox(height: 32),
+            const Divider(),
+            const SizedBox(height: 16),
+            const Text(
+              'Declarative Navigation (using Link widget)',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
             ),
-            _buildNavButton(
-              context,
-              'Products (Widget-Scoped Routes)',
-              Icons.shopping_bag,
-              Colors.purple,
-              () => router.navigate(.parse('/products')),
+            const SizedBox(height: 16),
+            Link(
+              to: Uri.parse('/concerts'),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.orange,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.music_note, color: Colors.white),
+                    SizedBox(width: 8),
+                    Text(
+                      'Concerts',
+                      style: TextStyle(color: Colors.white, fontSize: 16),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Link.builder(
+              to: Uri.parse('/products'),
+              builder: (context, location, navigate) {
+                return Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.purple,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: InkWell(
+                    onTap: () => navigate(),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.shopping_bag, color: Colors.white),
+                        SizedBox(width: 8),
+                        Text(
+                          'Products (Link.builder)',
+                          style: TextStyle(color: Colors.white, fontSize: 16),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
             ),
           ],
         ),
