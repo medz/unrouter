@@ -10,7 +10,7 @@ import 'url_strategy.dart';
 /// A declarative router configuration for Flutter.
 ///
 /// `Unrouter` is a [RouterConfig] you can pass directly to
-/// `MaterialApp.router(routerConfig: ...)`.
+/// `MaterialApp.router(routerConfig: ...)`, or use as a standalone widget.
 ///
 /// It matches the current URL against a tree of [Inlet] routes and renders the
 /// matched widgets as a stacked tree. Layout and nested routes must include an
@@ -24,9 +24,16 @@ import 'url_strategy.dart';
 /// On the web, [strategy] controls whether URLs are path-based or hash-based.
 /// On non-web platforms, `Unrouter` falls back to an in-memory history by
 /// default.
+///
+/// You can provide either [routes], [child], or both:
+/// - If only [routes] is provided: static route matching (traditional approach)
+/// - If only [child] is provided: dynamic route matching via [Routes] widgets
+/// - If both are provided: [routes] are matched first, [child] is rendered if no match
 class Unrouter extends StatelessWidget
     implements RouterConfig<RouteInformation> {
-  /// Creates a router with a fixed route tree.
+  /// Creates a router with optional static routes and/or a dynamic child.
+  ///
+  /// At least one of [routes] or [child] must be provided.
   ///
   /// Provide [routes] as a stable list (prefer `const`) so route widget caching
   /// can work effectively.
@@ -35,14 +42,25 @@ class Unrouter extends StatelessWidget
   /// platform and [strategy].
   Unrouter({
     super.key,
-    required this.routes,
+    this.routes,
+    this.child,
     this.strategy = .hash,
     History? history,
-  }) : history = history ?? createHistory(strategy),
-       backButtonDispatcher = RootBackButtonDispatcher();
+  })  : assert(routes != null || child != null,
+            'Either routes or child must be provided'),
+        history = history ?? createHistory(strategy),
+        backButtonDispatcher = RootBackButtonDispatcher();
 
-  /// The root route tree.
-  final List<Inlet> routes;
+  /// The root route tree for static route matching.
+  ///
+  /// If provided, these routes are matched first. If [child] is also provided
+  /// and no route matches, [child] is rendered.
+  final List<Inlet>? routes;
+
+  /// The child widget to render when routes don't match or when no routes are provided.
+  ///
+  /// Typically contains a [Routes] widget for dynamic route matching.
+  final Widget? child;
 
   /// URL strategy used on the web when creating a default [History].
   ///
@@ -67,6 +85,7 @@ class Unrouter extends StatelessWidget
   late final UnrouterDelegate routerDelegate = UnrouterDelegate(
     history: history,
     routes: routes,
+    child: child,
   );
 
   @override

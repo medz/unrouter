@@ -45,17 +45,20 @@ abstract interface class Navigate {
 ///
 /// The delegate:
 /// - Listens to [History] `pop` events and updates [currentConfiguration].
-/// - Matches the current path against a tree of [Inlet] routes.
+/// - Matches the current path against a tree of [Inlet] routes (if provided).
 /// - Provides [RouterState] to descendants via [RouterStateProvider].
+/// - Renders [child] if routes don't match or if no routes are provided.
 class UnrouterDelegate extends RouterDelegate<RouteInformation>
     with ChangeNotifier
     implements Navigate {
-  /// Creates a delegate with a fixed route tree and a backing [History].
+  /// Creates a delegate with optional static routes and/or a dynamic child.
   ///
   /// You typically don't create this directly; use `Unrouter`, which wires it
   /// into Flutter's `Router` and sets up a matching [RouteInformationProvider].
-  UnrouterDelegate({required this.routes, required this.history})
-    : currentConfiguration = history.location {
+  UnrouterDelegate({this.routes, this.child, required this.history})
+    : assert(routes != null || child != null,
+          'Either routes or child must be provided'),
+      currentConfiguration = history.location {
     // Listen to history changes (only back/forward/go - popstate events)
     _unlistenHistory = history.listen((event) {
       currentConfiguration = event.location;
@@ -73,8 +76,11 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
     _updateMatchedRoutes();
   }
 
-  /// The root routes configuration.
-  final List<Inlet> routes;
+  /// The root routes configuration for static route matching.
+  final List<Inlet>? routes;
+
+  /// The child widget to render when routes don't match or when no routes are provided.
+  final Widget? child;
 
   /// The underlying history implementation.
   final History history;
@@ -127,8 +133,14 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
 
   /// Update matched routes based on current location.
   void _updateMatchedRoutes() {
+    if (routes == null) {
+      // No static routes to match
+      _matchedRoutes = const [];
+      return;
+    }
+
     final location = currentConfiguration.uri.path;
-    final result = matchRoutes(routes, location);
+    final result = matchRoutes(routes!, location);
     _matchedRoutes = result.matched ? result.matches : const [];
   }
 
@@ -149,20 +161,32 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
 
   @override
   Widget build(BuildContext context) {
-    // If no match, render empty
-    if (_matchedRoutes.isEmpty) {
-      return const SizedBox.shrink();
+    // If we have matched routes, render them
+    if (_matchedRoutes.isNotEmpty) {
+      final state = RouterState(
+        location: currentConfiguration,
+        matchedRoutes: _matchedRoutes,
+        level: 0,
+        historyIndex: _historyIndex,
+        action: _historyAction,
+      );
+      return StackedRouteView(state: state, levelOffset: 0);
     }
 
-    // Create router state
-    final state = RouterState(
-      location: currentConfiguration,
-      matchedRoutes: _matchedRoutes,
-      level: 0,
-      historyIndex: _historyIndex,
-      action: _historyAction,
-    );
-    return StackedRouteView(state: state, levelOffset: 0);
+    // If no match but we have a child, render it with router state
+    if (child != null) {
+      final state = RouterState(
+        location: currentConfiguration,
+        matchedRoutes: const [],
+        level: 0,
+        historyIndex: _historyIndex,
+        action: _historyAction,
+      );
+      return RouterStateProvider(state: state, child: child!);
+    }
+
+    // No routes and no child - render empty
+    return const SizedBox.shrink();
   }
 
   @override
