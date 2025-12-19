@@ -146,7 +146,7 @@ class About extends StatelessWidget {
         title: const Text('About'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => router.back(),
+          onPressed: () => router.navigate.back(),
         ),
       ),
       body: Center(
@@ -206,7 +206,7 @@ class AuthLayout extends StatelessWidget {
                   children: [
                     IconButton(
                       icon: const Icon(Icons.arrow_back, color: Colors.white),
-                      onPressed: () => router.back(),
+                      onPressed: () => router.navigate.back(),
                     ),
                     const SizedBox(width: 8),
                     const Text(
@@ -383,7 +383,7 @@ class ConcertsLayout extends StatelessWidget {
         foregroundColor: Colors.white,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => router.back(),
+          onPressed: () => router.navigate.back(),
         ),
       ),
       body: Column(
@@ -606,7 +606,7 @@ class ProductsPage extends StatelessWidget {
         foregroundColor: Colors.white,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => router.back(),
+          onPressed: () => router.navigate.back(),
         ),
       ),
       body: Column(
@@ -755,7 +755,7 @@ class ProductDetail extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 ElevatedButton.icon(
-                  onPressed: () => router.back(),
+                  onPressed: () => router.navigate.back(),
                   icon: const Icon(Icons.arrow_back),
                   label: const Text('Back to List'),
                   style: ElevatedButton.styleFrom(

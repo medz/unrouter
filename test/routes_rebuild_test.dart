@@ -49,7 +49,7 @@ void main() {
       expect(find.text('About'), findsOneWidget);
 
       // Navigate back to Home
-      router.back();
+      router.navigate.back();
       await tester.pumpAndSettle();
 
       // Home should not be recreated (still 1 build)

@@ -60,7 +60,7 @@ void main() {
       expect(find.text('Contact'), findsOneWidget);
 
       // Go back should skip about and go to home
-      router.back();
+      router.navigate.back();
       await tester.pumpAndSettle();
       expect(find.text('Home'), findsOneWidget);
     });
@@ -82,7 +82,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('About'), findsOneWidget);
 
-      router.back();
+      router.navigate.back();
       await tester.pumpAndSettle();
       expect(find.text('Home'), findsOneWidget);
     });
@@ -103,11 +103,11 @@ void main() {
       router.navigate(.parse('/about'));
       await tester.pumpAndSettle();
 
-      router.back();
+      router.navigate.back();
       await tester.pumpAndSettle();
       expect(find.text('Home'), findsOneWidget);
 
-      router.forward();
+      router.navigate.forward();
       await tester.pumpAndSettle();
       expect(find.text('About'), findsOneWidget);
     });
@@ -134,12 +134,12 @@ void main() {
       expect(find.text('Page 2'), findsOneWidget);
 
       // Go back to beginning
-      router.go(-2);
+      router.navigate.go(-2);
       await tester.pumpAndSettle();
       expect(find.text('Page 0'), findsOneWidget);
 
       // Go forward 2 steps
-      router.go(2);
+      router.navigate.go(2);
       await tester.pumpAndSettle();
       expect(find.text('Page 2'), findsOneWidget);
     });
@@ -165,11 +165,11 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Page 2'), findsOneWidget);
 
-      router.go(-1);
+      router.navigate.go(-1);
       await tester.pumpAndSettle();
       expect(find.text('Page 1'), findsOneWidget);
 
-      router.go(-1);
+      router.navigate.go(-1);
       await tester.pumpAndSettle();
       expect(find.text('Page 0'), findsOneWidget);
     });

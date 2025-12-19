@@ -60,7 +60,7 @@ void main() {
         expect(find.text('Product: 1'), findsOneWidget);
 
         // Now back should go to /products
-        router.back();
+        router.navigate.back();
         await tester.pumpAndSettle();
 
         expect(find.text('Products Container'), findsOneWidget);
@@ -68,7 +68,7 @@ void main() {
         expect(find.text('Product: 1'), findsNothing);
 
         // Another back should go to /
-        router.back();
+        router.navigate.back();
         await tester.pumpAndSettle();
 
         expect(find.text('Home'), findsOneWidget);
@@ -144,14 +144,14 @@ void main() {
       expect(find.text('Register'), findsOneWidget);
 
       // Back should go to /login
-      router.back();
+      router.navigate.back();
       await tester.pumpAndSettle();
 
       expect(find.text('Login'), findsOneWidget);
       expect(find.text('Register'), findsNothing);
 
       // Another back should go to /
-      router.back();
+      router.navigate.back();
       await tester.pumpAndSettle();
 
       expect(find.text('Home'), findsOneWidget);
