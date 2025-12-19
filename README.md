@@ -5,29 +5,62 @@
 
 A Flutter router that gives you routing flexibility: define routes centrally, scope them to widgets, or mix both - with browser-style history navigation.
 
-## Features
+## Documentation
 
-- **Declarative routes** defined via `Unrouter(routes: ...)` for centralized configuration
-- **Widget-scoped routes** via the `Routes` widget for component-level routing
-- **Hybrid routing** combining declarative routes with widget-scoped fallback
-- **Nested routes + layouts** (`Outlet` for declarative routes, `Routes` for widget-scoped routes)
-- **URL patterns**: static segments, params (`:id`), optionals (`?`), wildcard (`*`)
-- **Browser-style navigation**: `push`, `replace`, `back`, `forward`, `go(delta)`
-- **Web URL strategies**: `UrlStrategy.browser` and `UrlStrategy.hash`
-- **Relative navigation** (e.g. `Uri.parse('edit')` → `/users/123/edit`)
+All sections below are collapsible. Expand the chapters you need.
 
-## Install
+- [Features](#features)
+- [Install](#install)
+- [Quick start](#quick-start)
+- [Routing approaches](#routing-approaches)
+- [Layouts and nested routing](#layouts-and-nested-routing)
+- [Route patterns and matching](#route-patterns-and-matching)
+- [Navigation and history](#navigation-and-history)
+- [Navigator 1.0 compatibility](#navigator-10-compatibility)
+- [State and params](#state-and-params)
+- [Link widget](#link-widget)
+- [Web URL strategy](#web-url-strategy)
+- [Testing](#testing)
+- [API overview](#api-overview)
+- [Example app](#example-app)
+- [Troubleshooting](#troubleshooting)
+- [Contributing](#contributing)
+- [License](#license)
+
+<a id="features"></a>
+<details open>
+<summary><strong>Features</strong></summary>
+
+- Declarative routes via `Unrouter(routes: ...)`
+- Widget-scoped routes via the `Routes` widget
+- Hybrid routing (declarative first, widget-scoped fallback)
+- Nested routes + layouts (`Outlet` for declarative routes, `Routes` for widget-scoped)
+- URL patterns: static, params (`:id`), optionals (`?`), wildcard (`*`)
+- Browser-style navigation: push/replace/back/forward/go
+- Navigator 1.0 compatibility for overlays and imperative APIs (`enableNavigator1`, default `true`)
+- Web URL strategies: `UrlStrategy.browser` and `UrlStrategy.hash`
+- Relative navigation with dot segment normalization (`./`, `../`)
+
+</details>
+
+<a id="install"></a>
+<details open>
+<summary><strong>Install</strong></summary>
 
 Add to `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  unrouter: ^0.1.1
+  unrouter: ^0.2.0
 ```
 
-## Quick start
+</details>
 
-### Declarative routing
+<a id="quick-start"></a>
+<details open>
+<summary><strong>Quick start</strong></summary>
+
+Declarative routing setup:
 
 ```dart
 import 'package:flutter/material.dart';
@@ -36,13 +69,8 @@ import 'package:unrouter/unrouter.dart';
 final router = Unrouter(
   strategy: .browser,
   routes: const [
-    // Index
     Inlet(factory: HomePage.new),
-
-    // Leaf
     Inlet(path: 'about', factory: AboutPage.new),
-
-    // Layout (path == '', children not empty)
     Inlet(
       factory: AuthLayout.new,
       children: [
@@ -50,8 +78,6 @@ final router = Unrouter(
         Inlet(path: 'register', factory: RegisterPage.new),
       ],
     ),
-
-    // Nested (path != '', children not empty)
     Inlet(
       path: 'users',
       factory: UsersLayout.new,
@@ -60,8 +86,6 @@ final router = Unrouter(
         Inlet(path: ':id', factory: UserDetailPage.new),
       ],
     ),
-
-    // Fallback (keep it last)
     Inlet(path: '*', factory: NotFoundPage.new),
   ],
 );
@@ -69,72 +93,53 @@ final router = Unrouter(
 void main() => runApp(MaterialApp.router(routerConfig: router));
 ```
 
-### Widget-scoped routing
+</details>
 
-Define routes directly in your component tree using the `Routes` widget:
+<a id="routing-approaches"></a>
+<details>
+<summary><strong>Routing approaches</strong></summary>
 
-```dart
-class App extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Unrouter(
-      strategy: .browser,
-      child: Routes([
-        Inlet(factory: HomePage.new),
-        Inlet(path: 'about', factory: AboutPage.new),
-        Inlet(path: 'dashboard', factory: DashboardPage.new),
-      ]),
-    );
-  }
-}
-```
-
-### Nested widget-scoped routing
-
-Components can define their own child routes using the `Routes` widget:
+### Declarative routing (central config)
 
 ```dart
-class DashboardPage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text('Dashboard'),
-        Routes([  // Nested routes defined in component
-          Inlet(factory: DashboardHome.new),
-          Inlet(path: 'analytics', factory: Analytics.new),
-          Inlet(path: 'settings', factory: Settings.new),
-        ]),
-      ],
-    );
-  }
-}
+Unrouter(routes: [
+  Inlet(factory: HomePage.new),
+  Inlet(path: 'about', factory: AboutPage.new),
+])
 ```
 
-### Hybrid routing
-
-Combine declarative routes with widget-scoped fallback:
+### Widget-scoped routing (component-level)
 
 ```dart
-final router = Unrouter(
-  strategy: .browser,
-  routes: const [
-    // Declarative routes matched first
-    Inlet(path: 'admin', factory: AdminPage.new),
-    Inlet(path: 'settings', factory: SettingsPage.new),
-  ],
-  child: Routes([  // Widget-scoped fallback when declarative routes don't match
-    Inlet(factory: HomePage.new),
-    Inlet(path: 'about', factory: AboutPage.new),
-  ]),
-);
+Unrouter(child: Routes([
+  Inlet(factory: HomePage.new),
+  Inlet(path: 'about', factory: AboutPage.new),
+]))
 ```
 
-## Layouts and nested routes
+### Hybrid routing (declarative first, widget-scoped fallback)
 
-### With declarative routes (using `Outlet`)
+```dart
+Unrouter(
+  routes: [Inlet(path: 'admin', factory: AdminPage.new)],
+  child: Routes([Inlet(factory: HomePage.new)]),
+)
+```
 
-Layout and nested routes defined in the declarative `routes` tree must render an `Outlet` to show their matched child:
+Hybrid routing also enables partial matches where a declarative route handles
+the prefix and a nested `Routes` widget handles the rest.
+
+</details>
+
+<a id="layouts-and-nested-routing"></a>
+<details>
+<summary><strong>Layouts and nested routing</strong></summary>
+
+### Declarative layouts use `Outlet`
+
+Layout and nested routes defined in `Unrouter.routes` must render an `Outlet`
+to show matched children. Layout routes (`path == ''` with children) do not
+consume a path segment.
 
 ```dart
 class AuthLayout extends StatelessWidget {
@@ -147,16 +152,14 @@ class AuthLayout extends StatelessWidget {
 }
 ```
 
-### With widget-scoped routes (using `Routes`)
-
-Define child routes directly in the component using the `Routes` widget:
+### Widget-scoped nesting uses `Routes`
 
 ```dart
 class ProductsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Products')),
+      appBar: AppBar(title: const Text('Products')),
       body: Routes([
         Inlet(factory: ProductsList.new),
         Inlet(path: ':id', factory: ProductDetail.new),
@@ -167,131 +170,159 @@ class ProductsPage extends StatelessWidget {
 }
 ```
 
-## Reading location and params
+### State preservation
 
-```dart
-final state = RouterStateProvider.of(context);
-final uri = state.location.uri;
-final params = state.params; // merged params up to this level
-final extra = state.location.state; // history entry state (if any)
-```
+`unrouter` keeps matched pages in an `IndexedStack`. Leaf routes are keyed by
+history index, while layout/nested routes are cached by route identity to keep
+their state when switching between children. Prefer `const` routes to maximize
+reuse.
 
-## Navigation
+</details>
 
-From a shared router instance:
+<a id="route-patterns-and-matching"></a>
+<details>
+<summary><strong>Route patterns and matching</strong></summary>
 
-```dart
-router.navigate(.parse('/about'));
-router.navigate(.parse('/login'), replace: true);
-router.back();
-```
-
-From any widget:
-
-```dart
-final nav = Navigate.of(context);
-nav(.parse('/users/123'));
-nav(.parse('edit')); // relative -> /users/123/edit
-```
-
-## API overview
-
-- `Unrouter`: a `RouterConfig<RouteInformation>` (drop into `MaterialApp.router` or use as a widget)
-- `Inlet`: route definition (index/layout/leaf/nested)
-- `Outlet`: renders the next matched child route (for declarative routes)
-- `Routes`: widget-scoped route matching widget (for component-level routing)
-- `Navigate.of(context)`: access navigation without a global router
-- `RouterStateProvider`: read `RouteInformation` + merged params
-- `History` / `MemoryHistory`: injectable history (great for tests)
-
-## Routing approaches
-
-`unrouter` supports three routing approaches:
-
-### 1. Declarative routing
-All routes defined upfront in a centralized configuration via the `routes` parameter:
-```dart
-Unrouter(routes: [
-  Inlet(factory: HomePage.new),
-  Inlet(path: 'about', factory: AboutPage.new),
-])
-```
-
-### 2. Widget-scoped routing
-Routes defined within components using the `Routes` widget:
-```dart
-Unrouter(child: Routes([
-  Inlet(factory: HomePage.new),
-  Inlet(path: 'about', factory: AboutPage.new),
-]))
-```
-
-You can also use `Routes` widget inside any component for nested routing:
-```dart
-class ProductsPage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Routes([  // Widget-scoped routes
-      Inlet(factory: ProductsList.new),
-      Inlet(path: ':id', factory: ProductDetail.new),
-    ]);
-  }
-}
-```
-
-### 3. Hybrid routing
-Combines declarative routes with widget-scoped routes. Declarative routes are matched first, then widget-scoped routes serve as fallback:
-```dart
-Unrouter(
-  routes: [
-    Inlet(path: 'admin', factory: AdminPage.new),  // Declarative routes
-  ],
-  child: Routes([  // Widget-scoped fallback
-    Inlet(factory: HomePage.new),
-    Inlet(path: 'about', factory: AboutPage.new),
-  ]),
-)
-```
-
-Hybrid routing also includes cases where declarative routes use `Routes` widget internally:
-```dart
-Unrouter(
-  routes: [
-    // Partial match: /products matches, then ProductsPage handles nested paths
-    Inlet(path: 'products', factory: ProductsPage.new),
-  ],
-)
-
-class ProductsPage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Routes([  // Nested widget-scoped routes
-      Inlet(factory: ProductsList.new),
-      Inlet(path: ':id', factory: ProductDetail.new),  // Matches /products/123
-    ]);
-  }
-}
-```
-
-The `Routes` widget enables React Router-style component-scoped routing, where routes are defined close to the components that use them, enabling better code organization and lazy loading.
-
-## Web URL strategy
-
-- `strategy: .browser` uses path URLs like `/about` (requires server rewrites to `index.html`).
-- `strategy: .hash` uses hash URLs like `/#/about` (works without server rewrites).
-
-On non-web platforms, `Unrouter` falls back to an in-memory history implementation.
-
-## Route patterns
-
-Supported pattern syntax:
+### Pattern syntax
 
 - Static: `about`, `users/profile`
 - Params: `users/:id`, `:userId`
 - Optional: `:lang?/about`, `users/:id/edit?`
 - Wildcard: `files/*`, `*`
 
-## Testing
+### Route kinds
+
+- Index: `path == ''` and `children.isEmpty`
+- Layout: `path == ''` and `children.isNotEmpty` (does not consume segments)
+- Leaf: `path != ''` and `children.isEmpty`
+- Nested: `path != ''` and `children.isNotEmpty`
+
+### Partial matching
+
+`Routes` performs greedy matching and allows partial matches so nested
+component routes can continue to match the remaining path.
+
+</details>
+
+<a id="navigation-and-history"></a>
+<details>
+<summary><strong>Navigation and history</strong></summary>
+
+### Imperative navigation (shared router instance)
+
+```dart
+router.navigate(.parse('/about'));
+router.navigate(.parse('/login'), replace: true);
+router.navigate.back();
+router.navigate.forward();
+router.navigate.go(-1);
+```
+
+### Navigation from any widget
+
+```dart
+final nav = Navigate.of(context);
+nav(.parse('/users/123'));
+nav(.parse('edit'));        // /users/123/edit
+nav(.parse('./edit'));      // /users/123/edit
+nav(.parse('../settings')); // /users/123/settings
+```
+
+### Context extensions
+
+```dart
+context.navigate(.parse('/about'));
+final router = context.router;
+```
+
+### Relative navigation
+
+Relative paths append to the current location and normalize dot segments.
+Query and fragment come from the provided URI and do not inherit.
+
+</details>
+
+<a id="navigator-10-compatibility"></a>
+<details>
+<summary><strong>Navigator 1.0 compatibility</strong></summary>
+
+By default, `Unrouter` embeds a `Navigator` so APIs like `showDialog`,
+`showModalBottomSheet`, `showGeneralDialog`, `showMenu`, and
+`Navigator.push/pop/popUntil` work as expected.
+
+```dart
+final router = Unrouter(
+  enableNavigator1: true, // default
+  routes: const [Inlet(factory: HomePage.new)],
+);
+```
+
+Set `enableNavigator1: false` to keep the Navigator 2.0-only behavior.
+
+</details>
+
+<a id="state-and-params"></a>
+<details>
+<summary><strong>State and params</strong></summary>
+
+```dart
+final state = RouterStateProvider.of(context);
+final uri = state.location.uri;
+final params = state.params;        // merged params up to this level
+final extra = state.location.state; // history entry state (if any)
+```
+
+`RouterState.action` tells you whether the current navigation was a push,
+replace, or pop, and `historyIndex` can be used to reason about stacked pages.
+
+</details>
+
+<a id="link-widget"></a>
+<details>
+<summary><strong>Link widget</strong></summary>
+
+Basic link:
+
+```dart
+Link(
+  to: Uri.parse('/about'),
+  child: const Text('About'),
+)
+```
+
+Custom link with builder:
+
+```dart
+Link.builder(
+  to: Uri.parse('/products/1'),
+  state: {'source': 'home'},
+  builder: (context, location, navigate) {
+    return GestureDetector(
+      onTap: () => navigate(),
+      onLongPress: () => navigate(replace: true),
+      child: Text('Product 1'),
+    );
+  },
+)
+```
+
+</details>
+
+<a id="web-url-strategy"></a>
+<details>
+<summary><strong>Web URL strategy</strong></summary>
+
+- `strategy: .browser` uses path URLs like `/about` (requires server rewrites).
+- `strategy: .hash` uses hash URLs like `/#/about` (no rewrites required).
+
+If you pass a custom `history`, `strategy` is ignored. On non-web platforms,
+`Unrouter` falls back to `MemoryHistory`.
+
+</details>
+
+<a id="testing"></a>
+<details>
+<summary><strong>Testing</strong></summary>
 
 `MemoryHistory` makes routing tests easy:
 
@@ -307,15 +338,70 @@ final router = Unrouter(
 );
 ```
 
-## Example
+Run tests:
 
-See `example/` for a complete Flutter app.
+```bash
+flutter test
+```
 
-## Contributing
+</details>
 
-- Run tests: `flutter test`
+<a id="api-overview"></a>
+<details>
+<summary><strong>API overview</strong></summary>
+
+- `Unrouter`: `RouterConfig<RouteInformation>` (use in `MaterialApp.router`)
+- `Inlet`: route definition (index/layout/leaf/nested)
+- `Outlet`: renders the next matched child route (declarative routes)
+- `Routes`: widget-scoped route matcher
+- `Navigate`: navigation interface (`Navigate.of(context)`)
+- `RouterStateProvider`: read `RouteInformation` + merged params
+- `History` / `MemoryHistory`: injectable history (great for tests)
+- `Link`: declarative navigation widget
+
+</details>
+
+<a id="example-app"></a>
+<details>
+<summary><strong>Example app</strong></summary>
+
+See `example/` for a complete Flutter app showcasing routing patterns and
+Navigator 1.0 APIs.
+
+```bash
+cd example
+flutter run
+```
+
+</details>
+
+<a id="troubleshooting"></a>
+<details>
+<summary><strong>Troubleshooting</strong></summary>
+
+- `Navigate.of()` throws: ensure your widget is inside `MaterialApp.router`
+  with `routerConfig: Unrouter(...)`.
+- `Routes` renders nothing: it must be a descendant of `Unrouter`
+  (needs a `RouterStateProvider`).
+- `showDialog` not working: keep `enableNavigator1: true` (default).
+- Web 404 on refresh: use `strategy: .hash` or configure server rewrites.
+
+</details>
+
+<a id="contributing"></a>
+<details>
+<summary><strong>Contributing</strong></summary>
+
+- Format: `dart format .`
+- Tests: `flutter test`
 - Open a PR with a clear description and a focused diff
 
-## License
+</details>
 
-MIT — see [`LICENSE`](LICENSE).
+<a id="license"></a>
+<details>
+<summary><strong>License</strong></summary>
+
+MIT - see `LICENSE`.
+
+</details>
