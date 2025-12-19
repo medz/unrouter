@@ -40,8 +40,31 @@ abstract interface class Navigate {
   ///
   /// This assumes the app is using a router delegate that implements
   /// [Navigate] (such as [UnrouterDelegate]).
-  static Navigate of(BuildContext context) =>
-      Router.of(context).routerDelegate as Navigate;
+  ///
+  /// Throws a [FlutterError] if called outside a Router scope or if the
+  /// router delegate does not implement [Navigate].
+  static Navigate of(BuildContext context) {
+    final router = Router.maybeOf(context);
+    if (router == null) {
+      throw FlutterError(
+        'Navigate.of() called with a context that does not contain a Router.\n'
+        'No Router ancestor could be found starting from the context that was passed to Navigate.of().\n'
+        'The context used was:\n'
+        '  $context',
+      );
+    }
+    final delegate = router.routerDelegate;
+    if (delegate is! Navigate) {
+      throw FlutterError(
+        'Navigate.of() called with a Router whose delegate does not implement Navigate.\n'
+        'The router delegate type is: ${delegate.runtimeType}\n'
+        'Make sure you are using Unrouter or a custom router delegate that implements Navigate.\n'
+        'The context used was:\n'
+        '  $context',
+      );
+    }
+    return delegate as Navigate;
+  }
 }
 
 /// A declarative router configuration for Flutter.
