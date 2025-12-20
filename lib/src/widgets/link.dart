@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart';
 
+import '../extensions.dart';
 import '../navigation.dart';
-import '../navigation_result.dart';
 
 /// Signature for the builder callback used by `Link(builder: ...)`.
 ///

@@ -6,6 +6,7 @@
   either `child` or `builder` (not both).
 - `Navigate` methods now return `Future<Navigation>`; await when you need to
   know whether navigation succeeded, redirected, or was cancelled.
+- `UnrouterNavigationContext` extension renamed to `UnrouterBuildContext`.
 
 ### Features
 

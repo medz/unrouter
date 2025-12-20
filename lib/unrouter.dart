@@ -36,8 +36,8 @@ export 'src/widgets/routes.dart';
 
 export 'src/guard.dart';
 export 'src/inlet.dart';
+export 'src/extensions.dart';
 export 'src/navigation.dart';
-export 'src/navigation_result.dart';
 export 'src/route_matcher.dart' show MatchedRoute;
 export 'src/router.dart';
 export 'src/router_state.dart';
