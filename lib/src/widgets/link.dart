@@ -1,16 +1,18 @@
 import 'package:flutter/widgets.dart';
 
 import '../navigation.dart';
+import '../navigation_result.dart';
 
 /// Signature for the builder callback used by `Link(builder: ...)`.
 ///
 /// The [location] parameter provides the target route information.
-/// The [navigate] callback can be called to trigger navigation with optional overrides.
+/// The [navigate] callback can be called to trigger navigation with optional
+/// overrides and returns a `Future<Navigation>`.
 typedef LinkBuilder =
     Widget Function(
       BuildContext context,
       RouteInformation location,
-      void Function({Object? state, bool? replace}) navigate,
+      Future<Navigation> Function({Object? state, bool? replace}) navigate,
     );
 
 /// A widget that navigates to a specified route when tapped.
@@ -84,8 +86,8 @@ class Link extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    void navigate({Object? state, bool? replace}) {
-      context.navigate(
+    Future<Navigation> navigate({Object? state, bool? replace}) {
+      return context.navigate(
         to,
         state: state ?? this.state,
         replace: replace ?? this.replace,

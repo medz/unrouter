@@ -35,10 +35,13 @@ void main() {
     await tester.pumpWidget(wrap(router));
     expect(find.text('Home'), findsOneWidget);
 
-    router.navigate(.parse('/login'));
+    final result = await router.navigate(.parse('/login'));
     await pumpGuards(tester);
 
     expect(called, isTrue);
+    expect(result, isA<NavigationSuccess>());
+    final success = result as NavigationSuccess;
+    expect(success.action, HistoryAction.push);
     expect(find.text('Login'), findsOneWidget);
     expect(router.history.location.uri.path, '/login');
   });
@@ -56,11 +59,12 @@ void main() {
     await tester.pumpWidget(wrap(router));
     expect(find.text('Home'), findsOneWidget);
 
-    router.navigate(.parse('/login'));
+    final result = await router.navigate(.parse('/login'));
     await pumpGuards(tester);
 
     expect(find.text('Home'), findsOneWidget);
     expect(find.text('Login'), findsNothing);
+    expect(result, isA<NavigationCancelled>());
     expect(router.history.location.uri.path, '/');
     expect(router.history.index, 0);
   });
@@ -88,11 +92,12 @@ void main() {
 
     await tester.pumpWidget(wrap(router));
 
-    router.navigate(.parse('/login'));
+    final result = await router.navigate(.parse('/login'));
     await pumpGuards(tester);
 
     expect(firstCalled, isTrue);
     expect(secondCalled, isFalse);
+    expect(result, isA<NavigationCancelled>());
     expect(find.text('Home'), findsOneWidget);
     expect(find.text('Login'), findsNothing);
     expect(router.history.location.uri.path, '/');
@@ -111,15 +116,17 @@ void main() {
 
     await tester.pumpWidget(wrap(router));
 
-    router.navigate(.parse('/login'));
+    final navigation = router.navigate(.parse('/login'));
     await tester.pump();
 
     expect(find.text('Home'), findsOneWidget);
     expect(find.text('Login'), findsNothing);
 
     completer.complete(GuardResult.allow);
+    final result = await navigation;
     await pumpGuards(tester);
 
+    expect(result, isA<NavigationSuccess>());
     expect(find.text('Login'), findsOneWidget);
     expect(router.history.location.uri.path, '/login');
   });
@@ -140,9 +147,10 @@ void main() {
 
     await tester.pumpWidget(wrap(router));
 
-    router.navigate(.parse('/login'));
+    final result = await router.navigate(.parse('/login'));
     await pumpGuards(tester);
 
+    expect(result, isA<NavigationCancelled>());
     expect(find.text('Home'), findsOneWidget);
     expect(find.text('Login'), findsNothing);
     expect(router.history.location.uri.path, '/');
@@ -166,19 +174,13 @@ void main() {
     );
 
     await tester.pumpWidget(wrap(router));
-    Object? captured;
 
-    await runZonedGuarded(
-      () async {
-        router.navigate(.parse('/login'));
-        await pumpGuards(tester);
-      },
-      (error, stack) {
-        captured = error;
-      },
-    );
+    final result = await router.navigate(.parse('/login'));
+    await pumpGuards(tester);
 
-    expect(captured, isA<StateError>());
+    expect(result, isA<NavigationFailed>());
+    final failed = result as NavigationFailed;
+    expect(failed.error, isA<StateError>());
     expect(find.text('Home'), findsOneWidget);
     expect(find.text('Login'), findsNothing);
     expect(router.history.location.uri.path, '/');
@@ -196,9 +198,12 @@ void main() {
     );
 
     await tester.pumpWidget(wrap(router));
-    router.navigate(.parse('/register'));
+    final result = await router.navigate(.parse('/register'));
     await pumpGuards(tester);
 
+    expect(result, isA<NavigationRedirected>());
+    final redirected = result as NavigationRedirected;
+    expect(redirected.action, HistoryAction.replace);
     expect(find.text('Login'), findsOneWidget);
     expect(find.text('Register'), findsNothing);
     expect(router.history.location.uri.path, '/login');
@@ -216,9 +221,12 @@ void main() {
     );
 
     await tester.pumpWidget(wrap(router));
-    router.navigate(.parse('/login'), replace: true);
+    final result = await router.navigate(.parse('/login'), replace: true);
     await pumpGuards(tester);
 
+    expect(result, isA<NavigationSuccess>());
+    final success = result as NavigationSuccess;
+    expect(success.action, HistoryAction.replace);
     expect(find.text('Login'), findsOneWidget);
     expect(router.history.location.uri.path, '/login');
     expect(router.history.index, 0);
@@ -243,9 +251,12 @@ void main() {
     );
 
     await tester.pumpWidget(wrap(router));
-    router.navigate(.parse('/register'));
+    final result = await router.navigate(.parse('/register'));
     await pumpGuards(tester);
 
+    expect(result, isA<NavigationRedirected>());
+    final redirected = result as NavigationRedirected;
+    expect(redirected.action, HistoryAction.push);
     expect(find.text('Login'), findsOneWidget);
     expect(router.history.location.uri.path, '/login');
     expect(router.history.index, 1);
@@ -361,9 +372,10 @@ void main() {
     await pumpGuards(tester);
     expect(find.text('Register'), findsOneWidget);
 
-    router.navigate.back();
+    final result = await router.navigate.back();
     await pumpGuards(tester);
 
+    expect(result, isA<NavigationCancelled>());
     expect(find.text('Register'), findsOneWidget);
     expect(find.text('Login'), findsNothing);
     expect(router.history.location.uri.path, '/register');
@@ -399,9 +411,10 @@ void main() {
     await tester.pumpWidget(wrap(router));
     expect(find.text('Register'), findsOneWidget);
 
-    router.navigate.back();
+    final result = await router.navigate.back();
     await pumpGuards(tester);
 
+    expect(result, isA<NavigationCancelled>());
     expect(find.text('Register'), findsOneWidget);
     expect(find.text('Login'), findsNothing);
     expect(router.history.location.uri.path, '/register');
@@ -434,9 +447,12 @@ void main() {
     await pumpGuards(tester);
     expect(find.text('Register'), findsOneWidget);
 
-    router.navigate.back();
+    final result = await router.navigate.back();
     await pumpGuards(tester);
 
+    expect(result, isA<NavigationRedirected>());
+    final redirected = result as NavigationRedirected;
+    expect(redirected.action, HistoryAction.replace);
     expect(find.text('Blocked'), findsOneWidget);
     expect(router.history.location.uri.path, '/blocked');
     expect(router.history.index, 0);
@@ -458,9 +474,10 @@ void main() {
     );
 
     await tester.pumpWidget(wrap(router));
-    router.navigate(.parse('/a'));
+    final result = await router.navigate(.parse('/a'));
     await pumpGuards(tester);
 
+    expect(result, isA<NavigationCancelled>());
     expect(find.text('Home'), findsOneWidget);
     expect(find.text('A'), findsNothing);
     expect(find.text('B'), findsNothing);

@@ -28,9 +28,12 @@ void main() {
       expect(find.text('About'), findsNothing);
 
       // Navigate to about
-      router.navigate(.parse('/about'));
+      final result = await router.navigate(.parse('/about'));
       await tester.pumpAndSettle();
 
+      expect(result, isA<NavigationSuccess>());
+      final success = result as NavigationSuccess;
+      expect(success.action, HistoryAction.push);
       expect(find.text('Home'), findsNothing);
       expect(find.text('About'), findsOneWidget);
     });
@@ -78,12 +81,15 @@ void main() {
 
       await tester.pumpWidget(wrapRouter(router));
 
-      router.navigate(.parse('/about'));
+      await router.navigate(.parse('/about'));
       await tester.pumpAndSettle();
       expect(find.text('About'), findsOneWidget);
 
-      router.navigate.back();
+      final result = await router.navigate.back();
       await tester.pumpAndSettle();
+      expect(result, isA<NavigationSuccess>());
+      final success = result as NavigationSuccess;
+      expect(success.action, HistoryAction.pop);
       expect(find.text('Home'), findsOneWidget);
     });
 
