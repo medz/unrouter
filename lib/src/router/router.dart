@@ -227,7 +227,10 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
       }
 
       router.guard
-          .execute(guardContext)
+          .execute(
+            guardContext,
+            extraGuards: _resolveRouteGuards(requested),
+          )
           .then((context) {
             if (context == null) {
               handleCancel();
@@ -353,6 +356,16 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
     );
   }
 
+  Iterable<Guard> _resolveRouteGuards(RouteInformation routeInformation) {
+    final routeList = routes;
+    if (routeList == null) return const [];
+    final result = matchRoutes(routeList, routeInformation.uri.path);
+    if (result.matches.isEmpty) return const [];
+    return [
+      for (final match in result.matches) ...match.route.guards,
+    ];
+  }
+
   /// Update matched routes based on current location.
   void _updateMatchedRoutes() {
     if (routes == null) {
@@ -388,7 +401,10 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
       redirectCount: 0,
     );
 
-    final resolved = await router.guard.execute(context);
+    final resolved = await router.guard.execute(
+      context,
+      extraGuards: _resolveRouteGuards(configuration),
+    );
     if (resolved == null) {
       return;
     }
@@ -483,7 +499,10 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
       redirectCount: 0,
     );
     try {
-      final resolved = await router.guard.execute(context);
+      final resolved = await router.guard.execute(
+        context,
+        extraGuards: _resolveRouteGuards(requested),
+      );
       if (resolved == null) {
         return NavigationCancelled(from: previous, requested: requested);
       }

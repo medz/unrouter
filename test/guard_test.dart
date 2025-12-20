@@ -263,6 +263,98 @@ void main() {
     expect(router.history.index, 1);
   });
 
+  testWidgets('inlet guard cancel blocks navigation', (tester) async {
+    final router = Unrouter(
+      routes: [
+        Inlet(factory: () => const Text('Home')),
+        Inlet(
+          path: 'admin',
+          guards: [(context) => GuardResult.cancel],
+          factory: () => const Text('Admin'),
+        ),
+      ],
+      history: MemoryHistory(),
+    );
+
+    await tester.pumpWidget(wrap(router));
+    final result = await router.navigate(.parse('/admin'));
+    await pumpGuards(tester);
+
+    expect(result, isA<NavigationCancelled>());
+    expect(find.text('Home'), findsOneWidget);
+    expect(find.text('Admin'), findsNothing);
+    expect(router.history.location.uri.path, '/');
+  });
+
+  testWidgets('inlet guard redirect works', (tester) async {
+    final router = Unrouter(
+      routes: [
+        Inlet(factory: () => const Text('Home')),
+        Inlet(path: 'login', factory: () => const Text('Login')),
+        Inlet(
+          path: 'admin',
+          guards: [
+            (context) => GuardResult.redirect(Uri.parse('/login')),
+          ],
+          factory: () => const Text('Admin'),
+        ),
+      ],
+      history: MemoryHistory(),
+    );
+
+    await tester.pumpWidget(wrap(router));
+    final result = await router.navigate(.parse('/admin'));
+    await pumpGuards(tester);
+
+    expect(result, isA<NavigationRedirected>());
+    expect(find.text('Login'), findsOneWidget);
+    expect(find.text('Admin'), findsNothing);
+    expect(router.history.location.uri.path, '/login');
+  });
+
+  testWidgets('inlet guards run from root to leaf', (tester) async {
+    final calls = <String>[];
+    Widget adminLayout() {
+      return Column(children: [const Text('Admin'), const Outlet()]);
+    }
+
+    final router = Unrouter(
+      routes: [
+        Inlet(
+          path: 'admin',
+          guards: [
+            (context) {
+              calls.add('parent');
+              return GuardResult.allow;
+            },
+          ],
+          factory: adminLayout,
+          children: [
+            Inlet(
+              path: 'users',
+              guards: [
+                (context) {
+                  calls.add('child');
+                  return GuardResult.allow;
+                },
+              ],
+              factory: () => const Text('Users'),
+            ),
+          ],
+        ),
+      ],
+      history: MemoryHistory(),
+    );
+
+    await tester.pumpWidget(wrap(router));
+    final result = await router.navigate(.parse('/admin/users'));
+    await pumpGuards(tester);
+
+    expect(result, isA<NavigationSuccess>());
+    expect(calls, ['parent', 'child']);
+    expect(find.text('Users'), findsOneWidget);
+  });
+
   testWidgets('setNewRoutePath is guarded (allow)', (tester) async {
     final router = Unrouter(
       routes: [
@@ -459,29 +551,24 @@ void main() {
     expect(router.history.index, 0);
   });
 
-  testWidgets('maxRedirects cancels when exceeded', (tester) async {
+  testWidgets('maxRedirects blocks redirect when set to zero', (tester) async {
     final router = Unrouter(
       routes: [
         Inlet(factory: () => const Text('Home')),
-        Inlet(path: 'a', factory: () => const Text('A')),
-        Inlet(path: 'b', factory: () => const Text('B')),
+        Inlet(path: 'login', factory: () => const Text('Login')),
       ],
       history: MemoryHistory(),
-      guards: [
-        (context) => GuardResult.redirect(Uri.parse('/a')),
-        (context) => GuardResult.redirect(Uri.parse('/b')),
-      ],
-      maxRedirects: 1,
+      guards: [(context) => GuardResult.redirect(Uri.parse('/login'))],
+      maxRedirects: 0,
     );
 
     await tester.pumpWidget(wrap(router));
-    final result = await router.navigate(.parse('/a'));
+    final result = await router.navigate(.parse('/login'));
     await pumpGuards(tester);
 
     expect(result, isA<NavigationCancelled>());
     expect(find.text('Home'), findsOneWidget);
-    expect(find.text('A'), findsNothing);
-    expect(find.text('B'), findsNothing);
+    expect(find.text('Login'), findsNothing);
     expect(router.history.location.uri.path, '/');
   });
 }

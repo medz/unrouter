@@ -295,6 +295,23 @@ final router = Unrouter(
 );
 ```
 
+You can also attach guards to specific declarative routes:
+
+```dart
+final routes = [
+  Inlet(
+    path: 'admin',
+    guards: [
+      (context) => GuardResult.redirect(Uri.parse('/login')),
+    ],
+    factory: AdminPage.new,
+  ),
+];
+```
+
+Guards run in order: global guards first, then matched route guards from root
+to leaf. The first non-allow result (cancel/redirect) short-circuits.
+
 Guards receive a `GuardContext`:
 - `to`: target `RouteInformation`
 - `from`: previous `RouteInformation`
