@@ -61,6 +61,7 @@ class GuardExecutor {
   VoidCallback? _complete;
 
   void execute(GuardContext context, ValueSetter<GuardContext?> callback) {
+    if (guards.isEmpty) return callback(context);
     if (_hasCompleted?.call() != true) {
       _complete?.call();
     }
