@@ -179,12 +179,12 @@ void main() {
             factory: () => Column(
               children: [
                 const RouteInfoPanel(label: 'layout'),
-                const Outlet(),
+                const Expanded(child: Outlet()),
               ],
             ),
             children: const [
               Inlet(factory: RouteInfoPanel.index),
-              Inlet(path: 'child', factory: RouteInfoPanel.child),
+              Inlet(path: ':id', factory: RouteInfoPanel.child),
             ],
           ),
         ],
@@ -206,19 +206,22 @@ void main() {
       expect(layoutText.data, contains('path:/parent'));
       expect(layoutText.data, contains('level:0'));
       expect(layoutText.data, contains('matched:2'));
+      expect(layoutText.data, contains('params:{}'));
       expect(indexText.data, contains('path:/parent'));
       expect(indexText.data, contains('level:1'));
       expect(indexText.data, contains('matched:2'));
+      expect(indexText.data, contains('params:{}'));
 
-      router.navigate(.parse('/parent/child'));
+      router.navigate(.parse('/parent/42'));
       await tester.pumpAndSettle();
 
       final childText = tester.widget<Text>(
         find.byKey(const ValueKey('route-info-child')),
       );
-      expect(childText.data, contains('path:/parent/child'));
+      expect(childText.data, contains('path:/parent/42'));
       expect(childText.data, contains('level:1'));
       expect(childText.data, contains('matched:2'));
+      expect(childText.data, contains('params:{id: 42}'));
     });
   });
 }
@@ -347,6 +350,7 @@ class RouteInfoPanel extends StatelessWidget {
     final summary =
         '$label|path:${context.location.uri.path}'
         '|matched:${context.matchedRoutes.length}'
+        '|params:${context.params}'
         '|level:${context.routeLevel}'
         '|index:${context.historyIndex}'
         '|action:${context.historyAction}';

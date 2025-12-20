@@ -22,8 +22,14 @@
 - **Route animations**: add `context.routeAnimation(...)` to access per-route
   animation controllers for push/replace/pop transitions.
 - **Granular route state accessors**: add `context.location`,
-  `context.matchedRoutes`, `context.routeLevel`, `context.historyIndex`,
-  and `context.historyAction` for fine-grained rebuilds.
+  `context.matchedRoutes`, `context.params`, `context.routeLevel`,
+  `context.historyIndex`, and `context.historyAction` for fine-grained rebuilds.
+
+### Fixes
+
+- Preserve cached stacked-route entries when their order changes, preventing
+  unnecessary rebuilds in layout/nested routes.
+- Pop navigation without guards now resolves in the same frame.
 
 ### Testing
 

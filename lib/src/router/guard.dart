@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 
@@ -65,7 +66,7 @@ class GuardExecutor {
     Iterable<Guard> extraGuards = const [],
   }) {
     if (guards.isEmpty && extraGuards.isEmpty) {
-      return Future.value(context);
+      return SynchronousFuture(context);
     }
     if (_hasCompleted?.call() != true) {
       _complete?.call();

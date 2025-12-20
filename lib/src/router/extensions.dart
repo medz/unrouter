@@ -5,6 +5,7 @@ import 'package:unrouter/history.dart';
 import 'navigation.dart';
 import 'router.dart';
 import '_internal/route_animation.dart';
+import '_internal/route_params.dart';
 import '_internal/route_state_scope.dart';
 import 'route_matcher.dart';
 import 'route_state.dart';
@@ -92,6 +93,25 @@ extension UnrouterBuildContext on BuildContext {
       'Make sure your widget is a descendant of Unrouter.',
     );
     return provider!.matchedRoutes;
+  }
+
+  Map<String, String> get params {
+    final matchedProvider = RouteStateScope.maybeOf(
+      this,
+      aspect: RouteStateAspect.matchedRoutes,
+    );
+    final levelProvider = RouteStateScope.maybeOf(
+      this,
+      aspect: RouteStateAspect.level,
+    );
+    final provider = matchedProvider ?? levelProvider;
+    assert(
+      provider != null,
+      'No RouteStateScope found in context. '
+      'Make sure your widget is a descendant of Unrouter.',
+    );
+    final state = provider!.state;
+    return resolveParamsForLevel(state.matchedRoutes, state.level);
   }
 
   int get routeLevel {

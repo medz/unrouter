@@ -227,7 +227,7 @@ class _StackedRouteViewElement extends ComponentElement
       final entry = _pageStack[key];
       if (entry == null) continue;
       final isActive = key == cacheKey;
-      children.add(_buildEntryWidget(entry, isActive));
+      children.add(_buildEntryWidget(key, entry, isActive));
     }
 
     if (children.isEmpty) {
@@ -242,33 +242,35 @@ class _StackedRouteViewElement extends ComponentElement
     _indexOrder.add(key);
   }
 
-  Widget _buildEntryWidget(_PageEntry entry, bool isActive) {
-    final scoped = RouteAnimationScope(
-      handle: entry.animation,
-      isActive: isActive,
-      child: entry.widget,
-    );
-    final content = IgnorePointer(ignoring: !isActive, child: scoped);
-
-    return AnimatedBuilder(
-      animation: entry.animation,
-      child: content,
-      builder: (context, child) {
-        final controller = entry.animation.controller;
-        if (controller == null) {
-          return Offstage(offstage: !isActive, child: child);
-        }
-        return AnimatedBuilder(
-          animation: controller,
-          child: child,
-          builder: (context, child) {
-            final visible = isActive ||
-                controller.value > controller.lowerBound ||
-                controller.isAnimating;
-            return Offstage(offstage: !visible, child: child);
-          },
-        );
-      },
+  Widget _buildEntryWidget(Object key, _PageEntry entry, bool isActive) {
+    return KeyedSubtree(
+      key: ValueKey<Object>(key),
+      child: AnimatedBuilder(
+        animation: entry.animation,
+        child: entry.widget,
+        builder: (context, child) {
+          final scoped = RouteAnimationScope(
+            handle: entry.animation,
+            isActive: isActive,
+            child: child!,
+          );
+          final content = IgnorePointer(ignoring: !isActive, child: scoped);
+          final controller = entry.animation.controller;
+          if (controller == null) {
+            return Offstage(offstage: !isActive, child: content);
+          }
+          return AnimatedBuilder(
+            animation: controller,
+            child: content,
+            builder: (context, child) {
+              final visible = isActive ||
+                  controller.value > controller.lowerBound ||
+                  controller.isAnimating;
+              return Offstage(offstage: !visible, child: child);
+            },
+          );
+        },
+      ),
     );
   }
 
