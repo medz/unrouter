@@ -3,7 +3,8 @@
 This example demonstrates Unrouter's hybrid routing plus Navigator 1.0
 compatibility. The Home screen includes buttons for `showDialog`,
 `showModalBottomSheet`, `showMenu`, and `Navigator.push` to show that these
-APIs work when `enableNavigator1` is enabled (default).
+APIs work when `enableNavigator1` is enabled (default). It also includes
+route animation demos for full-page transitions and nested layout transitions.
 
 ## Running
 
