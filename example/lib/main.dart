@@ -136,7 +136,7 @@ class Home extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  Link.builder(
+                  Link(
                     to: Uri.parse('/products'),
                     builder: (context, location, navigate) {
                       return Container(
