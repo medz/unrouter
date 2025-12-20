@@ -17,4 +17,4 @@
 /// and `package:web`.
 library;
 
-export 'src/history/browser.dart';
+export 'src/history/browser.dart' hide createHistory;

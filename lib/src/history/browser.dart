@@ -224,3 +224,11 @@ extension on UrlBasedHistory {
     }
   }
 }
+
+/// Creates the default web [History] for the given [UrlStrategy].
+History createHistory(UrlStrategy strategy) {
+  return switch (strategy) {
+    .browser => BrowserHistory(),
+    _ => HashHistory(),
+  };
+}

@@ -27,8 +27,10 @@
 /// import `package:unrouter/browser.dart`.
 library;
 
-export 'src/history/history.dart';
-export 'src/history/memory.dart';
+export 'src/history/history.dart' hide createHistory;
+export 'src/history/history.dart'
+    if (dart.library.js_interop) 'src/history/browser.dart'
+    show createHistory;
 
 export 'src/widgets/link.dart';
 export 'src/widgets/outlet.dart';
@@ -41,4 +43,3 @@ export 'src/navigation.dart';
 export 'src/route_state.dart';
 export 'src/route_matcher.dart' show MatchedRoute;
 export 'src/router.dart';
-export 'src/url_strategy.dart';
