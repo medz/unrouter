@@ -1,5 +1,10 @@
 ## 0.4.0 (Unreleased)
 
+### Breaking Changes
+
+- `Link.builder` constructor removed. Use `Link(builder: ...)` and provide
+  either `child` or `builder` (not both).
+
 ### Features
 
 - **Navigation guards**: add `guards` and `maxRedirects` to intercept navigation
