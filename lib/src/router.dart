@@ -253,11 +253,11 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
   /// into Flutter's `Router` and sets up a matching [RouteInformationProvider].
   UnrouterDelegate(this.router)
     : currentConfiguration = router.history.location {
-    bool suppressNextPopGuard = false;
     // Listen to history changes (only back/forward/go - popstate events)
     _unlistenHistory = history.listen((event) {
-      if (suppressNextPopGuard) {
-        suppressNextPopGuard = false;
+      _suppressNextSetNewRoutePath = true;
+      if (_suppressNextPopGuard) {
+        _suppressNextPopGuard = false;
         currentConfiguration = event.location;
         _updateMatchedRoutes();
         notifyListeners();
@@ -275,7 +275,7 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
         if (context == null) {
           final delta = event.delta;
           if (delta != null && delta != 0) {
-            suppressNextPopGuard = true;
+            _suppressNextPopGuard = true;
             history.go(-delta);
             return;
           }
@@ -323,6 +323,8 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
   void Function()? _unlistenHistory;
 
   final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
+  bool _suppressNextPopGuard = false;
+  bool _suppressNextSetNewRoutePath = false;
 
   @override
   RouteInformation currentConfiguration;
@@ -385,6 +387,10 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
 
   @override
   Future<void> setNewRoutePath(RouteInformation configuration) async {
+    if (_suppressNextSetNewRoutePath) {
+      _suppressNextSetNewRoutePath = false;
+      return;
+    }
     final completer = Completer<void>();
     final context = GuardContext(
       to: configuration,
