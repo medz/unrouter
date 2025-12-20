@@ -2,7 +2,7 @@ import 'package:flutter/widgets.dart';
 
 import 'navigation.dart';
 import 'router.dart';
-import 'route_animation.dart';
+import '_internal/route_animation.dart';
 import 'route_state.dart';
 
 extension UnrouterBuildContext on BuildContext {

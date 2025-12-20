@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
-import 'package:meta/meta.dart';
 
 const Duration _kDefaultRouteAnimationDuration = Duration(milliseconds: 300);
 
@@ -98,6 +97,7 @@ class RouteAnimationHandle extends ChangeNotifier {
     notifyListeners();
   }
 
+  @override
   void dispose() {
     _controller?.dispose();
     _controller = null;
