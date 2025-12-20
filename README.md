@@ -386,6 +386,7 @@ You can also read fine-grained fields (with narrower rebuild scopes):
 ```dart
 final location = context.location;
 final matched = context.matchedRoutes;
+final params = context.params;
 final level = context.routeLevel;
 final index = context.historyIndex;
 final action = context.historyAction;

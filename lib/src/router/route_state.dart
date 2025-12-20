@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:unrouter/history.dart';
 
 import 'route_matcher.dart';
+import '_internal/route_params.dart';
 
 /// Route state that flows through the widget tree.
 ///
@@ -44,11 +45,7 @@ class RouteState {
   /// If the same param name appears multiple times, deeper (more specific)
   /// routes win.
   Map<String, String> get params {
-    final result = <String, String>{};
-    for (var i = 0; i <= level && i < matchedRoutes.length; i++) {
-      result.addAll(matchedRoutes[i].params);
-    }
-    return result;
+    return resolveParamsForLevel(matchedRoutes, level);
   }
 
   /// Creates a new state with updated level.
