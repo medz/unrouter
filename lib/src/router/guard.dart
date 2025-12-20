@@ -60,8 +60,13 @@ class GuardExecutor {
   ValueGetter<bool>? _hasCompleted;
   VoidCallback? _complete;
 
-  Future<GuardContext?> execute(GuardContext context) {
-    if (guards.isEmpty) return Future.value(context);
+  Future<GuardContext?> execute(
+    GuardContext context, {
+    Iterable<Guard> extraGuards = const [],
+  }) {
+    if (guards.isEmpty && extraGuards.isEmpty) {
+      return Future.value(context);
+    }
     if (_hasCompleted?.call() != true) {
       _complete?.call();
     }
@@ -87,22 +92,50 @@ class GuardExecutor {
       Future.microtask(() async {
         try {
           for (final guard in guards) {
-            if (completed || context.redirectCount >= maxRedirects) {
-              return cancel();
-            }
+            if (completed) return;
             final result = await Future.value(guard(context)).catchError((e) {
               if (e is GuardResult) return e;
               throw e;
             });
-
+            if (completed) return;
             if (result == .cancel) return cancel();
             if (result != .allow) {
-              context = .new(
-                to: .new(uri: result.uri, state: result.state),
+              final nextContext = GuardContext(
+                to: RouteInformation(uri: result.uri, state: result.state),
                 from: context.to,
                 redirectCount: context.redirectCount + 1,
                 replace: result.replace,
               );
+              if (nextContext.redirectCount > maxRedirects) {
+                return cancel();
+              }
+              completed = true;
+              completer.complete(nextContext);
+              return;
+            }
+          }
+
+          for (final guard in extraGuards) {
+            if (completed) return;
+            final result = await Future.value(guard(context)).catchError((e) {
+              if (e is GuardResult) return e;
+              throw e;
+            });
+            if (completed) return;
+            if (result == .cancel) return cancel();
+            if (result != .allow) {
+              final nextContext = GuardContext(
+                to: RouteInformation(uri: result.uri, state: result.state),
+                from: context.to,
+                redirectCount: context.redirectCount + 1,
+                replace: result.replace,
+              );
+              if (nextContext.redirectCount > maxRedirects) {
+                return cancel();
+              }
+              completed = true;
+              completer.complete(nextContext);
+              return;
             }
           }
 

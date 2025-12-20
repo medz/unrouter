@@ -17,6 +17,8 @@
 
 - **Navigation guards**: add `guards` and `maxRedirects` to intercept navigation
   (`allow`, `cancel`, `redirect`) across push/replace/pop and external route updates.
+- **Route-level guards**: allow `Inlet.guards` to run per-route guards from
+  root to leaf after global guards.
 
 ### Testing
 

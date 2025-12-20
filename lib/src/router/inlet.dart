@@ -1,5 +1,7 @@
 import 'package:flutter/widgets.dart';
 
+import 'guard.dart';
+
 /// A route configuration that defines a path pattern and widget factory.
 ///
 /// The semantics are based on [path] and [children]:
@@ -44,12 +46,19 @@ class Inlet {
   /// Factory function that creates the widget for this route.
   final Widget Function() factory;
 
+  /// Guards that run when navigating to this route.
+  ///
+  /// Guards run after global guards and follow the matched route stack
+  /// from root to leaf.
+  final List<Guard> guards;
+
   /// Child routes.
   final List<Inlet> children;
 
   const Inlet({
     this.path = '',
     required this.factory,
+    this.guards = const [],
     this.children = const [],
   });
 
