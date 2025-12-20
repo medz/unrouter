@@ -242,11 +242,10 @@ if (result case NavigationRedirected()) {
 ### Navigation from any widget
 
 ```dart
-final nav = context.navigate;
-nav(.parse('/users/123'));
-nav(.parse('edit'));        // /users/123/edit
-nav(.parse('./edit'));      // /users/123/edit
-nav(.parse('../settings')); // /users/123/settings
+context.navigate(.parse('/users/123'));
+context.navigate(.parse('edit'));        // /users/123/edit
+context.navigate(.parse('./edit'));      // /users/123/edit
+context.navigate(.parse('../settings')); // /users/123/settings
 ```
 
 ### Context extensions
