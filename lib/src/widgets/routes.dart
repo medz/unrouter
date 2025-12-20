@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 
 import '../_internal/path_matcher.dart';
 import '../inlet.dart';
+import '../extensions.dart';
 import '../route_matcher.dart';
 import '../router_state.dart';
 import '../_internal/stacked_route_view.dart';
@@ -42,7 +43,7 @@ class Routes extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Try to get router state - if we're nested in a router
-    final state = RouterStateProvider.maybeOf(context);
+    final state = context.maybeRouterState;
 
     if (state == null) {
       // No router state available - can't match routes

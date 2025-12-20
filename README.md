@@ -242,7 +242,7 @@ if (result case NavigationRedirected()) {
 ### Navigation from any widget
 
 ```dart
-final nav = Navigate.of(context);
+final nav = context.navigate;
 nav(.parse('/users/123'));
 nav(.parse('edit'));        // /users/123/edit
 nav(.parse('./edit'));      // /users/123/edit
@@ -331,7 +331,7 @@ Set `enableNavigator1: false` to keep the Navigator 2.0-only behavior.
 <summary><strong>State and params</strong></summary>
 
 ```dart
-final state = RouterStateProvider.of(context);
+final state = context.routerState;
 final uri = state.location.uri;
 final params = state.params;        // merged params up to this level
 final extra = state.location.state; // history entry state (if any)
@@ -420,10 +420,10 @@ flutter test
 - `Inlet`: route definition (index/layout/leaf/nested)
 - `Outlet`: renders the next matched child route (declarative routes)
 - `Routes`: widget-scoped route matcher
-- `Navigate`: navigation interface (`Navigate.of(context)`)
+- `Navigate`: navigation interface (`context.navigate`)
 - `Navigation`: async result returned by navigation methods
 - `Guard` / `GuardResult`: navigation interception and redirects
-- `RouterStateProvider`: read `RouteInformation` + merged params
+- `RouterStateProvider`: internal provider (read via `context.routerState`)
 - `History` / `MemoryHistory`: injectable history (great for tests)
 - `Link`: declarative navigation widget
 
@@ -447,7 +447,7 @@ flutter run
 <details>
 <summary><strong>Troubleshooting</strong></summary>
 
-- `Navigate.of()` throws: ensure your widget is under an `Unrouter` router
+- `context.navigate` throws: ensure your widget is under an `Unrouter` router
   (either `MaterialApp.router(routerConfig: Unrouter(...))` or `runApp(Unrouter(...))`).
 - `Routes` renders nothing: it must be a descendant of `Unrouter`
   (needs a `RouterStateProvider`).

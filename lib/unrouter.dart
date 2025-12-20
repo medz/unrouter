@@ -6,7 +6,7 @@
 /// - Define a route tree with [Inlet]
 /// - Render nested routes with [Outlet]
 /// - Navigate with browser-like history operations via [Unrouter] or
-///   [Navigate.of]
+///   `context.navigate`
 ///
 /// Basic usage:
 /// ```dart

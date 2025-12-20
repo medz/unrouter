@@ -116,9 +116,6 @@ class Unrouter extends StatelessWidget
   Widget build(BuildContext context) {
     return Router.withConfig(config: this, restorationScopeId: 'unrouter');
   }
-
-  static Unrouter of(BuildContext context) =>
-      (Router.of(context).routerDelegate as UnrouterDelegate).router;
 }
 
 class _InformationProvider extends RouteInformationProvider

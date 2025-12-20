@@ -95,7 +95,7 @@ class RouterState {
 /// You usually don't create this widget yourself; it is inserted by `unrouter`.
 ///
 /// ```dart
-/// final state = RouterStateProvider.of(context);
+/// final state = context.routerState;
 /// final uri = state.location.uri;
 /// final id = state.params['id'];
 /// ```
@@ -108,27 +108,6 @@ class RouterStateProvider extends InheritedWidget {
 
   /// The current router state.
   final RouterState state;
-
-  /// Returns the nearest [RouterState] and registers this build for updates.
-  ///
-  /// Asserts if no provider exists in the widget tree.
-  static RouterState of(BuildContext context) {
-    final provider = context
-        .dependOnInheritedWidgetOfExactType<RouterStateProvider>();
-    assert(
-      provider != null,
-      'No RouterStateProvider found in context. '
-      'Make sure your widget is a descendant of Unrouter.',
-    );
-    return provider!.state;
-  }
-
-  /// Like [of], but returns `null` when no provider exists.
-  static RouterState? maybeOf(BuildContext context) {
-    final provider = context
-        .dependOnInheritedWidgetOfExactType<RouterStateProvider>();
-    return provider?.state;
-  }
 
   @override
   bool updateShouldNotify(RouterStateProvider oldWidget) {

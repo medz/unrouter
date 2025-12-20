@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart';
 
 import '../_internal/stacked_route_view.dart';
-import '../router_state.dart';
+import '../extensions.dart';
 
 /// A widget that renders the next matched child from declarative routes.
 ///
@@ -18,7 +18,7 @@ class Outlet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final state = RouterStateProvider.of(context);
+    final state = context.routerState;
     return StackedRouteView(state: state, levelOffset: 1);
   }
 }

@@ -65,7 +65,7 @@ void main() {
             path: 'about',
             factory: () => Builder(
               builder: (context) {
-                final state = RouterStateProvider.of(context);
+                final state = context.routerState;
                 capturedState = state.location.state;
                 return const AboutPage();
               },

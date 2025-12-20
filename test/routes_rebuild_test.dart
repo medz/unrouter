@@ -135,12 +135,11 @@ void main() {
 
       Widget createDetail() {
         detailBuilds++;
-        final state = RouterStateProvider.of(
-          // We need a way to get context here, so this test is simplified
-          // In real usage, the factory gets called with the widget context
-          // For this test, we'll just count builds
-          tester.element(find.byType(Text).first),
-        );
+        final state =
+            // We need a way to get context here, so this test is simplified
+            // In real usage, the factory gets called with the widget context
+            // For this test, we'll just count builds
+            tester.element(find.byType(Text).first).routerState;
         return Text('Detail ${state.params['id'] ?? ''}');
       }
 

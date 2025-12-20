@@ -336,7 +336,7 @@ class ProductDetailInner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final state = RouterStateProvider.of(context);
+    final state = context.routerState;
     final id = state.params['id'] ?? 'unknown';
     return Text('Product: $id');
   }
@@ -347,7 +347,7 @@ class UserDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final state = RouterStateProvider.of(context);
+    final state = context.routerState;
     final id = state.params['id'] ?? 'unknown';
     return Text('User: $id');
   }
@@ -358,7 +358,7 @@ class PostDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final state = RouterStateProvider.of(context);
+    final state = context.routerState;
     final id = state.params['id'] ?? 'unknown';
     return Text('Post: $id');
   }
@@ -369,7 +369,7 @@ class StaticItemPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final state = RouterStateProvider.of(context);
+    final state = context.routerState;
     final id = state.params['id'] ?? 'unknown';
     return Text('Static Item: $id');
   }
@@ -380,7 +380,7 @@ class DynamicItemPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final state = RouterStateProvider.of(context);
+    final state = context.routerState;
     final id = state.params['id'] ?? 'unknown';
     return Text('Dynamic Item: $id');
   }
@@ -391,7 +391,7 @@ class CategoryPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final state = RouterStateProvider.of(context);
+    final state = context.routerState;
     final name = state.params['name'] ?? 'unknown';
     return Text('Category: $name');
   }
@@ -419,7 +419,7 @@ class ShopProductPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final state = RouterStateProvider.of(context);
+    final state = context.routerState;
     final id = state.params['id'] ?? 'unknown';
     return Text('Shop Product: $id');
   }
@@ -430,7 +430,7 @@ class ShopCategoryPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final state = RouterStateProvider.of(context);
+    final state = context.routerState;
     final name = state.params['name'] ?? 'unknown';
     return Text('Shop Category: $name');
   }
@@ -441,7 +441,7 @@ class AccountPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final state = RouterStateProvider.of(context);
+    final state = context.routerState;
     final section = state.params['section'] ?? 'unknown';
     return Text('Account: $section');
   }
@@ -511,7 +511,7 @@ class NestedFallbackPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final state = RouterStateProvider.of(context);
+    final state = context.routerState;
     // Get the remaining path after 'fallback/'
     final location = state.location.uri.path;
     final remaining = location.replaceFirst(RegExp(r'^/fallback/'), '');

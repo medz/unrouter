@@ -94,7 +94,7 @@ void main() {
       expect(find.text('Home'), findsOneWidget);
     });
 
-    testWidgets('Navigate.of() throws helpful error when no Router', (
+    testWidgets('context.navigate throws helpful error when no Router', (
       tester,
     ) async {
       FlutterError? caughtError;
@@ -106,7 +106,7 @@ void main() {
               return ElevatedButton(
                 onPressed: () {
                   try {
-                    Navigate.of(context);
+                    final _ = context.navigate;
                   } on FlutterError catch (e) {
                     caughtError = e;
                   }
@@ -127,47 +127,48 @@ void main() {
       expect(
         caughtError!.message,
         contains(
-          'Navigate.of() called with a context that does not contain a Router',
+          'context.navigate called with a context that does not contain a Router',
         ),
       );
     });
 
-    testWidgets('Navigate.of() throws helpful error with wrong delegate type', (
-      tester,
-    ) async {
-      FlutterError? caughtError;
+    testWidgets(
+      'context.navigate throws helpful error with wrong delegate type',
+      (tester) async {
+        FlutterError? caughtError;
 
-      await tester.pumpWidget(
-        Directionality(
-          textDirection: TextDirection.ltr,
-          child: Router(
-            routerDelegate: _NonNavigateDelegate(),
-            routeInformationParser: _DummyRouteInformationParser(),
-            routeInformationProvider: PlatformRouteInformationProvider(
-              initialRouteInformation: RouteInformation(uri: Uri.parse('/')),
+        await tester.pumpWidget(
+          Directionality(
+            textDirection: TextDirection.ltr,
+            child: Router(
+              routerDelegate: _NonNavigateDelegate(),
+              routeInformationParser: _DummyRouteInformationParser(),
+              routeInformationProvider: PlatformRouteInformationProvider(
+                initialRouteInformation: RouteInformation(uri: Uri.parse('/')),
+              ),
+              backButtonDispatcher: RootBackButtonDispatcher(),
             ),
-            backButtonDispatcher: RootBackButtonDispatcher(),
           ),
-        ),
-      );
+        );
 
-      await tester.pumpAndSettle();
+        await tester.pumpAndSettle();
 
-      // Get the context from the widget built by the delegate
-      final BuildContext context = tester.element(find.byType(SizedBox));
+        // Get the context from the widget built by the delegate
+        final BuildContext context = tester.element(find.byType(SizedBox));
 
-      try {
-        Navigate.of(context);
-      } on FlutterError catch (e) {
-        caughtError = e;
-      }
+        try {
+          final _ = context.navigate;
+        } on FlutterError catch (e) {
+          caughtError = e;
+        }
 
-      expect(caughtError, isNotNull);
-      expect(
-        caughtError!.message,
-        contains('Router whose delegate does not implement Navigate'),
-      );
-    });
+        expect(caughtError, isNotNull);
+        expect(
+          caughtError!.message,
+          contains('Router whose delegate does not implement Navigate'),
+        );
+      },
+    );
   });
 }
 

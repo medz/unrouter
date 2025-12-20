@@ -206,7 +206,7 @@ void main() {
       Widget createUser() {
         return Builder(
           builder: (context) {
-            final state = RouterStateProvider.of(context);
+            final state = context.routerState;
             final id = state.params['id'] ?? 'unknown';
             return Text('User: $id');
           },
@@ -233,7 +233,7 @@ void main() {
       Widget createUser() {
         return Builder(
           builder: (context) {
-            final state = RouterStateProvider.of(context);
+            final state = context.routerState;
             final id = state.params['id'] ?? 'unknown';
             return Text('User: $id');
           },
@@ -273,7 +273,7 @@ void main() {
       Widget createUserDetail() {
         return Builder(
           builder: (context) {
-            final state = RouterStateProvider.of(context);
+            final state = context.routerState;
             final userId = state.params['userId'] ?? 'unknown';
             return Column(children: [Text('User: $userId'), const Outlet()]);
           },
@@ -283,7 +283,7 @@ void main() {
       Widget createPost() {
         return Builder(
           builder: (context) {
-            final state = RouterStateProvider.of(context);
+            final state = context.routerState;
             final userId = state.params['userId'] ?? 'unknown';
             final postId = state.params['postId'] ?? 'unknown';
             return Text('Post: $postId by User: $userId');

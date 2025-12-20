@@ -63,7 +63,7 @@ class UserDetail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final state = RouterStateProvider.of(context);
+    final state = context.routerState;
     final userId = state.params['id'] ?? '';
     return Text('User Detail: $userId');
   }
@@ -74,7 +74,7 @@ class EditUser extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final state = RouterStateProvider.of(context);
+    final state = context.routerState;
     final userId = state.params['id'] ?? '';
     return Text('Edit User: $userId');
   }
