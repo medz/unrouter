@@ -11,6 +11,7 @@ import 'inlet.dart';
 import 'navigation.dart';
 import 'route_matcher.dart';
 import 'route_state.dart';
+import '_internal/route_state_scope.dart';
 import 'url_strategy.dart';
 
 /// A declarative router configuration for Flutter.
@@ -182,7 +183,7 @@ class _InformationParser extends RouteInformationParser<RouteInformation> {
 /// The delegate:
 /// - Listens to [History] `pop` events and updates [currentConfiguration].
 /// - Matches the current path against declarative [Inlet] routes (if provided).
-/// - Provides [RouteState] to descendants via [RouteStateScope].
+/// - Provides [RouteState] to descendants.
 /// - Renders widget-scoped [child] if declarative routes don't match or if no routes are provided.
 class UnrouterDelegate extends RouterDelegate<RouteInformation>
     with ChangeNotifier

@@ -6,6 +6,7 @@ import 'package:unrouter/history.dart';
 import '../inlet.dart';
 import 'route_animation.dart';
 import '../route_state.dart';
+import 'route_state_scope.dart';
 import 'route_cache_key.dart';
 
 /// Renders a matched route and keeps a stack of pages.

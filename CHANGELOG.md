@@ -21,6 +21,9 @@
   root to leaf after global guards.
 - **Route animations**: add `context.routeAnimation(...)` to access per-route
   animation controllers for push/replace/pop transitions.
+- **Granular route state accessors**: add `context.location`,
+  `context.matchedRoutes`, `context.routeLevel`, `context.historyIndex`,
+  and `context.historyAction` for fine-grained rebuilds.
 
 ### Testing
 

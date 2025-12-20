@@ -5,7 +5,6 @@ import 'route_matcher.dart';
 
 /// Route state that flows through the widget tree.
 ///
-/// `unrouter` provides this state to every routed widget via [RouteStateScope].
 /// It contains the current [RouteInformation], the matched route stack, and the
 /// current rendering [level] for nested routing.
 class RouteState {
@@ -88,25 +87,4 @@ class RouteState {
   @override
   String toString() =>
       'RouteState(location: $location, level: $level, matched: ${matchedRoutes.length})';
-}
-
-/// Provides [RouteState] to the widget tree.
-///
-/// You usually don't create this widget yourself; it is inserted by `unrouter`.
-///
-/// ```dart
-/// final state = context.routeState;
-/// final uri = state.location.uri;
-/// final id = state.params['id'];
-/// ```
-class RouteStateScope extends InheritedWidget {
-  const RouteStateScope({super.key, required this.state, required super.child});
-
-  /// The current route state.
-  final RouteState state;
-
-  @override
-  bool updateShouldNotify(RouteStateScope oldWidget) {
-    return state != oldWidget.state;
-  }
 }

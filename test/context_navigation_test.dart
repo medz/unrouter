@@ -170,6 +170,56 @@ void main() {
         );
       },
     );
+
+    testWidgets('route state accessors expose granular values', (tester) async {
+      final router = Unrouter(
+        routes: [
+          Inlet(
+            path: 'parent',
+            factory: () => Column(
+              children: [
+                const RouteInfoPanel(label: 'layout'),
+                const Outlet(),
+              ],
+            ),
+            children: const [
+              Inlet(factory: RouteInfoPanel.index),
+              Inlet(path: 'child', factory: RouteInfoPanel.child),
+            ],
+          ),
+        ],
+        history: MemoryHistory(),
+      );
+
+      await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+
+      router.navigate(.parse('/parent'));
+      await tester.pumpAndSettle();
+
+      final layoutText = tester.widget<Text>(
+        find.byKey(const ValueKey('route-info-layout')),
+      );
+      final indexText = tester.widget<Text>(
+        find.byKey(const ValueKey('route-info-index')),
+      );
+
+      expect(layoutText.data, contains('path:/parent'));
+      expect(layoutText.data, contains('level:0'));
+      expect(layoutText.data, contains('matched:2'));
+      expect(indexText.data, contains('path:/parent'));
+      expect(indexText.data, contains('level:1'));
+      expect(indexText.data, contains('matched:2'));
+
+      router.navigate(.parse('/parent/child'));
+      await tester.pumpAndSettle();
+
+      final childText = tester.widget<Text>(
+        find.byKey(const ValueKey('route-info-child')),
+      );
+      expect(childText.data, contains('path:/parent/child'));
+      expect(childText.data, contains('level:1'));
+      expect(childText.data, contains('matched:2'));
+    });
   });
 }
 
@@ -280,6 +330,27 @@ class EditUserPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Scaffold(body: Text('Edit User'));
+  }
+}
+
+class RouteInfoPanel extends StatelessWidget {
+  const RouteInfoPanel({super.key, required this.label});
+
+  const RouteInfoPanel.index({super.key}) : label = 'index';
+
+  const RouteInfoPanel.child({super.key}) : label = 'child';
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final summary =
+        '$label|path:${context.location.uri.path}'
+        '|matched:${context.matchedRoutes.length}'
+        '|level:${context.routeLevel}'
+        '|index:${context.historyIndex}'
+        '|action:${context.historyAction}';
+    return Text(summary, key: ValueKey('route-info-$label'));
   }
 }
 
