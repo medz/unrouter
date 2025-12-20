@@ -84,7 +84,6 @@ class GuardExecutor {
           }
           final result = await Future.value(guard(context)).catchError((e) {
             if (e is GuardResult) return e;
-            completed = true;
             cancel();
             throw e;
           });
@@ -100,8 +99,10 @@ class GuardExecutor {
           }
         }
 
-        completed = true;
-        callback(context);
+        if (!completed) {
+          completed = true;
+          callback(context);
+        }
         // dart format off
     }));
     // dart format on

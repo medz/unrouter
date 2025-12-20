@@ -253,20 +253,51 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
   /// into Flutter's `Router` and sets up a matching [RouteInformationProvider].
   UnrouterDelegate(this.router)
     : currentConfiguration = router.history.location {
+    bool suppressNextPopGuard = false;
     // Listen to history changes (only back/forward/go - popstate events)
     _unlistenHistory = history.listen((event) {
+      if (suppressNextPopGuard) {
+        suppressNextPopGuard = false;
+        currentConfiguration = event.location;
+        _updateMatchedRoutes();
+        notifyListeners();
+        return;
+      }
+
+      final previous = currentConfiguration;
       final context = GuardContext(
         to: event.location,
-        from: currentConfiguration,
+        from: previous,
         replace: false,
         redirectCount: 0,
       );
       router.guard.execute(context, (context) {
-        if (context != null) {
-          currentConfiguration = context.to;
+        if (context == null) {
+          final delta = event.delta;
+          if (delta != null && delta != 0) {
+            suppressNextPopGuard = true;
+            history.go(-delta);
+            return;
+          }
+
+          history.replace(previous.uri, previous.state);
+          currentConfiguration = previous;
           _updateMatchedRoutes();
           notifyListeners();
+          return;
         }
+
+        if (context.redirectCount > 0) {
+          if (context.replace || context.to.uri == event.location.uri) {
+            history.replace(context.to.uri, context.to.state);
+          } else {
+            history.push(context.to.uri, context.to.state);
+          }
+        }
+
+        currentConfiguration = context.to;
+        _updateMatchedRoutes();
+        notifyListeners();
       });
     });
 
