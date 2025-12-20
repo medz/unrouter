@@ -323,6 +323,34 @@ You can return a `Future<GuardResult>` for async checks, and configure
 
 </details>
 
+<a id="route-animations"></a>
+<details>
+<summary><strong>Route animations</strong></summary>
+
+`unrouter` provides a per-route `AnimationController` you can use to animate
+incoming/outgoing pages without relying on Navigator 1.0.
+
+```dart
+class ProfilePage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final animation = context.routeAnimation(
+      duration: const Duration(milliseconds: 300),
+    );
+    return FadeTransition(
+      opacity: animation,
+      child: const Text('Profile'),
+    );
+  }
+}
+```
+
+The controller runs forward on push/replace and reverse on pop. Pages that
+don't call `routeAnimation` behave as they do today.
+The default duration is 300ms unless you provide one.
+
+</details>
+
 <a id="navigator-10-compatibility"></a>
 <details>
 <summary><strong>Navigator 1.0 compatibility</strong></summary>

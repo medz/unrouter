@@ -13,6 +13,7 @@ final router = Unrouter(
   routes: const [
     Inlet(factory: Home.new),
     Inlet(path: 'about', factory: About.new),
+    Inlet(path: 'route-animation', factory: RouteAnimationDemo.new),
 
     // Layout route - wraps children without adding path segment
     Inlet(
@@ -31,6 +32,17 @@ final router = Unrouter(
         Inlet(factory: ConcertsHome.new),
         Inlet(path: ':city', factory: CityPage.new),
         Inlet(path: 'trending', factory: TrendingPage.new),
+      ],
+    ),
+
+    // Nested animation demo
+    Inlet(
+      path: 'nested-animation',
+      factory: NestedAnimationLayout.new,
+      children: [
+        Inlet(factory: NestedAnimationIntro.new),
+        Inlet(path: 'details', factory: NestedAnimationDetails.new),
+        Inlet(path: 'reviews', factory: NestedAnimationReviews.new),
       ],
     ),
 
@@ -167,6 +179,28 @@ class Home extends StatelessWidget {
                         ),
                       );
                     },
+                  ),
+                  const SizedBox(height: 32),
+                  const Divider(),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Route Animations',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 16),
+                  _buildNavButton(
+                    context,
+                    'Full Page Transition',
+                    Icons.layers,
+                    Colors.deepPurple,
+                    () => context.navigate(.parse('/route-animation')),
+                  ),
+                  _buildNavButton(
+                    context,
+                    'Nested Transition',
+                    Icons.view_agenda,
+                    Colors.orange,
+                    () => context.navigate(.parse('/nested-animation')),
                   ),
                   const SizedBox(height: 32),
                   const Divider(),
@@ -348,6 +382,288 @@ class About extends StatelessWidget {
               child: const Text('Back to Home'),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class RouteAnimationDemo extends StatelessWidget {
+  const RouteAnimationDemo({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = context.routeAnimation(
+      duration: const Duration(milliseconds: 400),
+    );
+    final animation = CurvedAnimation(
+      parent: controller,
+      curve: Curves.easeOutCubic,
+      reverseCurve: Curves.easeInCubic,
+    );
+    final slide = Tween<Offset>(
+      begin: const Offset(0, 0.08),
+      end: Offset.zero,
+    ).animate(animation);
+
+    return FadeTransition(
+      opacity: animation,
+      child: SlideTransition(
+        position: slide,
+        child: Scaffold(
+          appBar: AppBar(
+            title: const Text('Route Animation'),
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () => context.navigate.back(),
+            ),
+          ),
+          body: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Full-page transition',
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'This page uses context.routeAnimation(...) to animate '
+                  'the entire route on push/pop.',
+                  style: TextStyle(color: Colors.grey.shade700),
+                ),
+                const SizedBox(height: 24),
+                Card(
+                  elevation: 2,
+                  child: ListTile(
+                    leading: const Icon(Icons.auto_awesome, size: 32),
+                    title: const Text('Animation Controller'),
+                    subtitle: Text(
+                      'Duration: ${controller.duration?.inMilliseconds}ms',
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton.icon(
+                  onPressed: () => context.navigate(.parse('/nested-animation')),
+                  icon: const Icon(Icons.view_agenda),
+                  label: const Text('See Nested Animation'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class NestedAnimationLayout extends StatelessWidget {
+  const NestedAnimationLayout({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Nested Animation'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.navigate.back(),
+        ),
+      ),
+      body: Column(
+        children: [
+          Container(
+            color: Colors.orange.shade100,
+            child: Row(
+              children: [
+                _buildTab(context, 'Intro', '/nested-animation'),
+                _buildTab(context, 'Details', '/nested-animation/details'),
+                _buildTab(context, 'Reviews', '/nested-animation/reviews'),
+              ],
+            ),
+          ),
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              color: Colors.orange.shade50,
+              child: const Outlet(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTab(BuildContext context, String label, String path) {
+    final state = context.maybeRouteState;
+    final isActive = state?.location.uri.path == path;
+
+    return Expanded(
+      child: InkWell(
+        onTap: () => context.navigate(.parse(path)),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          decoration: BoxDecoration(
+            border: Border(
+              bottom: BorderSide(
+                color: isActive ? Colors.orange : Colors.transparent,
+                width: 3,
+              ),
+            ),
+          ),
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+              color: isActive ? Colors.orange.shade900 : Colors.black87,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class NestedAnimationIntro extends StatelessWidget {
+  const NestedAnimationIntro({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return _AnimatedPanel(
+      icon: Icons.animation,
+      title: 'Nested transitions',
+      subtitle:
+          'Only this panel animates while the layout header stays in place.',
+      color: Colors.deepOrange,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: const [
+          Text('• Switch tabs to see push/replace/pop transitions.'),
+          SizedBox(height: 8),
+          Text('• The Outlet region animates independently.'),
+        ],
+      ),
+    );
+  }
+}
+
+class NestedAnimationDetails extends StatelessWidget {
+  const NestedAnimationDetails({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return _AnimatedPanel(
+      icon: Icons.settings,
+      title: 'Details',
+      subtitle: 'Route animation can be customized per nested page.',
+      color: Colors.orange.shade700,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: const [
+          Text('• Fade + slide driven by routeAnimation.'),
+          SizedBox(height: 8),
+          Text('• Duration can be tuned per route.'),
+          SizedBox(height: 8),
+          Text('• Works for leaf routes inside layouts.'),
+        ],
+      ),
+    );
+  }
+}
+
+class NestedAnimationReviews extends StatelessWidget {
+  const NestedAnimationReviews({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return _AnimatedPanel(
+      icon: Icons.star,
+      title: 'Reviews',
+      subtitle: 'Animated panel with stacked transitions.',
+      color: Colors.brown,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: const [
+          Text('“Feels like Navigator transitions.”'),
+          SizedBox(height: 8),
+          Text('“Works in nested layouts too.”'),
+          SizedBox(height: 8),
+          Text('“No Navigator 1.0 dependency.”'),
+        ],
+      ),
+    );
+  }
+}
+
+class _AnimatedPanel extends StatelessWidget {
+  const _AnimatedPanel({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.color,
+    required this.child,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Color color;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = context.routeAnimation(
+      duration: const Duration(milliseconds: 260),
+    );
+    final animation = CurvedAnimation(
+      parent: controller,
+      curve: Curves.easeOut,
+      reverseCurve: Curves.easeIn,
+    );
+
+    return FadeTransition(
+      opacity: animation,
+      child: SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(0.08, 0),
+          end: Offset.zero,
+        ).animate(animation),
+        child: Card(
+          elevation: 1,
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    CircleAvatar(
+                      backgroundColor: color,
+                      child: Icon(icon, color: Colors.white),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  subtitle,
+                  style: TextStyle(color: Colors.grey.shade700),
+                ),
+                const SizedBox(height: 16),
+                child,
+              ],
+            ),
+          ),
         ),
       ),
     );

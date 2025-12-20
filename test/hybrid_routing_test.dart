@@ -457,7 +457,7 @@ class DeepWrapper extends StatelessWidget {
     return Column(
       children: [
         const Text('Deep Wrapper Level 1'),
-        Container(child: const DeepWrapperLevel2()),
+        const DeepWrapperLevel2(),
       ],
     );
   }

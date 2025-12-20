@@ -19,6 +19,8 @@
   (`allow`, `cancel`, `redirect`) across push/replace/pop and external route updates.
 - **Route-level guards**: allow `Inlet.guards` to run per-route guards from
   root to leaf after global guards.
+- **Route animations**: add `context.routeAnimation(...)` to access per-route
+  animation controllers for push/replace/pop transitions.
 
 ### Testing
 
