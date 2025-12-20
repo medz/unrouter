@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 
 import 'navigation.dart';
 import 'router.dart';
+import 'route_animation.dart';
 import 'route_state.dart';
 
 extension UnrouterBuildContext on BuildContext {
@@ -63,4 +64,37 @@ extension UnrouterBuildContext on BuildContext {
 
   RouteState? get maybeRouteState =>
       dependOnInheritedWidgetOfExactType<RouteStateScope>()?.state;
+
+  AnimationController routeAnimation({
+    double? value,
+    Duration? duration,
+    Duration? reverseDuration,
+    String? debugLabel,
+    double lowerBound = 0.0,
+    double upperBound = 1.0,
+    AnimationBehavior animationBehavior = AnimationBehavior.normal,
+  }) {
+    final scope = RouteAnimationScope.maybeOf(this);
+    if (scope == null) {
+      throw FlutterError(
+        'context.routeAnimation called with a context that does not contain a RouteAnimationScope.\n'
+        'No RouteAnimationScope ancestor could be found starting from the context that was passed to context.routeAnimation.\n'
+        'The context used was:\n'
+        '  $this',
+      );
+    }
+
+    return scope.handle.ensureController(
+      RouteAnimationConfig(
+        defaultValue: scope.isActive ? 1.0 : 0.0,
+        value: value,
+        duration: duration,
+        reverseDuration: reverseDuration,
+        debugLabel: debugLabel,
+        lowerBound: lowerBound,
+        upperBound: upperBound,
+        animationBehavior: animationBehavior,
+      ),
+    );
+  }
 }
