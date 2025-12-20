@@ -1,4 +1,6 @@
-## 0.4.0 (Unreleased)
+## 0.4.1 (Unreleased)
+
+## 0.4.0 (2025-12-20)
 
 ### Breaking Changes
 
