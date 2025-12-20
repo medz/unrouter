@@ -156,7 +156,7 @@ class Home extends StatelessWidget {
                               Icon(Icons.shopping_bag, color: Colors.white),
                               SizedBox(width: 8),
                               Text(
-                                'Products (Link.builder)',
+                                'Products (Link builder)',
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 16,

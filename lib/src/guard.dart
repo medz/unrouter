@@ -60,52 +60,62 @@ class GuardExecutor {
   ValueGetter<bool>? _hasCompleted;
   VoidCallback? _complete;
 
-  void execute(GuardContext context, ValueSetter<GuardContext?> callback) {
-    if (guards.isEmpty) return callback(context);
+  Future<GuardContext?> execute(GuardContext context) {
+    if (guards.isEmpty) return Future.value(context);
     if (_hasCompleted?.call() != true) {
       _complete?.call();
     }
 
+    final completer = Completer<GuardContext?>();
     bool completed = false;
     void cancel() {
       if (completed) return;
       completed = true;
-      callback(null);
+      completer.complete(null);
+    }
+
+    void fail(Object error, StackTrace stackTrace) {
+      if (completed) return;
+      completed = true;
+      completer.completeError(error, stackTrace);
     }
 
     _complete = cancel;
     _hasCompleted = () => completed;
 
-    // dart format off
-    unawaited(Future.microtask(() async {
-        // dart format on
-        for (final guard in guards) {
-          if (completed || context.redirectCount >= maxRedirects) {
-            return cancel();
-          }
-          final result = await Future.value(guard(context)).catchError((e) {
-            if (e is GuardResult) return e;
-            cancel();
-            throw e;
-          });
+    unawaited(
+      Future.microtask(() async {
+        try {
+          for (final guard in guards) {
+            if (completed || context.redirectCount >= maxRedirects) {
+              return cancel();
+            }
+            final result = await Future.value(guard(context)).catchError((e) {
+              if (e is GuardResult) return e;
+              throw e;
+            });
 
-          if (result == .cancel) return cancel();
-          if (result != .allow) {
-            context = .new(
-              to: .new(uri: result.uri, state: result.state),
-              from: context.to,
-              redirectCount: context.redirectCount + 1,
-              replace: result.replace,
-            );
+            if (result == .cancel) return cancel();
+            if (result != .allow) {
+              context = .new(
+                to: .new(uri: result.uri, state: result.state),
+                from: context.to,
+                redirectCount: context.redirectCount + 1,
+                replace: result.replace,
+              );
+            }
           }
-        }
 
-        if (!completed) {
-          completed = true;
-          callback(context);
+          if (!completed) {
+            completed = true;
+            completer.complete(context);
+          }
+        } catch (error, stackTrace) {
+          fail(error, stackTrace);
         }
-        // dart format off
-    }));
-    // dart format on
+      }),
+    );
+
+    return completer.future;
   }
 }

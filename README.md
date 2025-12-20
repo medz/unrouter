@@ -38,6 +38,7 @@ All sections below are collapsible. Expand the chapters you need.
 - Nested routes + layouts (`Outlet` for declarative routes, `Routes` for widget-scoped)
 - URL patterns: static, params (`:id`), optionals (`?`), wildcard (`*`)
 - Browser-style navigation: push/replace/back/forward/go
+- Async navigation results via `Navigation` (awaitable)
 - Navigation guards with allow/cancel/redirect
 - Navigator 1.0 compatibility for overlays and imperative APIs (`enableNavigator1`, default `true`)
 - Web URL strategies: `UrlStrategy.browser` and `UrlStrategy.hash`
@@ -226,6 +227,18 @@ router.navigate.forward();
 router.navigate.go(-1);
 ```
 
+### Navigation results
+
+All navigation methods return `Future<Navigation>`. You can ignore the result
+or await it when you need to know what happened.
+
+```dart
+final result = await router.navigate(.parse('/about'));
+if (result case NavigationRedirected()) {
+  // handle redirects
+}
+```
+
 ### Navigation from any widget
 
 ```dart
@@ -408,6 +421,7 @@ flutter test
 - `Outlet`: renders the next matched child route (declarative routes)
 - `Routes`: widget-scoped route matcher
 - `Navigate`: navigation interface (`Navigate.of(context)`)
+- `Navigation`: async result returned by navigation methods
 - `Guard` / `GuardResult`: navigation interception and redirects
 - `RouterStateProvider`: read `RouteInformation` + merged params
 - `History` / `MemoryHistory`: injectable history (great for tests)
