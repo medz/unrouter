@@ -28,9 +28,6 @@
 library;
 
 export 'src/history/history.dart' hide createHistory;
-export 'src/history/history.dart'
-    if (dart.library.js_interop) 'src/history/browser.dart'
-    show createHistory;
 
 export 'src/widgets/link.dart';
 export 'src/widgets/outlet.dart';

@@ -11,6 +11,7 @@
   Use `context.routeState` / `context.maybeRouteState` to read the state.
 - Removed `Navigate.of`, `Unrouter.of`, and `RouteStateScope.of/maybeOf`.
   Use `context.navigate`, `context.router`, and `context.routeState` instead.
+- `createHistory` is no longer exported; pass a `History` instance explicitly.
 
 ### Features
 
