@@ -368,7 +368,9 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
       }
 
       currentConfiguration = context.to;
-      if (!context.replace) {
+      if (context.replace) {
+        history.replace(context.to.uri, context.to.state);
+      } else {
         history.push(context.to.uri, context.to.state);
       }
 

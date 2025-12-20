@@ -22,7 +22,7 @@ class GuardResult {
   final Object? state;
   final bool replace;
 
-  const GuardResult.redirect(this.uri, {this.state, this.replace = false});
+  const GuardResult.redirect(this.uri, {this.state, this.replace = true});
 
   static const GuardResult allow = _GuardResultAllow();
   static const GuardResult cancel = _GuardResultCancel();
@@ -67,6 +67,7 @@ class GuardExecutor {
 
     bool completed = false;
     void cancel() {
+      if (completed) return;
       completed = true;
       callback(null);
     }
@@ -78,7 +79,7 @@ class GuardExecutor {
     unawaited(Future.microtask(() async {
         // dart format on
         for (final guard in guards) {
-          if (completed || context.redirectCount > maxRedirects) {
+          if (completed || context.redirectCount >= maxRedirects) {
             return cancel();
           }
           final result = await Future.value(guard(context)).catchError((e) {
@@ -94,7 +95,7 @@ class GuardExecutor {
               to: .new(uri: result.uri, state: result.state),
               from: context.to,
               redirectCount: context.redirectCount + 1,
-              replace: context.replace,
+              replace: result.replace,
             );
           }
         }
