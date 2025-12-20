@@ -25,6 +25,12 @@
 - Prefer focused unit tests and cover navigation/history edge cases.
 - Run a single test file with `flutter test test/navigation_test.dart`.
 
+## Documentation & Changelog Requirements
+- When the user confirms a fix or feature is complete, add an entry to the next unreleased version in `CHANGELOG.md`.
+- Any feature development must update the relevant documentation (`README.md`, `example/`, or other docs as applicable).
+- If reworking an existing feature, refresh its docs to match the new behavior.
+- If the work happens in an unreleased version, ensure the changelog entry is updated alongside the doc changes.
+
 ## Commit & Pull Request Guidelines
 - Commit messages are short, imperative, sentence case (e.g., “Add Link widget for declarative navigation (#9)”, “Bump version to 0.2.0”).
 - PRs should include a concise description, rationale, and testing notes; keep diffs focused.
