@@ -9,8 +9,7 @@ import '../extensions.dart';
 /// to render their children.
 ///
 /// It keeps child widgets stacked so their state is preserved across
-/// navigation. `Outlet` must be a descendant of `Unrouter` (it relies on
-/// [RouteStateScope]).
+/// navigation. `Outlet` must be a descendant of `Unrouter`.
 ///
 /// For widget-scoped routing, use the [Routes] widget instead.
 class Outlet extends StatelessWidget {

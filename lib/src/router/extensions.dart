@@ -1,8 +1,12 @@
 import 'package:flutter/widgets.dart';
 
+import 'package:unrouter/history.dart';
+
 import 'navigation.dart';
 import 'router.dart';
 import '_internal/route_animation.dart';
+import '_internal/route_state_scope.dart';
+import 'route_matcher.dart';
 import 'route_state.dart';
 
 extension UnrouterBuildContext on BuildContext {
@@ -53,7 +57,7 @@ extension UnrouterBuildContext on BuildContext {
   }
 
   RouteState get routeState {
-    final provider = dependOnInheritedWidgetOfExactType<RouteStateScope>();
+    final provider = RouteStateScope.maybeOfAll(this);
     assert(
       provider != null,
       'No RouteStateScope found in context. '
@@ -62,8 +66,72 @@ extension UnrouterBuildContext on BuildContext {
     return provider!.state;
   }
 
-  RouteState? get maybeRouteState =>
-      dependOnInheritedWidgetOfExactType<RouteStateScope>()?.state;
+  RouteState? get maybeRouteState => RouteStateScope.maybeOfAll(this)?.state;
+
+  RouteInformation get location {
+    final provider = RouteStateScope.maybeOf(
+      this,
+      aspect: RouteStateAspect.location,
+    );
+    assert(
+      provider != null,
+      'No RouteStateScope found in context. '
+      'Make sure your widget is a descendant of Unrouter.',
+    );
+    return provider!.location;
+  }
+
+  List<MatchedRoute> get matchedRoutes {
+    final provider = RouteStateScope.maybeOf(
+      this,
+      aspect: RouteStateAspect.matchedRoutes,
+    );
+    assert(
+      provider != null,
+      'No RouteStateScope found in context. '
+      'Make sure your widget is a descendant of Unrouter.',
+    );
+    return provider!.matchedRoutes;
+  }
+
+  int get routeLevel {
+    final provider = RouteStateScope.maybeOf(
+      this,
+      aspect: RouteStateAspect.level,
+    );
+    assert(
+      provider != null,
+      'No RouteStateScope found in context. '
+      'Make sure your widget is a descendant of Unrouter.',
+    );
+    return provider!.level;
+  }
+
+  int get historyIndex {
+    final provider = RouteStateScope.maybeOf(
+      this,
+      aspect: RouteStateAspect.historyIndex,
+    );
+    assert(
+      provider != null,
+      'No RouteStateScope found in context. '
+      'Make sure your widget is a descendant of Unrouter.',
+    );
+    return provider!.historyIndex;
+  }
+
+  HistoryAction get historyAction {
+    final provider = RouteStateScope.maybeOf(
+      this,
+      aspect: RouteStateAspect.action,
+    );
+    assert(
+      provider != null,
+      'No RouteStateScope found in context. '
+      'Make sure your widget is a descendant of Unrouter.',
+    );
+    return provider!.action;
+  }
 
   AnimationController routeAnimation({
     double? value,
