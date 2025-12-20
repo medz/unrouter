@@ -395,7 +395,7 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
 
     router.guard.execute(context, (context) {
       if (context == null) {
-        return completer.completeError('Guard failed');
+        return completer.complete();
       }
 
       currentConfiguration = context.to;
