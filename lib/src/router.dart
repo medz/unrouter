@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/widgets.dart';
 
 import '_internal/create_history.memory.dart'
     if (dart.library.js_interop) '_internal/create_history.browser.dart';
 import '_internal/stacked_route_view.dart';
+import 'guard.dart';
 import 'history/history.dart';
 import 'inlet.dart';
 import 'route_matcher.dart';
@@ -107,12 +110,15 @@ class Unrouter extends StatelessWidget
     this.strategy = .hash,
     this.enableNavigator1 = true,
     History? history,
+    Iterable<Guard> guards = const [],
+    int maxRedirects = 10,
   }) : assert(
          routes != null || child != null,
          'Either routes or child must be provided',
        ),
        history = history ?? createHistory(strategy),
-       backButtonDispatcher = RootBackButtonDispatcher();
+       backButtonDispatcher = RootBackButtonDispatcher(),
+       guard = GuardExecutor(guards, maxRedirects);
 
   /// Declarative routes for centralized route configuration.
   ///
@@ -139,6 +145,8 @@ class Unrouter extends StatelessWidget
   /// When set to `false`, the router renders its content directly, matching
   /// the previous (Navigator 2.0-only) behavior.
   final bool enableNavigator1;
+
+  final GuardExecutor guard;
 
   @override
   /// Handles system back button integration.
@@ -247,9 +255,50 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
     : currentConfiguration = router.history.location {
     // Listen to history changes (only back/forward/go - popstate events)
     _unlistenHistory = history.listen((event) {
-      currentConfiguration = event.location;
-      _updateMatchedRoutes();
-      notifyListeners();
+      _suppressNextSetNewRoutePath = true;
+      if (_suppressNextPopGuard) {
+        _suppressNextPopGuard = false;
+        currentConfiguration = event.location;
+        _updateMatchedRoutes();
+        notifyListeners();
+        return;
+      }
+
+      final previous = currentConfiguration;
+      final context = GuardContext(
+        to: event.location,
+        from: previous,
+        replace: false,
+        redirectCount: 0,
+      );
+      router.guard.execute(context, (context) {
+        if (context == null) {
+          final delta = event.delta;
+          if (delta != null && delta != 0) {
+            _suppressNextPopGuard = true;
+            history.go(-delta);
+            return;
+          }
+
+          history.replace(previous.uri, previous.state);
+          currentConfiguration = previous;
+          _updateMatchedRoutes();
+          notifyListeners();
+          return;
+        }
+
+        if (context.redirectCount > 0) {
+          if (context.replace || context.to.uri == event.location.uri) {
+            history.replace(context.to.uri, context.to.state);
+          } else {
+            history.push(context.to.uri, context.to.state);
+          }
+        }
+
+        currentConfiguration = context.to;
+        _updateMatchedRoutes();
+        notifyListeners();
+      });
     });
 
     // Initialize matched routes
@@ -274,6 +323,8 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
   void Function()? _unlistenHistory;
 
   final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
+  bool _suppressNextPopGuard = false;
+  bool _suppressNextSetNewRoutePath = false;
 
   @override
   RouteInformation currentConfiguration;
@@ -336,17 +387,36 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
 
   @override
   Future<void> setNewRoutePath(RouteInformation configuration) async {
-    currentConfiguration = configuration;
-
-    // Update history if needed
-    final newUri = configuration.uri;
-    final currentUri = history.location.uri;
-    if (newUri != currentUri) {
-      history.push(newUri, configuration.state);
+    if (_suppressNextSetNewRoutePath) {
+      _suppressNextSetNewRoutePath = false;
+      return;
     }
+    final completer = Completer<void>();
+    final context = GuardContext(
+      to: configuration,
+      from: currentConfiguration,
+      replace: configuration.uri == history.location.uri,
+      redirectCount: 0,
+    );
 
-    _updateMatchedRoutes();
-    notifyListeners();
+    router.guard.execute(context, (context) {
+      if (context == null) {
+        return completer.complete();
+      }
+
+      currentConfiguration = context.to;
+      if (context.replace) {
+        history.replace(context.to.uri, context.to.state);
+      } else {
+        history.push(context.to.uri, context.to.state);
+      }
+
+      _updateMatchedRoutes();
+      notifyListeners();
+      completer.complete();
+    });
+
+    return completer.future;
   }
 
   @override
@@ -358,9 +428,7 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
     return Navigator(
       key: _navigatorKey,
       pages: [const _UnrouterPage(key: ValueKey<String>('unrouter-root'))],
-      onDidRemovePage: (_) {
-        // Root page is not expected to be removed; keep as a no-op.
-      },
+      onDidRemovePage: (_) {},
     );
   }
 
@@ -417,17 +485,25 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
 
   @override
   void call(Uri uri, {Object? state, bool replace = false}) {
-    final resolvedUri = resolveUri(uri);
-    if (replace) {
-      history.replace(resolvedUri, state);
-    } else {
-      history.push(resolvedUri, state);
-    }
+    final context = GuardContext(
+      to: .new(uri: resolveUri(uri), state: state),
+      from: currentConfiguration,
+      replace: replace,
+      redirectCount: 0,
+    );
+    router.guard.execute(context, (context) {
+      if (context == null) return;
 
-    currentConfiguration = RouteInformation(uri: resolveUri(uri), state: state);
+      currentConfiguration = context.to;
+      if (context.replace) {
+        history.replace(context.to.uri, context.to.state);
+      } else {
+        history.push(context.to.uri, context.to.state);
+      }
 
-    _updateMatchedRoutes();
-    notifyListeners();
+      _updateMatchedRoutes();
+      notifyListeners();
+    });
   }
 
   @override

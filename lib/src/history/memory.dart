@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flutter/widgets.dart';
 
 import '_utils.dart';
@@ -115,6 +113,5 @@ class MemoryHistory extends History {
 }
 
 extension on MemoryHistory {
-  int clampIndex(int value) =>
-      math.min(math.max(value, 0), _entries.length - 1);
+  int clampIndex(int value) => value.clamp(0, _entries.length - 1);
 }
