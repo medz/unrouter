@@ -7,8 +7,10 @@
 - `Navigate` methods now return `Future<Navigation>`; await when you need to
   know whether navigation succeeded, redirected, or was cancelled.
 - `UnrouterNavigationContext` extension renamed to `UnrouterBuildContext`.
-- Removed `Navigate.of`, `Unrouter.of`, and `RouterStateProvider.of/maybeOf`.
-  Use `context.navigate`, `context.router`, and `context.routerState` instead.
+- `RouterState` renamed to `RouteState`, and `RouterStateProvider` to `RouteStateScope`.
+  Use `context.routeState` / `context.maybeRouteState` to read the state.
+- Removed `Navigate.of`, `Unrouter.of`, and `RouteStateScope.of/maybeOf`.
+  Use `context.navigate`, `context.router`, and `context.routeState` instead.
 
 ### Features
 

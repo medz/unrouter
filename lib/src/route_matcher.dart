@@ -5,7 +5,7 @@ import 'inlet.dart';
 ///
 /// [params] contains only the parameters captured by this route's own
 /// [Inlet.path]. To get merged params for the currently-rendering widget, use
-/// `RouterState.params`.
+/// `RouteState.params`.
 class MatchedRoute {
   const MatchedRoute(this.route, this.params);
 

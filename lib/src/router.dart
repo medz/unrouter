@@ -10,7 +10,7 @@ import 'history/history.dart';
 import 'inlet.dart';
 import 'navigation.dart';
 import 'route_matcher.dart';
-import 'router_state.dart';
+import 'route_state.dart';
 import 'url_strategy.dart';
 
 /// A declarative router configuration for Flutter.
@@ -182,7 +182,7 @@ class _InformationParser extends RouteInformationParser<RouteInformation> {
 /// The delegate:
 /// - Listens to [History] `pop` events and updates [currentConfiguration].
 /// - Matches the current path against declarative [Inlet] routes (if provided).
-/// - Provides [RouterState] to descendants via [RouterStateProvider].
+/// - Provides [RouteState] to descendants via [RouteStateScope].
 /// - Renders widget-scoped [child] if declarative routes don't match or if no routes are provided.
 class UnrouterDelegate extends RouterDelegate<RouteInformation>
     with ChangeNotifier
@@ -420,7 +420,7 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
   Widget _buildContent() {
     // If we have matched routes, render them
     if (_matchedRoutes.isNotEmpty) {
-      final state = RouterState(
+      final state = RouteState(
         location: currentConfiguration,
         matchedRoutes: _matchedRoutes,
         level: 0,
@@ -432,14 +432,14 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
 
     // If no match but we have a child, render it with router state
     if (child != null) {
-      final state = RouterState(
+      final state = RouteState(
         location: currentConfiguration,
         matchedRoutes: const [],
         level: 0,
         historyIndex: history.index,
         action: history.action,
       );
-      return RouterStateProvider(state: state, child: child!);
+      return RouteStateScope(state: state, child: child!);
     }
 
     // No routes and no child - render empty

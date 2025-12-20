@@ -612,7 +612,7 @@ class ConcertsLayout extends StatelessWidget {
   }
 
   Widget _buildTab(BuildContext context, String label, String path) {
-    final state = context.maybeRouterState;
+    final state = context.maybeRouteState;
     final isActive = state?.location.uri.path == path;
 
     return Expanded(
@@ -712,7 +712,7 @@ class CityPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final state = context.routerState;
+    final state = context.routeState;
     final city = state.params['city'] ?? 'Unknown';
     final displayCity = city
         .replaceAll('-', ' ')
@@ -907,7 +907,7 @@ class ProductDetail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final state = context.routerState;
+    final state = context.routeState;
     final productId = state.params['id'] ?? 'unknown';
 
     final products = {

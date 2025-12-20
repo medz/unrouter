@@ -2,7 +2,7 @@ import 'package:flutter/widgets.dart';
 
 import 'navigation.dart';
 import 'router.dart';
-import 'router_state.dart';
+import 'route_state.dart';
 
 extension UnrouterBuildContext on BuildContext {
   Navigate get navigate {
@@ -51,16 +51,16 @@ extension UnrouterBuildContext on BuildContext {
     return delegate.router;
   }
 
-  RouterState get routerState {
-    final provider = dependOnInheritedWidgetOfExactType<RouterStateProvider>();
+  RouteState get routeState {
+    final provider = dependOnInheritedWidgetOfExactType<RouteStateScope>();
     assert(
       provider != null,
-      'No RouterStateProvider found in context. '
+      'No RouteStateScope found in context. '
       'Make sure your widget is a descendant of Unrouter.',
     );
     return provider!.state;
   }
 
-  RouterState? get maybeRouterState =>
-      dependOnInheritedWidgetOfExactType<RouterStateProvider>()?.state;
+  RouteState? get maybeRouteState =>
+      dependOnInheritedWidgetOfExactType<RouteStateScope>()?.state;
 }

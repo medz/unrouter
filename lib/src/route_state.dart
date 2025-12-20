@@ -3,13 +3,13 @@ import 'package:flutter/widgets.dart';
 import 'route_matcher.dart';
 import 'history/history.dart';
 
-/// Router state that flows through the widget tree.
+/// Route state that flows through the widget tree.
 ///
-/// `unrouter` provides this state to every routed widget via [RouterStateProvider].
+/// `unrouter` provides this state to every routed widget via [RouteStateScope].
 /// It contains the current [RouteInformation], the matched route stack, and the
 /// current rendering [level] for nested routing.
-class RouterState {
-  const RouterState({
+class RouteState {
+  const RouteState({
     required this.location,
     required this.matchedRoutes,
     required this.level,
@@ -53,8 +53,8 @@ class RouterState {
   }
 
   /// Creates a new state with updated level.
-  RouterState withLevel(int newLevel) {
-    return RouterState(
+  RouteState withLevel(int newLevel) {
+    return RouteState(
       location: location,
       matchedRoutes: matchedRoutes,
       level: newLevel,
@@ -66,7 +66,7 @@ class RouterState {
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    return other is RouterState &&
+    return other is RouteState &&
         other.location.uri == location.uri &&
         other.level == level &&
         _listEquals(other.matchedRoutes, matchedRoutes);
@@ -87,30 +87,26 @@ class RouterState {
 
   @override
   String toString() =>
-      'RouterState(location: $location, level: $level, matched: ${matchedRoutes.length})';
+      'RouteState(location: $location, level: $level, matched: ${matchedRoutes.length})';
 }
 
-/// Provides [RouterState] to the widget tree.
+/// Provides [RouteState] to the widget tree.
 ///
 /// You usually don't create this widget yourself; it is inserted by `unrouter`.
 ///
 /// ```dart
-/// final state = context.routerState;
+/// final state = context.routeState;
 /// final uri = state.location.uri;
 /// final id = state.params['id'];
 /// ```
-class RouterStateProvider extends InheritedWidget {
-  const RouterStateProvider({
-    super.key,
-    required this.state,
-    required super.child,
-  });
+class RouteStateScope extends InheritedWidget {
+  const RouteStateScope({super.key, required this.state, required super.child});
 
-  /// The current router state.
-  final RouterState state;
+  /// The current route state.
+  final RouteState state;
 
   @override
-  bool updateShouldNotify(RouterStateProvider oldWidget) {
+  bool updateShouldNotify(RouteStateScope oldWidget) {
     return state != oldWidget.state;
   }
 }

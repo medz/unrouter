@@ -65,7 +65,7 @@ abstract interface class Navigate {
   ///   navigation).
   ///
   /// The optional [state] is stored on the history entry and can be read via
-  /// [RouteInformation.state] (see [RouterState.location]).
+  /// [RouteInformation.state] (see [RouteState.location]).
   ///
   /// If [replace] is `true`, the current history entry is replaced instead of
   /// pushing a new one.

@@ -131,7 +131,7 @@ class ProductDetail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final state = context.routerState;
+    final state = context.routeState;
     final id = state.params['id'] ?? 'unknown';
     return Text('Product Detail: $id');
   }
@@ -158,7 +158,7 @@ class CategoryPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final state = context.routerState;
+    final state = context.routeState;
     final name = state.params['name'] ?? 'unknown';
     return Text('Category: $name');
   }

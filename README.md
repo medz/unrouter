@@ -330,13 +330,13 @@ Set `enableNavigator1: false` to keep the Navigator 2.0-only behavior.
 <summary><strong>State and params</strong></summary>
 
 ```dart
-final state = context.routerState;
+final state = context.routeState;
 final uri = state.location.uri;
 final params = state.params;        // merged params up to this level
 final extra = state.location.state; // history entry state (if any)
 ```
 
-`RouterState.action` tells you whether the current navigation was a push,
+`RouteState.action` tells you whether the current navigation was a push,
 replace, or pop, and `historyIndex` can be used to reason about stacked pages.
 
 </details>
@@ -422,7 +422,7 @@ flutter test
 - `Navigate`: navigation interface (`context.navigate`)
 - `Navigation`: async result returned by navigation methods
 - `Guard` / `GuardResult`: navigation interception and redirects
-- `RouterStateProvider`: internal provider (read via `context.routerState`)
+- `RouteStateScope`: internal provider (read via `context.routeState`)
 - `History` / `MemoryHistory`: injectable history (great for tests)
 - `Link`: declarative navigation widget
 
@@ -449,7 +449,7 @@ flutter run
 - `context.navigate` throws: ensure your widget is under an `Unrouter` router
   (either `MaterialApp.router(routerConfig: Unrouter(...))` or `runApp(Unrouter(...))`).
 - `Routes` renders nothing: it must be a descendant of `Unrouter`
-  (needs a `RouterStateProvider`).
+  (needs a `RouteStateScope`).
 - `showDialog` not working: keep `enableNavigator1: true` (default).
 - Web 404 on refresh: use `strategy: .hash` or configure server rewrites.
 

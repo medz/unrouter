@@ -4,7 +4,7 @@ import '../_internal/path_matcher.dart';
 import '../inlet.dart';
 import '../extensions.dart';
 import '../route_matcher.dart';
-import '../router_state.dart';
+import '../route_state.dart';
 import '../_internal/stacked_route_view.dart';
 
 /// A widget that matches and renders routes based on the current location.
@@ -43,7 +43,7 @@ class Routes extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Try to get router state - if we're nested in a router
-    final state = context.maybeRouterState;
+    final state = context.maybeRouteState;
 
     if (state == null) {
       // No router state available - can't match routes
@@ -102,7 +102,7 @@ class Routes extends StatelessWidget {
     }
 
     // Create a new router state with the matched routes
-    final newState = RouterState(
+    final newState = RouteState(
       location: state.location,
       matchedRoutes: result.matches,
       level: 0,

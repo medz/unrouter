@@ -2,7 +2,7 @@ import 'package:flutter/widgets.dart';
 
 import '../history/history.dart';
 import '../inlet.dart';
-import '../router_state.dart';
+import '../route_state.dart';
 import 'route_cache_key.dart';
 
 /// Renders a matched route and keeps a stack of pages.
@@ -19,7 +19,7 @@ class StackedRouteView extends Widget {
     required this.levelOffset,
   });
 
-  final RouterState state;
+  final RouteState state;
   final int levelOffset;
 
   @override
@@ -71,7 +71,7 @@ class _StackedRouteViewElement extends ComponentElement {
         (action == HistoryAction.replace && pageEntry?.route != matched.route);
 
     if (pageEntry == null || shouldRecreate) {
-      final widget = RouterStateProvider(
+      final widget = RouteStateScope(
         state: nextState,
         child: KeyedSubtree(key: UniqueKey(), child: matched.route.factory()),
       );
@@ -89,9 +89,9 @@ class _StackedRouteViewElement extends ComponentElement {
       final existing = pageEntry;
       pageEntry = _PageEntry(
         route: existing.route,
-        widget: RouterStateProvider(
+        widget: RouteStateScope(
           state: nextState,
-          child: (existing.widget as RouterStateProvider).child,
+          child: (existing.widget as RouteStateScope).child,
         ),
         state: nextState,
       );
@@ -127,5 +127,5 @@ class _PageEntry {
 
   final Inlet route;
   final Widget widget;
-  final RouterState state;
+  final RouteState state;
 }

@@ -196,7 +196,7 @@ class ProductDetail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final state = context.routerState;
+    final state = context.routeState;
     final id = state.params['id'] ?? '0';
     return Text('Product: $id');
   }

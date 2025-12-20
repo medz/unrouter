@@ -139,7 +139,7 @@ void main() {
             // We need a way to get context here, so this test is simplified
             // In real usage, the factory gets called with the widget context
             // For this test, we'll just count builds
-            tester.element(find.byType(Text).first).routerState;
+            tester.element(find.byType(Text).first).routeState;
         return Text('Detail ${state.params['id'] ?? ''}');
       }
 

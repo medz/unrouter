@@ -65,7 +65,7 @@ void main() {
             path: 'about',
             factory: () => Builder(
               builder: (context) {
-                final state = context.routerState;
+                final state = context.routeState;
                 capturedState = state.location.state;
                 return const AboutPage();
               },

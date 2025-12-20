@@ -71,7 +71,7 @@ class Link extends StatelessWidget {
 
   /// Optional state to associate with the navigation.
   ///
-  /// This can be any object and will be available via [RouterState.location].
+  /// This can be any object and will be available via [RouteState.location].
   final Object? state;
 
   /// The widget to display for the link.
