@@ -345,7 +345,7 @@ Link(
 Custom link with builder:
 
 ```dart
-Link.builder(
+Link(
   to: Uri.parse('/products/1'),
   state: {'source': 'home'},
   builder: (context, location, navigate) {

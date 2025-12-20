@@ -2,7 +2,7 @@ import 'package:flutter/widgets.dart';
 
 import '../navigation.dart';
 
-/// Signature for the builder callback used by [Link.builder].
+/// Signature for the builder callback used by `Link(builder: ...)`.
 ///
 /// The [location] parameter provides the target route information.
 /// The [navigate] callback can be called to trigger navigation with optional overrides.
@@ -27,9 +27,9 @@ typedef LinkBuilder =
 /// )
 /// ```
 ///
-/// For more control, use [Link.builder]:
+/// For more control, use `builder`:
 /// ```dart
-/// Link.builder(
+/// Link(
 ///   to: Uri.parse('/products/1'),
 ///   state: {'source': 'homepage'},
 ///   builder: (context, location, navigate) {
@@ -49,27 +49,15 @@ class Link extends StatelessWidget {
   const Link({
     super.key,
     required this.to,
-    required this.child,
+    this.child,
+    this.builder,
     this.replace = false,
     this.state,
-  }) : builder = null;
-
-  /// Creates a link with a custom builder.
-  ///
-  /// The [builder] callback receives:
-  /// - [context]: The build context
-  /// - [location]: A [RouteInformation] containing [to] and [state]
-  /// - [navigate]: A function to trigger navigation with optional overrides
-  ///
-  /// This constructor gives you full control over the widget structure and
-  /// gesture handling.
-  const Link.builder({
-    super.key,
-    required this.to,
-    required LinkBuilder this.builder,
-    this.replace = false,
-    this.state,
-  }) : child = null;
+  }) : assert(child != null || builder != null, 'Provide a child or builder.'),
+       assert(
+         child == null || builder == null,
+         'Provide either child or builder, not both.',
+       );
 
   /// The target URI to navigate to.
   final Uri to;
@@ -86,12 +74,12 @@ class Link extends StatelessWidget {
 
   /// The widget to display for the link.
   ///
-  /// Only used when creating a [Link] with the default constructor.
+  /// Only used when [builder] is null.
   final Widget? child;
 
   /// The builder function for custom link rendering.
   ///
-  /// Only used when creating a [Link.builder].
+  /// Only used when [child] is null.
   final LinkBuilder? builder;
 
   @override

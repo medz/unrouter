@@ -85,7 +85,7 @@ void main() {
       expect(capturedState, equals({'source': 'home'}));
     });
 
-    testWidgets('Link.builder provides location and navigate callback', (
+    testWidgets('Link builder provides location and navigate callback', (
       tester,
     ) async {
       final router = Unrouter(
@@ -109,7 +109,7 @@ void main() {
       expect(find.text('Target Page'), findsOneWidget);
     });
 
-    testWidgets('Link.builder navigate callback supports overrides', (
+    testWidgets('Link builder navigate callback supports overrides', (
       tester,
     ) async {
       final router = Unrouter(
@@ -256,7 +256,7 @@ class BuilderTestPage extends StatelessWidget {
       body: Column(
         children: [
           const Text('Builder Test'),
-          Link.builder(
+          Link(
             to: Uri.parse('/target'),
             state: 'test-state',
             builder: (context, location, navigate) {
@@ -287,7 +287,7 @@ class OverrideTestPage extends StatelessWidget {
       body: Column(
         children: [
           const Text('Override Test'),
-          Link.builder(
+          Link(
             to: Uri.parse('/page1'),
             builder: (context, location, navigate) {
               return GestureDetector(
@@ -311,7 +311,7 @@ class Page1 extends StatelessWidget {
       body: Column(
         children: [
           const Text('Page 1'),
-          Link.builder(
+          Link(
             to: Uri.parse('/page2'),
             replace: false,
             builder: (context, location, navigate) {
