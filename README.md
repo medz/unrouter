@@ -16,6 +16,7 @@ All sections below are collapsible. Expand the chapters you need.
 - [Layouts and nested routing](#layouts-and-nested-routing)
 - [Route patterns and matching](#route-patterns-and-matching)
 - [Navigation and history](#navigation-and-history)
+- [Navigation guards](#navigation-guards)
 - [Navigator 1.0 compatibility](#navigator-10-compatibility)
 - [State and params](#state-and-params)
 - [Link widget](#link-widget)
@@ -37,6 +38,7 @@ All sections below are collapsible. Expand the chapters you need.
 - Nested routes + layouts (`Outlet` for declarative routes, `Routes` for widget-scoped)
 - URL patterns: static, params (`:id`), optionals (`?`), wildcard (`*`)
 - Browser-style navigation: push/replace/back/forward/go
+- Navigation guards with allow/cancel/redirect
 - Navigator 1.0 compatibility for overlays and imperative APIs (`enableNavigator1`, default `true`)
 - Web URL strategies: `UrlStrategy.browser` and `UrlStrategy.hash`
 - Relative navigation with dot segment normalization (`./`, `../`)
@@ -260,6 +262,38 @@ context.navigate(withQuery);
 
 </details>
 
+<a id="navigation-guards"></a>
+<details>
+<summary><strong>Navigation guards</strong></summary>
+
+Guards let you intercept navigation and decide whether to allow, cancel, or
+redirect.
+
+```dart
+final router = Unrouter(
+  routes: const [Inlet(factory: HomePage.new)],
+  guards: [
+    (context) {
+      if (!auth.isSignedIn) {
+        return GuardResult.redirect(Uri.parse('/login'));
+      }
+      return GuardResult.allow;
+    },
+  ],
+);
+```
+
+Guards receive a `GuardContext`:
+- `to`: target `RouteInformation`
+- `from`: previous `RouteInformation`
+- `replace`: whether the navigation is a replace
+- `redirectCount`: number of redirects so far
+
+You can return a `Future<GuardResult>` for async checks, and configure
+`maxRedirects` to prevent redirect loops.
+
+</details>
+
 <a id="navigator-10-compatibility"></a>
 <details>
 <summary><strong>Navigator 1.0 compatibility</strong></summary>
@@ -374,6 +408,7 @@ flutter test
 - `Outlet`: renders the next matched child route (declarative routes)
 - `Routes`: widget-scoped route matcher
 - `Navigate`: navigation interface (`Navigate.of(context)`)
+- `Guard` / `GuardResult`: navigation interception and redirects
 - `RouterStateProvider`: read `RouteInformation` + merged params
 - `History` / `MemoryHistory`: injectable history (great for tests)
 - `Link`: declarative navigation widget

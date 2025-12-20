@@ -1,3 +1,15 @@
+## 0.4.0 (Unreleased)
+
+### Features
+
+- **Navigation guards**: add `guards` and `maxRedirects` to intercept navigation
+  (`allow`, `cancel`, `redirect`) across push/replace/pop and external route updates.
+
+### Testing
+
+- Added guard tests for async guards, error handling, short-circuiting, setNewRoutePath,
+  pop redirects, and null-delta pop events.
+
 ## 0.3.0
 
 ### Features
