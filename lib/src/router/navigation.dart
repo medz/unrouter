@@ -1,6 +1,5 @@
 import 'package:flutter/widgets.dart';
-
-import 'history/history.dart';
+import 'package:unrouter/history.dart';
 
 @immutable
 sealed class Navigation {

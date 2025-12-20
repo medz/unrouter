@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
+import 'package:unrouter/history.dart';
 
-import '../history/history.dart';
 import '../inlet.dart';
 import '../route_state.dart';
 import 'route_cache_key.dart';

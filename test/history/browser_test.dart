@@ -2,7 +2,7 @@
 library;
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:unrouter/browser.dart';
+import 'package:unrouter/history/browser.dart';
 
 import 'fixture.dart';
 

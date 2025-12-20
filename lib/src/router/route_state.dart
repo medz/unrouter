@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart';
+import 'package:unrouter/history.dart';
 
 import 'route_matcher.dart';
-import 'history/history.dart';
 
 /// Route state that flows through the widget tree.
 ///

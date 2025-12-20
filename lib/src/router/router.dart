@@ -1,17 +1,17 @@
 import 'dart:async';
 
 import 'package:flutter/widgets.dart';
+import 'package:unrouter/history.dart';
 
-import 'history/history.dart' hide createHistory;
-import 'history/history.dart'
-    if (dart.library.js_interop) 'history/browser.dart'
-    show createHistory;
+import '_internal/create_history.memory.dart'
+    if (dart.library.js_interop) '_internal/create_history.browser.dart';
 import '_internal/stacked_route_view.dart';
 import 'guard.dart';
 import 'inlet.dart';
 import 'navigation.dart';
 import 'route_matcher.dart';
 import 'route_state.dart';
+import 'url_strategy.dart';
 
 /// A declarative router configuration for Flutter.
 ///

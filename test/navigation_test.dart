@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:unrouter/history.dart';
 import 'package:unrouter/unrouter.dart';
 
 void main() {

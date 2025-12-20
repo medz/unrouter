@@ -210,25 +210,3 @@ class MemoryHistory extends History {
 extension on MemoryHistory {
   int clampIndex(int value) => value.clamp(0, _entries.length - 1);
 }
-
-/// How URLs should be represented on the web.
-///
-/// - [UrlStrategy.browser] produces path-based URLs like `/about`.
-/// - [UrlStrategy.hash] produces hash-based URLs like `/#/about`.
-///
-/// Use this via `Unrouter(strategy: ...)`.
-enum UrlStrategy {
-  /// Path-based URLs (uses the browser's `pathname` / `search` / `hash`).
-  browser,
-
-  /// Hash-based URLs (stores the route inside `location.hash`).
-  ///
-  /// This strategy typically works without server-side rewrites.
-  hash,
-}
-
-/// Creates the default [History] implementation for non-web platforms.
-///
-/// On the web, `Unrouter` uses the `createHistory` from `history/browser.dart`
-/// (via conditional import) to honor the selected [UrlStrategy].
-History createHistory(UrlStrategy strategy) => MemoryHistory();
