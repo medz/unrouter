@@ -83,13 +83,9 @@ class _StackedRouteViewElement extends ComponentElement
   Ticker createTicker(TickerCallback onTick) {
     _updateTickerModeNotifier();
     late final _RouteTicker ticker;
-    ticker = _RouteTicker(
-      onTick,
-      () {
-        _tickers.remove(ticker);
-      },
-      debugLabel: 'StackedRouteView',
-    );
+    ticker = _RouteTicker(onTick, () {
+      _tickers.remove(ticker);
+    }, debugLabel: 'StackedRouteView');
     _tickers.add(ticker);
     ticker.muted = !(_tickerModeNotifier?.value ?? true);
     return ticker;
@@ -194,7 +190,8 @@ class _StackedRouteViewElement extends ComponentElement
 
     _ensureKeyOrder(cacheKey);
 
-    final hasTransition = previousKey != null &&
+    final hasTransition =
+        previousKey != null &&
         outgoingKey != null &&
         outgoingKey != cacheKey &&
         (action == HistoryAction.push ||
@@ -263,7 +260,8 @@ class _StackedRouteViewElement extends ComponentElement
             animation: controller,
             child: content,
             builder: (context, child) {
-              final visible = isActive ||
+              final visible =
+                  isActive ||
                   controller.value > controller.lowerBound ||
                   controller.isAnimating;
               return Offstage(offstage: !visible, child: child);

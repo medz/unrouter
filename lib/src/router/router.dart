@@ -228,10 +228,7 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
       }
 
       router.guard
-          .execute(
-            guardContext,
-            extraGuards: _resolveRouteGuards(requested),
-          )
+          .execute(guardContext, extraGuards: _resolveRouteGuards(requested))
           .then((context) {
             if (context == null) {
               handleCancel();
@@ -362,9 +359,7 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
     if (routeList == null) return const [];
     final result = matchRoutes(routeList, routeInformation.uri.path);
     if (result.matches.isEmpty) return const [];
-    return [
-      for (final match in result.matches) ...match.route.guards,
-    ];
+    return [for (final match in result.matches) ...match.route.guards];
   }
 
   /// Update matched routes based on current location.
