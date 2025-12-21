@@ -1,4 +1,10 @@
-## 0.4.1 (Unreleased)
+## 0.5.0 (2025-12-21)
+
+### Features
+
+- **Route blockers**: add `RouteBlocker` to intercept back/pop navigation with
+  level-aware blocking and optional `onBlocked` callbacks (supports widget-scoped
+  `Routes`).
 
 ## 0.4.0 (2025-12-20)
 

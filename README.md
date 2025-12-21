@@ -17,6 +17,7 @@ All sections below are collapsible. Expand the chapters you need.
 - [Route patterns and matching](#route-patterns-and-matching)
 - [Navigation and history](#navigation-and-history)
 - [Navigation guards](#navigation-guards)
+- [Route blockers](#route-blockers)
 - [Navigator 1.0 compatibility](#navigator-10-compatibility)
 - [State and params](#state-and-params)
 - [Link widget](#link-widget)
@@ -40,6 +41,7 @@ All sections below are collapsible. Expand the chapters you need.
 - Browser-style navigation: push/replace/back/forward/go
 - Async navigation results via `Navigation` (awaitable)
 - Navigation guards with allow/cancel/redirect
+- Route blockers for back/pop confirmation
 - Navigator 1.0 compatibility for overlays and imperative APIs (`enableNavigator1`, default `true`)
 - Web URL strategies: `UrlStrategy.browser` and `UrlStrategy.hash`
 - Relative navigation with dot segment normalization (`./`, `../`)
@@ -320,6 +322,54 @@ Guards receive a `GuardContext`:
 
 You can return a `Future<GuardResult>` for async checks, and configure
 `maxRedirects` to prevent redirect loops.
+
+</details>
+
+<a id="route-blockers"></a>
+<details>
+<summary><strong>Route blockers</strong></summary>
+
+Route blockers intercept back/pop navigation (history `go(-1)` / `back`) and
+let you confirm before leaving the current route. They run from child to parent.
+
+```dart
+class SettingsPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return RouteBlocker(
+      onWillPop: (ctx) async {
+        final result = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Discard changes?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text('Discard'),
+              ),
+            ],
+          ),
+        );
+        return result == true;
+      },
+      onBlocked: (ctx) {
+        // Optional: record analytics or show a toast.
+      },
+      child: const SettingsForm(),
+    );
+  }
+}
+```
+
+Notes:
+- Blockers only apply to history back/pop (`navigate.back()` / `navigate.go(-1)`).
+- `navigate.go(0)` also triggers blockers.
+- `forward` does not trigger blockers.
+- `Navigator.pop` is still handled by Flutter's `WillPopScope/PopScope`.
 
 </details>
 

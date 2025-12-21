@@ -1,5 +1,11 @@
 export 'src/router/guard.dart';
 export 'src/router/inlet.dart';
+export 'src/router/blocker.dart'
+    show
+        RouteBlocker,
+        RouteBlockerContext,
+        RouteBlockerCallback,
+        RouteBlockedCallback;
 export 'src/router/extensions.dart';
 export 'src/router/navigation.dart';
 export 'src/router/route_state.dart';

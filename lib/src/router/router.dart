@@ -1,11 +1,13 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:unrouter/history.dart';
 
 import '_internal/create_history.memory.dart'
     if (dart.library.js_interop) '_internal/create_history.browser.dart';
 import '_internal/stacked_route_view.dart';
+import 'blocker.dart';
 import 'guard.dart';
 import 'inlet.dart';
 import 'navigation.dart';
@@ -207,31 +209,48 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
 
       final previous = currentConfiguration;
       final requested = event.location;
+      final delta = event.delta;
+
+      const blocked = Object();
+      final allowFuture =
+          event.action == HistoryAction.pop &&
+              (delta == null || delta <= 0) &&
+              _blockers.hasEntries
+          ? _blockers.shouldAllowPop(
+              from: previous,
+              to: requested,
+              action: event.action,
+              delta: delta,
+            )
+          : SynchronousFuture(true);
+
       final guardContext = GuardContext(
         to: requested,
         from: previous,
         replace: false,
         redirectCount: 0,
       );
-      void handleCancel() {
-        final delta = event.delta;
-        if (delta != null && delta != 0) {
-          _suppressNextPopGuard = true;
-          history.go(-delta);
-          return;
-        }
-
-        history.replace(previous.uri, previous.state);
-        currentConfiguration = previous;
-        _updateMatchedRoutes();
-        notifyListeners();
-      }
-
-      router.guard
-          .execute(guardContext, extraGuards: _resolveRouteGuards(requested))
-          .then((context) {
+      allowFuture
+          .then<Object?>((allow) {
+            if (!allow) {
+              _handlePopCancel(previous, delta);
+              _completeNextPop(
+                NavigationCancelled(from: previous, requested: requested),
+              );
+              return blocked;
+            }
+            return router.guard.execute(
+              guardContext,
+              extraGuards: _resolveRouteGuards(requested),
+            );
+          })
+          .then((resolved) {
+            if (identical(resolved, blocked)) {
+              return;
+            }
+            final context = resolved as GuardContext?;
             if (context == null) {
-              handleCancel();
+              _handlePopCancel(previous, delta);
               _completeNextPop(
                 NavigationCancelled(from: previous, requested: requested),
               );
@@ -253,7 +272,7 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
             _updateMatchedRoutes();
             notifyListeners();
 
-            final result = context.redirectCount > 0
+            final navigationResult = context.redirectCount > 0
                 ? NavigationRedirected(
                     from: previous,
                     requested: requested,
@@ -268,10 +287,10 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
                     action: action,
                     redirectCount: context.redirectCount,
                   );
-            _completeNextPop(result);
+            _completeNextPop(navigationResult);
           })
           .catchError((error, stackTrace) {
-            handleCancel();
+            _handlePopCancel(previous, delta);
             _completeNextPop(
               NavigationFailed(
                 from: previous,
@@ -308,6 +327,7 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
   bool _suppressNextPopGuard = false;
   bool _suppressNextSetNewRoutePath = false;
   final List<Completer<Navigation>> _pendingPopResults = [];
+  final BlockerRegistry _blockers = BlockerRegistry();
 
   @override
   RouteInformation currentConfiguration;
@@ -384,6 +404,19 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
     }
   }
 
+  void _handlePopCancel(RouteInformation previous, int? delta) {
+    if (delta != null && delta != 0) {
+      _suppressNextPopGuard = true;
+      history.go(-delta);
+      return;
+    }
+
+    history.replace(previous.uri, previous.state);
+    currentConfiguration = previous;
+    _updateMatchedRoutes();
+    notifyListeners();
+  }
+
   @override
   Future<void> setNewRoutePath(RouteInformation configuration) async {
     if (_suppressNextSetNewRoutePath) {
@@ -430,6 +463,7 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
   }
 
   Widget _buildContent() {
+    final rootScope = createRootBlockerScope(routes);
     // If we have matched routes, render them
     if (_matchedRoutes.isNotEmpty) {
       final state = RouteState(
@@ -439,7 +473,11 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
         historyIndex: history.index,
         action: history.action,
       );
-      return StackedRouteView(state: state, levelOffset: 0);
+      return BlockerScope(
+        registry: _blockers,
+        scope: rootScope,
+        child: StackedRouteView(state: state, levelOffset: 0),
+      );
     }
 
     // If no match but we have a child, render it with router state
@@ -451,7 +489,11 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
         historyIndex: history.index,
         action: history.action,
       );
-      return RouteStateScope(state: state, child: child!);
+      return BlockerScope(
+        registry: _blockers,
+        scope: rootScope,
+        child: RouteStateScope(state: state, child: child!),
+      );
     }
 
     // No routes and no child - render empty

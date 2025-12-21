@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 
-import '../_internal/path_matcher.dart';
+import '../_internal/routes_matcher.dart';
+import '../blocker.dart';
 import '../inlet.dart';
 import '../extensions.dart';
 import '../route_matcher.dart';
@@ -50,52 +51,14 @@ class Routes extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    // Get the full path from the location
-    final fullPath = state.location.uri.path;
-
-    // Determine which part of the path to match against
-    String pathToMatch;
-
-    if (state.matchedRoutes.isEmpty) {
-      // No pre-matched routes - we're starting from scratch
-      // Match against the full path
-      pathToMatch = fullPath;
-    } else {
-      // We have pre-matched routes - need to figure out which segments are left
-      // This happens when Routes is nested inside matched routes
-      final segments = normalizePath(fullPath);
-      final pathSegments = segments.isEmpty ? <String>[] : segments.split('/');
-
-      int consumedSegments = 0;
-      for (int i = 0; i <= state.level && i < state.matchedRoutes.length; i++) {
-        final route = state.matchedRoutes[i].route;
-        if (route.path.isNotEmpty) {
-          final match = matchPath(
-            route.path,
-            pathSegments.sublist(consumedSegments),
-          );
-          if (match.matched) {
-            final consumed =
-                pathSegments.sublist(consumedSegments).length -
-                match.remaining.length;
-            consumedSegments += consumed;
-          }
-        }
-      }
-
-      // Build path from remaining segments
-      final remainingSegments = consumedSegments < pathSegments.length
-          ? pathSegments.sublist(consumedSegments)
-          : <String>[];
-      pathToMatch = remainingSegments.isEmpty
-          ? '/'
-          : '/${remainingSegments.join('/')}';
-    }
+    final pathToMatch = state.matchedRoutes.isEmpty
+        ? state.location.uri.path
+        : resolveRoutesPath(state.location, state.matchedRoutes, state.level);
 
     // Match routes against the determined path
     // For dynamic routes, we want to allow partial matches
     // so that nested Routes widgets can continue matching
-    final result = _matchRoutesGreedy(routes, pathToMatch);
+    final result = matchRoutesGreedy(routes, pathToMatch);
 
     if (result.matches.isEmpty) {
       return const SizedBox.shrink();
@@ -110,77 +73,31 @@ class Routes extends StatelessWidget {
       action: state.action,
     );
 
-    return StackedRouteView(state: newState, levelOffset: 0);
-  }
+    final parentScope = BlockerScope.maybeOf(context);
+    final scopeData = parentScope?.scope.createRoutesScope(
+      routes: routes,
+      anchorLevel: state.level,
+      anchorPrefix: _sliceMatchedRoutes(state.matchedRoutes, state.level),
+    );
 
-  /// Match routes with greedy matching - allows partial matches for dynamic nesting.
-  ///
-  /// Unlike standard matchRoutes which requires all path segments to be consumed,
-  /// this allows matching a route even if there are remaining segments, enabling
-  /// nested Routes widgets to continue matching.
-  RouteMatchResult _matchRoutesGreedy(List<Inlet> routes, String location) {
-    final segments = normalizePath(location);
-    final pathSegments = segments.isEmpty ? <String>[] : segments.split('/');
-
-    // Try to find the longest match
-    List<MatchedRoute>? bestMatch;
-
-    for (final route in routes) {
-      if (route.path.isEmpty && route.children.isEmpty) {
-        // Index route - only matches root
-        if (pathSegments.isEmpty) {
-          return RouteMatchResult([MatchedRoute(route, const {})], true);
-        }
-      } else if (route.path.isEmpty && route.children.isNotEmpty) {
-        // Layout route - try children
-        final childResult = _matchRoutesGreedy(route.children, location);
-        if (childResult.matches.isNotEmpty) {
-          return RouteMatchResult([
-            MatchedRoute(route, const {}),
-            ...childResult.matches,
-          ], childResult.matched);
-        }
-      } else {
-        // Path route - try to match
-        final match = matchPath(route.path, pathSegments);
-        if (match.matched) {
-          final matched = [MatchedRoute(route, match.params)];
-
-          // Check if we have children and remaining path
-          if (route.children.isNotEmpty && match.remaining.isNotEmpty) {
-            // Try to match children with remaining path
-            final remainingPath = match.remaining.join('/');
-            final childResult = _matchRoutesGreedy(
-              route.children,
-              remainingPath,
-            );
-            if (childResult.matches.isNotEmpty) {
-              return RouteMatchResult([
-                ...matched,
-                ...childResult.matches,
-              ], childResult.matched);
-            }
-          }
-
-          // For dynamic nesting: accept partial match even if segments remain
-          // The matched route might contain nested Routes widgets
-          if (bestMatch == null || matched.length > bestMatch.length) {
-            bestMatch = matched;
-          }
-
-          // If this is a complete match (no remaining segments), return immediately
-          if (match.remaining.isEmpty) {
-            return RouteMatchResult(matched, true);
-          }
-        }
-      }
+    final content = StackedRouteView(state: newState, levelOffset: 0);
+    if (parentScope == null || scopeData == null) {
+      return content;
     }
 
-    // Return best partial match if found
-    if (bestMatch != null) {
-      return RouteMatchResult(bestMatch, false);
-    }
-
-    return const RouteMatchResult([], false);
+    return BlockerScope(
+      registry: parentScope.registry,
+      scope: scopeData,
+      child: content,
+    );
   }
+}
+
+List<MatchedRoute> _sliceMatchedRoutes(
+  List<MatchedRoute> matchedRoutes,
+  int level,
+) {
+  if (matchedRoutes.isEmpty) return const [];
+  final end = (level + 1).clamp(0, matchedRoutes.length);
+  return matchedRoutes.sublist(0, end);
 }

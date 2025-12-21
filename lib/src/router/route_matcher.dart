@@ -75,6 +75,18 @@ _MatchResult _matchRecursive(
             childResult.consumedSegments,
           );
         }
+        if (childResult.matches.isNotEmpty) {
+          final partialMatch = _MatchResult(
+            [MatchedRoute(route, const {}), ...childResult.matches],
+            false,
+            childResult.consumedSegments,
+          );
+          if (bestPartialMatch == null ||
+              partialMatch.consumedSegments >
+                  bestPartialMatch.consumedSegments) {
+            bestPartialMatch = partialMatch;
+          }
+        }
       }
     } else if (route.path.isEmpty) {
       // Index route - matches when no segments left
@@ -128,6 +140,29 @@ _MatchResult _matchRecursive(
                 true,
                 consumedCount + childResult.consumedSegments,
               );
+            }
+            if (childResult.matches.isNotEmpty) {
+              final partialMatch = _MatchResult(
+                [MatchedRoute(route, match.params), ...childResult.matches],
+                false,
+                consumedCount + childResult.consumedSegments,
+              );
+              if (bestPartialMatch == null ||
+                  partialMatch.consumedSegments >
+                      bestPartialMatch.consumedSegments) {
+                bestPartialMatch = partialMatch;
+              }
+            } else if (match.remaining.isNotEmpty) {
+              final partialMatch = _MatchResult(
+                [MatchedRoute(route, match.params)],
+                false,
+                consumedCount,
+              );
+              if (bestPartialMatch == null ||
+                  partialMatch.consumedSegments >
+                      bestPartialMatch.consumedSegments) {
+                bestPartialMatch = partialMatch;
+              }
             }
           }
         }
