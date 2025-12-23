@@ -10,6 +10,8 @@ A Flutter router that gives you routing flexibility: define routes centrally, sc
 
 ## Documentation
 
+<video src="assets/video.mp4" width="560" height="315"></video>
+
 All sections below are collapsible. Expand the chapters you need.
 
 - [Features](#features)
