@@ -1,9 +1,7 @@
 <p align="center">
   <img src="assets/brand.svg" width="120" alt="unrouter" />
-  <h1>Unrouter</h1>
+  <h1 align="center">Unrouter</h1>
 </p>
-
----
 
 [![pub](https://img.shields.io/pub/v/unrouter.svg)](https://pub.dev/packages/unrouter)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
