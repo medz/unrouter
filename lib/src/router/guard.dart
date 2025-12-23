@@ -92,58 +92,18 @@ class GuardExecutor {
     unawaited(
       Future.microtask(() async {
         try {
-          for (final guard in guards) {
-            if (completed) return;
-            final result = await Future.value(guard(context)).catchError((e) {
-              if (e is GuardResult) return e;
-              throw e;
-            });
-            if (completed) return;
-            if (result == .cancel) return cancel();
-            if (result != .allow) {
-              final nextContext = GuardContext(
-                to: RouteInformation(uri: result.uri, state: result.state),
-                from: context.to,
-                redirectCount: context.redirectCount + 1,
-                replace: result.replace,
-              );
-              if (nextContext.redirectCount > maxRedirects) {
-                return cancel();
-              }
-              completed = true;
-              completer.complete(nextContext);
-              return;
-            }
+          final result = await _executeGuardChain(
+            [...guards, ...extraGuards],
+            context,
+            () => completed,
+          );
+          if (completed) return;
+          if (result == null) {
+            cancel();
+            return;
           }
-
-          for (final guard in extraGuards) {
-            if (completed) return;
-            final result = await Future.value(guard(context)).catchError((e) {
-              if (e is GuardResult) return e;
-              throw e;
-            });
-            if (completed) return;
-            if (result == .cancel) return cancel();
-            if (result != .allow) {
-              final nextContext = GuardContext(
-                to: RouteInformation(uri: result.uri, state: result.state),
-                from: context.to,
-                redirectCount: context.redirectCount + 1,
-                replace: result.replace,
-              );
-              if (nextContext.redirectCount > maxRedirects) {
-                return cancel();
-              }
-              completed = true;
-              completer.complete(nextContext);
-              return;
-            }
-          }
-
-          if (!completed) {
-            completed = true;
-            completer.complete(context);
-          }
+          completed = true;
+          completer.complete(result);
         } catch (error, stackTrace) {
           fail(error, stackTrace);
         }
@@ -151,5 +111,34 @@ class GuardExecutor {
     );
 
     return completer.future;
+  }
+
+  Future<GuardContext?> _executeGuardChain(
+    Iterable<Guard> guards,
+    GuardContext context,
+    bool Function() isCompleted,
+  ) async {
+    for (final guard in guards) {
+      if (isCompleted()) return null;
+      final result = await Future.value(guard(context)).catchError((e) {
+        if (e is GuardResult) return e;
+        throw e;
+      });
+      if (isCompleted()) return null;
+      if (result == .cancel) return null;
+      if (result != .allow) {
+        final nextContext = GuardContext(
+          to: RouteInformation(uri: result.uri, state: result.state),
+          from: context.to,
+          redirectCount: context.redirectCount + 1,
+          replace: result.replace,
+        );
+        if (nextContext.redirectCount > maxRedirects) {
+          return null;
+        }
+        return nextContext;
+      }
+    }
+    return context;
   }
 }

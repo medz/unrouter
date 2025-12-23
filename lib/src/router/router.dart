@@ -197,110 +197,7 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
   UnrouterDelegate(this.router)
     : currentConfiguration = router.history.location {
     // Listen to history changes (only back/forward/go - popstate events)
-    _unlistenHistory = history.listen((event) {
-      _suppressNextSetNewRoutePath = true;
-      if (_suppressNextPopGuard) {
-        _suppressNextPopGuard = false;
-        currentConfiguration = event.location;
-        _updateMatchedRoutes();
-        notifyListeners();
-        return;
-      }
-
-      final previous = currentConfiguration;
-      final requested = event.location;
-      final delta = event.delta;
-
-      const blocked = Object();
-      final allowFuture =
-          event.action == HistoryAction.pop &&
-              (delta == null || delta <= 0) &&
-              _blockers.hasEntries
-          ? _blockers.shouldAllowPop(
-              from: previous,
-              to: requested,
-              action: event.action,
-              delta: delta,
-            )
-          : SynchronousFuture(true);
-
-      final guardContext = GuardContext(
-        to: requested,
-        from: previous,
-        replace: false,
-        redirectCount: 0,
-      );
-      allowFuture
-          .then<Object?>((allow) {
-            if (!allow) {
-              _handlePopCancel(previous, delta);
-              _completeNextPop(
-                NavigationCancelled(from: previous, requested: requested),
-              );
-              return blocked;
-            }
-            return router.guard.execute(
-              guardContext,
-              extraGuards: _resolveRouteGuards(requested),
-            );
-          })
-          .then((resolved) {
-            if (identical(resolved, blocked)) {
-              return;
-            }
-            final context = resolved as GuardContext?;
-            if (context == null) {
-              _handlePopCancel(previous, delta);
-              _completeNextPop(
-                NavigationCancelled(from: previous, requested: requested),
-              );
-              return;
-            }
-
-            var action = HistoryAction.pop;
-            if (context.redirectCount > 0) {
-              if (context.replace || context.to.uri == requested.uri) {
-                history.replace(context.to.uri, context.to.state);
-                action = HistoryAction.replace;
-              } else {
-                history.push(context.to.uri, context.to.state);
-                action = HistoryAction.push;
-              }
-            }
-
-            currentConfiguration = context.to;
-            _updateMatchedRoutes();
-            notifyListeners();
-
-            final navigationResult = context.redirectCount > 0
-                ? NavigationRedirected(
-                    from: previous,
-                    requested: requested,
-                    to: context.to,
-                    action: action,
-                    redirectCount: context.redirectCount,
-                  )
-                : NavigationSuccess(
-                    from: previous,
-                    requested: requested,
-                    to: context.to,
-                    action: action,
-                    redirectCount: context.redirectCount,
-                  );
-            _completeNextPop(navigationResult);
-          })
-          .catchError((error, stackTrace) {
-            _handlePopCancel(previous, delta);
-            _completeNextPop(
-              NavigationFailed(
-                from: previous,
-                requested: requested,
-                error: error,
-                stackTrace: stackTrace,
-              ),
-            );
-          });
-    });
+    _unlistenHistory = history.listen(_handleHistoryEvent);
 
     // Initialize matched routes
     _updateMatchedRoutes();
@@ -331,6 +228,148 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
 
   @override
   RouteInformation currentConfiguration;
+
+  void _handleHistoryEvent(HistoryEvent event) {
+    _suppressNextSetNewRoutePath = true;
+    if (_suppressNextPopGuard) {
+      _handleSuppressedPopGuard(event);
+      return;
+    }
+
+    final previous = currentConfiguration;
+    final requested = event.location;
+    final delta = event.delta;
+
+    const blocked = Object();
+    final allowFuture =
+        _shouldCheckBlockers(event, delta)
+            ? _blockers.shouldAllowPop(
+                from: previous,
+                to: requested,
+                action: event.action,
+                delta: delta,
+              )
+            : SynchronousFuture(true);
+
+    final guardContext = GuardContext(
+      to: requested,
+      from: previous,
+      replace: false,
+      redirectCount: 0,
+    );
+    allowFuture
+        .then<Object?>((allow) {
+          if (!allow) {
+            _handleNavigationCancelled(previous, requested, delta);
+            return blocked;
+          }
+          return router.guard.execute(
+            guardContext,
+            extraGuards: _resolveRouteGuards(requested),
+          );
+        })
+        .then((resolved) {
+          if (identical(resolved, blocked)) {
+            return;
+          }
+          final context = resolved as GuardContext?;
+          if (context == null) {
+            _handleNavigationCancelled(previous, requested, delta);
+            return;
+          }
+
+          _applyNavigationResult(previous, requested, context);
+        })
+        .catchError((error, stackTrace) {
+          _handleNavigationError(
+            previous,
+            requested,
+            delta,
+            error,
+            stackTrace,
+          );
+        });
+  }
+
+  void _handleSuppressedPopGuard(HistoryEvent event) {
+    _suppressNextPopGuard = false;
+    currentConfiguration = event.location;
+    _updateMatchedRoutes();
+    notifyListeners();
+  }
+
+  bool _shouldCheckBlockers(HistoryEvent event, int? delta) {
+    return event.action == HistoryAction.pop &&
+        (delta == null || delta <= 0) &&
+        _blockers.hasEntries;
+  }
+
+  void _handleNavigationCancelled(
+    RouteInformation previous,
+    RouteInformation requested,
+    int? delta,
+  ) {
+    _handlePopCancel(previous, delta);
+    _completeNextPop(
+      NavigationCancelled(from: previous, requested: requested),
+    );
+  }
+
+  void _handleNavigationError(
+    RouteInformation previous,
+    RouteInformation requested,
+    int? delta,
+    Object error,
+    StackTrace stackTrace,
+  ) {
+    _handlePopCancel(previous, delta);
+    _completeNextPop(
+      NavigationFailed(
+        from: previous,
+        requested: requested,
+        error: error,
+        stackTrace: stackTrace,
+      ),
+    );
+  }
+
+  void _applyNavigationResult(
+    RouteInformation previous,
+    RouteInformation requested,
+    GuardContext context,
+  ) {
+    var action = HistoryAction.pop;
+    if (context.redirectCount > 0) {
+      if (context.replace || context.to.uri == requested.uri) {
+        history.replace(context.to.uri, context.to.state);
+        action = HistoryAction.replace;
+      } else {
+        history.push(context.to.uri, context.to.state);
+        action = HistoryAction.push;
+      }
+    }
+
+    currentConfiguration = context.to;
+    _updateMatchedRoutes();
+    notifyListeners();
+
+    final navigationResult = context.redirectCount > 0
+        ? NavigationRedirected(
+            from: previous,
+            requested: requested,
+            to: context.to,
+            action: action,
+            redirectCount: context.redirectCount,
+          )
+        : NavigationSuccess(
+            from: previous,
+            requested: requested,
+            to: context.to,
+            action: action,
+            redirectCount: context.redirectCount,
+          );
+    _completeNextPop(navigationResult);
+  }
 
   /// Resolves a URI, handling relative paths.
   ///
