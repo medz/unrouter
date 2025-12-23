@@ -8,8 +8,6 @@ A Flutter router that gives you routing flexibility: define routes centrally, sc
 [![pub](https://img.shields.io/pub/v/unrouter.svg)](https://pub.dev/packages/unrouter)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/bIskiDvNu2Q?si=oO_i3oUpFexmXcir" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-
 ## Documentation
 
 All sections below are collapsible. Expand the chapters you need.
