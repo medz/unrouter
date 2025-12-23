@@ -69,6 +69,36 @@ void main() {
       expect(find.text('Home'), findsOneWidget);
     });
 
+    testWidgets('concurrent navigation resolves to last request', (
+      tester,
+    ) async {
+      late Unrouter router;
+
+      router = Unrouter(
+        routes: [
+          Inlet(factory: () => const Text('Home')),
+          Inlet(path: 'about', factory: () => const Text('About')),
+          Inlet(path: 'contact', factory: () => const Text('Contact')),
+        ],
+        history: MemoryHistory(),
+      );
+
+      await tester.pumpWidget(wrapRouter(router));
+
+      final first = router.navigate(.parse('/about'));
+      final second = router.navigate(.parse('/contact'));
+      await tester.pumpAndSettle();
+
+      final firstResult = await first;
+      final secondResult = await second;
+
+      expect(firstResult, isA<NavigationSuccess>());
+      expect(secondResult, isA<NavigationSuccess>());
+      expect(router.history.location.uri.path, '/contact');
+      expect(find.text('Contact'), findsOneWidget);
+      expect(find.text('About'), findsNothing);
+    });
+
     testWidgets('back navigates to previous route', (tester) async {
       late Unrouter router;
 
