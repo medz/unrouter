@@ -3,6 +3,10 @@
 [![pub](https://img.shields.io/pub/v/unrouter.svg)](https://pub.dev/packages/unrouter)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
+<p align="center">
+  <img src="assets/brand.svg" width="120" alt="unrouter" />
+</p>
+
 A Flutter router that gives you routing flexibility: define routes centrally, scope them to widgets, or mix both - with browser-style history navigation.
 
 ## Documentation
