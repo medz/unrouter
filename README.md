@@ -10,7 +10,7 @@ A Flutter router that gives you routing flexibility: define routes centrally, sc
 
 ## Documentation
 
-<video src="assets/video.mp4" width="560" height="315"></video>
+https://github.com/user-attachments/assets/e4f2d9d1-3fe2-4050-8b5b-1e1171027ba2
 
 All sections below are collapsible. Expand the chapters you need.
 
