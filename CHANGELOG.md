@@ -1,5 +1,7 @@
 ## Unreleased
 
+## 0.5.1 (2025-12-24)
+
 ### Improvements
 
 - Refactor guard execution and history listener logic for clarity without
