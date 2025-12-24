@@ -5,6 +5,11 @@
 - Refactor guard execution and history listener logic for clarity without
   behavior changes.
 
+### Fixes
+
+- Export `UrlStrategy` from the public API so `package:unrouter/unrouter.dart`
+  can access it directly.
+
 ## 0.5.0 (2025-12-21)
 
 ### Features

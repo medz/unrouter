@@ -11,6 +11,7 @@ export 'src/router/navigation.dart';
 export 'src/router/route_state.dart';
 export 'src/router/route_matcher.dart' show MatchedRoute;
 export 'src/router/router.dart';
+export 'src/router/url_strategy.dart';
 
 export 'src/router/widgets/link.dart';
 export 'src/router/widgets/outlet.dart';
