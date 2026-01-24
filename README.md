@@ -34,14 +34,7 @@ https://github.com/user-attachments/assets/e4f2d9d1-3fe2-4050-8b5b-1e1171027ba2
 
 ## Installation
 
-Add to `pubspec.yaml`:
-
-```yaml
-dependencies:
-  unrouter: ^0.5.1
-```
-
-Or run:
+Run this command:
 
 ```bash
 flutter pub add unrouter
