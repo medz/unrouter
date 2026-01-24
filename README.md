@@ -528,6 +528,6 @@ Follow `flutter_lints` and keep changes focused.
 
 MIT License - see [LICENSE](LICENSE) for details.
 
-<p align="center">
-  <sub>Built with ❤️ by<a href="https://github.com/medz">Seven Du</a></sub>
+<p align="right">
+  Built with ❤️ by <a href="https://github.com/medz">Seven Du</a>
 </p>
