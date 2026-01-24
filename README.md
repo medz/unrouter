@@ -311,6 +311,9 @@ Inlet(
 );
 ```
 
+If both `users.dart` and `users/index.dart` exist, `users.dart` becomes the
+parent route and `users/index.dart` becomes its index child (`path: ''`).
+
 ### 3) Add metadata (optional)
 
 You can add page-level metadata to influence generated routes:
