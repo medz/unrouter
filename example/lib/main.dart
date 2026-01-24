@@ -35,12 +35,12 @@ final router = Unrouter(
       factory: ConcertsLayout.new,
       children: [
         Inlet(name: 'concertsHome', factory: ConcertsHome.new),
-        Inlet(name: 'concertCity', path: ':city', factory: CityPage.new),
         Inlet(
           name: 'concertsTrending',
           path: 'trending',
           factory: TrendingPage.new,
         ),
+        Inlet(name: 'concertCity', path: ':city', factory: CityPage.new),
       ],
     ),
 

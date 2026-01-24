@@ -516,13 +516,14 @@ Inlet(
 
 ### Matching order
 
-Routes match in definition order. Place more specific routes first:
+Routes match by specificity (static segments > params > wildcard). If two
+routes are equally specific, definition order breaks the tie:
 
 ```dart
 routes: const [
-  Inlet(path: 'users/new', factory: NewUserPage.new),     // ✅ Matches first
-  Inlet(path: 'users/:id', factory: UserDetailPage.new),  // ✅ Matches after
-  Inlet(path: '*', factory: NotFoundPage.new),            // ✅ Catch-all last
+  Inlet(path: 'users/new', factory: NewUserPage.new),     // ✅ Static wins
+  Inlet(path: 'users/:id', factory: UserDetailPage.new),  // ✅ Param after
+  Inlet(path: '*', factory: NotFoundPage.new),            // ✅ Wildcard last
 ]
 ```
 
