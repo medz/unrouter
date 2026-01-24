@@ -5,6 +5,7 @@ import 'package:coal/args.dart';
 import 'commands/init.dart';
 import 'commands/generate.dart';
 import 'commands/scan.dart';
+import 'commands/watch.dart';
 
 class UnrouterCLI {
   UnrouterCLI(this.args);
@@ -43,8 +44,7 @@ class UnrouterCLI {
       case 'generate':
         return runGenerate(parsed);
       case 'watch':
-        stderr.writeln('Command "$command" is not implemented yet.');
-        return 2;
+        return runWatch(parsed);
       default:
         stderr.writeln('Unknown command: $command');
         _printUsage();
@@ -63,7 +63,9 @@ class UnrouterCLI {
     stdout.writeln('');
     stdout.writeln('Options:');
     stdout.writeln('  --pages     Pages directory (default: lib/pages)');
-    stdout.writeln('  --output    Generated file path (default: lib/routes.dart)');
+    stdout.writeln(
+      '  --output    Generated file path (default: lib/routes.dart)',
+    );
     stdout.writeln('  --force     Overwrite existing config file');
     stdout.writeln('  -h, --help  Show usage');
   }
@@ -73,11 +75,15 @@ class UnrouterCLI {
       case 'scan':
         stdout.writeln('unrouter scan [options]');
         stdout.writeln('');
-        stdout.writeln('Reads unrouter.config.dart and reports routing config.');
+        stdout.writeln(
+          'Reads unrouter.config.dart and reports routing config.',
+        );
         stdout.writeln('');
         stdout.writeln('Options:');
         stdout.writeln('  --pages     Pages directory (default: lib/pages)');
-        stdout.writeln('  --output    Generated file path (default: lib/routes.dart)');
+        stdout.writeln(
+          '  --output    Generated file path (default: lib/routes.dart)',
+        );
         return;
       case 'init':
         stdout.writeln('unrouter init [options]');
@@ -86,16 +92,24 @@ class UnrouterCLI {
         stdout.writeln('');
         stdout.writeln('Options:');
         stdout.writeln('  --pages     Pages directory (default: lib/pages)');
-        stdout.writeln('  --output    Generated file path (default: lib/routes.dart)');
+        stdout.writeln(
+          '  --output    Generated file path (default: lib/routes.dart)',
+        );
         stdout.writeln('  --force     Overwrite existing config file');
         return;
       case 'generate':
       case 'watch':
         stdout.writeln('unrouter $command [options]');
         stdout.writeln('');
+        if (command == 'watch') {
+          stdout.writeln('Regenerates routes when pages or config change.');
+          stdout.writeln('');
+        }
         stdout.writeln('Options:');
         stdout.writeln('  --pages     Pages directory (default: lib/pages)');
-        stdout.writeln('  --output    Generated file path (default: lib/routes.dart)');
+        stdout.writeln(
+          '  --output    Generated file path (default: lib/routes.dart)',
+        );
         return;
       default:
         stdout.writeln('Unknown command: $command');

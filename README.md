@@ -367,6 +367,10 @@ Notes:
 - You can scaffold the config with `unrouter init`.
  - If no config file is found, the CLI uses the nearest `pubspec.yaml` as the root.
 
+Generate routes with:
+- `unrouter generate` (one-time build)
+- `unrouter watch` (rebuild on changes)
+
 </details>
 
 ---
