@@ -633,6 +633,8 @@ Route names must be unique within the route tree and are available only for
 declarative routes (`Unrouter.routes`).
 Optional params are omitted when not provided; optional static segments are
 included when generating named routes.
+When using optional segments in a path pattern, pass query values via the
+`query` argument instead of embedding them in the path string.
 
 ### Navigation from shared router instance
 
@@ -1416,12 +1418,13 @@ if (state != null) {
 <summary><strong>Link widget</strong></summary>
 
 The `Link` widget provides declarative navigation with customizable appearance.
+Provide a route `name` or a `path`.
 
 ### Basic link
 
 ```dart
 Link(
-  to: Uri.parse('/about'),
+  path: '/about',
   child: const Text('About'),
 )
 ```
@@ -1432,7 +1435,7 @@ Renders as a clickable widget. On web, right-click shows "Open in new tab".
 
 ```dart
 Link(
-  to: Uri.parse('/product/123'),
+  path: '/product/123',
   state: {'source': 'featured'},
   child: const Card(
     child: Text('Featured Product'),
@@ -1446,7 +1449,8 @@ For full control over gesture handling:
 
 ```dart
 Link(
-  to: Uri.parse('/product/123'),
+  name: 'productDetail',
+  params: {'id': '123'},
   state: {'referrer': 'home'},
   builder: (context, location, navigate) {
     return GestureDetector(
@@ -1481,12 +1485,12 @@ The builder receives:
 // Current URL: /users/123
 
 Link(
-  to: Uri.parse('edit'),         // /users/123/edit
+  path: 'edit',         // /users/123/edit
   child: const Text('Edit'),
 )
 
 Link(
-  to: Uri.parse('../456'),       // /users/456
+  path: '../456',       // /users/456
   child: const Text('User 456'),
 )
 ```
@@ -1495,10 +1499,8 @@ Link(
 
 ```dart
 Link(
-  to: Uri(
-    path: '/search',
-    queryParameters: {'q': 'flutter', 'sort': 'recent'},
-  ),
+  path: '/search',
+  query: {'q': 'flutter', 'sort': 'recent'},
   child: const Text('Search Flutter'),
 )
 // Navigates to: /search?q=flutter&sort=recent
@@ -1508,7 +1510,7 @@ Link(
 
 ```dart
 Link(
-  to: Uri.parse('/premium'),
+  path: '/premium',
   builder: (context, location, navigate) {
     return ElevatedButton(
       onPressed: () {

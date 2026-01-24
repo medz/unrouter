@@ -70,11 +70,17 @@ abstract interface class Navigate {
   /// Optional params are omitted when not provided. Optional static segments
   /// are included when generating the path.
   ///
+  /// When using optional segments in [path], pass query values via [query]
+  /// instead of embedding them in the path string.
+  ///
   /// The optional [state] is stored on the history entry and can be read via
   /// [RouteInformation.state] (see [RouteState.location]).
   ///
   /// If [replace] is `true`, the current history entry is replaced instead of
   /// pushing a new one.
+  ///
+  /// Throws a [FlutterError] if neither [name] nor [path] is provided, if both
+  /// are provided, or if required params are missing.
   Future<Navigation> call({
     String? name,
     String? path,
@@ -96,7 +102,7 @@ abstract interface class Navigate {
   /// Provide either [name] (for [Inlet.name]) or [path] (for direct patterns).
   ///
   /// Throws a [FlutterError] if the route name is unknown or required params
-  /// are missing.
+  /// are missing, or if both [name] and [path] are provided.
   Uri route({
     String? name,
     String? path,

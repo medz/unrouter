@@ -198,9 +198,9 @@ class HomePage extends StatelessWidget {
       body: Column(
         children: [
           const Text('Home Page'),
-          Link(to: Uri.parse('/about'), child: const Text('Go to About')),
+          Link(path: '/about', child: const Text('Go to About')),
           Link(
-            to: Uri.parse('/about'),
+            path: '/about',
             state: const {'source': 'home'},
             child: const Text('Go to About with State'),
           ),
@@ -220,7 +220,7 @@ class AboutPage extends StatelessWidget {
         children: [
           const Text('About Page'),
           Link(
-            to: Uri.parse('/contact'),
+            path: '/contact',
             replace: true,
             child: const Text('Replace with Contact'),
           ),
@@ -258,7 +258,7 @@ class BuilderTestPage extends StatelessWidget {
         children: [
           const Text('Builder Test'),
           Link(
-            to: Uri.parse('/target'),
+            path: '/target',
             state: 'test-state',
             builder: (context, location, navigate) {
               return Column(
@@ -289,7 +289,7 @@ class OverrideTestPage extends StatelessWidget {
         children: [
           const Text('Override Test'),
           Link(
-            to: Uri.parse('/page1'),
+            path: '/page1',
             builder: (context, location, navigate) {
               return GestureDetector(
                 onTap: () => navigate(),
@@ -313,7 +313,7 @@ class Page1 extends StatelessWidget {
         children: [
           const Text('Page 1'),
           Link(
-            to: Uri.parse('/page2'),
+            path: '/page2',
             replace: false,
             builder: (context, location, navigate) {
               return GestureDetector(

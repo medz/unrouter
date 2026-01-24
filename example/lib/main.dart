@@ -152,7 +152,7 @@ class Home extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   Link(
-                    to: Uri.parse('/concerts'),
+                    path: '/concerts',
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 24,
@@ -177,7 +177,7 @@ class Home extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   Link(
-                    to: Uri.parse('/products'),
+                    path: '/products',
                     builder: (context, location, navigate) {
                       return Container(
                         padding: const EdgeInsets.symmetric(
@@ -683,10 +683,7 @@ class _AnimatedPanel extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 12),
-                Text(
-                  subtitle,
-                  style: TextStyle(color: Colors.grey.shade700),
-                ),
+                Text(subtitle, style: TextStyle(color: Colors.grey.shade700)),
                 const SizedBox(height: 16),
                 child,
               ],

@@ -5,7 +5,7 @@ import '../navigation.dart';
 
 /// Signature for the builder callback used by `Link(builder: ...)`.
 ///
-/// The [location] parameter provides the target route information.
+/// The [location] parameter provides the resolved target route information.
 /// The [navigate] callback can be called to trigger navigation with optional
 /// overrides and returns a `Future<Navigation>`.
 typedef LinkBuilder =
@@ -24,7 +24,7 @@ typedef LinkBuilder =
 /// Basic usage with a child widget:
 /// ```dart
 /// Link(
-///   to: Uri.parse('/about'),
+///   path: '/about',
 ///   child: const Text('About Us'),
 /// )
 /// ```
@@ -32,7 +32,7 @@ typedef LinkBuilder =
 /// For more control, use `builder`:
 /// ```dart
 /// Link(
-///   to: Uri.parse('/products/1'),
+///   path: '/products/1',
 ///   state: {'source': 'homepage'},
 ///   builder: (context, location, navigate) {
 ///     return GestureDetector(
@@ -44,13 +44,17 @@ typedef LinkBuilder =
 /// )
 /// ```
 class Link extends StatelessWidget {
-  /// Creates a link that navigates to [to] when tapped.
+  /// Creates a link that navigates to [name] or [path] when tapped.
   ///
   /// The [child] widget is wrapped in a [GestureDetector] that handles tap
   /// events and triggers navigation.
   const Link({
     super.key,
-    required this.to,
+    this.name,
+    this.path,
+    this.params = const {},
+    this.query,
+    this.fragment,
     this.child,
     this.builder,
     this.replace = false,
@@ -59,10 +63,30 @@ class Link extends StatelessWidget {
        assert(
          child == null || builder == null,
          'Provide either child or builder, not both.',
+       ),
+       assert(
+         (name != null && name != '') || (path != null && path != ''),
+         'Provide a route name or a path.',
+       ),
+       assert(
+         name == null || path == null,
+         'Provide either name or path, not both.',
        );
 
-  /// The target URI to navigate to.
-  final Uri to;
+  /// The named route to navigate to.
+  final String? name;
+
+  /// The path to navigate to.
+  final String? path;
+
+  /// Params for named routes or path patterns.
+  final Map<String, String> params;
+
+  /// Query parameters to append to the URI.
+  final Map<String, String>? query;
+
+  /// Fragment to append to the URI.
+  final String? fragment;
 
   /// Whether to replace the current history entry instead of pushing a new one.
   ///
@@ -88,7 +112,11 @@ class Link extends StatelessWidget {
   Widget build(BuildContext context) {
     Future<Navigation> navigate({Object? state, bool? replace}) {
       return context.navigate(
-        path: to.toString(),
+        name: name,
+        path: path,
+        params: params,
+        query: query,
+        fragment: fragment,
         state: state ?? this.state,
         replace: replace ?? this.replace,
       );
@@ -96,7 +124,16 @@ class Link extends StatelessWidget {
 
     // If builder is provided, use it
     if (builder != null) {
-      final location = RouteInformation(uri: to, state: state);
+      final location = RouteInformation(
+        uri: context.navigate.route(
+          name: name,
+          path: path,
+          params: params,
+          query: query,
+          fragment: fragment,
+        ),
+        state: state,
+      );
       return builder!(context, location, navigate);
     }
 
