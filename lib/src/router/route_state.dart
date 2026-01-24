@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:unrouter/history.dart';
 
 import 'route_matcher.dart';
+import 'route_location.dart';
 import '_internal/route_params.dart';
 
 /// Route state that flows through the widget tree.
@@ -21,6 +22,9 @@ class RouteState {
   ///
   /// The state is the value passed to `navigate(..., state: ...)` /
   /// `Navigate.call(..., state: ...)`.
+  ///
+  /// When declarative routes are matched, this is a [RouteLocation] whose
+  /// `name` is the matched route name (if any).
   final RouteInformation location;
 
   /// Stack of matched routes from root to leaf.

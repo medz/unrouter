@@ -12,6 +12,24 @@ void main() {
   }
 
   group('Named routes', () {
+    testWidgets('context.location exposes matched route name', (tester) async {
+      final router = Unrouter(
+        routes: [
+          Inlet(name: 'home', factory: NameProbePage.new),
+          Inlet(name: 'about', path: 'about', factory: NameProbePage.new),
+        ],
+        history: MemoryHistory(),
+      );
+
+      await tester.pumpWidget(wrapRouter(router));
+
+      expect(find.text('Name: home'), findsOneWidget);
+
+      await router.navigate.route('about');
+      await tester.pumpAndSettle();
+      expect(find.text('Name: about'), findsOneWidget);
+    });
+
     testWidgets('navigate.route resolves names with params', (tester) async {
       final router = Unrouter(
         routes: [
@@ -35,6 +53,7 @@ void main() {
 
       expect(result, isA<NavigationSuccess>());
       expect(router.history.location.uri.path, '/users/123');
+      expect(router.routerDelegate.currentConfiguration.name, 'userDetail');
       expect(find.text('User 123'), findsOneWidget);
     });
 
@@ -177,5 +196,14 @@ class SearchPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Text('Search');
+  }
+}
+
+class NameProbePage extends StatelessWidget {
+  const NameProbePage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Text('Name: ${context.location.name ?? 'none'}');
   }
 }

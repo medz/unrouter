@@ -699,6 +699,7 @@ context.navigate.go(-1);                  // Go by delta
 final router = context.router;            // Access router
 final state = context.routeState;         // Current route state
 final location = context.location;        // Current location
+final name = context.location.name;       // Matched route name (if any)
 final params = context.params;            // Route params
 final index = context.historyIndex;       // History index
 final action = context.historyAction;     // push/replace/pop
@@ -1837,6 +1838,7 @@ flutter test test/navigation_test.dart
 |-------|-------------|
 | `Unrouter` | Main router widget and `RouterConfig<RouteInformation>` |
 | `Inlet` | Route definition (index/layout/leaf/nested) with optional name |
+| `RouteLocation` | RouteInformation with an optional matched route name |
 | `Outlet` | Renders next matched child route (for declarative routes) |
 | `Routes` | Widget-scoped route matcher |
 | `Link` | Declarative navigation widget |

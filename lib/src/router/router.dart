@@ -12,6 +12,7 @@ import 'blocker.dart';
 import 'guard.dart';
 import 'inlet.dart';
 import 'navigation.dart';
+import 'route_location.dart';
 import 'route_matcher.dart';
 import 'route_state.dart';
 import '_internal/route_state_scope.dart';
@@ -201,7 +202,7 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
     _unlistenHistory = history.listen(_handleHistoryEvent);
 
     // Initialize matched routes
-    _updateMatchedRoutes();
+    _syncConfiguration(currentConfiguration);
   }
 
   final Unrouter router;
@@ -295,8 +296,7 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
 
   void _handleSuppressedPopGuard(HistoryEvent event) {
     _suppressNextPopGuard = false;
-    currentConfiguration = event.location;
-    _updateMatchedRoutes();
+    _syncConfiguration(event.location);
     notifyListeners();
   }
 
@@ -351,22 +351,22 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
       }
     }
 
-    currentConfiguration = context.to;
-    _updateMatchedRoutes();
+    _syncConfiguration(context.to);
     notifyListeners();
 
+    final resolvedLocation = currentConfiguration;
     final navigationResult = context.redirectCount > 0
         ? NavigationRedirected(
             from: previous,
             requested: requested,
-            to: context.to,
+            to: resolvedLocation,
             action: action,
             redirectCount: context.redirectCount,
           )
         : NavigationSuccess(
             from: previous,
             requested: requested,
-            to: context.to,
+            to: resolvedLocation,
             action: action,
             redirectCount: context.redirectCount,
           );
@@ -424,17 +424,28 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
   }
 
   /// Update matched routes based on current location.
-  void _updateMatchedRoutes() {
+  void _syncConfiguration(RouteInformation configuration) {
+    final location = configuration.uri;
     if (routes == null) {
       // No declarative routes to match
       _matchedRoutes = const [];
+      currentConfiguration = RouteLocation(
+        uri: location,
+        state: configuration.state,
+        name: null,
+      );
       return;
     }
 
-    final location = currentConfiguration.uri.path;
-    final result = matchRoutes(routes!, location);
+    final result = matchRoutes(routes!, location.path);
     // Accept both full matches and partial matches (for widget-scoped Routes support)
     _matchedRoutes = result.matches;
+    final name = _resolveMatchedName(_matchedRoutes);
+    currentConfiguration = RouteLocation(
+      uri: location,
+      state: configuration.state,
+      name: name,
+    );
   }
 
   void _completeNextPop(Navigation result) {
@@ -453,8 +464,7 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
     }
 
     history.replace(previous.uri, previous.state);
-    currentConfiguration = previous;
-    _updateMatchedRoutes();
+    _syncConfiguration(previous);
     notifyListeners();
   }
 
@@ -479,14 +489,13 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
       return;
     }
 
-    currentConfiguration = resolved.to;
     if (resolved.replace) {
       history.replace(resolved.to.uri, resolved.to.state);
     } else {
       history.push(resolved.to.uri, resolved.to.state);
     }
 
-    _updateMatchedRoutes();
+    _syncConfiguration(resolved.to);
     notifyListeners();
   }
 
@@ -586,7 +595,6 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
         return NavigationCancelled(from: previous, requested: requested);
       }
 
-      currentConfiguration = resolved.to;
       final action = resolved.replace
           ? HistoryAction.replace
           : HistoryAction.push;
@@ -596,14 +604,15 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
         history.push(resolved.to.uri, resolved.to.state);
       }
 
-      _updateMatchedRoutes();
+      _syncConfiguration(resolved.to);
       notifyListeners();
 
+      final resolvedLocation = currentConfiguration;
       if (resolved.redirectCount > 0) {
         return NavigationRedirected(
           from: previous,
           requested: requested,
-          to: resolved.to,
+          to: resolvedLocation,
           action: action,
           redirectCount: resolved.redirectCount,
         );
@@ -611,7 +620,7 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
       return NavigationSuccess(
         from: previous,
         requested: requested,
-        to: resolved.to,
+        to: resolvedLocation,
         action: action,
         redirectCount: resolved.redirectCount,
       );
@@ -656,6 +665,16 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
     history.go(delta);
     return completer.future;
   }
+}
+
+String? _resolveMatchedName(List<MatchedRoute> matches) {
+  for (var i = matches.length - 1; i >= 0; i--) {
+    final name = matches[i].route.name;
+    if (name != null && name.isNotEmpty) {
+      return name;
+    }
+  }
+  return null;
 }
 
 class _UnrouterPage extends Page {
