@@ -50,6 +50,7 @@ All sections below are collapsible. Expand the chapters you need.
 - [Quick start](#quick-start)
 - [Why choose Unrouter?](#why-choose-unrouter)
 - [Routing approaches](#routing-approaches)
+- [File-based routing (CLI)](#file-based-routing)
 - [Layouts and nested routing](#layouts-and-nested-routing)
 - [Route patterns and matching](#route-patterns-and-matching)
 - [Navigation and history](#navigation-and-history)
@@ -324,6 +325,43 @@ Unrouter(
 | Large apps with many features | Hybrid routing |
 | Component libraries | Widget-scoped routing |
 | Temporary verification pages | Widget-scoped routing |
+
+</details>
+
+---
+
+<a id="file-based-routing"></a>
+<details open>
+<summary><strong>File-based routing (CLI)</strong></summary>
+
+Unrouter exposes a static configuration that tooling can read to generate
+routes from a pages directory. This configuration does not affect runtime
+behavior.
+
+```dart
+import 'package:unrouter/unrouter.dart';
+
+void main() {
+  Unrouter.fileRouting = const FileRoutingConfig(
+    pagesDir: 'lib/pages',
+    output: 'lib/routes.g.dart',
+  );
+
+  runApp(
+    Unrouter(
+      routes: const [
+        Inlet(name: 'home', factory: HomePage.new),
+      ],
+    ),
+  );
+}
+```
+
+Notes:
+- `pagesDir` is the directory scanned for pages.
+- `output` is the generated file location.
+- Paths can be absolute or relative to the Dart file that defines `Unrouter`.
+- The router ignores these values; they exist only for CLI scanning.
 
 </details>
 
