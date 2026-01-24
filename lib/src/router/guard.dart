@@ -26,7 +26,7 @@ sealed class GuardResult {
   static const GuardResult allow = _GuardResultAllow();
   static const GuardResult cancel = _GuardResultCancel();
 
-  factory GuardResult.redirect({
+  const factory GuardResult.redirect({
     String? name,
     String? path,
     Map<String, String> params,
@@ -36,8 +36,11 @@ sealed class GuardResult {
     bool replace,
   }) = GuardRedirect;
 
-  factory GuardResult.redirectUri(Uri uri, {Object? state, bool replace}) =
-      GuardRedirectUri;
+  const factory GuardResult.redirectUri(
+    Uri uri, {
+    Object? state,
+    bool replace,
+  }) = _GuardRedirectUri;
 }
 
 class GuardRedirect extends GuardResult {
@@ -67,8 +70,8 @@ class GuardRedirect extends GuardResult {
   final bool replace;
 }
 
-class GuardRedirectUri extends GuardResult {
-  const GuardRedirectUri(this.uri, {this.state, this.replace = true});
+class _GuardRedirectUri extends GuardResult {
+  const _GuardRedirectUri(this.uri, {this.state, this.replace = true});
 
   final Uri uri;
   final Object? state;
@@ -177,7 +180,7 @@ class GuardExecutor {
       });
       if (isCompleted()) return null;
       if (result == .cancel) return null;
-      if (result is GuardRedirectUri) {
+      if (result is _GuardRedirectUri) {
         final nextContext = GuardContext(
           to: decorateLocation(
             RouteInformation(uri: result.uri, state: result.state),
