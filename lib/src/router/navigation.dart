@@ -65,7 +65,8 @@ abstract interface class Navigate {
   /// - Otherwise, the path is appended to the current location (relative
   ///   navigation).
   ///
-  /// For named routes, [params] are substituted into the route pattern.
+  /// For named routes and path patterns, [params] are substituted into the
+  /// route pattern (`:id`, optional `?` segments, and `*` wildcard).
   /// Optional params are omitted when not provided. Optional static segments
   /// are included when generating the path.
   ///
@@ -78,26 +79,29 @@ abstract interface class Navigate {
     String? name,
     String? path,
     Map<String, String> params = const {},
-    Map<String, String>? queryParameters,
+    Map<String, String>? query,
     String? fragment,
     Object? state,
     bool replace = false,
   });
 
-  /// Generates a URI for a named route defined with [Inlet.name].
+  /// Generates a URI for a named route or path pattern.
   ///
   /// [params] are substituted into dynamic segments in the route pattern.
   /// Optional params are omitted when not provided. Optional static segments
   /// are included when generating the path.
   ///
-  /// [queryParameters] and [fragment] are appended to the generated URI.
+  /// [query] and [fragment] are appended to the generated URI.
+  ///
+  /// Provide either [name] (for [Inlet.name]) or [path] (for direct patterns).
   ///
   /// Throws a [FlutterError] if the route name is unknown or required params
   /// are missing.
   Uri route({
-    required String name,
+    String? name,
+    String? path,
     Map<String, String> params = const {},
-    Map<String, String>? queryParameters,
+    Map<String, String>? query,
     String? fragment,
   });
 

@@ -207,6 +207,9 @@ URI-based navigation with compile-time safety and zero build steps:
 final id = '123';
 final uri = Uri(path: '/users/$id', queryParameters: {'tab': 'profile'});
 context.navigate(path: uri.toString());
+
+// Or with params and patterns
+context.navigate(path: '/users/:id', params: {'id': id});
 ```
 
 ### 🎯 Zero boilerplate
@@ -609,13 +612,19 @@ context.navigate(name: 'userDetail', params: {'id': '123'});
 context.navigate(
   name: 'userDetail',
   params: {'id': '123'},
-  queryParameters: {'tab': 'profile'},
+  query: {'tab': 'profile'},
   fragment: 'top',
 );
 
 // Generate a URI for a named route
 final uri = context.navigate.route(
   name: 'userDetail',
+  params: {'id': '123'},
+);
+
+// Generate a URI from a path pattern
+final profileUri = context.navigate.route(
+  path: '/users/:id',
   params: {'id': '123'},
 );
 ```
@@ -675,6 +684,9 @@ final uri = Uri(
   queryParameters: {'tab': 'profile', 'sort': 'name'},
 );
 context.navigate(path: uri.toString());  // /users/123?tab=profile&sort=name
+
+// Pattern + params
+context.navigate(path: '/users/:id', params: {'id': userId});
 ```
 
 ### Navigation results
@@ -1854,6 +1866,7 @@ flutter test test/navigation_test.dart
 | `Navigate` | Navigation interface with push/replace/back/forward/go + route URI builder |
 | `context.navigate` | Navigate from any widget |
 | `context.navigate.route(name: ..., ...)` | Generate a URI for a named route |
+| `context.navigate.route(path: ..., ...)` | Generate a URI from a path pattern |
 | `context.navigate.back()` | Go back in history |
 | `context.navigate.forward()` | Go forward in history |
 | `context.navigate.go(delta)` | Go by history offset |

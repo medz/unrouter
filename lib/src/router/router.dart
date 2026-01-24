@@ -7,6 +7,7 @@ import 'package:unrouter/history.dart';
 import '_internal/create_history.memory.dart'
     if (dart.library.js_interop) '_internal/create_history.browser.dart';
 import '_internal/named_routes.dart';
+import '_internal/route_path_builder.dart';
 import '_internal/stacked_route_view.dart';
 import 'blocker.dart';
 import 'guard.dart';
@@ -244,15 +245,14 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
     final delta = event.delta;
 
     const blocked = Object();
-    final allowFuture =
-        _shouldCheckBlockers(event, delta)
-            ? _blockers.shouldAllowPop(
-                from: previous,
-                to: requested,
-                action: event.action,
-                delta: delta,
-              )
-            : SynchronousFuture(true);
+    final allowFuture = _shouldCheckBlockers(event, delta)
+        ? _blockers.shouldAllowPop(
+            from: previous,
+            to: requested,
+            action: event.action,
+            delta: delta,
+          )
+        : SynchronousFuture(true);
 
     final guardContext = GuardContext(
       to: requested,
@@ -284,13 +284,7 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
           _applyNavigationResult(previous, requested, context);
         })
         .catchError((error, stackTrace) {
-          _handleNavigationError(
-            previous,
-            requested,
-            delta,
-            error,
-            stackTrace,
-          );
+          _handleNavigationError(previous, requested, delta, error, stackTrace);
         });
   }
 
@@ -312,9 +306,7 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
     int? delta,
   ) {
     _handlePopCancel(previous, delta);
-    _completeNextPop(
-      NavigationCancelled(from: previous, requested: requested),
-    );
+    _completeNextPop(NavigationCancelled(from: previous, requested: requested));
   }
 
   void _handleNavigationError(
@@ -577,7 +569,7 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
     String? name,
     String? path,
     Map<String, String> params = const {},
-    Map<String, String>? queryParameters,
+    Map<String, String>? query,
     String? fragment,
     Object? state,
     bool replace = false,
@@ -586,7 +578,7 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
       name: name,
       path: path,
       params: params,
-      queryParameters: queryParameters,
+      query: query,
       fragment: fragment,
     );
     final requested = RouteInformation(
@@ -650,15 +642,17 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
 
   @override
   Uri route({
-    required String name,
+    String? name,
+    String? path,
     Map<String, String> params = const {},
-    Map<String, String>? queryParameters,
+    Map<String, String>? query,
     String? fragment,
   }) {
-    return _namedRoutes.resolve(
-      name,
+    return _resolveRequestedUri(
+      name: name,
+      path: path,
       params: params,
-      queryParameters: queryParameters,
+      query: query,
       fragment: fragment,
     );
   }
@@ -681,7 +675,7 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
     required String? name,
     required String? path,
     required Map<String, String> params,
-    required Map<String, String>? queryParameters,
+    required Map<String, String>? query,
     required String? fragment,
   }) {
     final hasName = name != null && name.isNotEmpty;
@@ -689,14 +683,14 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
 
     if (!hasName && !hasPath) {
       throw FlutterError(
-        'Navigate.call requires either a route name or a path.\n'
+        'Navigate requires either a route name or a path.\n'
         'Provide `name` for named routes or `path` for direct navigation.',
       );
     }
 
     if (hasName && hasPath) {
       throw FlutterError(
-        'Navigate.call received both name and path.\n'
+        'Navigate received both name and path.\n'
         'Provide only one.',
       );
     }
@@ -705,24 +699,104 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
       return _namedRoutes.resolve(
         name,
         params: params,
-        queryParameters: queryParameters,
+        query: query,
         fragment: fragment,
       );
     }
 
-    final raw = Uri.parse(path!);
-    final query = queryParameters == null
-        ? (raw.hasQuery && raw.query.isNotEmpty ? raw.query : null)
-        : Uri(queryParameters: queryParameters).query;
-    final effectiveFragment = fragment ??
-        (raw.hasFragment && raw.fragment.isNotEmpty ? raw.fragment : null);
+    final parsed = _splitPathAndQuery(path!);
+    final pathPart = parsed.path;
+    final hasPattern = params.isNotEmpty || _containsPatternSyntax(pathPart);
+    final builtPath = hasPattern
+        ? _buildPathForPattern(pathPart, params)
+        : pathPart;
+
+    final resolvedQuery = query == null
+        ? (parsed.query != null && parsed.query!.isNotEmpty
+              ? parsed.query
+              : null)
+        : (query.isNotEmpty ? Uri(queryParameters: query).query : null);
+    final effectiveFragment =
+        fragment ??
+        (parsed.fragment != null && parsed.fragment!.isNotEmpty
+            ? parsed.fragment
+            : null);
 
     return Uri(
-      path: raw.path,
-      query: query,
+      path: builtPath,
+      query: resolvedQuery,
       fragment: effectiveFragment,
     );
   }
+}
+
+class _ParsedPath {
+  const _ParsedPath({required this.path, this.query, this.fragment});
+
+  final String path;
+  final String? query;
+  final String? fragment;
+}
+
+_ParsedPath _splitPathAndQuery(String raw) {
+  var path = raw;
+  String? fragment;
+  final fragmentIndex = path.indexOf('#');
+  if (fragmentIndex != -1) {
+    fragment = path.substring(fragmentIndex + 1);
+    path = path.substring(0, fragmentIndex);
+  }
+
+  int queryIndex = -1;
+  for (var i = 0; i < path.length; i++) {
+    if (path.codeUnitAt(i) != 63) continue; // '?'
+    final hasNext = i + 1 < path.length;
+    if (!hasNext) {
+      // Trailing '?' is an optional segment marker.
+      continue;
+    }
+    final next = path.codeUnitAt(i + 1);
+    if (next == 47) {
+      // "?/" indicates optional segment, not query.
+      continue;
+    }
+    queryIndex = i;
+    break;
+  }
+
+  String? query;
+  if (queryIndex != -1) {
+    query = path.substring(queryIndex + 1);
+    path = path.substring(0, queryIndex);
+  }
+
+  return _ParsedPath(path: path, query: query, fragment: fragment);
+}
+
+bool _containsPatternSyntax(String path) {
+  for (var i = 0; i < path.length; i++) {
+    final char = path.codeUnitAt(i);
+    if (char == 58 || char == 42) return true; // ':' or '*'
+    if (char == 63) {
+      final hasNext = i + 1 < path.length;
+      if (!hasNext) return true;
+      if (path.codeUnitAt(i + 1) == 47) return true;
+    }
+  }
+  return false;
+}
+
+String _buildPathForPattern(String pattern, Map<String, String> params) {
+  final hasLeadingSlash = pattern.trimLeft().startsWith('/');
+  final built = buildPathFromPattern(
+    pattern: pattern,
+    params: params,
+    label: pattern,
+  );
+  if (built.isEmpty) {
+    return hasLeadingSlash ? '/' : '';
+  }
+  return hasLeadingSlash ? '/$built' : built;
 }
 
 String? _resolveMatchedName(List<MatchedRoute> matches) {
@@ -734,7 +808,6 @@ String? _resolveMatchedName(List<MatchedRoute> matches) {
   }
   return null;
 }
-
 
 class _UnrouterPage extends Page {
   const _UnrouterPage({super.key}) : super(canPop: false);
