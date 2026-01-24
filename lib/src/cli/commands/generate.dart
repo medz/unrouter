@@ -168,7 +168,8 @@ Future<int> runGenerate(
   };
 
   final nodesByTree = <String, _RouteNode>{
-    for (final route in routeFiles) _treeKey(route.treeSegments): _RouteNode(route),
+    for (final route in routeFiles)
+      _treeKey(route.treeSegments): _RouteNode(route),
   };
 
   final roots = <_RouteNode>[];
@@ -399,11 +400,12 @@ bool _validateDuplicatePaths(
 
   var hasError = false;
   for (final entry in routesByPath.entries) {
+    if (entry.key.isEmpty) {
+      continue;
+    }
     final list = entry.value;
     if (list.length <= 1) continue;
-    list.sort(
-      (a, b) => a.treeSegments.length.compareTo(b.treeSegments.length),
-    );
+    list.sort((a, b) => a.treeSegments.length.compareTo(b.treeSegments.length));
     for (var i = 1; i < list.length; i++) {
       final shorter = list[i - 1];
       final longer = list[i];

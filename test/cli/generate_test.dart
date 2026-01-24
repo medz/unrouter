@@ -536,4 +536,41 @@ class BPage extends StatelessWidget {
       ),
     );
   });
+
+  test('generate supports layout file with index child', () async {
+    writePubspec(temp.path);
+
+    final pagesDir = Directory(p.join(temp.path, 'lib', 'pages'))
+      ..createSync(recursive: true);
+
+    writePage(p.join(pagesDir.path, 'users.dart'), 'UsersLayout');
+    final usersDir = Directory(p.join(pagesDir.path, 'users'))
+      ..createSync(recursive: true);
+    writePage(p.join(usersDir.path, 'index.dart'), 'UsersIndexPage');
+
+    final code = await runGenerate(parseArgs());
+    expect(code, 0);
+
+    final contents = File(
+      p.join(temp.path, 'lib', 'routes.dart'),
+    ).readAsStringSync();
+
+    expect(contents, contains("import './pages/users.dart' as page_users;"));
+    expect(
+      contents,
+      contains("import './pages/users/index.dart' as page_users_index;"),
+    );
+    expect(
+      contents,
+      contains(
+        "Inlet(\n    path: 'users',\n    factory: page_users.UsersLayout.new,\n    children: [",
+      ),
+    );
+    expect(
+      contents,
+      contains(
+        "Inlet(path: '', factory: page_users_index.UsersIndexPage.new),",
+      ),
+    );
+  });
 }
