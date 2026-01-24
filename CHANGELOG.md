@@ -1,5 +1,7 @@
 ## Unreleased
 
+## 0.6.0 (2026-01-24)
+
 ### Breaking Changes
 
 - `Navigate` and `Link` now use named arguments with `name` or `path`; `query`
