@@ -344,6 +344,22 @@ const pagesDir = 'lib/pages';
 const output = 'lib/routes.dart';
 ```
 
+You can also add page-level metadata to influence generated routes:
+
+```dart
+// lib/pages/users/[id].dart
+import 'package:unrouter/unrouter.dart';
+
+Future<GuardResult> authGuard(GuardContext context) async {
+  return GuardResult.allow;
+}
+
+const route = RouteMeta(
+  name: 'userDetail',
+  guards: const [authGuard],
+);
+```
+
 Notes:
 - Both values are optional.
 - Paths can be absolute or relative to `unrouter.config.dart`.

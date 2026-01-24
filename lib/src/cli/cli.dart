@@ -2,8 +2,9 @@ import 'dart:io';
 
 import 'package:coal/args.dart';
 
-import 'commands/scan.dart';
 import 'commands/init.dart';
+import 'commands/generate.dart';
+import 'commands/scan.dart';
 
 class UnrouterCLI {
   UnrouterCLI(this.args);
@@ -40,6 +41,7 @@ class UnrouterCLI {
       case 'init':
         return runInit(parsed);
       case 'generate':
+        return runGenerate(parsed);
       case 'watch':
         stderr.writeln('Command "$command" is not implemented yet.');
         return 2;
