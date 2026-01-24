@@ -334,34 +334,21 @@ Unrouter(
 <details open>
 <summary><strong>File-based routing (CLI)</strong></summary>
 
-Unrouter exposes a static configuration that tooling can read to generate
-routes from a pages directory. This configuration does not affect runtime
-behavior.
+Create a `unrouter.config.dart` file in your project root (the CLI scans
+upward from the current working directory to find it). The CLI reads this file
+without executing it.
 
 ```dart
-import 'package:unrouter/unrouter.dart';
-
-void main() {
-  Unrouter.fileRouting = const FileRoutingConfig(
-    pagesDir: 'lib/pages',
-    output: 'lib/routes.g.dart',
-  );
-
-  runApp(
-    Unrouter(
-      routes: const [
-        Inlet(name: 'home', factory: HomePage.new),
-      ],
-    ),
-  );
-}
+// unrouter.config.dart
+const pagesDir = 'lib/pages';
+const output = 'lib/routes.g.dart';
 ```
 
 Notes:
-- `pagesDir` is the directory scanned for pages.
-- `output` is the generated file location.
-- Paths can be absolute or relative to the Dart file that defines `Unrouter`.
-- The router ignores these values; they exist only for CLI scanning.
+- Both values are optional.
+- Paths can be absolute or relative to `unrouter.config.dart`.
+- CLI flags (`--pages`, `--output`) override the config file.
+- You can scaffold the config with `unrouter init`.
 
 </details>
 
