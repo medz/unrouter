@@ -56,12 +56,12 @@ Future<int> runScan(Args parsed) async {
       '  pagesDir: ${pathText(resolved.pagesDir)} ${dimText('($pagesSource)')}',
     );
     stdout.writeln(
-      '  output:   ${pathText(resolved.output)} ${dimText('($outputSource)')}',
+      '  output: ${pathText(resolved.output)} ${dimText('($outputSource)')}',
     );
     stdout.writeln(
       '  resolved pagesDir: ${pathText(resolved.resolvedPagesDir)}',
     );
-    stdout.writeln('  resolved output:  ${pathText(resolved.resolvedOutput)}');
+    stdout.writeln('  resolved output: ${pathText(resolved.resolvedOutput)}');
   }
 
   final pagesDirectory = Directory(resolved.resolvedPagesDir);
@@ -72,7 +72,18 @@ Future<int> runScan(Args parsed) async {
     return 1;
   }
 
-  final routes = scanPages(pagesDirectory, rootDir: resolved.rootDir);
+  var scanFailed = false;
+  final routes = scanPages(
+    pagesDirectory,
+    rootDir: resolved.rootDir,
+    onError: (message) {
+      scanFailed = true;
+      stderr.writeln('${errorLabel('Error')}: $message');
+    },
+  );
+  if (scanFailed) {
+    return 1;
+  }
   if (json) {
     final payload = <String, Object?>{
       'root': resolved.rootDir,
@@ -130,7 +141,7 @@ List<String> _buildRouteTable(List<RouteEntry> routes, String rootDir) {
   });
 
   final lines = <String>[];
-  lines.add(fitToTerminal(_formatRowStyled(headers, widths)));
+  lines.add(fitToTerminal(_formatRowStyled(headers, widths, isHeader: true)));
   lines.add(
     fitToTerminal(
       dimText(_formatRow(widths.map((w) => '-' * w).toList(), widths)),
@@ -142,17 +153,19 @@ List<String> _buildRouteTable(List<RouteEntry> routes, String rootDir) {
   return lines;
 }
 
-String _formatRowStyled(List<String> cells, List<int> widths) {
+String _formatRowStyled(
+  List<String> cells,
+  List<int> widths, {
+  bool isHeader = false,
+}) {
   final padded = <String>[];
   for (var i = 0; i < cells.length; i += 1) {
     final raw = cells[i];
     final value = _padCell(raw, widths[i]);
-    if (i == 0) {
+    if (isHeader) {
+      padded.add(heading(value));
+    } else if (i == 0) {
       padded.add(pathText(value));
-    } else if (raw == 'File') {
-      padded.add(heading(value));
-    } else if (raw == 'Path') {
-      padded.add(heading(value));
     } else {
       padded.add(dimText(value));
     }

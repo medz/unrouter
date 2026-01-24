@@ -12,6 +12,7 @@ class RouteEntry {
 List<RouteEntry> scanPages(
   Directory pagesDirectory, {
   required String rootDir,
+  void Function(String message)? onError,
 }) {
   final entries = <RouteEntry>[];
   for (final entity in pagesDirectory.listSync(recursive: true)) {
@@ -24,10 +25,18 @@ List<RouteEntry> scanPages(
     if (segments.isEmpty) continue;
 
     final pathSegments = <String>[];
+    var invalidSegment = false;
     for (var i = 0; i < segments.length; i++) {
       final segment = segments[i];
       if (segment == 'index' && i == segments.length - 1) {
         continue;
+      }
+      if (segment == '[]') {
+        onError?.call(
+          'Invalid dynamic segment "[]" in ${_relativeOrAbsolute(entity.path, rootDir)}. Use [name] or [...name].',
+        );
+        invalidSegment = true;
+        break;
       }
       final dynamic = _parseDynamicSegment(segment);
       if (dynamic != null) {
@@ -36,8 +45,11 @@ List<RouteEntry> scanPages(
       }
       pathSegments.add(segment);
     }
+    if (invalidSegment) {
+      continue;
+    }
 
-    final path = pathSegments.isEmpty ? '' : pathSegments.join('/');
+    final path = pathSegments.join('/');
     final filePath = _relativeOrAbsolute(entity.path, rootDir);
     entries.add(RouteEntry(path: path, file: filePath));
   }

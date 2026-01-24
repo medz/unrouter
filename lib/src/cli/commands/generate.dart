@@ -82,7 +82,18 @@ Future<int> runGenerate(
     return 1;
   }
 
-  final scannedRoutes = scanPages(pagesDirectory, rootDir: resolved.rootDir);
+  var scanFailed = false;
+  final scannedRoutes = scanPages(
+    pagesDirectory,
+    rootDir: resolved.rootDir,
+    onError: (message) {
+      scanFailed = true;
+      reportError('${errorLabel('Error')}: $message');
+    },
+  );
+  if (scanFailed) {
+    return 1;
+  }
   final routeFiles = <_RouteFile>[];
   final usedAliases = <String>{};
   final seenPaths = <String, String>{};

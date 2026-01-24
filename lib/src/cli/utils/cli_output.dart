@@ -4,13 +4,11 @@ import 'package:coal/coal.dart';
 import 'package:coal/utils.dart'
     show eraseLines, cursorUp, getTextTruncatedWidth;
 
-bool _noColor =
-    Platform.environment['NO_COLOR']?.isNotEmpty == true ||
-    Platform.environment['NO_COLOR'] == '';
+bool _noColor = Platform.environment.containsKey('NO_COLOR');
 
 void configureOutput({bool? noColor}) {
-  if (noColor == true) {
-    _noColor = true;
+  if (noColor != null) {
+    _noColor = noColor;
   }
 }
 
@@ -100,14 +98,30 @@ void rewriteBlock(List<String> lines, {required int previousLineCount}) {
 
 String truncateAnsi(String text, int maxWidth, {String ellipsis = '...'}) {
   if (maxWidth <= 0 || text.isEmpty) return '';
+  var effectiveEllipsis = ellipsis;
+  if (ellipsis.isNotEmpty) {
+    final ellipsisWidth = getTextTruncatedWidth(
+      ellipsis,
+      limit: double.infinity,
+      ellipsis: '',
+    ).width;
+    if (ellipsisWidth > maxWidth) {
+      final clipped = getTextTruncatedWidth(
+        ellipsis,
+        limit: maxWidth,
+        ellipsis: '',
+      );
+      effectiveEllipsis = ellipsis.substring(0, clipped.index);
+    }
+  }
   final result = getTextTruncatedWidth(
     text,
     limit: maxWidth,
-    ellipsis: ellipsis,
+    ellipsis: effectiveEllipsis,
   );
   if (!result.truncated) return text;
   final end = result.index.clamp(0, text.length);
-  return text.substring(0, end) + (result.ellipsed ? ellipsis : '');
+  return text.substring(0, end) + (result.ellipsed ? effectiveEllipsis : '');
 }
 
 String _styleStdout(String text, List<TextStyle> styles) {
