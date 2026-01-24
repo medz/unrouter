@@ -699,12 +699,12 @@ All navigation methods return `Future<Navigation>` for awaitable results:
 final result = await context.navigate(path: '/login');
 
 switch (result) {
-  case NavigationAllowed():
+  case NavigationRedirected(:final to):
+    print('Redirected to ${to.uri}');
+  case NavigationSuccess():
     print('Navigation succeeded');
   case NavigationCancelled():
     print('Guard cancelled navigation');
-  case NavigationRedirected(:final to):
-    print('Redirected to ${to.uri}');
 }
 ```
 
@@ -1880,7 +1880,7 @@ flutter test test/navigation_test.dart
 | Type | Description |
 |------|-------------|
 | `Navigation` | Base type for navigation results |
-| `NavigationAllowed` | Navigation succeeded |
+| `NavigationSuccess` | Navigation succeeded |
 | `NavigationCancelled` | Guard cancelled navigation |
 | `NavigationRedirected` | Guard redirected to different route |
 

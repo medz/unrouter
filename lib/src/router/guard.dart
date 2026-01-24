@@ -36,11 +36,21 @@ sealed class GuardResult {
     bool replace,
   }) = GuardRedirect;
 
-  const factory GuardResult.redirectUri(
+  factory GuardResult.redirectUri(
     Uri uri, {
     Object? state,
-    bool replace,
-  }) = _GuardRedirectUri;
+    bool replace = true,
+  }) {
+    final query = uri.queryParameters;
+    final fragment = uri.fragment;
+    return GuardRedirect(
+      path: uri.path,
+      query: query.isEmpty ? null : query,
+      fragment: fragment.isEmpty ? null : fragment,
+      state: state,
+      replace: replace,
+    );
+  }
 }
 
 class GuardRedirect extends GuardResult {
@@ -66,14 +76,6 @@ class GuardRedirect extends GuardResult {
   final Map<String, String> params;
   final Map<String, String>? query;
   final String? fragment;
-  final Object? state;
-  final bool replace;
-}
-
-class _GuardRedirectUri extends GuardResult {
-  const _GuardRedirectUri(this.uri, {this.state, this.replace = true});
-
-  final Uri uri;
   final Object? state;
   final bool replace;
 }
@@ -180,21 +182,6 @@ class GuardExecutor {
       });
       if (isCompleted()) return null;
       if (result == .cancel) return null;
-      if (result is _GuardRedirectUri) {
-        final nextContext = GuardContext(
-          to: decorateLocation(
-            RouteInformation(uri: result.uri, state: result.state),
-          ),
-          from: context.to,
-          redirectCount: context.redirectCount + 1,
-          replace: result.replace,
-        );
-        if (nextContext.redirectCount > maxRedirects) {
-          return null;
-        }
-        return nextContext;
-      }
-
       if (result is GuardRedirect) {
         if (resolveRedirect == null) {
           throw FlutterError(
