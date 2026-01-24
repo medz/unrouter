@@ -10,7 +10,6 @@ import '_internal/named_routes.dart';
 import '_internal/route_path_builder.dart';
 import '_internal/stacked_route_view.dart';
 import 'blocker.dart';
-import 'file_routing_config.dart';
 import 'guard.dart';
 import 'inlet.dart';
 import 'navigation.dart';
@@ -44,11 +43,6 @@ import 'url_strategy.dart';
 /// - If both are provided: hybrid routing ([routes] matched first, [child] as fallback)
 class Unrouter extends StatelessWidget
     implements RouterConfig<RouteInformation> {
-  /// Static configuration used by file-based routing tools.
-  ///
-  /// This does not affect runtime behavior.
-  static FileRoutingConfig? fileRouting;
-
   /// Creates a router with optional declarative routes and/or widget-scoped child.
   ///
   /// At least one of [routes] or [child] must be provided.

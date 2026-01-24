@@ -1,6 +1,5 @@
 export 'src/router/guard.dart';
 export 'src/router/inlet.dart';
-export 'src/router/file_routing_config.dart';
 export 'src/router/blocker.dart'
     show
         RouteBlocker,
