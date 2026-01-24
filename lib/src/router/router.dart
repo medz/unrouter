@@ -517,7 +517,7 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
     // If we have matched routes, render them
     if (_matchedRoutes.isNotEmpty) {
       final state = RouteState(
-        location: currentConfiguration,
+        location: currentConfiguration as RouteLocation,
         matchedRoutes: _matchedRoutes,
         level: 0,
         historyIndex: history.index,
@@ -533,7 +533,7 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
     // If no match but we have a child, render it with router state
     if (child != null) {
       final state = RouteState(
-        location: currentConfiguration,
+        location: currentConfiguration as RouteLocation,
         matchedRoutes: const [],
         level: 0,
         historyIndex: history.index,
