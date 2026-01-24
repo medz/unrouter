@@ -15,13 +15,18 @@ String buildPathFromPattern({
     if (rawSegment == '*') {
       final wildcardValue = params['*'];
       if (wildcardValue == null || wildcardValue.isEmpty) {
-        break;
+        throw FlutterError(
+          'Missing param "*" for route "$label".\n'
+          'Pattern: "$pattern".',
+        );
       }
       final wildcardSegments = splitPath(wildcardValue);
       if (wildcardSegments.isNotEmpty) {
-        resolved.addAll(wildcardSegments);
+        for (final segment in wildcardSegments) {
+          resolved.add(Uri.encodeComponent(segment));
+        }
       } else {
-        resolved.add(wildcardValue);
+        resolved.add(Uri.encodeComponent(wildcardValue));
       }
       break;
     }
@@ -43,7 +48,7 @@ String buildPathFromPattern({
           'Pattern: "$pattern".',
         );
       }
-      resolved.add(value);
+      resolved.add(Uri.encodeComponent(value));
       continue;
     }
 

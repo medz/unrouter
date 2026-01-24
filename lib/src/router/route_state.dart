@@ -68,13 +68,18 @@ class RouteState {
     if (identical(this, other)) return true;
     return other is RouteState &&
         other.location.uri == location.uri &&
+        other.location.name == location.name &&
         other.level == level &&
         _listEquals(other.matchedRoutes, matchedRoutes);
   }
 
   @override
-  int get hashCode =>
-      Object.hash(location, level, Object.hashAll(matchedRoutes));
+  int get hashCode => Object.hash(
+    location.uri,
+    location.name,
+    level,
+    Object.hashAll(matchedRoutes),
+  );
 
   static bool _listEquals<T>(List<T>? a, List<T>? b) {
     if (a == null) return b == null;
