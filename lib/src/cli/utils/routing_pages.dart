@@ -37,7 +37,7 @@ List<RouteEntry> scanPages(
       pathSegments.add(segment);
     }
 
-    final path = pathSegments.isEmpty ? '/' : '/${pathSegments.join('/')}';
+    final path = pathSegments.isEmpty ? '' : pathSegments.join('/');
     final filePath = _relativeOrAbsolute(entity.path, rootDir);
     entries.add(RouteEntry(path: path, file: filePath));
   }

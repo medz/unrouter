@@ -419,7 +419,8 @@ String _buildOutput(
 }
 
 String _escapeString(String value) {
-  return value.replaceAll("'", "\\'");
+  final escaped = value.replaceAll('\\', '\\\\');
+  return escaped.replaceAll("'", "\\'");
 }
 
 List<String> _splitSegments(String path) {

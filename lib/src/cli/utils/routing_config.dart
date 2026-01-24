@@ -15,7 +15,16 @@ Future<RoutingConfig?> readRoutingConfig(
   void Function(String message)? onError,
 }) async {
   if (configPath == null) return null;
-  final content = await File(configPath).readAsString();
+  String content;
+  try {
+    content = await File(configPath).readAsString();
+  } on FileSystemException catch (error) {
+    onError?.call('Failed to read $configPath: $error');
+    return null;
+  } catch (error) {
+    onError?.call('Failed to read $configPath: $error');
+    return null;
+  }
   final result = parseString(
     content: content,
     throwIfDiagnostics: false,

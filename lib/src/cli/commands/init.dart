@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:coal/args.dart';
@@ -98,9 +99,11 @@ String _relativeToCwd(String absolutePath) {
 }
 
 String buildConfigContents({required String pagesDir, required String output}) {
+  final pagesLiteral = jsonEncode(pagesDir);
+  final outputLiteral = jsonEncode(output);
   return '''
-const pagesDir = '$pagesDir';
-const output = '$output';
+const pagesDir = $pagesLiteral;
+const output = $outputLiteral;
 ''';
 }
 

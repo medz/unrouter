@@ -93,7 +93,7 @@ void rewriteBlock(List<String> lines, {required int previousLineCount}) {
     renderBlock(lines);
     return;
   }
-  stdout.write(cursorUp());
+  stdout.write(cursorUp(previousLineCount));
   stdout.write(eraseLines(previousLineCount));
   renderBlock(lines);
 }
