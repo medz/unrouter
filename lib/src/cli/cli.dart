@@ -2,8 +2,12 @@ import 'dart:io';
 
 import 'package:coal/args.dart';
 
-class UnrouterCli {
-  Future<int> run(List<String> args) async {
+class UnrouterCLI {
+  UnrouterCLI(this.args);
+
+  final List<String> args;
+
+  Future<int> run() async {
     final parsed = Args.parse(
       args,
       bool: const ['help', 'h'],
