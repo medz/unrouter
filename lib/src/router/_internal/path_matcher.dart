@@ -101,7 +101,7 @@ class PathMatch {
 /// - Dynamic params: `':id'`, `':userId'`
 /// - Optional params: `':id?'`
 /// - Optional segments: `'edit?'`
-/// - Wildcard: `'*'`
+/// - Wildcard: `'*'`, `'*name'`
 ///
 /// Returns [PathMatch] with:
 /// - `matched`: whether the pattern matched
@@ -135,8 +135,15 @@ PathMatch matchPath(String? pattern, List<String> pathSegments) {
     final patternSegment = patternSegments[i];
 
     // Wildcard: match everything remaining
-    if (patternSegment == '*') {
+    if (patternSegment.startsWith('*')) {
       wildcardCount += 1;
+      final name = patternSegment.substring(1);
+      final value = pathSegments.sublist(pathIndex).join('/');
+      if (name.isEmpty) {
+        params['*'] = value;
+      } else {
+        params[name] = value;
+      }
       return PathMatch(
         matched: true,
         params: params,

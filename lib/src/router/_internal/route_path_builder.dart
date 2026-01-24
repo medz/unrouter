@@ -12,11 +12,12 @@ String buildPathFromPattern({
 
   final resolved = <String>[];
   for (final rawSegment in segments) {
-    if (rawSegment == '*') {
-      final wildcardValue = params['*'];
+    if (rawSegment.startsWith('*')) {
+      final paramName = rawSegment.length > 1 ? rawSegment.substring(1) : '*';
+      final wildcardValue = params[paramName];
       if (wildcardValue == null || wildcardValue.isEmpty) {
         throw FlutterError(
-          'Missing param "*" for route "$label".\n'
+          'Missing param "$paramName" for route "$label".\n'
           'Pattern: "$pattern".',
         );
       }

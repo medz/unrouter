@@ -123,7 +123,8 @@ String? _parseDynamicSegment(String segment) {
       return '*';
     }
     if (inner.startsWith('...') && inner.length > 3) {
-      return '*';
+      final name = inner.substring(3);
+      return '*$name';
     }
     if (inner.isNotEmpty) {
       return ':$inner';

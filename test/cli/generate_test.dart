@@ -525,9 +525,7 @@ class BPage extends StatelessWidget {
     );
     expect(
       contents,
-      contains(
-        "Inlet(path: 'login', factory: page_auth_login.LoginPage.new),",
-      ),
+      contains("Inlet(path: 'login', factory: page_auth_login.LoginPage.new),"),
     );
     expect(
       contents,
@@ -572,5 +570,34 @@ class BPage extends StatelessWidget {
         "Inlet(path: '', factory: page_users_index.UsersIndexPage.new),",
       ),
     );
+  });
+
+  test('generate uses named wildcard for catch-all pages', () async {
+    writePubspec(temp.path);
+
+    final pagesDir = Directory(p.join(temp.path, 'lib', 'pages'))
+      ..createSync(recursive: true);
+    final docsDir = Directory(p.join(pagesDir.path, 'docs'))
+      ..createSync(recursive: true);
+
+    File(p.join(docsDir.path, '[...path].dart')).writeAsStringSync('''
+import 'package:flutter/widgets.dart';
+
+class DocsPage extends StatelessWidget {
+  const DocsPage({super.key});
+
+  @override
+  Widget build(BuildContext context) => const SizedBox();
+}
+''');
+
+    final code = await runGenerate(parseArgs());
+    expect(code, 0);
+
+    final contents = File(
+      p.join(temp.path, 'lib', 'routes.dart'),
+    ).readAsStringSync();
+
+    expect(contents, contains("path: 'docs/*path'"));
   });
 }

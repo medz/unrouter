@@ -1,5 +1,10 @@
 ## Unreleased
 
+### Fixes
+
+- File-based catch-all pages now expose named wildcard params for `[...name]`
+  patterns and `*name` route segments.
+
 ## 0.7.0 (2026-01-24)
 
 ### Features

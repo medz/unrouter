@@ -66,7 +66,7 @@ abstract interface class Navigate {
   ///   navigation).
   ///
   /// For named routes and path patterns, [params] are substituted into the
-  /// route pattern (`:id`, optional `?` segments, and `*` wildcard).
+  /// route pattern (`:id`, optional `?` segments, and `*`/`*name` wildcard).
   /// Optional params are omitted when not provided. Optional static segments
   /// are included when generating the path.
   ///

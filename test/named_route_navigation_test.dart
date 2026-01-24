@@ -176,6 +176,28 @@ void main() {
       expect(uri.path, '/users/777');
     });
 
+    testWidgets('navigate.route supports named wildcards', (tester) async {
+      final router = Unrouter(
+        routes: [
+          Inlet(
+            name: 'docs',
+            path: 'docs/*path',
+            factory: () => const Text('Docs'),
+          ),
+        ],
+        history: MemoryHistory(),
+      );
+
+      await tester.pumpWidget(wrapRouter(router));
+
+      final uri = router.navigate.route(
+        path: '/docs/*path',
+        params: {'path': 'a/b'},
+      );
+
+      expect(uri.path, '/docs/a/b');
+    });
+
     testWidgets('navigate supports path patterns', (tester) async {
       final router = Unrouter(
         routes: [Inlet(path: 'users/:id', factory: UserDetailPage.new)],
