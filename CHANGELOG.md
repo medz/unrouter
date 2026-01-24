@@ -1,5 +1,7 @@
 ## Unreleased
 
+## 0.7.1 (2026-01-24)
+
 ### Fixes
 
 - File-based catch-all pages now expose named wildcard params for `[...name]`
