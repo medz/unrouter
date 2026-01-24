@@ -1,11 +1,13 @@
 import 'dart:io';
 
 import 'package:coal/args.dart';
+import 'package:coal/coal.dart' show TextStyle;
 
 import 'commands/init.dart';
 import 'commands/generate.dart';
 import 'commands/scan.dart';
 import 'commands/watch.dart';
+import 'utils/cli_output.dart';
 
 class UnrouterCLI {
   UnrouterCLI(this.args);
@@ -53,62 +55,87 @@ class UnrouterCLI {
   }
 
   void _printUsage() {
-    stdout.writeln('unrouter <command> [options]');
+    _printBanner();
+    stdout.writeln(dimText('File-based routing toolkit for Flutter'));
     stdout.writeln('');
-    stdout.writeln('Commands:');
-    stdout.writeln('  scan        Scan pages directory and print routes');
-    stdout.writeln('  generate    Generate routes file from pages');
-    stdout.writeln('  watch       Watch pages directory and regenerate');
-    stdout.writeln('  init        Create unrouter.config.dart');
+    stdout.writeln('${badge('Usage')} unrouter <command> [options]');
     stdout.writeln('');
-    stdout.writeln('Options:');
-    stdout.writeln('  --pages     Pages directory (default: lib/pages)');
+    stdout.writeln(badge('Commands', background: TextStyle.bgCyan));
     stdout.writeln(
-      '  --output    Generated file path (default: lib/routes.dart)',
+      '  scan     ${dimText('Inspect config and list detected routes')}',
     );
-    stdout.writeln('  --force     Overwrite existing config file');
-    stdout.writeln('  -h, --help  Show usage');
+    stdout.writeln(
+      '  generate ${dimText('Build routes file from pages directory')}',
+    );
+    stdout.writeln(
+      '  watch    ${dimText('Rebuild routes on file/config changes')}',
+    );
+    stdout.writeln(
+      '  init     ${dimText('Create unrouter.config.dart template')}',
+    );
+    stdout.writeln('');
+    stdout.writeln(badge('Options', background: TextStyle.bgMagenta));
+    stdout.writeln(
+      '  --pages     ${dimText('Pages directory (default: lib/pages)')}',
+    );
+    stdout.writeln(
+      '  --output    ${dimText('Generated file path (default: lib/routes.dart)')}',
+    );
+    stdout.writeln(
+      '  --force     ${dimText('Overwrite existing config file')}',
+    );
+    stdout.writeln('  -h, --help  ${dimText('Show usage')}');
   }
 
   void _printCommandUsage(String command) {
     switch (command) {
       case 'scan':
-        stdout.writeln('unrouter scan [options]');
+        _printBanner();
+        stdout.writeln(heading('unrouter scan'));
+        stdout.writeln(dimText('Inspect config and list detected routes.'));
         stdout.writeln('');
+        stdout.writeln(badge('Options', background: TextStyle.bgMagenta));
         stdout.writeln(
-          'Reads unrouter.config.dart and reports routing config.',
+          '  --pages     ${dimText('Pages directory (default: lib/pages)')}',
         );
-        stdout.writeln('');
-        stdout.writeln('Options:');
-        stdout.writeln('  --pages     Pages directory (default: lib/pages)');
         stdout.writeln(
-          '  --output    Generated file path (default: lib/routes.dart)',
+          '  --output    ${dimText('Generated file path (default: lib/routes.dart)')}',
         );
         return;
       case 'init':
-        stdout.writeln('unrouter init [options]');
+        _printBanner();
+        stdout.writeln(heading('unrouter init'));
+        stdout.writeln(dimText('Create unrouter.config.dart in project root.'));
         stdout.writeln('');
-        stdout.writeln('Creates unrouter.config.dart in the project root.');
-        stdout.writeln('');
-        stdout.writeln('Options:');
-        stdout.writeln('  --pages     Pages directory (default: lib/pages)');
+        stdout.writeln(badge('Options', background: TextStyle.bgMagenta));
         stdout.writeln(
-          '  --output    Generated file path (default: lib/routes.dart)',
+          '  --pages     ${dimText('Pages directory (default: lib/pages)')}',
         );
-        stdout.writeln('  --force     Overwrite existing config file');
+        stdout.writeln(
+          '  --output    ${dimText('Generated file path (default: lib/routes.dart)')}',
+        );
+        stdout.writeln(
+          '  --force     ${dimText('Overwrite existing config file')}',
+        );
         return;
       case 'generate':
       case 'watch':
-        stdout.writeln('unrouter $command [options]');
-        stdout.writeln('');
+        _printBanner();
+        stdout.writeln(heading('unrouter $command'));
         if (command == 'watch') {
-          stdout.writeln('Regenerates routes when pages or config change.');
-          stdout.writeln('');
+          stdout.writeln(
+            dimText('Regenerates routes when pages or config change.'),
+          );
+        } else {
+          stdout.writeln(dimText('Generate routes file from pages directory.'));
         }
-        stdout.writeln('Options:');
-        stdout.writeln('  --pages     Pages directory (default: lib/pages)');
+        stdout.writeln('');
+        stdout.writeln(badge('Options', background: TextStyle.bgMagenta));
         stdout.writeln(
-          '  --output    Generated file path (default: lib/routes.dart)',
+          '  --pages     ${dimText('Pages directory (default: lib/pages)')}',
+        );
+        stdout.writeln(
+          '  --output    ${dimText('Generated file path (default: lib/routes.dart)')}',
         );
         return;
       default:
@@ -117,4 +144,21 @@ class UnrouterCLI {
         return;
     }
   }
+
+  void _printBanner() {
+    renderBlock(
+      _bannerLines
+          .map((line) => accentText(line, TextStyle.cyan, bold: true))
+          .toList(),
+    );
+  }
 }
+
+const List<String> _bannerLines = [
+  r" _   _                            _             ",
+  r"| | | |                          | |            ",
+  r"| | | | _ __   _ __   ___   _   _| |_ ___  _ __ ",
+  r"| | | || '_ \ | '__| / _ \ | | | | __/ _ \| '__|",
+  r"| |_| || | | || |   | (_) || |_| | ||  __/| |   ",
+  r" \___/ |_| |_||_|    \___/  \__,_|\__\___||_|   ",
+];

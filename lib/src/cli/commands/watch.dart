@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:coal/args.dart';
 import 'package:path/path.dart' as p;
 
+import '../utils/cli_output.dart';
 import '../utils/constants.dart';
 import '../utils/root_finder.dart';
 import '../utils/routing_config.dart';
@@ -26,15 +27,13 @@ Future<int> runWatch(Args parsed) async {
   final pagesDirectory = Directory(state.paths.resolvedPagesDir);
   if (!pagesDirectory.existsSync()) {
     stderr.writeln(
-      'Pages directory not found: ${state.paths.resolvedPagesDir}',
+      '${errorLabel('Error')}: Pages directory not found: ${pathText(state.paths.resolvedPagesDir, stderr: true)}',
     );
     return 1;
   }
 
-  await runGenerate(parsed);
-
   stdout.writeln(
-    'Watching "${_relativeToCwd(pagesDirectory.path)}" for changes... (Ctrl+C to stop)\n',
+    '${infoLabel('Watch')}: ${pathText(_relativeToCwd(pagesDirectory.path))} ${dimText('(Ctrl+C to stop)')}\n',
   );
 
   final completer = Completer<int>();
@@ -47,11 +46,28 @@ Future<int> runWatch(Args parsed) async {
   var generating = false;
   var pending = false;
   var stopping = false;
-  final pendingPaths = <String>{};
+  final pendingPaths = <String, int>{};
+  final totalCounts = <String, int>{};
+  var renderedLines = 0;
+
+  final initialStopwatch = Stopwatch()..start();
+  final initialExitCode = await runGenerate(parsed, quiet: true);
+  initialStopwatch.stop();
+  renderedLines = _renderChanges(
+    pendingPaths,
+    renderedLines: renderedLines,
+    outputPath: state.paths.resolvedOutput,
+    succeeded: initialExitCode == 0,
+    totalCounts: totalCounts,
+    duration: initialStopwatch.elapsed,
+    showWhenEmpty: true,
+  );
 
   void schedule([String? changedPath]) {
     if (changedPath != null) {
-      pendingPaths.add(_relativeToCwd(p.normalize(p.absolute(changedPath))));
+      final normalized = _relativeToCwd(p.normalize(p.absolute(changedPath)));
+      pendingPaths[normalized] = (pendingPaths[normalized] ?? 0) + 1;
+      totalCounts[normalized] = (totalCounts[normalized] ?? 0) + 1;
     }
     debounce?.cancel();
     debounce = Timer(const Duration(milliseconds: 200), () async {
@@ -61,15 +77,6 @@ Future<int> runWatch(Args parsed) async {
       }
       generating = true;
       try {
-        if (pendingPaths.isNotEmpty) {
-          final paths = pendingPaths.toList()..sort();
-          pendingPaths.clear();
-          stdout.writeln('Detected changes:');
-          for (final path in paths) {
-            stdout.writeln('  - $path');
-          }
-          stdout.writeln('');
-        }
         final updated = await _resolveState(parsed);
         if (updated == null) {
           return;
@@ -86,7 +93,18 @@ Future<int> runWatch(Args parsed) async {
         }
 
         current = updated;
-        await runGenerate(parsed);
+        final stopwatch = Stopwatch()..start();
+        final exitCode = await runGenerate(parsed, quiet: true);
+        stopwatch.stop();
+        renderedLines = _renderChanges(
+          pendingPaths,
+          renderedLines: renderedLines,
+          outputPath: current.paths.resolvedOutput,
+          succeeded: exitCode == 0,
+          totalCounts: totalCounts,
+          duration: stopwatch.elapsed,
+        );
+        pendingPaths.clear();
       } finally {
         generating = false;
         if (pending) {
@@ -182,7 +200,7 @@ Future<_WatchState?> _resolveState(Args parsed) async {
 
   if (resolved == null) {
     stderr.writeln(
-      'Unable to find $configFileName or $pubspecFileName above the current directory.',
+      '${errorLabel('Error')}: Unable to find $configFileName or $pubspecFileName above the current directory.',
     );
     return null;
   }
@@ -196,4 +214,58 @@ String _relativeToCwd(String absolutePath) {
     return p.relative(absolutePath, from: cwd);
   }
   return absolutePath;
+}
+
+int _renderChanges(
+  Map<String, int> changes, {
+  required int renderedLines,
+  required String outputPath,
+  required bool succeeded,
+  required Map<String, int> totalCounts,
+  required Duration duration,
+  bool showWhenEmpty = false,
+}) {
+  if (changes.isEmpty && !showWhenEmpty) return 0;
+  final now = DateTime.now();
+  final status = succeeded ? successLabel('OK') : failureLabel('FAIL');
+  final summary =
+      '${infoLabel('Watch')} ${_formatTime(now)}  $status in ${_formatDuration(duration)}'
+      '  • ${changes.length} files (${_sumCounts(changes)} events, total ${_sumCounts(totalCounts)})'
+      ' → ${pathText(_relativeToCwd(outputPath))}';
+  final lines = <String>[fitToTerminal(summary)];
+  if (changes.isEmpty) {
+    lines.add(fitToTerminal(dimText('Waiting for changes...')));
+  } else {
+    lines.add(fitToTerminal(heading('Changed files')));
+    for (final entry in changes.entries) {
+      final total = totalCounts[entry.key] ?? entry.value;
+      final suffix = total > 1 ? ' ${dimText('(x$total)')}' : '';
+      lines.add(fitToTerminal('  - ${entry.key}$suffix'));
+    }
+  }
+  rewriteBlock(lines, previousLineCount: renderedLines);
+  return lines.length;
+}
+
+int _sumCounts(Map<String, int> counts) {
+  var total = 0;
+  for (final value in counts.values) {
+    total += value;
+  }
+  return total;
+}
+
+String _formatTime(DateTime time) {
+  final hour = time.hour.toString().padLeft(2, '0');
+  final minute = time.minute.toString().padLeft(2, '0');
+  final second = time.second.toString().padLeft(2, '0');
+  return '$hour:$minute:$second';
+}
+
+String _formatDuration(Duration duration) {
+  if (duration.inMilliseconds < 1000) {
+    return '${duration.inMilliseconds}ms';
+  }
+  final seconds = duration.inMilliseconds / 1000;
+  return '${seconds.toStringAsFixed(1)}s';
 }

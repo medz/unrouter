@@ -3,15 +3,18 @@ import 'dart:io';
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:coal/args.dart';
+import 'package:coal/coal.dart' show TextStyle;
+import 'package:coal/utils.dart' show getTextWidth;
 import 'package:path/path.dart' as p;
 
 import '../utils/constants.dart';
+import '../utils/cli_output.dart';
 import '../utils/routing_config.dart';
 import '../utils/root_finder.dart';
 import '../utils/routing_pages.dart';
 import '../utils/routing_paths.dart';
 
-Future<int> runGenerate(Args parsed) async {
+Future<int> runGenerate(Args parsed, {bool quiet = false}) async {
   final cwd = Directory.current;
   final configPath = findConfigPath(cwd);
 
@@ -34,14 +37,36 @@ Future<int> runGenerate(Args parsed) async {
 
   if (resolved == null) {
     stderr.writeln(
-      'Unable to find $configFileName or $pubspecFileName above the current directory.',
+      '${errorLabel('Error')}: Unable to find $configFileName or $pubspecFileName above the current directory.',
     );
     return 1;
   }
 
+  if (!quiet) {
+    stdout.writeln(heading('Generate routes'));
+    stdout.writeln(
+      '  root: ${pathText(resolved.rootDir)} ${dimText('(${resolved.rootSource})')}',
+    );
+    stdout.writeln(
+      '  config: ${configPath == null ? dimText('<none>') : pathText(configPath)}',
+    );
+    stdout.writeln(
+      '  pages: ${pathText(resolved.resolvedPagesDir)} ${dimText('(${resolved.pagesDir})')}',
+    );
+    stdout.writeln(
+      '  output: ${pathText(resolved.resolvedOutput)} ${dimText('(${resolved.output})')}',
+    );
+    stdout.writeln('');
+    stdout.writeln(
+      '${infoLabel('Scanning')}: ${pathText(resolved.resolvedPagesDir)}',
+    );
+  }
+
   final pagesDirectory = Directory(resolved.resolvedPagesDir);
   if (!pagesDirectory.existsSync()) {
-    stderr.writeln('Pages directory not found: ${resolved.resolvedPagesDir}');
+    stderr.writeln(
+      '${errorLabel('Error')}: Pages directory not found: ${pathText(resolved.resolvedPagesDir, stderr: true)}',
+    );
     return 1;
   }
 
@@ -54,7 +79,7 @@ Future<int> runGenerate(Args parsed) async {
     final normalizedPath = _normalizeRoutePath(entry.path);
     if (seenPaths.containsKey(normalizedPath)) {
       stderr.writeln(
-        'Duplicate route path "$normalizedPath" from ${entry.file} and ${seenPaths[normalizedPath]}.',
+        '${errorLabel('Error')}: Duplicate route path "$normalizedPath" from ${entry.file} and ${seenPaths[normalizedPath]}.',
       );
       return 1;
     }
@@ -63,13 +88,13 @@ Future<int> runGenerate(Args parsed) async {
     final absoluteFile = _absoluteFile(entry.file, resolved.rootDir);
     final parsedRoute = _parseRouteFile(absoluteFile);
     if (parsedRoute.error != null) {
-      stderr.writeln(parsedRoute.error);
+      stderr.writeln('${errorLabel('Error')}: ${parsedRoute.error}');
       return 1;
     }
     final className = parsedRoute.className;
     if (className == null) {
       stderr.writeln(
-        'No page widget class found in $absoluteFile. Expected a class extending a Widget type.',
+        '${errorLabel('Error')}: No page widget class found in $absoluteFile. Expected a class extending a Widget type.',
       );
       return 1;
     }
@@ -103,6 +128,10 @@ Future<int> runGenerate(Args parsed) async {
 
   routeFiles.sort((a, b) => a.path.compareTo(b.path));
 
+  if (!quiet) {
+    stdout.writeln('${infoLabel('Found')}: ${routeFiles.length} routes');
+  }
+
   final routesByPath = <String, _RouteFile>{
     for (final route in routeFiles) route.path: route,
   };
@@ -134,9 +163,19 @@ Future<int> runGenerate(Args parsed) async {
   final outputFile = File(resolved.resolvedOutput);
   final guardImports = _collectGuardImports(routeFiles, outputFile.path);
   if (guardImports.error != null) {
-    stderr.writeln(guardImports.error);
+    stderr.writeln('${errorLabel('Error')}: ${guardImports.error}');
     return 1;
   }
+
+  if (!quiet && routeFiles.isNotEmpty) {
+    stdout.writeln('');
+    stdout.writeln('${heading('Routes')} (${routeFiles.length}):');
+    for (final line in _buildRouteTable(routeFiles, resolved.rootDir)) {
+      stdout.writeln(line);
+    }
+    stdout.writeln('');
+  }
+
   outputFile.parent.createSync(recursive: true);
   outputFile.writeAsStringSync(
     _buildOutput(
@@ -147,8 +186,122 @@ Future<int> runGenerate(Args parsed) async {
     ),
   );
 
-  stdout.writeln('Wrote "${_relativeToCwd(outputFile.path)}".');
+  if (!quiet) {
+    stdout.writeln(
+      '${successLabel('Wrote')} ${pathText(_relativeToCwd(outputFile.path))}.',
+    );
+  }
   return 0;
+}
+
+List<String> _buildRouteTable(List<_RouteFile> routes, String rootDir) {
+  final headers = ['Path', 'File', 'Name', 'Guards'];
+  final rows = routes.map((route) {
+    final path = route.path.isEmpty ? '/' : '/${route.path}';
+    final file = p.relative(route.filePath, from: rootDir);
+    final name = _nameDisplay(route);
+    final guards = _guardsDisplay(route);
+    return [path, file, name, guards];
+  }).toList();
+
+  final widths = List<int>.generate(headers.length, (index) {
+    var width = getTextWidth(headers[index]).toInt();
+    for (final row in rows) {
+      width = width < getTextWidth(row[index]).toInt()
+          ? getTextWidth(row[index]).toInt()
+          : width;
+    }
+    return width;
+  });
+
+  final lines = <String>[];
+  lines.add(
+    fitToTerminal(
+      _formatRowStyled(headers, widths, (index, padded, _) => heading(padded)),
+    ),
+  );
+  lines.add(
+    fitToTerminal(
+      dimText(_formatRow(widths.map((w) => '-' * w).toList(), widths)),
+    ),
+  );
+  for (final row in rows) {
+    lines.add(
+      fitToTerminal(
+        _formatRowStyled(
+          row,
+          widths,
+          (index, padded, raw) => _styleRouteCell(index, padded, raw),
+        ),
+      ),
+    );
+  }
+  return lines;
+}
+
+String _formatRowStyled(
+  List<String> cells,
+  List<int> widths,
+  String Function(int index, String padded, String raw) styler,
+) {
+  final padded = <String>[];
+  for (var i = 0; i < cells.length; i += 1) {
+    final raw = cells[i];
+    final value = _padCell(raw, widths[i]);
+    padded.add(styler(i, value, raw));
+  }
+  return padded.join('  ');
+}
+
+String _formatRow(List<String> cells, List<int> widths) {
+  final padded = <String>[];
+  for (var i = 0; i < cells.length; i += 1) {
+    padded.add(_padCell(cells[i], widths[i]));
+  }
+  return padded.join('  ');
+}
+
+String _padCell(String value, int width) {
+  final length = getTextWidth(value).toInt();
+  if (length >= width) return value;
+  return value + ' ' * (width - length);
+}
+
+String _styleRouteCell(int index, String padded, String raw) {
+  switch (index) {
+    case 0:
+      return pathText(padded);
+    case 1:
+      return dimText(padded);
+    case 2:
+      if (raw == '-') return dimText(padded);
+      if (raw == '<expr>') return warningLabel(padded);
+      return accentText(padded, TextStyle.magenta, bold: true);
+    case 3:
+      if (raw == '-') return dimText(padded);
+      if (raw == '<expr>') return warningLabel(padded);
+      return accentText(padded, TextStyle.yellow, bold: true);
+    default:
+      return padded;
+  }
+}
+
+String _nameDisplay(_RouteFile route) {
+  if (!route.hasName) return '-';
+  return route.nameLiteral ?? '<expr>';
+}
+
+String _guardsDisplay(_RouteFile route) {
+  if (!route.hasGuards) return '-';
+  final guards = route.guardRefs;
+  if (guards == null) return '<expr>';
+  if (guards.isEmpty) return '-';
+  return guards
+      .map(
+        (guard) =>
+            guard.prefix == null ? guard.name : '${guard.prefix}.${guard.name}',
+      )
+      .join(', ');
 }
 
 String _normalizeRoutePath(String path) {

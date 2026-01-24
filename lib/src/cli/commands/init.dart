@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:coal/args.dart';
 import 'package:path/path.dart' as p;
 
+import '../utils/cli_output.dart';
 import '../utils/constants.dart';
 import '../utils/root_finder.dart';
 
@@ -19,7 +20,7 @@ Future<int> runInit(Args parsed) async {
   final pagesRoot = outputRoot ?? findPubspecRoot(p.dirname(pagesAbsolute));
   if (pagesRoot == null) {
     stderr.writeln(
-      'Unable to find pubspec.yaml above "$output" or "$pagesDir".',
+      '${errorLabel('Error')}: Unable to find pubspec.yaml above "$output" or "$pagesDir".',
     );
     stderr.writeln('Run this command from within a Dart/Flutter project.');
     return 1;
@@ -30,7 +31,7 @@ Future<int> runInit(Args parsed) async {
   final targetFile = File(targetPath);
   if (targetFile.existsSync() && !force) {
     stdout.writeln(
-      'Config already exists at "$targetPath". Use --force to overwrite.',
+      '${warningLabel('Notice')}: Config already exists at ${pathText(_relativeToCwd(targetPath))}. Use --force to overwrite.',
     );
     return 0;
   }
@@ -39,7 +40,7 @@ Future<int> runInit(Args parsed) async {
   if (!pagesDirectory.existsSync()) {
     await pagesDirectory.create(recursive: true);
     stdout.writeln(
-      'Created pages directory at "${_relativeToCwd(pagesAbsolute)}".',
+      '${successLabel('Created')} pages directory at ${pathText(_relativeToCwd(pagesAbsolute))}.',
     );
   }
 
@@ -50,7 +51,9 @@ Future<int> runInit(Args parsed) async {
   }
   if (!outputFile.existsSync()) {
     await outputFile.writeAsString(outputTemplate);
-    stdout.writeln('Created output file at "${_relativeToCwd(outputAbsolute)}".');
+    stdout.writeln(
+      '${successLabel('Created')} output file at ${pathText(_relativeToCwd(outputAbsolute))}.',
+    );
   }
 
   final configPages = _formatConfigPath(pagesAbsolute, pagesRoot);
@@ -59,7 +62,9 @@ Future<int> runInit(Args parsed) async {
   await targetFile.writeAsString(
     buildConfigContents(pagesDir: configPages, output: configOutput),
   );
-  stdout.writeln('Wrote "${_relativeToCwd(targetPath)}".');
+  stdout.writeln(
+    '${successLabel('Wrote')} ${pathText(_relativeToCwd(targetPath))}.',
+  );
   return 0;
 }
 
