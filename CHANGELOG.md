@@ -1,5 +1,36 @@
 ## Unreleased
 
+### Breaking Changes
+
+- `Navigate` and `Link` now use named arguments with `name` or `path`; `query`
+  replaces `queryParameters` for navigation and URI generation.
+- Guard APIs now use `RouteLocation` in `GuardContext` and accept named route or
+  path data in `GuardResult.redirect`.
+
+### Features
+
+- **Named routes**: add `Inlet.name`, name-based navigation, and
+  `Navigate.route(...)` for URI generation from names or path patterns.
+- **Route location names**: expose the matched route name via `RouteLocation`
+  (available from `context.location`).
+- **Path patterns**: allow params, optional segments, and wildcards to be
+  substituted when navigating or generating URIs.
+
+### Improvements
+
+- Route matching now prefers more specific routes (static > params > wildcard),
+  with definition order as the tiebreaker.
+
+### Fixes
+
+- Encode dynamic path segments when building URIs and throw clear errors for
+  missing wildcard params.
+- Include route names in `RouteLocation` and `RouteState` equality/hashCode.
+
+### Testing
+
+- Added tests for named routes and specificity-based matching.
+
 ## 0.5.1 (2025-12-24)
 
 ### Improvements
