@@ -3,10 +3,19 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 
 class RouteEntry {
-  const RouteEntry({required this.path, required this.file});
+  const RouteEntry({
+    required this.path,
+    required this.file,
+    required this.treeSegments,
+    required this.pathSegments,
+    required this.isIndex,
+  });
 
   final String path;
   final String file;
+  final List<String> treeSegments;
+  final List<String> pathSegments;
+  final bool isIndex;
 }
 
 List<RouteEntry> scanPages(
@@ -24,11 +33,25 @@ List<RouteEntry> scanPages(
     final segments = p.split(withoutExt);
     if (segments.isEmpty) continue;
 
+    final treeSegments = <String>[];
     final pathSegments = <String>[];
+    final isIndex = segments.last == 'index';
     var invalidSegment = false;
     for (var i = 0; i < segments.length; i++) {
       final segment = segments[i];
       if (segment == 'index' && i == segments.length - 1) {
+        continue;
+      }
+      if (_isGroupSegment(segment)) {
+        final groupName = segment.substring(1, segment.length - 1).trim();
+        if (groupName.isEmpty) {
+          onError?.call(
+            'Invalid group segment "()" in ${_relativeOrAbsolute(entity.path, rootDir)}. Use a non-empty name, e.g. "(auth)".',
+          );
+          invalidSegment = true;
+          break;
+        }
+        treeSegments.add(segment);
         continue;
       }
       if (segment == '[]') {
@@ -40,9 +63,11 @@ List<RouteEntry> scanPages(
       }
       final dynamic = _parseDynamicSegment(segment);
       if (dynamic != null) {
+        treeSegments.add(dynamic);
         pathSegments.add(dynamic);
         continue;
       }
+      treeSegments.add(segment);
       pathSegments.add(segment);
     }
     if (invalidSegment) {
@@ -51,10 +76,24 @@ List<RouteEntry> scanPages(
 
     final path = pathSegments.join('/');
     final filePath = _relativeOrAbsolute(entity.path, rootDir);
-    entries.add(RouteEntry(path: path, file: filePath));
+    entries.add(
+      RouteEntry(
+        path: path,
+        file: filePath,
+        treeSegments: treeSegments,
+        pathSegments: pathSegments,
+        isIndex: isIndex,
+      ),
+    );
   }
 
-  entries.sort((a, b) => a.path.compareTo(b.path));
+  entries.sort((a, b) {
+    final pathCompare = a.path.compareTo(b.path);
+    if (pathCompare != 0) return pathCompare;
+    final treeA = _treeKey(a.treeSegments);
+    final treeB = _treeKey(b.treeSegments);
+    return treeA.compareTo(treeB);
+  });
   return entries;
 }
 
@@ -63,6 +102,15 @@ String _relativeOrAbsolute(String filePath, String rootDir) {
     return p.relative(filePath, from: rootDir);
   }
   return p.normalize(filePath);
+}
+
+bool _isGroupSegment(String segment) {
+  return segment.startsWith('(') && segment.endsWith(')');
+}
+
+String _treeKey(List<String> segments) {
+  if (segments.isEmpty) return '';
+  return segments.join('/');
 }
 
 String? _parseDynamicSegment(String segment) {

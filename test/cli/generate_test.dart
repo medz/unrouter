@@ -482,4 +482,58 @@ class BPage extends StatelessWidget {
     final code = await runGenerate(parseArgs());
     expect(code, 1);
   });
+
+  test('generate supports group layouts and ignores group segments', () async {
+    writePubspec(temp.path);
+
+    final pagesDir = Directory(p.join(temp.path, 'lib', 'pages'))
+      ..createSync(recursive: true);
+
+    writePage(p.join(pagesDir.path, '(auth).dart'), 'AuthLayout');
+
+    final authDir = Directory(p.join(pagesDir.path, '(auth)'))
+      ..createSync(recursive: true);
+    writePage(p.join(authDir.path, 'login.dart'), 'LoginPage');
+
+    final marketingDir = Directory(p.join(pagesDir.path, '(marketing)'))
+      ..createSync(recursive: true);
+    writePage(p.join(marketingDir.path, 'about.dart'), 'MarketingAboutPage');
+
+    final code = await runGenerate(parseArgs());
+    expect(code, 0);
+
+    final contents = File(
+      p.join(temp.path, 'lib', 'routes.dart'),
+    ).readAsStringSync();
+
+    expect(contents, contains("import './pages/(auth).dart' as page_auth;"));
+    expect(
+      contents,
+      contains("import './pages/(auth)/login.dart' as page_auth_login;"),
+    );
+    expect(
+      contents,
+      contains(
+        "import './pages/(marketing)/about.dart' as page_marketing_about;",
+      ),
+    );
+    expect(
+      contents,
+      contains(
+        "Inlet(\n    path: '',\n    factory: page_auth.AuthLayout.new,\n    children: [",
+      ),
+    );
+    expect(
+      contents,
+      contains(
+        "Inlet(path: 'login', factory: page_auth_login.LoginPage.new),",
+      ),
+    );
+    expect(
+      contents,
+      contains(
+        "Inlet(path: 'about', factory: page_marketing_about.MarketingAboutPage.new),",
+      ),
+    );
+  });
 }
