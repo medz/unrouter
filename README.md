@@ -8,6 +8,7 @@
 
 <p align="center">
   <a href="https://pub.dev/packages/unrouter"><img src="https://img.shields.io/pub/v/unrouter.svg" alt="pub"></a>
+  <a href="https://github.com/medz/unrouter/actions/workflows/tests.yml"><img src="https://github.com/medz/unrouter/actions/workflows/tests.yml/badge.svg" alt="tests"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="license"></a>
 </p>
 
