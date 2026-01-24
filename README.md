@@ -29,11 +29,7 @@ Highlights:
 - Optional file-based routing CLI (`init/scan/generate/watch`)
 - Web URL strategies (browser/hash) and history state
 
----
-
 https://github.com/user-attachments/assets/e4f2d9d1-3fe2-4050-8b5b-1e1171027ba2
-
----
 
 ## Installation
 
@@ -49,8 +45,6 @@ Or run:
 ```bash
 flutter pub add unrouter
 ```
-
----
 
 ## Quick start
 
@@ -105,8 +99,6 @@ context.navigate(path: './edit');       // /users/123/edit
 context.navigate(path: '../settings');  // /users/settings
 ```
 
----
-
 ## Core concepts
 
 ### Unrouter
@@ -144,8 +136,6 @@ class UsersLayout extends StatelessWidget {
 }
 ```
 
----
-
 ## Routing approaches
 
 ### Declarative
@@ -180,8 +170,6 @@ Unrouter(
 )
 ```
 
----
-
 ## Route patterns
 
 Supported path tokens:
@@ -201,8 +189,6 @@ Named routes let you generate URIs and navigate by name:
 ```dart
 Inlet(name: 'userDetail', path: 'users/:id', factory: UserDetailPage.new);
 ```
-
----
 
 ## Layouts and nested routing
 
@@ -230,8 +216,6 @@ Inlet(
   ],
 )
 ```
-
----
 
 ## Navigation API
 
@@ -267,8 +251,6 @@ context.navigate.go(-2);
 ```
 
 Navigation calls return `Future<Navigation>` so you can detect allow/cancel/redirect.
-
----
 
 ## File-based routing (CLI)
 
@@ -386,8 +368,6 @@ Command options:
 - `generate`: `-v, --verbose`, `-q, --quiet`, `--json`
 - `watch`: `-q, --quiet`
 
----
-
 ## Guards
 
 Guards run from root to leaf and can allow, cancel, or redirect navigation.
@@ -409,8 +389,6 @@ Unrouter(
 )
 ```
 
----
-
 ## Route blockers
 
 Use `RouteBlocker` to intercept back/pop events and confirm navigation.
@@ -423,8 +401,6 @@ RouteBlocker(
   ]),
 )
 ```
-
----
 
 ## Link widget
 
@@ -439,8 +415,6 @@ Link(
 )
 ```
 
----
-
 ## Route animations
 
 Access per-route animation controllers:
@@ -448,8 +422,6 @@ Access per-route animation controllers:
 ```dart
 final animation = context.routeAnimation();
 ```
-
----
 
 ## Navigator 1.0 compatibility
 
@@ -463,8 +435,6 @@ Unrouter(
 )
 ```
 
----
-
 ## Web URL strategy
 
 ```dart
@@ -476,8 +446,6 @@ Unrouter(
 
 Use hash strategy when you cannot configure server rewrites.
 
----
-
 ## State restoration
 
 ```dart
@@ -487,15 +455,11 @@ MaterialApp.router(
 )
 ```
 
----
-
 ## Testing
 
 ```bash
 flutter test
 ```
-
----
 
 ## Example app
 
@@ -503,8 +467,6 @@ flutter test
 cd example
 flutter run
 ```
-
----
 
 ## Contributing
 
@@ -521,8 +483,6 @@ flutter test
 ```
 
 Follow `flutter_lints` and keep changes focused.
-
----
 
 ## License
 
