@@ -42,9 +42,7 @@ List<RouteEntry> scanPages(
     for (var i = 0; i < segments.length; i++) {
       final segment = segments[i];
       if (segment == 'index' && i == segments.length - 1) {
-        if (isIndex) {
-          treeSegments.add(_indexToken);
-        }
+        treeSegments.add(_indexToken);
         continue;
       }
       if (_isGroupSegment(segment)) {

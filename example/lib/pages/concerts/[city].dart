@@ -15,6 +15,7 @@ class CityPage extends StatelessWidget {
     final displayCity = city
         .replaceAll('-', ' ')
         .split(' ')
+        .where((word) => word.isNotEmpty)
         .map((word) => word[0].toUpperCase() + word.substring(1))
         .join(' ');
 
