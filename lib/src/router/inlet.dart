@@ -40,7 +40,7 @@ class Inlet {
   /// - Static segments: `'about'`, `'users'`
   /// - Dynamic params: `':id'`, `':userId'`
   /// - Optional params/segments: `':id?'`, `'edit?'`
-  /// - Wildcard: `'*'`
+  /// - Wildcard: `'*'`, `'*name'`
   final String path;
 
   /// Optional unique name for this route.

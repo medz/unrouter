@@ -124,13 +124,21 @@ void main() {
     test('matches wildcard', () {
       final match = matchPath('files/*', ['files', 'a', 'b', 'c']);
       expect(match.matched, true);
-      expect(match.params, {});
+      expect(match.params, {'*': 'a/b/c'});
       expect(match.remaining, []);
     });
 
     test('wildcard consumes all remaining segments', () {
       final match = matchPath('*', ['any', 'path', 'here']);
       expect(match.matched, true);
+      expect(match.params, {'*': 'any/path/here'});
+      expect(match.remaining, []);
+    });
+
+    test('captures named wildcard params', () {
+      final match = matchPath('files/*path', ['files', 'a', 'b']);
+      expect(match.matched, true);
+      expect(match.params, {'path': 'a/b'});
       expect(match.remaining, []);
     });
 
