@@ -37,26 +37,22 @@ RoutingPaths? resolveRoutingPaths({
   required String? configPages,
   required String? configOutput,
 }) {
-  final configRoot =
-      configPath == null ? null : File(configPath).absolute.parent.path;
+  final configRoot = configPath == null
+      ? null
+      : File(configPath).absolute.parent.path;
   final pagesDir = pagesArg ?? configPages ?? defaultPagesDir;
   final output = outputArg ?? configOutput ?? defaultOutput;
 
-  final pagesSource =
-      pagesArg != null
-          ? ConfigSource.cli
-          : (configPages != null
-              ? ConfigSource.config
-              : ConfigSource.defaultValue);
-  final outputSource =
-      outputArg != null
-          ? ConfigSource.cli
-          : (configOutput != null
-              ? ConfigSource.config
-              : ConfigSource.defaultValue);
+  final pagesSource = pagesArg != null
+      ? ConfigSource.cli
+      : (configPages != null ? ConfigSource.config : ConfigSource.defaultValue);
+  final outputSource = outputArg != null
+      ? ConfigSource.cli
+      : (configOutput != null
+            ? ConfigSource.config
+            : ConfigSource.defaultValue);
 
-  final rootDir =
-      configRoot ?? _resolveRootFromCli(cwd.path, pagesDir, output);
+  final rootDir = configRoot ?? _resolveRootFromCli(cwd.path, pagesDir, output);
   if (rootDir == null) {
     return null;
   }

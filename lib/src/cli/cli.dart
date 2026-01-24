@@ -17,13 +17,20 @@ class UnrouterCLI {
   Future<int> run() async {
     final parsed = Args.parse(
       args,
-      bool: const ['help', 'h', 'force'],
+      bool: const ['help', 'force', 'verbose', 'quiet', 'json', 'no-color'],
       string: const ['pages', 'output'],
+      aliases: const {
+        'h': 'help',
+        'v': 'verbose',
+        'q': 'quiet',
+        'p': 'pages',
+        'o': 'output',
+        'f': 'force',
+      },
     );
+    configureOutput(noColor: parsed.at('no-color')?.safeAs<bool>() == true);
 
-    final showHelp =
-        parsed.at('help')?.safeAs<bool>() == true ||
-        parsed.at('h')?.safeAs<bool>() == true;
+    final showHelp = parsed.at('help')?.safeAs<bool>() == true;
     final positionals = parsed.rest.toList();
 
     if (positionals.isEmpty || showHelp) {
@@ -74,17 +81,12 @@ class UnrouterCLI {
       '  init     ${dimText('Create unrouter.config.dart template')}',
     );
     stdout.writeln('');
-    stdout.writeln(badge('Options', background: TextStyle.bgMagenta));
+    stdout.writeln(badge('Global Options', background: TextStyle.bgMagenta));
+    _printGlobalOptions();
+    stdout.writeln('');
     stdout.writeln(
-      '  --pages     ${dimText('Pages directory (default: lib/pages)')}',
+      dimText('Use `unrouter <command> --help` to see command options.'),
     );
-    stdout.writeln(
-      '  --output    ${dimText('Generated file path (default: lib/routes.dart)')}',
-    );
-    stdout.writeln(
-      '  --force     ${dimText('Overwrite existing config file')}',
-    );
-    stdout.writeln('  -h, --help  ${dimText('Show usage')}');
   }
 
   void _printCommandUsage(String command) {
@@ -94,12 +96,17 @@ class UnrouterCLI {
         stdout.writeln(heading('unrouter scan'));
         stdout.writeln(dimText('Inspect config and list detected routes.'));
         stdout.writeln('');
-        stdout.writeln(badge('Options', background: TextStyle.bgMagenta));
         stdout.writeln(
-          '  --pages     ${dimText('Pages directory (default: lib/pages)')}',
+          badge('Global Options', background: TextStyle.bgMagenta),
         );
+        _printGlobalOptions();
+        stdout.writeln('');
         stdout.writeln(
-          '  --output    ${dimText('Generated file path (default: lib/routes.dart)')}',
+          badge('Command Options', background: TextStyle.bgYellow),
+        );
+        stdout.writeln('  -q, --quiet ${dimText('Suppress non-error output')}');
+        stdout.writeln(
+          '  --json      ${dimText('Emit machine-readable JSON')}',
         );
         return;
       case 'init':
@@ -107,16 +114,18 @@ class UnrouterCLI {
         stdout.writeln(heading('unrouter init'));
         stdout.writeln(dimText('Create unrouter.config.dart in project root.'));
         stdout.writeln('');
-        stdout.writeln(badge('Options', background: TextStyle.bgMagenta));
         stdout.writeln(
-          '  --pages     ${dimText('Pages directory (default: lib/pages)')}',
+          badge('Global Options', background: TextStyle.bgMagenta),
+        );
+        _printGlobalOptions();
+        stdout.writeln('');
+        stdout.writeln(
+          badge('Command Options', background: TextStyle.bgYellow),
         );
         stdout.writeln(
-          '  --output    ${dimText('Generated file path (default: lib/routes.dart)')}',
+          '  -f, --force ${dimText('Overwrite existing config file')}',
         );
-        stdout.writeln(
-          '  --force     ${dimText('Overwrite existing config file')}',
-        );
+        stdout.writeln('  -q, --quiet ${dimText('Suppress non-error output')}');
         return;
       case 'generate':
       case 'watch':
@@ -130,13 +139,27 @@ class UnrouterCLI {
           stdout.writeln(dimText('Generate routes file from pages directory.'));
         }
         stdout.writeln('');
-        stdout.writeln(badge('Options', background: TextStyle.bgMagenta));
         stdout.writeln(
-          '  --pages     ${dimText('Pages directory (default: lib/pages)')}',
+          badge('Global Options', background: TextStyle.bgMagenta),
         );
+        _printGlobalOptions();
+        stdout.writeln('');
         stdout.writeln(
-          '  --output    ${dimText('Generated file path (default: lib/routes.dart)')}',
+          badge('Command Options', background: TextStyle.bgYellow),
         );
+        if (command == 'generate') {
+          stdout.writeln('  -v, --verbose ${dimText('Show detailed output')}');
+          stdout.writeln(
+            '  -q, --quiet ${dimText('Suppress non-error output')}',
+          );
+          stdout.writeln(
+            '  --json      ${dimText('Emit machine-readable JSON')}',
+          );
+        } else {
+          stdout.writeln(
+            '  -q, --quiet ${dimText('Suppress non-error output')}',
+          );
+        }
         return;
       default:
         stdout.writeln('Unknown command: $command');
@@ -151,6 +174,17 @@ class UnrouterCLI {
           .map((line) => accentText(line, TextStyle.cyan, bold: true))
           .toList(),
     );
+  }
+
+  void _printGlobalOptions() {
+    stdout.writeln(
+      '  -p, --pages ${dimText('Pages directory (default: lib/pages)')}',
+    );
+    stdout.writeln(
+      '  -o, --output ${dimText('Generated file path (default: lib/routes.dart)')}',
+    );
+    stdout.writeln('  --no-color  ${dimText('Disable ANSI colors')}');
+    stdout.writeln('  -h, --help  ${dimText('Show usage')}');
   }
 }
 

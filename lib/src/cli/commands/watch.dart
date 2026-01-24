@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:coal/args.dart';
+import 'package:coal/utils.dart' show stripVTControlCharacters;
 import 'package:path/path.dart' as p;
 
 import '../utils/cli_output.dart';
@@ -19,6 +20,13 @@ class _WatchState {
 }
 
 Future<int> runWatch(Args parsed) async {
+  if (parsed.at('json')?.safeAs<bool>() == true) {
+    stderr.writeln(
+      '${errorLabel('Error')}: --json is not supported for watch.',
+    );
+    return 2;
+  }
+  final quietOutput = parsed.at('quiet')?.safeAs<bool>() == true;
   final state = await _resolveState(parsed);
   if (state == null) {
     return 1;
@@ -32,9 +40,11 @@ Future<int> runWatch(Args parsed) async {
     return 1;
   }
 
-  stdout.writeln(
-    '${infoLabel('Watch')}: ${pathText(_relativeToCwd(pagesDirectory.path))} ${dimText('(Ctrl+C to stop)')}\n',
-  );
+  if (!quietOutput) {
+    stdout.writeln(
+      '${infoLabel('Watch')}: ${pathText(_relativeToCwd(pagesDirectory.path))} ${dimText('(Ctrl+C to stop)')}\n',
+    );
+  }
 
   final completer = Completer<int>();
   StreamSubscription<FileSystemEvent>? pagesSub;
@@ -50,18 +60,26 @@ Future<int> runWatch(Args parsed) async {
   final totalCounts = <String, int>{};
   var renderedLines = 0;
 
+  final initialErrors = <String>[];
   final initialStopwatch = Stopwatch()..start();
-  final initialExitCode = await runGenerate(parsed, quiet: true);
-  initialStopwatch.stop();
-  renderedLines = _renderChanges(
-    pendingPaths,
-    renderedLines: renderedLines,
-    outputPath: state.paths.resolvedOutput,
-    succeeded: initialExitCode == 0,
-    totalCounts: totalCounts,
-    duration: initialStopwatch.elapsed,
-    showWhenEmpty: true,
+  final initialExitCode = await runGenerate(
+    parsed,
+    quiet: true,
+    errorLines: initialErrors,
   );
+  initialStopwatch.stop();
+  if (!quietOutput) {
+    renderedLines = _renderChanges(
+      pendingPaths,
+      renderedLines: renderedLines,
+      outputPath: state.paths.resolvedOutput,
+      succeeded: initialExitCode == 0,
+      totalCounts: totalCounts,
+      duration: initialStopwatch.elapsed,
+      showWhenEmpty: true,
+      errorLine: _lastErrorLine(initialErrors),
+    );
+  }
 
   void schedule([String? changedPath]) {
     if (changedPath != null) {
@@ -93,17 +111,25 @@ Future<int> runWatch(Args parsed) async {
         }
 
         current = updated;
+        final errors = <String>[];
         final stopwatch = Stopwatch()..start();
-        final exitCode = await runGenerate(parsed, quiet: true);
-        stopwatch.stop();
-        renderedLines = _renderChanges(
-          pendingPaths,
-          renderedLines: renderedLines,
-          outputPath: current.paths.resolvedOutput,
-          succeeded: exitCode == 0,
-          totalCounts: totalCounts,
-          duration: stopwatch.elapsed,
+        final exitCode = await runGenerate(
+          parsed,
+          quiet: true,
+          errorLines: errors,
         );
+        stopwatch.stop();
+        if (!quietOutput) {
+          renderedLines = _renderChanges(
+            pendingPaths,
+            renderedLines: renderedLines,
+            outputPath: current.paths.resolvedOutput,
+            succeeded: exitCode == 0,
+            totalCounts: totalCounts,
+            duration: stopwatch.elapsed,
+            errorLine: _lastErrorLine(errors),
+          );
+        }
         pendingPaths.clear();
       } finally {
         generating = false;
@@ -223,6 +249,7 @@ int _renderChanges(
   required bool succeeded,
   required Map<String, int> totalCounts,
   required Duration duration,
+  String? errorLine,
   bool showWhenEmpty = false,
 }) {
   if (changes.isEmpty && !showWhenEmpty) return 0;
@@ -243,8 +270,20 @@ int _renderChanges(
       lines.add(fitToTerminal('  - ${entry.key}$suffix'));
     }
   }
+  if (!succeeded && errorLine != null && errorLine.isNotEmpty) {
+    lines.add(fitToTerminal('${failureLabel('Error')}: $errorLine'));
+  }
   rewriteBlock(lines, previousLineCount: renderedLines);
   return lines.length;
+}
+
+String? _lastErrorLine(List<String> errors) {
+  if (errors.isEmpty) return null;
+  for (var i = errors.length - 1; i >= 0; i -= 1) {
+    final line = stripVTControlCharacters(errors[i]).trim();
+    if (line.isNotEmpty) return line;
+  }
+  return null;
 }
 
 int _sumCounts(Map<String, int> counts) {

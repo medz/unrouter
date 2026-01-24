@@ -11,6 +11,7 @@ Future<int> runInit(Args parsed) async {
   final pagesDir = parsed.at('pages')?.safeAs<String>() ?? defaultPagesDir;
   final output = parsed.at('output')?.safeAs<String>() ?? defaultOutput;
   final force = parsed.at('force')?.safeAs<bool>() == true;
+  final quiet = parsed.at('quiet')?.safeAs<bool>() == true;
 
   final cwd = Directory.current.path;
   final pagesAbsolute = _resolvePath(cwd, pagesDir);
@@ -30,18 +31,22 @@ Future<int> runInit(Args parsed) async {
 
   final targetFile = File(targetPath);
   if (targetFile.existsSync() && !force) {
-    stdout.writeln(
-      '${warningLabel('Notice')}: Config already exists at ${pathText(_relativeToCwd(targetPath))}. Use --force to overwrite.',
-    );
+    if (!quiet) {
+      stdout.writeln(
+        '${warningLabel('Notice')}: Config already exists at ${pathText(_relativeToCwd(targetPath))}. Use --force to overwrite.',
+      );
+    }
     return 0;
   }
 
   final pagesDirectory = Directory(pagesAbsolute);
   if (!pagesDirectory.existsSync()) {
     await pagesDirectory.create(recursive: true);
-    stdout.writeln(
-      '${successLabel('Created')} pages directory at ${pathText(_relativeToCwd(pagesAbsolute))}.',
-    );
+    if (!quiet) {
+      stdout.writeln(
+        '${successLabel('Created')} pages directory at ${pathText(_relativeToCwd(pagesAbsolute))}.',
+      );
+    }
   }
 
   final outputFile = File(outputAbsolute);
@@ -51,9 +56,11 @@ Future<int> runInit(Args parsed) async {
   }
   if (!outputFile.existsSync()) {
     await outputFile.writeAsString(outputTemplate);
-    stdout.writeln(
-      '${successLabel('Created')} output file at ${pathText(_relativeToCwd(outputAbsolute))}.',
-    );
+    if (!quiet) {
+      stdout.writeln(
+        '${successLabel('Created')} output file at ${pathText(_relativeToCwd(outputAbsolute))}.',
+      );
+    }
   }
 
   final configPages = _formatConfigPath(pagesAbsolute, pagesRoot);
@@ -62,9 +69,11 @@ Future<int> runInit(Args parsed) async {
   await targetFile.writeAsString(
     buildConfigContents(pagesDir: configPages, output: configOutput),
   );
-  stdout.writeln(
-    '${successLabel('Wrote')} ${pathText(_relativeToCwd(targetPath))}.',
-  );
+  if (!quiet) {
+    stdout.writeln(
+      '${successLabel('Wrote')} ${pathText(_relativeToCwd(targetPath))}.',
+    );
+  }
   return 0;
 }
 

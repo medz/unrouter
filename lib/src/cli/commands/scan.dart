@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:coal/args.dart';
@@ -13,6 +14,8 @@ import '../utils/routing_paths.dart';
 Future<int> runScan(Args parsed) async {
   final cwd = Directory.current;
   final configPath = findConfigPath(cwd);
+  final quiet = parsed.at('quiet')?.safeAs<bool>() == true;
+  final json = parsed.at('json')?.safeAs<bool>() == true;
 
   final config = await readRoutingConfig(
     configPath,
@@ -41,21 +44,25 @@ Future<int> runScan(Args parsed) async {
   final pagesSource = _sourceLabel(pagesArg, config?.pagesDir);
   final outputSource = _sourceLabel(outputArg, config?.output);
 
-  stdout.writeln(heading('Scan result'));
-  stdout.writeln(
-    '  root: ${pathText(resolved.rootDir)} ${dimText('(${resolved.rootSource})')}',
-  );
-  stdout.writeln(
-    '  config: ${configPath == null ? dimText('<none>') : pathText(configPath)}',
-  );
-  stdout.writeln(
-    '  pagesDir: ${pathText(resolved.pagesDir)} ${dimText('($pagesSource)')}',
-  );
-  stdout.writeln(
-    '  output:   ${pathText(resolved.output)} ${dimText('($outputSource)')}',
-  );
-  stdout.writeln('  resolved pagesDir: ${pathText(resolved.resolvedPagesDir)}');
-  stdout.writeln('  resolved output:  ${pathText(resolved.resolvedOutput)}');
+  if (!quiet && !json) {
+    stdout.writeln(heading('Scan result'));
+    stdout.writeln(
+      '  root: ${pathText(resolved.rootDir)} ${dimText('(${resolved.rootSource})')}',
+    );
+    stdout.writeln(
+      '  config: ${configPath == null ? dimText('<none>') : pathText(configPath)}',
+    );
+    stdout.writeln(
+      '  pagesDir: ${pathText(resolved.pagesDir)} ${dimText('($pagesSource)')}',
+    );
+    stdout.writeln(
+      '  output:   ${pathText(resolved.output)} ${dimText('($outputSource)')}',
+    );
+    stdout.writeln(
+      '  resolved pagesDir: ${pathText(resolved.resolvedPagesDir)}',
+    );
+    stdout.writeln('  resolved output:  ${pathText(resolved.resolvedOutput)}');
+  }
 
   final pagesDirectory = Directory(resolved.resolvedPagesDir);
   if (!pagesDirectory.existsSync()) {
@@ -66,14 +73,40 @@ Future<int> runScan(Args parsed) async {
   }
 
   final routes = scanPages(pagesDirectory, rootDir: resolved.rootDir);
-  stdout.writeln('');
-  stdout.writeln('${heading('Routes')} (${routes.length}):');
-  if (routes.isEmpty) {
-    stdout.writeln(dimText('  <none>'));
+  if (json) {
+    final payload = <String, Object?>{
+      'root': resolved.rootDir,
+      'rootSource': resolved.rootSource,
+      'config': configPath,
+      'pagesDir': resolved.pagesDir,
+      'output': resolved.output,
+      'resolvedPagesDir': resolved.resolvedPagesDir,
+      'resolvedOutput': resolved.resolvedOutput,
+      'pagesSource': pagesSource,
+      'outputSource': outputSource,
+      'routes': routes
+          .map(
+            (route) => {
+              'path': route.path.isEmpty ? '/' : '/${route.path}',
+              'file': route.file,
+            },
+          )
+          .toList(),
+    };
+    stdout.writeln(jsonEncode(payload));
     return 0;
   }
-  for (final line in _buildRouteTable(routes, resolved.rootDir)) {
-    stdout.writeln(line);
+
+  if (!quiet) {
+    stdout.writeln('');
+    stdout.writeln('${heading('Routes')} (${routes.length}):');
+    if (routes.isEmpty) {
+      stdout.writeln(dimText('  <none>'));
+      return 0;
+    }
+    for (final line in _buildRouteTable(routes, resolved.rootDir)) {
+      stdout.writeln(line);
+    }
   }
   return 0;
 }

@@ -133,7 +133,9 @@ _GreedyMatch _matchRoutesGreedyInternal(
 
   _GreedyMatch pickBest(_GreedyMatch? current, _GreedyMatch candidate) {
     if (current == null) return candidate;
-    final specificCompare = candidate.specificity.compareTo(current.specificity);
+    final specificCompare = candidate.specificity.compareTo(
+      current.specificity,
+    );
     if (specificCompare > 0) return candidate;
     if (specificCompare < 0) return current;
     if (candidate.consumedSegments > current.consumedSegments) {

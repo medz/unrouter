@@ -23,15 +23,16 @@ void main() {
   Args parseArgs({String? pages, String? output}) {
     final args = <String>[];
     if (pages != null) {
-      args..add('--pages')..add(pages);
+      args
+        ..add('--pages')
+        ..add(pages);
     }
     if (output != null) {
-      args..add('--output')..add(output);
+      args
+        ..add('--output')
+        ..add(output);
     }
-    return Args.parse(
-      args,
-      string: const ['pages', 'output'],
-    );
+    return Args.parse(args, string: const ['pages', 'output']);
   }
 
   void writePubspec(String dirPath) {
@@ -84,7 +85,9 @@ void main() {
       ..createSync(recursive: true);
     File(p.join(customPages.path, 'home.dart')).writeAsStringSync('class A {}');
 
-    final code = await runScan(parseArgs(pages: 'custom', output: 'lib/routes.dart'));
+    final code = await runScan(
+      parseArgs(pages: 'custom', output: 'lib/routes.dart'),
+    );
     expect(code, 0);
   });
 }

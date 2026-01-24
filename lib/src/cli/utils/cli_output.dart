@@ -2,7 +2,20 @@ import 'dart:io';
 
 import 'package:coal/coal.dart';
 import 'package:coal/utils.dart'
-    show eraseLines, cursorLeft, cursorUp, getTextTruncatedWidth;
+    show eraseLines, cursorUp, getTextTruncatedWidth;
+
+bool _noColor =
+    Platform.environment['NO_COLOR']?.isNotEmpty == true ||
+    Platform.environment['NO_COLOR'] == '';
+
+void configureOutput({bool? noColor}) {
+  if (noColor == true) {
+    _noColor = true;
+  }
+}
+
+bool _ansiStdoutEnabled() => stdout.supportsAnsiEscapes && !_noColor;
+bool _ansiStderrEnabled() => stderr.supportsAnsiEscapes && !_noColor;
 
 String heading(String text) {
   return _styleStdout(text, const [TextStyle.bold, TextStyle.cyan]);
@@ -41,7 +54,7 @@ String badge(
   TextStyle background = TextStyle.bgBlue,
   TextStyle foreground = TextStyle.white,
 }) {
-  if (!stdout.supportsAnsiEscapes) return '[$text]';
+  if (!_ansiStdoutEnabled()) return '[$text]';
   return styleText(' $text ', [background, foreground, TextStyle.bold]);
 }
 
@@ -98,11 +111,11 @@ String truncateAnsi(String text, int maxWidth, {String ellipsis = '...'}) {
 }
 
 String _styleStdout(String text, List<TextStyle> styles) {
-  if (!stdout.supportsAnsiEscapes) return text;
+  if (!_ansiStdoutEnabled()) return text;
   return styleText(text, styles);
 }
 
 String _styleStderr(String text, List<TextStyle> styles) {
-  if (!stderr.supportsAnsiEscapes) return text;
+  if (!_ansiStderrEnabled()) return text;
   return styleText(text, styles);
 }

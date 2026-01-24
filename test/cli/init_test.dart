@@ -23,10 +23,14 @@ void main() {
   Args parseArgs({String? pages, String? output, bool force = false}) {
     final args = <String>[];
     if (pages != null) {
-      args..add('--pages')..add(pages);
+      args
+        ..add('--pages')
+        ..add(pages);
     }
     if (output != null) {
-      args..add('--output')..add(output);
+      args
+        ..add('--output')
+        ..add(output);
     }
     if (force) {
       args.add('--force');

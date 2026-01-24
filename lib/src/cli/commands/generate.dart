@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:analyzer/dart/analysis/utilities.dart';
@@ -14,14 +15,25 @@ import '../utils/root_finder.dart';
 import '../utils/routing_pages.dart';
 import '../utils/routing_paths.dart';
 
-Future<int> runGenerate(Args parsed, {bool quiet = false}) async {
+Future<int> runGenerate(
+  Args parsed, {
+  bool quiet = false,
+  List<String>? errorLines,
+}) async {
   final cwd = Directory.current;
   final configPath = findConfigPath(cwd);
+  final verboseFlag = parsed.at('verbose')?.safeAs<bool>() == true;
+  final quietFlag = parsed.at('quiet')?.safeAs<bool>() == true;
+  final json = parsed.at('json')?.safeAs<bool>() == true;
+  final quietOutput = quiet || quietFlag || json;
+  final verbose = verboseFlag && !quietOutput;
 
-  final config = await readRoutingConfig(
-    configPath,
-    onError: (message) => stderr.writeln(message),
-  );
+  void reportError(String message) {
+    errorLines?.add(message);
+    stderr.writeln(message);
+  }
+
+  final config = await readRoutingConfig(configPath, onError: reportError);
 
   final pagesArg = parsed.at('pages')?.safeAs<String>();
   final outputArg = parsed.at('output')?.safeAs<String>();
@@ -36,13 +48,13 @@ Future<int> runGenerate(Args parsed, {bool quiet = false}) async {
   );
 
   if (resolved == null) {
-    stderr.writeln(
+    reportError(
       '${errorLabel('Error')}: Unable to find $configFileName or $pubspecFileName above the current directory.',
     );
     return 1;
   }
 
-  if (!quiet) {
+  if (!quietOutput) {
     stdout.writeln(heading('Generate routes'));
     stdout.writeln(
       '  root: ${pathText(resolved.rootDir)} ${dimText('(${resolved.rootSource})')}',
@@ -64,7 +76,7 @@ Future<int> runGenerate(Args parsed, {bool quiet = false}) async {
 
   final pagesDirectory = Directory(resolved.resolvedPagesDir);
   if (!pagesDirectory.existsSync()) {
-    stderr.writeln(
+    reportError(
       '${errorLabel('Error')}: Pages directory not found: ${pathText(resolved.resolvedPagesDir, stderr: true)}',
     );
     return 1;
@@ -78,7 +90,7 @@ Future<int> runGenerate(Args parsed, {bool quiet = false}) async {
   for (final entry in scannedRoutes) {
     final normalizedPath = _normalizeRoutePath(entry.path);
     if (seenPaths.containsKey(normalizedPath)) {
-      stderr.writeln(
+      reportError(
         '${errorLabel('Error')}: Duplicate route path "$normalizedPath" from ${entry.file} and ${seenPaths[normalizedPath]}.',
       );
       return 1;
@@ -88,12 +100,12 @@ Future<int> runGenerate(Args parsed, {bool quiet = false}) async {
     final absoluteFile = _absoluteFile(entry.file, resolved.rootDir);
     final parsedRoute = _parseRouteFile(absoluteFile);
     if (parsedRoute.error != null) {
-      stderr.writeln('${errorLabel('Error')}: ${parsedRoute.error}');
+      reportError('${errorLabel('Error')}: ${parsedRoute.error}');
       return 1;
     }
     final className = parsedRoute.className;
     if (className == null) {
-      stderr.writeln(
+      reportError(
         '${errorLabel('Error')}: No page widget class found in $absoluteFile. Expected a class extending a Widget type.',
       );
       return 1;
@@ -128,8 +140,10 @@ Future<int> runGenerate(Args parsed, {bool quiet = false}) async {
 
   routeFiles.sort((a, b) => a.path.compareTo(b.path));
 
-  if (!quiet) {
-    stdout.writeln('${infoLabel('Found')}: ${routeFiles.length} routes');
+  if (!quietOutput) {
+    stdout.writeln(
+      '${infoLabel('Found')}: ${routeFiles.length} routes ${dimText('(use --verbose for table)')}',
+    );
   }
 
   final routesByPath = <String, _RouteFile>{
@@ -163,11 +177,11 @@ Future<int> runGenerate(Args parsed, {bool quiet = false}) async {
   final outputFile = File(resolved.resolvedOutput);
   final guardImports = _collectGuardImports(routeFiles, outputFile.path);
   if (guardImports.error != null) {
-    stderr.writeln('${errorLabel('Error')}: ${guardImports.error}');
+    reportError('${errorLabel('Error')}: ${guardImports.error}');
     return 1;
   }
 
-  if (!quiet && routeFiles.isNotEmpty) {
+  if (verbose && routeFiles.isNotEmpty) {
     stdout.writeln('');
     stdout.writeln('${heading('Routes')} (${routeFiles.length}):');
     for (final line in _buildRouteTable(routeFiles, resolved.rootDir)) {
@@ -186,7 +200,36 @@ Future<int> runGenerate(Args parsed, {bool quiet = false}) async {
     ),
   );
 
-  if (!quiet) {
+  if (json) {
+    final payload = <String, Object?>{
+      'root': resolved.rootDir,
+      'rootSource': resolved.rootSource,
+      'config': configPath,
+      'pagesDir': resolved.pagesDir,
+      'output': resolved.output,
+      'resolvedPagesDir': resolved.resolvedPagesDir,
+      'resolvedOutput': resolved.resolvedOutput,
+      'routes': routeFiles
+          .map(
+            (route) => {
+              'path': route.path.isEmpty ? '/' : '/${route.path}',
+              'file': p.relative(route.filePath, from: resolved.rootDir),
+              'name': route.nameLiteral,
+              'nameExpression': route.hasName && route.nameLiteral == null,
+              'guards': route.guardRefs
+                  ?.map(
+                    (guard) => guard.prefix == null
+                        ? guard.name
+                        : '${guard.prefix}.${guard.name}',
+                  )
+                  .toList(),
+              'guardsExpression': route.hasGuards && route.guardRefs == null,
+            },
+          )
+          .toList(),
+    };
+    stdout.writeln(jsonEncode(payload));
+  } else if (!quietOutput) {
     stdout.writeln(
       '${successLabel('Wrote')} ${pathText(_relativeToCwd(outputFile.path))}.',
     );

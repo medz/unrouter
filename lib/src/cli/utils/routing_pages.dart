@@ -9,7 +9,10 @@ class RouteEntry {
   final String file;
 }
 
-List<RouteEntry> scanPages(Directory pagesDirectory, {required String rootDir}) {
+List<RouteEntry> scanPages(
+  Directory pagesDirectory, {
+  required String rootDir,
+}) {
   final entries = <RouteEntry>[];
   for (final entity in pagesDirectory.listSync(recursive: true)) {
     if (entity is! File) continue;
