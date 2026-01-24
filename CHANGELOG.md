@@ -1,5 +1,7 @@
 ## Unreleased
 
+## 0.7.0 (2026-01-24)
+
 ### Features
 
 - File-based routing now supports group segments like `(auth)` and optional
