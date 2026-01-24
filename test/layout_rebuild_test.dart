@@ -81,7 +81,7 @@ void main() {
           ),
         ],
         history: MemoryHistory(
-          initialEntries: [RouteInformation(uri: .parse('/login'))],
+          initialEntries: [RouteInformation(uri: Uri.parse('/login'))],
         ),
       );
 

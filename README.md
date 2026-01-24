@@ -770,7 +770,7 @@ final router = Unrouter(
     (context) {
       // Check authentication
       if (!auth.isSignedIn) {
-        return GuardResult.redirect(Uri.parse('/login'));
+        return GuardResult.redirect(path: '/login');
       }
       return GuardResult.allow;
     },
@@ -795,7 +795,7 @@ Inlet(
   guards: [
     (context) {
       if (!user.isAdmin) {
-        return GuardResult.redirect(Uri.parse('/'));
+        return GuardResult.redirect(path: '/');
       }
       return GuardResult.allow;
     },
@@ -836,7 +836,7 @@ guards: [
   (context) async {
     final user = await authService.getCurrentUser();
     if (user == null) {
-      return GuardResult.redirect(Uri.parse('/login'));
+      return GuardResult.redirect(path: '/login');
     }
     return GuardResult.allow;
   },
@@ -862,7 +862,7 @@ When exceeded, navigation is cancelled.
 ```dart
 GuardResult.allow                                // Allow navigation
 GuardResult.cancel                               // Cancel navigation
-GuardResult.redirect(Uri.parse('/login'))        // Redirect to new route
+GuardResult.redirect(path: '/login')        // Redirect to new route
 ```
 
 ### Real-world examples
@@ -873,7 +873,8 @@ GuardResult.redirect(Uri.parse('/login'))        // Redirect to new route
 GuardResult authGuard(GuardContext context) {
   if (!auth.isSignedIn) {
     return GuardResult.redirect(
-      Uri.parse('/login?redirect=${context.to.uri.path}'),
+      path: '/login',
+      query: {'redirect': context.to.uri.path},
     );
   }
   return GuardResult.allow;
@@ -900,7 +901,7 @@ Future<GuardResult> featureFlagGuard(GuardContext context) async {
   if (feature != null) {
     final enabled = await featureFlags.isEnabled(feature);
     if (!enabled) {
-      return GuardResult.redirect(Uri.parse('/'));
+      return GuardResult.redirect(path: '/');
     }
   }
   return GuardResult.allow;
@@ -1767,7 +1768,7 @@ testWidgets('guard redirects to login', (tester) async {
     guards: [
       (context) {
         if (context.to.uri.path == '/profile' && !isAuthenticated) {
-          return GuardResult.redirect(Uri.parse('/login'));
+          return GuardResult.redirect(path: '/login');
         }
         return GuardResult.allow;
       },
@@ -1892,7 +1893,7 @@ flutter test test/navigation_test.dart
 | `GuardResult` | Guard decision (allow/cancel/redirect) |
 | `GuardResult.allow` | Allow navigation |
 | `GuardResult.cancel` | Cancel navigation |
-| `GuardResult.redirect(uri)` | Redirect to URI |
+| `GuardResult.redirect(name: ..., path: ...)` | Redirect to a named route or path |
 
 ### Blockers
 
@@ -2350,7 +2351,7 @@ guards: [
 guards: [
   (context) {
     if (!auth.isSignedIn) {
-      return GuardResult.redirect(Uri.parse('/login'));
+      return GuardResult.redirect(path: '/login');
     }
     return GuardResult.allow;
   },

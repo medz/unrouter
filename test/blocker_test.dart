@@ -291,8 +291,8 @@ void main() {
     final router = Unrouter(
       history: MemoryHistory(
         initialEntries: [
-          RouteInformation(uri: .parse('/blocked')),
-          RouteInformation(uri: .parse('/a')),
+          RouteInformation(uri: Uri.parse('/blocked')),
+          RouteInformation(uri: Uri.parse('/a')),
         ],
       ),
       guards: [
@@ -301,7 +301,7 @@ void main() {
           lastFromPath = context.from.uri.path;
           lastToPath = context.to.uri.path;
           if (context.to.uri.path == '/blocked') {
-            return GuardResult.redirect(Uri.parse('/login'));
+            return GuardResult.redirect(path: '/login');
           }
           return GuardResult.allow;
         },
@@ -704,8 +704,8 @@ void main() {
       final router = Unrouter(
         history: MemoryHistory(
           initialEntries: [
-            RouteInformation(uri: .parse('/app/section/detail')),
-            RouteInformation(uri: .parse('/app/section/detail/child')),
+            RouteInformation(uri: Uri.parse('/app/section/detail')),
+            RouteInformation(uri: Uri.parse('/app/section/detail/child')),
           ],
           initialIndex: 1,
         ),
@@ -713,7 +713,7 @@ void main() {
           (context) {
             guardCalled++;
             if (context.to.uri.path == '/app/section/detail') {
-              return GuardResult.redirect(Uri.parse('/login'));
+              return GuardResult.redirect(path: '/login');
             }
             return GuardResult.allow;
           },
@@ -759,8 +759,8 @@ void main() {
     final router = Unrouter(
       history: MemoryHistory(
         initialEntries: [
-          RouteInformation(uri: .parse('/app/section/detail')),
-          RouteInformation(uri: .parse('/app/section/detail/child')),
+          RouteInformation(uri: Uri.parse('/app/section/detail')),
+          RouteInformation(uri: Uri.parse('/app/section/detail/child')),
         ],
         initialIndex: 1,
       ),
@@ -768,7 +768,7 @@ void main() {
         (context) {
           guardCalled++;
           if (context.to.uri.path == '/app/section/detail') {
-            return GuardResult.redirect(Uri.parse('/login'));
+            return GuardResult.redirect(path: '/login');
           }
           return GuardResult.allow;
         },

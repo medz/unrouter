@@ -255,8 +255,8 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
         : SynchronousFuture(true);
 
     final guardContext = GuardContext(
-      to: requested,
-      from: previous,
+      to: _decorateLocation(requested),
+      from: _decorateLocation(previous),
       replace: false,
       redirectCount: 0,
     );
@@ -269,6 +269,8 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
           return router.guard.execute(
             guardContext,
             extraGuards: _resolveRouteGuards(requested),
+            decorateLocation: _decorateLocation,
+            resolveRedirect: _resolveGuardRedirect,
           );
         })
         .then((resolved) {
@@ -467,8 +469,8 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
       return;
     }
     final context = GuardContext(
-      to: configuration,
-      from: currentConfiguration,
+      to: _decorateLocation(configuration),
+      from: _decorateLocation(currentConfiguration),
       replace: configuration.uri == history.location.uri,
       redirectCount: 0,
     );
@@ -476,6 +478,8 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
     final resolved = await router.guard.execute(
       context,
       extraGuards: _resolveRouteGuards(configuration),
+      decorateLocation: _decorateLocation,
+      resolveRedirect: _resolveGuardRedirect,
     );
     if (resolved == null) {
       return;
@@ -587,8 +591,8 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
     );
     final previous = currentConfiguration;
     final context = GuardContext(
-      to: requested,
-      from: previous,
+      to: _decorateLocation(requested),
+      from: _decorateLocation(previous),
       replace: replace,
       redirectCount: 0,
     );
@@ -596,6 +600,8 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
       final resolved = await router.guard.execute(
         context,
         extraGuards: _resolveRouteGuards(requested),
+        decorateLocation: _decorateLocation,
+        resolveRedirect: _resolveGuardRedirect,
       );
       if (resolved == null) {
         return NavigationCancelled(from: previous, requested: requested);
@@ -727,6 +733,33 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
       query: resolvedQuery,
       fragment: effectiveFragment,
     );
+  }
+
+  RouteLocation _decorateLocation(RouteInformation location) {
+    final routeList = routes;
+    if (routeList == null) {
+      if (location is RouteLocation) return location;
+      return RouteLocation(
+        uri: location.uri,
+        state: location.state,
+        name: null,
+      );
+    }
+
+    final result = matchRoutes(routeList, location.uri.path);
+    final name = _resolveMatchedName(result.matches);
+    return RouteLocation(uri: location.uri, state: location.state, name: name);
+  }
+
+  RouteInformation _resolveGuardRedirect(GuardRedirect redirect) {
+    final uri = _resolveRequestedUri(
+      name: redirect.name,
+      path: redirect.path,
+      params: redirect.params,
+      query: redirect.query,
+      fragment: redirect.fragment,
+    );
+    return RouteInformation(uri: resolveUri(uri), state: redirect.state);
   }
 }
 

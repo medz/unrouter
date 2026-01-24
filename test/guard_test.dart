@@ -195,7 +195,7 @@ void main() {
         Inlet(path: 'register', factory: () => const Text('Register')),
       ],
       history: MemoryHistory(),
-      guards: [(context) => GuardResult.redirect(Uri.parse('/login'))],
+      guards: [(context) => GuardResult.redirect(path: '/login')],
     );
 
     await tester.pumpWidget(wrap(router));
@@ -244,7 +244,7 @@ void main() {
       guards: [
         (context) {
           if (context.to.uri.path == '/register') {
-            return GuardResult.redirect(Uri.parse('/login'), replace: false);
+            return GuardResult.redirect(path: '/login', replace: false);
           }
           return GuardResult.allow;
         },
@@ -293,9 +293,7 @@ void main() {
         Inlet(path: 'login', factory: () => const Text('Login')),
         Inlet(
           path: 'admin',
-          guards: [
-            (context) => GuardResult.redirect(Uri.parse('/login')),
-          ],
+          guards: [(context) => GuardResult.redirect(path: '/login')],
           factory: () => const Text('Admin'),
         ),
       ],
@@ -418,7 +416,7 @@ void main() {
       guards: [
         (context) {
           if (context.to.uri.path == '/login') {
-            return GuardResult.redirect(Uri.parse('/blocked'));
+            return GuardResult.redirect(path: '/blocked');
           }
           return GuardResult.allow;
         },
@@ -528,7 +526,7 @@ void main() {
         (context) {
           if (context.from.uri.path == '/register' &&
               context.to.uri.path == '/login') {
-            return GuardResult.redirect(Uri.parse('/blocked'));
+            return GuardResult.redirect(path: '/blocked');
           }
           return GuardResult.allow;
         },
@@ -558,7 +556,7 @@ void main() {
         Inlet(path: 'login', factory: () => const Text('Login')),
       ],
       history: MemoryHistory(),
-      guards: [(context) => GuardResult.redirect(Uri.parse('/login'))],
+      guards: [(context) => GuardResult.redirect(path: '/login')],
       maxRedirects: 0,
     );
 
