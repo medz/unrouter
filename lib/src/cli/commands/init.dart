@@ -3,14 +3,14 @@ import 'dart:io';
 import 'package:coal/args.dart';
 import 'package:path/path.dart' as p;
 
-const _configFileName = 'unrouter.config.dart';
-const _defaultPagesDir = 'lib/pages';
-const _defaultOutput = 'lib/routes.g.dart';
+const configFileName = 'unrouter.config.dart';
+const defaultPagesDir = 'lib/pages';
+const defaultOutput = 'lib/routes.dart';
 const _pubspecFileName = 'pubspec.yaml';
 
 Future<int> runInit(Args parsed) async {
-  final pagesDir = parsed.at('pages')?.safeAs<String>() ?? _defaultPagesDir;
-  final output = parsed.at('output')?.safeAs<String>() ?? _defaultOutput;
+  final pagesDir = parsed.at('pages')?.safeAs<String>() ?? defaultPagesDir;
+  final output = parsed.at('output')?.safeAs<String>() ?? defaultOutput;
   final force = parsed.at('force')?.safeAs<bool>() == true;
 
   final cwd = Directory.current.path;
@@ -27,7 +27,7 @@ Future<int> runInit(Args parsed) async {
     return 1;
   }
 
-  final targetPath = p.join(pagesRoot, _configFileName);
+  final targetPath = p.join(pagesRoot, configFileName);
 
   final targetFile = File(targetPath);
   if (targetFile.existsSync() && !force) {
@@ -37,13 +37,31 @@ Future<int> runInit(Args parsed) async {
     return 0;
   }
 
+  final pagesDirectory = Directory(pagesAbsolute);
+  if (!pagesDirectory.existsSync()) {
+    await pagesDirectory.create(recursive: true);
+    stdout.writeln(
+      'Created pages directory at "${_relativeToCwd(pagesAbsolute)}".',
+    );
+  }
+
+  final outputFile = File(outputAbsolute);
+  final outputDir = outputFile.parent;
+  if (!outputDir.existsSync()) {
+    await outputDir.create(recursive: true);
+  }
+  if (!outputFile.existsSync()) {
+    await outputFile.writeAsString(outputTemplate);
+    stdout.writeln('Created output file at "${_relativeToCwd(outputAbsolute)}".');
+  }
+
   final configPages = _formatConfigPath(pagesAbsolute, pagesRoot);
   final configOutput = _formatConfigPath(outputAbsolute, pagesRoot);
 
   await targetFile.writeAsString(
-    _configTemplate(pagesDir: configPages, output: configOutput),
+    buildConfigContents(pagesDir: configPages, output: configOutput),
   );
-  stdout.writeln('Wrote "$targetPath".');
+  stdout.writeln('Wrote "${_relativeToCwd(targetPath)}".');
   return 0;
 }
 
@@ -74,9 +92,24 @@ String _formatConfigPath(String absolute, String rootDir) {
   return absolute;
 }
 
-String _configTemplate({required String pagesDir, required String output}) {
+String _relativeToCwd(String absolutePath) {
+  final cwd = Directory.current.absolute.path;
+  if (p.isWithin(cwd, absolutePath) || p.equals(cwd, absolutePath)) {
+    return p.relative(absolutePath, from: cwd);
+  }
+  return absolutePath;
+}
+
+String buildConfigContents({required String pagesDir, required String output}) {
   return '''
 const pagesDir = '$pagesDir';
 const output = '$output';
 ''';
 }
+
+const String outputTemplate = '''
+// GENERATED CODE - DO NOT MODIFY BY HAND.
+import 'package:unrouter/unrouter.dart';
+
+const routes = <Inlet>[];
+''';

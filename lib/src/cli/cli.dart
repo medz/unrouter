@@ -61,7 +61,7 @@ class UnrouterCLI {
     stdout.writeln('');
     stdout.writeln('Options:');
     stdout.writeln('  --pages     Pages directory (default: lib/pages)');
-    stdout.writeln('  --output    Generated file path (default: lib/routes.g.dart)');
+    stdout.writeln('  --output    Generated file path (default: lib/routes.dart)');
     stdout.writeln('  --force     Overwrite existing config file');
     stdout.writeln('  -h, --help  Show usage');
   }
@@ -75,7 +75,7 @@ class UnrouterCLI {
         stdout.writeln('');
         stdout.writeln('Options:');
         stdout.writeln('  --pages     Pages directory (default: lib/pages)');
-        stdout.writeln('  --output    Generated file path (default: lib/routes.g.dart)');
+        stdout.writeln('  --output    Generated file path (default: lib/routes.dart)');
         return;
       case 'init':
         stdout.writeln('unrouter init [options]');
@@ -84,7 +84,7 @@ class UnrouterCLI {
         stdout.writeln('');
         stdout.writeln('Options:');
         stdout.writeln('  --pages     Pages directory (default: lib/pages)');
-        stdout.writeln('  --output    Generated file path (default: lib/routes.g.dart)');
+        stdout.writeln('  --output    Generated file path (default: lib/routes.dart)');
         stdout.writeln('  --force     Overwrite existing config file');
         return;
       case 'generate':
@@ -93,7 +93,7 @@ class UnrouterCLI {
         stdout.writeln('');
         stdout.writeln('Options:');
         stdout.writeln('  --pages     Pages directory (default: lib/pages)');
-        stdout.writeln('  --output    Generated file path (default: lib/routes.g.dart)');
+        stdout.writeln('  --output    Generated file path (default: lib/routes.dart)');
         return;
       default:
         stdout.writeln('Unknown command: $command');

@@ -6,7 +6,7 @@ import 'package:coal/args.dart';
 import 'package:path/path.dart' as p;
 
 const _defaultPagesDir = 'lib/pages';
-const _defaultOutput = 'lib/routes.g.dart';
+const _defaultOutput = 'lib/routes.dart';
 const _configFileName = 'unrouter.config.dart';
 
 class _FileRoutingConfig {

@@ -341,7 +341,7 @@ without executing it.
 ```dart
 // unrouter.config.dart
 const pagesDir = 'lib/pages';
-const output = 'lib/routes.g.dart';
+const output = 'lib/routes.dart';
 ```
 
 Notes:
