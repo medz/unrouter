@@ -1,61 +1,75 @@
 import 'dart:io';
 
-import 'package:analyzer/dart/analysis/utilities.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:coal/args.dart';
 import 'package:path/path.dart' as p;
 
-const _defaultPagesDir = 'lib/pages';
-const _defaultOutput = 'lib/routes.dart';
-const _configFileName = 'unrouter.config.dart';
+import '../utils/constants.dart';
+import '../utils/routing_config.dart';
+import '../utils/root_finder.dart';
+import '../utils/routing_paths.dart';
 
-class _FileRoutingConfig {
-  const _FileRoutingConfig({this.pagesDir, this.output});
+class _RouteEntry {
+  const _RouteEntry({required this.path, required this.file});
 
-  final String? pagesDir;
-  final String? output;
+  final String path;
+  final String file;
 }
 
 Future<int> runScan(Args parsed) async {
-  final configPath = _findConfigPath(Directory.current);
-  final rootDir =
-      configPath == null
-          ? Directory.current.absolute.path
-          : File(configPath).absolute.parent.path;
+  final cwd = Directory.current;
+  final configPath = findConfigPath(cwd);
 
-  _FileRoutingConfig? config;
-  if (configPath != null) {
-    final result = parseString(
-      content: await File(configPath).readAsString(),
-      throwIfDiagnostics: false,
-      path: configPath,
-    );
-    if (result.errors.isNotEmpty) {
-      stderr.writeln('Failed to parse $configPath:');
-      for (final error in result.errors) {
-        stderr.writeln('  ${error.toString()}');
-      }
-    }
-    config = _extractConfig(result.unit);
-  }
+  final config = await readRoutingConfig(
+    configPath,
+    onError: (message) => stderr.writeln(message),
+  );
 
   final pagesArg = parsed.at('pages')?.safeAs<String>();
   final outputArg = parsed.at('output')?.safeAs<String>();
 
-  final pagesDir = pagesArg ?? config?.pagesDir ?? _defaultPagesDir;
-  final output = outputArg ?? config?.output ?? _defaultOutput;
+  final resolved = resolveRoutingPaths(
+    cwd: cwd,
+    configPath: configPath,
+    pagesArg: pagesArg,
+    outputArg: outputArg,
+    configPages: config?.pagesDir,
+    configOutput: config?.output,
+  );
+
+  if (resolved == null) {
+    stderr.writeln(
+      'Unable to find $configFileName or $pubspecFileName above the current directory.',
+    );
+    return 1;
+  }
+
   final pagesSource = _sourceLabel(pagesArg, config?.pagesDir);
   final outputSource = _sourceLabel(outputArg, config?.output);
 
   stdout.writeln('Scan result');
-  stdout.writeln('  root: $rootDir');
+  stdout.writeln('  root: ${resolved.rootDir} (${resolved.rootSource})');
   stdout.writeln(
     '  config: ${configPath ?? '<none>'}',
   );
-  stdout.writeln('  pagesDir: $pagesDir ($pagesSource)');
-  stdout.writeln('  output:   $output ($outputSource)');
-  stdout.writeln('  resolved pagesDir: ${_resolvePath(rootDir, pagesDir)}');
-  stdout.writeln('  resolved output:  ${_resolvePath(rootDir, output)}');
+  stdout.writeln('  pagesDir: ${resolved.pagesDir} ($pagesSource)');
+  stdout.writeln('  output:   ${resolved.output} ($outputSource)');
+  stdout.writeln('  resolved pagesDir: ${resolved.resolvedPagesDir}');
+  stdout.writeln('  resolved output:  ${resolved.resolvedOutput}');
+
+  final pagesDirectory = Directory(resolved.resolvedPagesDir);
+  if (!pagesDirectory.existsSync()) {
+    stderr.writeln(
+      'Pages directory not found: ${resolved.resolvedPagesDir}',
+    );
+    return 1;
+  }
+
+  final routes = _scanPages(pagesDirectory, resolved.rootDir);
+  stdout.writeln('');
+  stdout.writeln('Routes (${routes.length}):');
+  for (final route in routes) {
+    stdout.writeln('  ${route.path} -> ${route.file}');
+  }
   return 0;
 }
 
@@ -65,47 +79,57 @@ String _sourceLabel(String? cliValue, String? configValue) {
   return 'default';
 }
 
-String? _findConfigPath(Directory start) {
-  var current = start.absolute;
-  while (true) {
-    final candidate = File(p.join(current.path, _configFileName));
-    if (candidate.existsSync()) {
-      return candidate.path;
-    }
-    final parent = current.parent;
-    if (parent.path == current.path) {
-      return null;
-    }
-    current = parent;
-  }
-}
+List<_RouteEntry> _scanPages(Directory pagesDirectory, String rootDir) {
+  final entries = <_RouteEntry>[];
+  for (final entity in pagesDirectory.listSync(recursive: true)) {
+    if (entity is! File) continue;
+    if (!entity.path.endsWith('.dart')) continue;
 
-String _resolvePath(String baseDir, String value) {
-  if (p.isAbsolute(value)) return value;
-  return p.normalize(p.join(baseDir, value));
-}
+    final relative = p.relative(entity.path, from: pagesDirectory.path);
+    final withoutExt = relative.substring(0, relative.length - 5);
+    final segments = p.split(withoutExt);
+    if (segments.isEmpty) continue;
 
-_FileRoutingConfig _extractConfig(CompilationUnit unit) {
-  String? pagesDir;
-  String? output;
-
-  for (final declaration in unit.declarations) {
-    if (declaration is! TopLevelVariableDeclaration) continue;
-    for (final variable in declaration.variables.variables) {
-      final name = variable.name.lexeme;
-      if (name != 'pagesDir' && name != 'output') continue;
-      final initializer = variable.initializer;
-      if (initializer is StringLiteral) {
-        final value = initializer.stringValue;
-        if (value == null) continue;
-        if (name == 'pagesDir') {
-          pagesDir = value;
-        } else {
-          output = value;
-        }
+    final pathSegments = <String>[];
+    for (var i = 0; i < segments.length; i++) {
+      final segment = segments[i];
+      if (segment == 'index' && i == segments.length - 1) {
+        continue;
       }
+      final dynamic = _parseDynamicSegment(segment);
+      if (dynamic != null) {
+        pathSegments.add(dynamic);
+        continue;
+      }
+      pathSegments.add(segment);
     }
+
+    final path =
+        pathSegments.isEmpty ? '/' : '/${pathSegments.join('/')}';
+    final filePath = _relativeOrAbsolute(entity.path, rootDir);
+    entries.add(_RouteEntry(path: path, file: filePath));
   }
 
-  return _FileRoutingConfig(pagesDir: pagesDir, output: output);
+  entries.sort((a, b) => a.path.compareTo(b.path));
+  return entries;
+}
+
+String _relativeOrAbsolute(String filePath, String rootDir) {
+  if (p.isWithin(rootDir, filePath) || p.equals(rootDir, filePath)) {
+    return p.relative(filePath, from: rootDir);
+  }
+  return p.normalize(filePath);
+}
+
+String? _parseDynamicSegment(String segment) {
+  if (segment.startsWith('[') && segment.endsWith(']')) {
+    final inner = segment.substring(1, segment.length - 1);
+    if (inner.startsWith('...') && inner.length > 3) {
+      return '*';
+    }
+    if (inner.isNotEmpty) {
+      return ':$inner';
+    }
+  }
+  return null;
 }

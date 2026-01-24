@@ -3,10 +3,8 @@ import 'dart:io';
 import 'package:coal/args.dart';
 import 'package:path/path.dart' as p;
 
-const configFileName = 'unrouter.config.dart';
-const defaultPagesDir = 'lib/pages';
-const defaultOutput = 'lib/routes.dart';
-const _pubspecFileName = 'pubspec.yaml';
+import '../utils/constants.dart';
+import '../utils/root_finder.dart';
 
 Future<int> runInit(Args parsed) async {
   final pagesDir = parsed.at('pages')?.safeAs<String>() ?? defaultPagesDir;
@@ -17,8 +15,8 @@ Future<int> runInit(Args parsed) async {
   final pagesAbsolute = _resolvePath(cwd, pagesDir);
   final outputAbsolute = _resolvePath(cwd, output);
 
-  final outputRoot = _findPubspecRoot(p.dirname(outputAbsolute));
-  final pagesRoot = outputRoot ?? _findPubspecRoot(p.dirname(pagesAbsolute));
+  final outputRoot = findPubspecRoot(p.dirname(outputAbsolute));
+  final pagesRoot = outputRoot ?? findPubspecRoot(p.dirname(pagesAbsolute));
   if (pagesRoot == null) {
     stderr.writeln(
       'Unable to find pubspec.yaml above "$output" or "$pagesDir".',
@@ -63,21 +61,6 @@ Future<int> runInit(Args parsed) async {
   );
   stdout.writeln('Wrote "${_relativeToCwd(targetPath)}".');
   return 0;
-}
-
-String? _findPubspecRoot(String startPath) {
-  var current = Directory(startPath).absolute;
-  while (true) {
-    final candidate = File(p.join(current.path, _pubspecFileName));
-    if (candidate.existsSync()) {
-      return current.path;
-    }
-    final parent = current.parent;
-    if (parent.path == current.path) {
-      return null;
-    }
-    current = parent;
-  }
 }
 
 String _resolvePath(String baseDir, String value) {

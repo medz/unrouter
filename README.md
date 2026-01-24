@@ -349,6 +349,7 @@ Notes:
 - Paths can be absolute or relative to `unrouter.config.dart`.
 - CLI flags (`--pages`, `--output`) override the config file.
 - You can scaffold the config with `unrouter init`.
+ - If no config file is found, the CLI uses the nearest `pubspec.yaml` as the root.
 
 </details>
 
