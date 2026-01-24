@@ -15,21 +15,36 @@
   (available from `context.location`).
 - **Path patterns**: allow params, optional segments, and wildcards to be
   substituted when navigating or generating URIs.
+- **File-based routing (CLI)**: add `unrouter init/scan/generate/watch` with a
+  `unrouter.config.dart` config file and a routes generator from a pages
+  directory.
+- **Route metadata for generators**: introduce `RouteMeta` so pages can declare
+  route `name` and `guards` for generated routes.
 
 ### Improvements
 
 - Route matching now prefers more specific routes (static > params > wildcard),
   with definition order as the tiebreaker.
+- File routing generator supports nested routes, dynamic segments, and
+  wildcards, with guard/name inference where possible.
+- CLI supports `--json`, `--quiet`, `--verbose`, short aliases, and improved
+  output formatting (including watch status panels).
 
 ### Fixes
 
 - Encode dynamic path segments when building URIs and throw clear errors for
   missing wildcard params.
 - Include route names in `RouteLocation` and `RouteState` equality/hashCode.
+- Harden CLI file parsing and escaping for generated config/routes.
 
 ### Testing
 
 - Added tests for named routes and specificity-based matching.
+- Added CLI tests for init/scan/generate and file routing edge cases.
+
+### Documentation
+
+- Document file-based routing conventions, CLI usage, and RouteMeta.
 
 ## 0.5.1 (2025-12-24)
 
