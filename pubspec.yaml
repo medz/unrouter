@@ -15,6 +15,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  coal: ^0.0.4
   meta: ^1.17.0
   web: ^1.1.1
 
@@ -22,3 +23,6 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+
+executables:
+  unrouter: unrouter
