@@ -455,10 +455,7 @@ class DeepWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      children: [
-        const Text('Deep Wrapper Level 1'),
-        const DeepWrapperLevel2(),
-      ],
+      children: [const Text('Deep Wrapper Level 1'), const DeepWrapperLevel2()],
     );
   }
 }

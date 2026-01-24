@@ -15,10 +15,16 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  analyzer: ^10.0.1
+  coal: ^0.0.5
   meta: ^1.17.0
+  path: ^1.9.1
   web: ^1.1.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+
+executables:
+  unrouter: unrouter
