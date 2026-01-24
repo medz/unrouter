@@ -334,9 +334,13 @@ Unrouter(
 <details open>
 <summary><strong>File-based routing (CLI)</strong></summary>
 
+Unrouter ships a CLI to scan a pages directory and generate a routes file.
+
+### 1) Create config (optional)
+
 Create a `unrouter.config.dart` file in your project root (the CLI scans
 upward from the current working directory to find it). The CLI reads this file
-without executing it.
+without executing it. You can also scaffold the file with `unrouter init`.
 
 ```dart
 // unrouter.config.dart
@@ -344,7 +348,52 @@ const pagesDir = 'lib/pages';
 const output = 'lib/routes.dart';
 ```
 
-You can also add page-level metadata to influence generated routes:
+Notes:
+- Both values are optional.
+- Paths can be absolute or relative to `unrouter.config.dart`.
+- CLI flags (`--pages`, `--output`) override the config file.
+- If no config file is found, the CLI uses the nearest `pubspec.yaml` as the root.
+
+### 2) File → route conventions
+
+- `index.dart` maps to the directory root.
+- `[id].dart` maps to a named parameter (`:id`).
+- `[...path].dart` maps to a wildcard (`*`).
+- Folder segments map to path segments, and `index.dart` becomes the parent path.
+
+Examples:
+
+```
+lib/pages/index.dart                  → /
+lib/pages/about.dart                  → /about
+lib/pages/users/index.dart            → /users
+lib/pages/users/[id].dart             → /users/:id
+lib/pages/docs/[...path].dart         → /docs/*
+```
+
+If a path segment has both a file and children, the children are generated
+as nested routes. For example:
+
+```
+lib/pages/users/[id].dart
+lib/pages/users/[id]/settings.dart
+```
+
+Generates a nested tree equivalent to:
+
+```dart
+Inlet(
+  path: 'users/:id',
+  factory: UserDetailPage.new,
+  children: [
+    Inlet(path: 'settings', factory: UserSettingsPage.new),
+  ],
+);
+```
+
+### 3) Add metadata (optional)
+
+You can add page-level metadata to influence generated routes:
 
 ```dart
 // lib/pages/users/[id].dart
@@ -360,16 +409,48 @@ const route = RouteMeta(
 );
 ```
 
-Notes:
-- Both values are optional.
-- Paths can be absolute or relative to `unrouter.config.dart`.
-- CLI flags (`--pages`, `--output`) override the config file.
-- You can scaffold the config with `unrouter init`.
- - If no config file is found, the CLI uses the nearest `pubspec.yaml` as the root.
+If `name` or `guards` are not literals, the generator falls back to
+`route.name` / `route.guards` when building `Inlet`s.
+
+### 4) Use the generated routes
+
+The generator writes a `routes` list into the `output` file. Import it and
+pass it to `Unrouter`:
+
+```dart
+import 'package:unrouter/unrouter.dart';
+import 'routes.dart';
+
+final router = Unrouter(
+  routes: routes,
+);
+```
+
+The generator picks the widget class to use for each page file by:
+1) Prefer class names ending in `Page` or `Screen`.
+2) Otherwise, use the first class that extends a `Widget` type.
+
+### 5) Generate routes
 
 Generate routes with:
 - `unrouter generate` (one-time build)
 - `unrouter watch` (rebuild on changes)
+
+Use `--verbose` on `generate` to print a detailed route table.
+
+### CLI options
+
+Global options (all commands):
+- `-p, --pages`  Pages directory (default: `lib/pages`)
+- `-o, --output` Generated file path (default: `lib/routes.dart`)
+- `--no-color`   Disable ANSI colors (also respects `NO_COLOR`)
+- `-h, --help`   Show usage
+
+Command options:
+- `scan`: `-q, --quiet`, `--json`
+- `init`: `-f, --force`, `-q, --quiet`
+- `generate`: `-v, --verbose`, `-q, --quiet`, `--json`
+- `watch`: `-q, --quiet`
 
 </details>
 
