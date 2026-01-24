@@ -5,9 +5,6 @@ assets/video.mp4
 build/
 coverage/
 
-# Local playground
-playground/
-
 # Example lockfile
 example/pubspec.lock
 
