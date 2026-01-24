@@ -15,7 +15,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  coal: ^0.0.4
+  coal: ^0.0.5
   meta: ^1.17.0
   web: ^1.1.1
 
