@@ -405,7 +405,7 @@ Future<GuardResult> authGuard(GuardContext context) async {
 
 const route = RouteMeta(
   name: 'userDetail',
-  guards: const [authGuard],
+  guards: [authGuard],
 );
 ```
 
