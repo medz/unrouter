@@ -1,5 +1,32 @@
 ## Unreleased
 
+### Features
+
+- File-based routing now supports group segments like `(auth)` and optional
+  `(group).dart` pathless layouts.
+- Allow layout files to coexist with index children (e.g. `users.dart` +
+  `users/index.dart`) for nested routes.
+
+### Improvements
+
+- CLI route generation now understands group layouts and layout+index nesting.
+
+### Fixes
+
+- Guard against empty city segments in the example concerts page.
+
+### Testing
+
+- Added CLI tests for group layouts and layout+index nesting.
+
+### Documentation
+
+- Document group segments and layout/index behavior; update example README.
+
+### Example
+
+- Migrate the example app to file-based routing with generated routes.
+
 ## 0.6.0 (2026-01-24)
 
 ### Breaking Changes
