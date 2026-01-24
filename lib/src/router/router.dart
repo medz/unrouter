@@ -6,11 +6,14 @@ import 'package:unrouter/history.dart';
 
 import '_internal/create_history.memory.dart'
     if (dart.library.js_interop) '_internal/create_history.browser.dart';
+import '_internal/named_routes.dart';
+import '_internal/route_path_builder.dart';
 import '_internal/stacked_route_view.dart';
 import 'blocker.dart';
 import 'guard.dart';
 import 'inlet.dart';
 import 'navigation.dart';
+import 'route_location.dart';
 import 'route_matcher.dart';
 import 'route_state.dart';
 import '_internal/route_state_scope.dart';
@@ -200,10 +203,11 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
     _unlistenHistory = history.listen(_handleHistoryEvent);
 
     // Initialize matched routes
-    _updateMatchedRoutes();
+    _syncConfiguration(currentConfiguration);
   }
 
   final Unrouter router;
+  late final NamedRouteResolver _namedRoutes = NamedRouteResolver(routes);
 
   /// Declarative routes configuration for centralized route matching.
   Iterable<Inlet>? get routes => router.routes;
@@ -241,19 +245,18 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
     final delta = event.delta;
 
     const blocked = Object();
-    final allowFuture =
-        _shouldCheckBlockers(event, delta)
-            ? _blockers.shouldAllowPop(
-                from: previous,
-                to: requested,
-                action: event.action,
-                delta: delta,
-              )
-            : SynchronousFuture(true);
+    final allowFuture = _shouldCheckBlockers(event, delta)
+        ? _blockers.shouldAllowPop(
+            from: previous,
+            to: requested,
+            action: event.action,
+            delta: delta,
+          )
+        : SynchronousFuture(true);
 
     final guardContext = GuardContext(
-      to: requested,
-      from: previous,
+      to: _decorateLocation(requested),
+      from: _decorateLocation(previous),
       replace: false,
       redirectCount: 0,
     );
@@ -266,6 +269,8 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
           return router.guard.execute(
             guardContext,
             extraGuards: _resolveRouteGuards(requested),
+            decorateLocation: _decorateLocation,
+            resolveRedirect: _resolveGuardRedirect,
           );
         })
         .then((resolved) {
@@ -281,20 +286,13 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
           _applyNavigationResult(previous, requested, context);
         })
         .catchError((error, stackTrace) {
-          _handleNavigationError(
-            previous,
-            requested,
-            delta,
-            error,
-            stackTrace,
-          );
+          _handleNavigationError(previous, requested, delta, error, stackTrace);
         });
   }
 
   void _handleSuppressedPopGuard(HistoryEvent event) {
     _suppressNextPopGuard = false;
-    currentConfiguration = event.location;
-    _updateMatchedRoutes();
+    _syncConfiguration(event.location);
     notifyListeners();
   }
 
@@ -310,9 +308,7 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
     int? delta,
   ) {
     _handlePopCancel(previous, delta);
-    _completeNextPop(
-      NavigationCancelled(from: previous, requested: requested),
-    );
+    _completeNextPop(NavigationCancelled(from: previous, requested: requested));
   }
 
   void _handleNavigationError(
@@ -349,22 +345,22 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
       }
     }
 
-    currentConfiguration = context.to;
-    _updateMatchedRoutes();
+    _syncConfiguration(context.to);
     notifyListeners();
 
+    final resolvedLocation = currentConfiguration;
     final navigationResult = context.redirectCount > 0
         ? NavigationRedirected(
             from: previous,
             requested: requested,
-            to: context.to,
+            to: resolvedLocation,
             action: action,
             redirectCount: context.redirectCount,
           )
         : NavigationSuccess(
             from: previous,
             requested: requested,
-            to: context.to,
+            to: resolvedLocation,
             action: action,
             redirectCount: context.redirectCount,
           );
@@ -422,17 +418,28 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
   }
 
   /// Update matched routes based on current location.
-  void _updateMatchedRoutes() {
+  void _syncConfiguration(RouteInformation configuration) {
+    final location = configuration.uri;
     if (routes == null) {
       // No declarative routes to match
       _matchedRoutes = const [];
+      currentConfiguration = RouteLocation(
+        uri: location,
+        state: configuration.state,
+        name: null,
+      );
       return;
     }
 
-    final location = currentConfiguration.uri.path;
-    final result = matchRoutes(routes!, location);
+    final result = matchRoutes(routes!, location.path);
     // Accept both full matches and partial matches (for widget-scoped Routes support)
     _matchedRoutes = result.matches;
+    final name = _resolveMatchedName(_matchedRoutes);
+    currentConfiguration = RouteLocation(
+      uri: location,
+      state: configuration.state,
+      name: name,
+    );
   }
 
   void _completeNextPop(Navigation result) {
@@ -451,8 +458,7 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
     }
 
     history.replace(previous.uri, previous.state);
-    currentConfiguration = previous;
-    _updateMatchedRoutes();
+    _syncConfiguration(previous);
     notifyListeners();
   }
 
@@ -463,8 +469,8 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
       return;
     }
     final context = GuardContext(
-      to: configuration,
-      from: currentConfiguration,
+      to: _decorateLocation(configuration),
+      from: _decorateLocation(currentConfiguration),
       replace: configuration.uri == history.location.uri,
       redirectCount: 0,
     );
@@ -472,19 +478,20 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
     final resolved = await router.guard.execute(
       context,
       extraGuards: _resolveRouteGuards(configuration),
+      decorateLocation: _decorateLocation,
+      resolveRedirect: _resolveGuardRedirect,
     );
     if (resolved == null) {
       return;
     }
 
-    currentConfiguration = resolved.to;
     if (resolved.replace) {
       history.replace(resolved.to.uri, resolved.to.state);
     } else {
       history.push(resolved.to.uri, resolved.to.state);
     }
 
-    _updateMatchedRoutes();
+    _syncConfiguration(resolved.to);
     notifyListeners();
   }
 
@@ -506,7 +513,7 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
     // If we have matched routes, render them
     if (_matchedRoutes.isNotEmpty) {
       final state = RouteState(
-        location: currentConfiguration,
+        location: currentConfiguration as RouteLocation,
         matchedRoutes: _matchedRoutes,
         level: 0,
         historyIndex: history.index,
@@ -522,7 +529,7 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
     // If no match but we have a child, render it with router state
     if (child != null) {
       final state = RouteState(
-        location: currentConfiguration,
+        location: currentConfiguration as RouteLocation,
         matchedRoutes: const [],
         level: 0,
         historyIndex: history.index,
@@ -562,16 +569,30 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
   }
 
   @override
-  Future<Navigation> call(
-    Uri uri, {
+  Future<Navigation> call({
+    String? name,
+    String? path,
+    Map<String, String> params = const {},
+    Map<String, String>? query,
+    String? fragment,
     Object? state,
     bool replace = false,
   }) async {
-    final requested = RouteInformation(uri: resolveUri(uri), state: state);
+    final requestedUri = _resolveRequestedUri(
+      name: name,
+      path: path,
+      params: params,
+      query: query,
+      fragment: fragment,
+    );
+    final requested = RouteInformation(
+      uri: resolveUri(requestedUri),
+      state: state,
+    );
     final previous = currentConfiguration;
     final context = GuardContext(
-      to: requested,
-      from: previous,
+      to: _decorateLocation(requested),
+      from: _decorateLocation(previous),
       replace: replace,
       redirectCount: 0,
     );
@@ -579,12 +600,13 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
       final resolved = await router.guard.execute(
         context,
         extraGuards: _resolveRouteGuards(requested),
+        decorateLocation: _decorateLocation,
+        resolveRedirect: _resolveGuardRedirect,
       );
       if (resolved == null) {
         return NavigationCancelled(from: previous, requested: requested);
       }
 
-      currentConfiguration = resolved.to;
       final action = resolved.replace
           ? HistoryAction.replace
           : HistoryAction.push;
@@ -594,14 +616,15 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
         history.push(resolved.to.uri, resolved.to.state);
       }
 
-      _updateMatchedRoutes();
+      _syncConfiguration(resolved.to);
       notifyListeners();
 
+      final resolvedLocation = currentConfiguration;
       if (resolved.redirectCount > 0) {
         return NavigationRedirected(
           from: previous,
           requested: requested,
-          to: resolved.to,
+          to: resolvedLocation,
           action: action,
           redirectCount: resolved.redirectCount,
         );
@@ -609,7 +632,7 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
       return NavigationSuccess(
         from: previous,
         requested: requested,
-        to: resolved.to,
+        to: resolvedLocation,
         action: action,
         redirectCount: resolved.redirectCount,
       );
@@ -621,6 +644,23 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
         stackTrace: stackTrace,
       );
     }
+  }
+
+  @override
+  Uri route({
+    String? name,
+    String? path,
+    Map<String, String> params = const {},
+    Map<String, String>? query,
+    String? fragment,
+  }) {
+    return _resolveRequestedUri(
+      name: name,
+      path: path,
+      params: params,
+      query: query,
+      fragment: fragment,
+    );
   }
 
   @override
@@ -636,6 +676,170 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
     history.go(delta);
     return completer.future;
   }
+
+  Uri _resolveRequestedUri({
+    required String? name,
+    required String? path,
+    required Map<String, String> params,
+    required Map<String, String>? query,
+    required String? fragment,
+  }) {
+    final hasName = name != null && name.isNotEmpty;
+    final hasPath = path != null && path.isNotEmpty;
+
+    if (!hasName && !hasPath) {
+      throw FlutterError(
+        'Navigate requires either a route name or a path.\n'
+        'Provide `name` for named routes or `path` for direct navigation.',
+      );
+    }
+
+    if (hasName && hasPath) {
+      throw FlutterError(
+        'Navigate received both name and path.\n'
+        'Provide only one.',
+      );
+    }
+
+    if (hasName) {
+      return _namedRoutes.resolve(
+        name,
+        params: params,
+        query: query,
+        fragment: fragment,
+      );
+    }
+
+    final parsed = _splitPathAndQuery(path!);
+    final pathPart = parsed.path;
+    final hasPattern = params.isNotEmpty || _containsPatternSyntax(pathPart);
+    final builtPath = hasPattern
+        ? _buildPathForPattern(pathPart, params)
+        : pathPart;
+
+    final resolvedQuery = query == null
+        ? (parsed.query != null && parsed.query!.isNotEmpty
+              ? parsed.query
+              : null)
+        : (query.isNotEmpty ? Uri(queryParameters: query).query : null);
+    final effectiveFragment =
+        fragment ??
+        (parsed.fragment != null && parsed.fragment!.isNotEmpty
+            ? parsed.fragment
+            : null);
+
+    return Uri(
+      path: builtPath,
+      query: resolvedQuery,
+      fragment: effectiveFragment,
+    );
+  }
+
+  RouteLocation _decorateLocation(RouteInformation location) {
+    final routeList = routes;
+    if (routeList == null) {
+      if (location is RouteLocation) return location;
+      return RouteLocation(
+        uri: location.uri,
+        state: location.state,
+        name: null,
+      );
+    }
+
+    final result = matchRoutes(routeList, location.uri.path);
+    final name = _resolveMatchedName(result.matches);
+    return RouteLocation(uri: location.uri, state: location.state, name: name);
+  }
+
+  RouteInformation _resolveGuardRedirect(GuardRedirect redirect) {
+    final uri = _resolveRequestedUri(
+      name: redirect.name,
+      path: redirect.path,
+      params: redirect.params,
+      query: redirect.query,
+      fragment: redirect.fragment,
+    );
+    return RouteInformation(uri: resolveUri(uri), state: redirect.state);
+  }
+}
+
+class _ParsedPath {
+  const _ParsedPath({required this.path, this.query, this.fragment});
+
+  final String path;
+  final String? query;
+  final String? fragment;
+}
+
+_ParsedPath _splitPathAndQuery(String raw) {
+  var path = raw;
+  String? fragment;
+  final fragmentIndex = path.indexOf('#');
+  if (fragmentIndex != -1) {
+    fragment = path.substring(fragmentIndex + 1);
+    path = path.substring(0, fragmentIndex);
+  }
+
+  int queryIndex = -1;
+  for (var i = 0; i < path.length; i++) {
+    if (path.codeUnitAt(i) != 63) continue; // '?'
+    final hasNext = i + 1 < path.length;
+    if (!hasNext) {
+      // Trailing '?' is an optional segment marker.
+      continue;
+    }
+    final next = path.codeUnitAt(i + 1);
+    if (next == 47) {
+      // "?/" indicates optional segment, not query.
+      continue;
+    }
+    queryIndex = i;
+    break;
+  }
+
+  String? query;
+  if (queryIndex != -1) {
+    query = path.substring(queryIndex + 1);
+    path = path.substring(0, queryIndex);
+  }
+
+  return _ParsedPath(path: path, query: query, fragment: fragment);
+}
+
+bool _containsPatternSyntax(String path) {
+  for (var i = 0; i < path.length; i++) {
+    final char = path.codeUnitAt(i);
+    if (char == 58 || char == 42) return true; // ':' or '*'
+    if (char == 63) {
+      final hasNext = i + 1 < path.length;
+      if (!hasNext) return true;
+      if (path.codeUnitAt(i + 1) == 47) return true;
+    }
+  }
+  return false;
+}
+
+String _buildPathForPattern(String pattern, Map<String, String> params) {
+  final hasLeadingSlash = pattern.trimLeft().startsWith('/');
+  final built = buildPathFromPattern(
+    pattern: pattern,
+    params: params,
+    label: pattern,
+  );
+  if (built.isEmpty) {
+    return hasLeadingSlash ? '/' : '';
+  }
+  return hasLeadingSlash ? '/$built' : built;
+}
+
+String? _resolveMatchedName(List<MatchedRoute> matches) {
+  for (var i = matches.length - 1; i >= 0; i--) {
+    final name = matches[i].route.name;
+    if (name != null && name.isNotEmpty) {
+      return name;
+    }
+  }
+  return null;
 }
 
 class _UnrouterPage extends Page {

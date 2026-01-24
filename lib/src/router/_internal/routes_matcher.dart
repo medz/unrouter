@@ -106,61 +106,128 @@ RouteMatchResult matchRoutesGreedy(List<Inlet> routes, String location) {
   final segments = normalizePath(location);
   final pathSegments = segments.isEmpty ? <String>[] : segments.split('/');
 
-  // Try to find the longest match
-  List<MatchedRoute>? bestMatch;
+  final result = _matchRoutesGreedyInternal(routes, pathSegments);
+  return RouteMatchResult(result.matches, result.matched);
+}
+
+class _GreedyMatch {
+  const _GreedyMatch(
+    this.matches,
+    this.matched,
+    this.consumedSegments,
+    this.specificity,
+  );
+
+  final List<MatchedRoute> matches;
+  final bool matched;
+  final int consumedSegments;
+  final PathSpecificity specificity;
+}
+
+_GreedyMatch _matchRoutesGreedyInternal(
+  List<Inlet> routes,
+  List<String> pathSegments,
+) {
+  _GreedyMatch? bestFullMatch;
+  _GreedyMatch? bestPartialMatch;
+
+  _GreedyMatch pickBest(_GreedyMatch? current, _GreedyMatch candidate) {
+    if (current == null) return candidate;
+    final specificCompare = candidate.specificity.compareTo(current.specificity);
+    if (specificCompare > 0) return candidate;
+    if (specificCompare < 0) return current;
+    if (candidate.consumedSegments > current.consumedSegments) {
+      return candidate;
+    }
+    return current;
+  }
 
   for (final route in routes) {
     if (route.path.isEmpty && route.children.isEmpty) {
       // Index route - only matches root
       if (pathSegments.isEmpty) {
-        return RouteMatchResult([MatchedRoute(route, const {})], true);
+        final candidate = _GreedyMatch(
+          [MatchedRoute(route, const {})],
+          true,
+          0,
+          const PathSpecificity(),
+        );
+        bestFullMatch = pickBest(bestFullMatch, candidate);
       }
-    } else if (route.path.isEmpty && route.children.isNotEmpty) {
+      continue;
+    }
+
+    if (route.path.isEmpty && route.children.isNotEmpty) {
       // Layout route - try children
-      final childResult = matchRoutesGreedy(route.children, location);
+      final childResult = _matchRoutesGreedyInternal(
+        route.children,
+        pathSegments,
+      );
       if (childResult.matches.isNotEmpty) {
-        return RouteMatchResult([
-          MatchedRoute(route, const {}),
-          ...childResult.matches,
-        ], childResult.matched);
+        final candidate = _GreedyMatch(
+          [MatchedRoute(route, const {}), ...childResult.matches],
+          childResult.matched,
+          childResult.consumedSegments,
+          childResult.specificity,
+        );
+        if (candidate.matched) {
+          bestFullMatch = pickBest(bestFullMatch, candidate);
+        } else {
+          bestPartialMatch = pickBest(bestPartialMatch, candidate);
+        }
       }
+      continue;
+    }
+
+    // Path route - try to match
+    final match = matchPath(route.path, pathSegments);
+    if (!match.matched) {
+      continue;
+    }
+
+    final consumedCount = pathSegments.length - match.remaining.length;
+
+    if (route.children.isNotEmpty && match.remaining.isNotEmpty) {
+      // Try to match children with remaining path
+      final childResult = _matchRoutesGreedyInternal(
+        route.children,
+        match.remaining,
+      );
+      if (childResult.matches.isNotEmpty) {
+        final candidate = _GreedyMatch(
+          [MatchedRoute(route, match.params), ...childResult.matches],
+          childResult.matched,
+          consumedCount + childResult.consumedSegments,
+          match.specificity + childResult.specificity,
+        );
+        if (candidate.matched) {
+          bestFullMatch = pickBest(bestFullMatch, candidate);
+        } else {
+          bestPartialMatch = pickBest(bestPartialMatch, candidate);
+        }
+        continue;
+      }
+    }
+
+    final candidate = _GreedyMatch(
+      [MatchedRoute(route, match.params)],
+      match.remaining.isEmpty,
+      consumedCount,
+      match.specificity,
+    );
+    if (candidate.matched) {
+      bestFullMatch = pickBest(bestFullMatch, candidate);
     } else {
-      // Path route - try to match
-      final match = matchPath(route.path, pathSegments);
-      if (match.matched) {
-        final matched = [MatchedRoute(route, match.params)];
-
-        // Check if we have children and remaining path
-        if (route.children.isNotEmpty && match.remaining.isNotEmpty) {
-          // Try to match children with remaining path
-          final remainingPath = match.remaining.join('/');
-          final childResult = matchRoutesGreedy(route.children, remainingPath);
-          if (childResult.matches.isNotEmpty) {
-            return RouteMatchResult([
-              ...matched,
-              ...childResult.matches,
-            ], childResult.matched);
-          }
-        }
-
-        // For dynamic nesting: accept partial match even if segments remain
-        // The matched route might contain nested Routes widgets
-        if (bestMatch == null || matched.length > bestMatch.length) {
-          bestMatch = matched;
-        }
-
-        // If this is a complete match (no remaining segments), return immediately
-        if (match.remaining.isEmpty) {
-          return RouteMatchResult(matched, true);
-        }
-      }
+      bestPartialMatch = pickBest(bestPartialMatch, candidate);
     }
   }
 
-  // Return best partial match if found
-  if (bestMatch != null) {
-    return RouteMatchResult(bestMatch, false);
+  if (bestFullMatch != null) {
+    return bestFullMatch;
+  }
+  if (bestPartialMatch != null) {
+    return bestPartialMatch;
   }
 
-  return const RouteMatchResult([], false);
+  return const _GreedyMatch([], false, 0, PathSpecificity());
 }

@@ -27,14 +27,14 @@ void main() {
       );
 
       // Navigate to /admin - should match static routes, not child Routes
-      router.navigate(.parse('/admin'));
+      router.navigate(path: '/admin');
       await tester.pumpAndSettle();
 
       expect(find.text('Static Admin'), findsOneWidget);
       expect(find.text('Dynamic Admin'), findsNothing);
 
       // Navigate to /settings - not in routes, should fall back to child Routes
-      router.navigate(.parse('/settings'));
+      router.navigate(path: '/settings');
       await tester.pumpAndSettle();
 
       expect(find.text('Settings'), findsOneWidget);
@@ -63,14 +63,14 @@ void main() {
       expect(find.text('Home'), findsOneWidget);
 
       // Navigate to /static
-      router.navigate(.parse('/static'));
+      router.navigate(path: '/static');
       await tester.pumpAndSettle();
 
       expect(find.text('Static Page'), findsOneWidget);
 
       // Navigate to /dynamic - not in static routes, should fall back to WrapperWidget
       // which internally uses Routes widget
-      router.navigate(.parse('/dynamic'));
+      router.navigate(path: '/dynamic');
       await tester.pumpAndSettle();
 
       expect(find.text('Wrapper'), findsOneWidget);
@@ -98,20 +98,20 @@ void main() {
         );
 
         // Navigate to /products/123 - partial match on static route
-        router.navigate(.parse('/products/123'));
+        router.navigate(path: '/products/123');
         await tester.pumpAndSettle();
 
         expect(find.text('Products Container'), findsOneWidget);
         expect(find.text('Product: 123'), findsOneWidget);
 
         // Navigate to /users/456 - no match in static routes, use child Routes
-        router.navigate(.parse('/users/456'));
+        router.navigate(path: '/users/456');
         await tester.pumpAndSettle();
 
         expect(find.text('User: 456'), findsOneWidget);
 
         // Navigate to /posts/789 - no match in static routes, use child Routes
-        router.navigate(.parse('/posts/789'));
+        router.navigate(path: '/posts/789');
         await tester.pumpAndSettle();
 
         expect(find.text('Post: 789'), findsOneWidget);
@@ -137,14 +137,14 @@ void main() {
       );
 
       // Navigate to /items/123 - both routes match, static should win
-      router.navigate(.parse('/items/123'));
+      router.navigate(path: '/items/123');
       await tester.pumpAndSettle();
 
       expect(find.text('Static Item: 123'), findsOneWidget);
       expect(find.text('Dynamic Item'), findsNothing);
 
       // Navigate to /categories/electronics - only in child Routes
-      router.navigate(.parse('/categories/electronics'));
+      router.navigate(path: '/categories/electronics');
       await tester.pumpAndSettle();
 
       expect(find.text('Category: electronics'), findsOneWidget);
@@ -169,21 +169,21 @@ void main() {
 
         // Navigate to /shop/products/123
         // Static route partially matches 'shop', ShopPageWithRoutes handles rest
-        router.navigate(.parse('/shop/products/123'));
+        router.navigate(path: '/shop/products/123');
         await tester.pumpAndSettle();
 
         expect(find.text('Shop Container'), findsOneWidget);
         expect(find.text('Shop Product: 123'), findsOneWidget);
 
         // Navigate to /shop/categories/toys
-        router.navigate(.parse('/shop/categories/toys'));
+        router.navigate(path: '/shop/categories/toys');
         await tester.pumpAndSettle();
 
         expect(find.text('Shop Container'), findsOneWidget);
         expect(find.text('Shop Category: toys'), findsOneWidget);
 
         // Navigate to /account/profile - no match in static, use child Routes
-        router.navigate(.parse('/account/profile'));
+        router.navigate(path: '/account/profile');
         await tester.pumpAndSettle();
 
         expect(find.text('Account: profile'), findsOneWidget);
@@ -210,7 +210,7 @@ void main() {
       expect(find.text('Home'), findsOneWidget);
 
       // Navigate to /deep - should work through deeply nested Routes widget
-      router.navigate(.parse('/deep'));
+      router.navigate(path: '/deep');
       await tester.pumpAndSettle();
 
       expect(find.text('Deep Wrapper Level 1'), findsOneWidget);
@@ -234,13 +234,13 @@ void main() {
       );
 
       // Navigate to /exact - matches static route
-      router.navigate(.parse('/exact'));
+      router.navigate(path: '/exact');
       await tester.pumpAndSettle();
 
       expect(find.text('Exact Page'), findsOneWidget);
 
       // Navigate to /fallback/nested/path - no static match, uses ComplexFallback
-      router.navigate(.parse('/fallback/nested/path'));
+      router.navigate(path: '/fallback/nested/path');
       await tester.pumpAndSettle();
 
       expect(find.text('Complex Fallback'), findsOneWidget);

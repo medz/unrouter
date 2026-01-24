@@ -7,6 +7,7 @@ import 'router.dart';
 import '_internal/route_animation.dart';
 import '_internal/route_params.dart';
 import '_internal/route_state_scope.dart';
+import 'route_location.dart';
 import 'route_matcher.dart';
 import 'route_state.dart';
 
@@ -69,7 +70,7 @@ extension UnrouterBuildContext on BuildContext {
 
   RouteState? get maybeRouteState => RouteStateScope.maybeOfAll(this)?.state;
 
-  RouteInformation get location {
+  RouteLocation get location {
     final provider = RouteStateScope.maybeOf(
       this,
       aspect: RouteStateAspect.location,

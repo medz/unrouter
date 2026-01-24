@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:unrouter/history.dart';
 
+import '../route_location.dart';
 import '../route_matcher.dart';
 import '../route_state.dart';
 
@@ -75,8 +76,8 @@ class RouteStateScope extends InheritedModel<RouteStateAspect> {
     return false;
   }
 
-  bool _sameLocation(RouteInformation a, RouteInformation b) {
-    return a.uri == b.uri && a.state == b.state;
+  bool _sameLocation(RouteLocation a, RouteLocation b) {
+    return a.uri == b.uri && a.state == b.state && a.name == b.name;
   }
 
   bool _sameMatchedRoutes(List<MatchedRoute> a, List<MatchedRoute> b) {
@@ -100,7 +101,7 @@ class RouteStateScope extends InheritedModel<RouteStateAspect> {
     return true;
   }
 
-  RouteInformation get location => state.location;
+  RouteLocation get location => state.location;
   List<MatchedRoute> get matchedRoutes => state.matchedRoutes;
   int get level => state.level;
   int get historyIndex => state.historyIndex;

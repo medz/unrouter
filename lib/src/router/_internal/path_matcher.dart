@@ -34,11 +34,44 @@ List<String> splitPath(String path) {
 }
 
 /// Result of a path match.
+class PathSpecificity {
+  const PathSpecificity({
+    this.staticCount = 0,
+    this.dynamicCount = 0,
+    this.wildcardCount = 0,
+  });
+
+  final int staticCount;
+  final int dynamicCount;
+  final int wildcardCount;
+
+  PathSpecificity operator +(PathSpecificity other) => PathSpecificity(
+    staticCount: staticCount + other.staticCount,
+    dynamicCount: dynamicCount + other.dynamicCount,
+    wildcardCount: wildcardCount + other.wildcardCount,
+  );
+
+  int compareTo(PathSpecificity other) {
+    if (staticCount != other.staticCount) {
+      return staticCount.compareTo(other.staticCount);
+    }
+    if (dynamicCount != other.dynamicCount) {
+      return dynamicCount.compareTo(other.dynamicCount);
+    }
+    if (wildcardCount != other.wildcardCount) {
+      // Fewer wildcards is more specific.
+      return other.wildcardCount.compareTo(wildcardCount);
+    }
+    return 0;
+  }
+}
+
 class PathMatch {
   const PathMatch({
     required this.matched,
     required this.params,
     required this.remaining,
+    this.specificity = const PathSpecificity(),
   });
 
   /// Whether the pattern matched the path.
@@ -49,6 +82,9 @@ class PathMatch {
 
   /// Remaining path segments after matching.
   final List<String> remaining;
+
+  /// Specificity of the matched pattern segments.
+  final PathSpecificity specificity;
 
   /// Creates a failed match.
   static const PathMatch noMatch = PathMatch(
@@ -73,6 +109,9 @@ class PathMatch {
 /// - `remaining`: unconsumed path segments
 PathMatch matchPath(String? pattern, List<String> pathSegments) {
   final normalizedPattern = normalizePath(pattern);
+  var staticCount = 0;
+  var dynamicCount = 0;
+  var wildcardCount = 0;
 
   // Index route matches empty path
   if (normalizedPattern.isEmpty) {
@@ -80,6 +119,11 @@ PathMatch matchPath(String? pattern, List<String> pathSegments) {
       matched: pathSegments.isEmpty,
       params: const {},
       remaining: pathSegments,
+      specificity: PathSpecificity(
+        staticCount: staticCount,
+        dynamicCount: dynamicCount,
+        wildcardCount: wildcardCount,
+      ),
     );
   }
 
@@ -92,10 +136,16 @@ PathMatch matchPath(String? pattern, List<String> pathSegments) {
 
     // Wildcard: match everything remaining
     if (patternSegment == '*') {
+      wildcardCount += 1;
       return PathMatch(
         matched: true,
         params: params,
         remaining: [], // Wildcard consumes all remaining segments
+        specificity: PathSpecificity(
+          staticCount: staticCount,
+          dynamicCount: dynamicCount,
+          wildcardCount: wildcardCount,
+        ),
       );
     }
 
@@ -107,7 +157,16 @@ PathMatch matchPath(String? pattern, List<String> pathSegments) {
           .every((s) => s.endsWith('?'));
 
       if (remainingOptional) {
-        return PathMatch(matched: true, params: params, remaining: []);
+        return PathMatch(
+          matched: true,
+          params: params,
+          remaining: [],
+          specificity: PathSpecificity(
+            staticCount: staticCount,
+            dynamicCount: dynamicCount,
+            wildcardCount: wildcardCount,
+          ),
+        );
       }
 
       return PathMatch.noMatch;
@@ -138,12 +197,14 @@ PathMatch matchPath(String? pattern, List<String> pathSegments) {
 
         // Otherwise, consume this segment as the param
         params[paramName] = pathSegment;
+        dynamicCount += 1;
         pathIndex++;
         continue;
       }
 
       // Static optional segment: `edit?`
       if (segmentWithoutQuestion == pathSegment) {
+        staticCount += 1;
         pathIndex++;
       }
       // If not matched, it's optional so just continue
@@ -154,12 +215,14 @@ PathMatch matchPath(String? pattern, List<String> pathSegments) {
     if (patternSegment.startsWith(':')) {
       final paramName = patternSegment.substring(1);
       params[paramName] = pathSegment;
+      dynamicCount += 1;
       pathIndex++;
       continue;
     }
 
     // Static segment: must match exactly
     if (patternSegment == pathSegment) {
+      staticCount += 1;
       pathIndex++;
       continue;
     }
@@ -173,5 +236,10 @@ PathMatch matchPath(String? pattern, List<String> pathSegments) {
     matched: true,
     params: params,
     remaining: pathSegments.sublist(pathIndex),
+    specificity: PathSpecificity(
+      staticCount: staticCount,
+      dynamicCount: dynamicCount,
+      wildcardCount: wildcardCount,
+    ),
   );
 }

@@ -26,12 +26,12 @@ void main() {
         // Navigate: / -> /products -> /products/1
         expect(find.text('Home'), findsOneWidget);
 
-        router.navigate(.parse('/products'));
+        router.navigate(path: '/products');
         await tester.pumpAndSettle();
         expect(find.text('Products Container'), findsOneWidget);
         expect(find.text('Product List'), findsOneWidget);
 
-        router.navigate(.parse('/products/1'));
+        router.navigate(path: '/products/1');
         await tester.pumpAndSettle();
         expect(find.text('Product: 1'), findsOneWidget);
 
@@ -104,12 +104,12 @@ void main() {
       // Navigate: / -> /login -> /register
       expect(find.text('Home'), findsOneWidget);
 
-      router.navigate(.parse('/login'));
+      router.navigate(path: '/login');
       await tester.pumpAndSettle();
       expect(find.text('Auth Layout'), findsOneWidget);
       expect(find.text('Login'), findsOneWidget);
 
-      router.navigate(.parse('/register'));
+      router.navigate(path: '/register');
       await tester.pumpAndSettle();
       expect(find.text('Auth Layout'), findsOneWidget);
       expect(find.text('Register'), findsOneWidget);

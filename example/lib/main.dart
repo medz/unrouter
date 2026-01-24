@@ -11,45 +11,63 @@ final router = Unrouter(
   strategy: .browser,
   enableNavigator1: true,
   routes: const [
-    Inlet(factory: Home.new),
-    Inlet(path: 'about', factory: About.new),
-    Inlet(path: 'route-animation', factory: RouteAnimationDemo.new),
+    Inlet(name: 'home', factory: Home.new),
+    Inlet(name: 'about', path: 'about', factory: About.new),
+    Inlet(
+      name: 'routeAnimation',
+      path: 'route-animation',
+      factory: RouteAnimationDemo.new,
+    ),
 
     // Layout route - wraps children without adding path segment
     Inlet(
       factory: AuthLayout.new,
       children: [
-        Inlet(path: 'login', factory: Login.new),
-        Inlet(path: 'register', factory: Register.new),
+        Inlet(name: 'login', path: 'login', factory: Login.new),
+        Inlet(name: 'register', path: 'register', factory: Register.new),
       ],
     ),
 
     // Nested route - has path segment + children
     Inlet(
+      name: 'concerts',
       path: 'concerts',
       factory: ConcertsLayout.new,
       children: [
-        Inlet(factory: ConcertsHome.new),
-        Inlet(path: ':city', factory: CityPage.new),
-        Inlet(path: 'trending', factory: TrendingPage.new),
+        Inlet(name: 'concertsHome', factory: ConcertsHome.new),
+        Inlet(
+          name: 'concertsTrending',
+          path: 'trending',
+          factory: TrendingPage.new,
+        ),
+        Inlet(name: 'concertCity', path: ':city', factory: CityPage.new),
       ],
     ),
 
     // Nested animation demo
     Inlet(
+      name: 'nestedAnimation',
       path: 'nested-animation',
       factory: NestedAnimationLayout.new,
       children: [
-        Inlet(factory: NestedAnimationIntro.new),
-        Inlet(path: 'details', factory: NestedAnimationDetails.new),
-        Inlet(path: 'reviews', factory: NestedAnimationReviews.new),
+        Inlet(name: 'nestedAnimationIntro', factory: NestedAnimationIntro.new),
+        Inlet(
+          name: 'nestedAnimationDetails',
+          path: 'details',
+          factory: NestedAnimationDetails.new,
+        ),
+        Inlet(
+          name: 'nestedAnimationReviews',
+          path: 'reviews',
+          factory: NestedAnimationReviews.new,
+        ),
       ],
     ),
 
     // Hybrid routing: declarative route that uses Routes widget internally
     // This demonstrates partial matching - /products matches this declarative route,
     // then ProductsPage uses Routes widget (widget-scoped) to match remaining segments like /123
-    Inlet(path: 'products', factory: ProductsPage.new),
+    Inlet(name: 'products', path: 'products', factory: ProductsPage.new),
   ],
 );
 
@@ -106,14 +124,24 @@ class Home extends StatelessWidget {
                     'About',
                     Icons.info,
                     Colors.blue,
-                    () => context.navigate(.parse('/about')),
+                    () => context.navigate(name: 'about'),
                   ),
                   _buildNavButton(
                     context,
                     'Login',
                     Icons.login,
                     Colors.green,
-                    () => router.navigate(.parse('/login')),
+                    () => router.navigate(name: 'login'),
+                  ),
+                  _buildNavButton(
+                    context,
+                    'Concerts: Tokyo',
+                    Icons.location_city,
+                    Colors.orange,
+                    () => context.navigate(
+                      name: 'concertCity',
+                      params: {'city': 'tokyo'},
+                    ),
                   ),
                   const SizedBox(height: 32),
                   const Divider(),
@@ -124,7 +152,7 @@ class Home extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   Link(
-                    to: Uri.parse('/concerts'),
+                    path: '/concerts',
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 24,
@@ -149,7 +177,7 @@ class Home extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   Link(
-                    to: Uri.parse('/products'),
+                    path: '/products',
                     builder: (context, location, navigate) {
                       return Container(
                         padding: const EdgeInsets.symmetric(
@@ -193,14 +221,14 @@ class Home extends StatelessWidget {
                     'Full Page Transition',
                     Icons.layers,
                     Colors.deepPurple,
-                    () => context.navigate(.parse('/route-animation')),
+                    () => context.navigate(name: 'routeAnimation'),
                   ),
                   _buildNavButton(
                     context,
                     'Nested Transition',
                     Icons.view_agenda,
                     Colors.orange,
-                    () => context.navigate(.parse('/nested-animation')),
+                    () => context.navigate(name: 'nestedAnimation'),
                   ),
                   const SizedBox(height: 32),
                   const Divider(),
@@ -378,7 +406,7 @@ class About extends StatelessWidget {
             ),
             const SizedBox(height: 32),
             ElevatedButton(
-              onPressed: () => context.navigate(.parse('/')),
+              onPressed: () => context.navigate(name: 'home'),
               child: const Text('Back to Home'),
             ),
           ],
@@ -446,7 +474,7 @@ class RouteAnimationDemo extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton.icon(
-                  onPressed: () => context.navigate(.parse('/nested-animation')),
+                  onPressed: () => context.navigate(name: 'nestedAnimation'),
                   icon: const Icon(Icons.view_agenda),
                   label: const Text('See Nested Animation'),
                 ),
@@ -502,7 +530,7 @@ class NestedAnimationLayout extends StatelessWidget {
 
     return Expanded(
       child: InkWell(
-        onTap: () => context.navigate(.parse(path)),
+        onTap: () => context.navigate(path: path),
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 14),
           decoration: BoxDecoration(
@@ -655,10 +683,7 @@ class _AnimatedPanel extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 12),
-                Text(
-                  subtitle,
-                  style: TextStyle(color: Colors.grey.shade700),
-                ),
+                Text(subtitle, style: TextStyle(color: Colors.grey.shade700)),
                 const SizedBox(height: 16),
                 child,
               ],
@@ -804,7 +829,7 @@ class Login extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               TextButton(
-                onPressed: () => context.navigate(.parse('/register')),
+                onPressed: () => context.navigate(name: 'register'),
                 child: const Text('Don\'t have an account? Register'),
               ),
             ],
@@ -879,7 +904,7 @@ class Register extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               TextButton(
-                onPressed: () => context.navigate(.parse('/login')),
+                onPressed: () => context.navigate(name: 'login'),
                 child: const Text('Already have an account? Login'),
               ),
             ],
@@ -933,7 +958,7 @@ class ConcertsLayout extends StatelessWidget {
 
     return Expanded(
       child: InkWell(
-        onTap: () => router.navigate(.parse(path)),
+        onTap: () => router.navigate(path: path),
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 16),
           decoration: BoxDecoration(
@@ -1212,7 +1237,7 @@ class ProductsList extends StatelessWidget {
         title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
         subtitle: Text(price),
         trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-        onTap: () => router.navigate(.parse('/products/$id')),
+        onTap: () => router.navigate(path: '/products/$id'),
       ),
     );
   }

@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:unrouter/history.dart';
 
+import 'route_location.dart';
 import 'route_matcher.dart';
 import '_internal/route_params.dart';
 
@@ -21,7 +22,10 @@ class RouteState {
   ///
   /// The state is the value passed to `navigate(..., state: ...)` /
   /// `Navigate.call(..., state: ...)`.
-  final RouteInformation location;
+  ///
+  /// When declarative routes are matched, this is a [RouteLocation] whose
+  /// `name` is the matched route name (if any).
+  final RouteLocation location;
 
   /// Stack of matched routes from root to leaf.
   final List<MatchedRoute> matchedRoutes;
@@ -64,13 +68,18 @@ class RouteState {
     if (identical(this, other)) return true;
     return other is RouteState &&
         other.location.uri == location.uri &&
+        other.location.name == location.name &&
         other.level == level &&
         _listEquals(other.matchedRoutes, matchedRoutes);
   }
 
   @override
-  int get hashCode =>
-      Object.hash(location, level, Object.hashAll(matchedRoutes));
+  int get hashCode => Object.hash(
+    location.uri,
+    location.name,
+    level,
+    Object.hashAll(matchedRoutes),
+  );
 
   static bool _listEquals<T>(List<T>? a, List<T>? b) {
     if (a == null) return b == null;

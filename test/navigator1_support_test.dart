@@ -122,7 +122,7 @@ void main() {
 
     await tester.pumpWidget(wrap(router));
 
-    router.navigate(.parse('/about'));
+    router.navigate(path: '/about');
     await tester.pumpAndSettle();
     expect(find.text('About'), findsOneWidget);
 
@@ -156,7 +156,7 @@ void main() {
 
     await tester.pumpWidget(wrap(router));
 
-    router.navigate(.parse('/about'));
+    router.navigate(path: '/about');
     await tester.pumpAndSettle();
     expect(find.text('About'), findsOneWidget);
 

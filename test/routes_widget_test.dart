@@ -44,7 +44,7 @@ void main() {
       expect(find.text('Home'), findsOneWidget);
 
       // Navigate to /about
-      router.navigate(.parse('/about'));
+      router.navigate(path: '/about');
       await tester.pumpAndSettle();
 
       expect(find.text('Home'), findsNothing);
@@ -73,7 +73,7 @@ void main() {
       expect(find.text('About Details'), findsNothing);
 
       // Navigate to /about/details
-      router.navigate(.parse('/about/details'));
+      router.navigate(path: '/about/details');
       await tester.pumpAndSettle();
 
       expect(find.text('About'), findsOneWidget);
@@ -101,14 +101,14 @@ void main() {
       expect(find.text('Home'), findsOneWidget);
 
       // Navigate to static route
-      router.navigate(.parse('/static'));
+      router.navigate(path: '/static');
       await tester.pumpAndSettle();
 
       expect(find.text('Static'), findsOneWidget);
       expect(find.text('Home'), findsNothing);
 
       // Navigate to dynamic route in child
-      router.navigate(.parse('/about'));
+      router.navigate(path: '/about');
       await tester.pumpAndSettle();
 
       expect(find.text('About'), findsOneWidget);

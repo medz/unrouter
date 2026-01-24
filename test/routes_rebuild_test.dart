@@ -41,7 +41,7 @@ void main() {
       expect(find.text('Home'), findsOneWidget);
 
       // Navigate to About
-      router.navigate(.parse('/about'));
+      router.navigate(path: '/about');
       await tester.pumpAndSettle();
 
       // About should be built, Home should still be at 1 (stacked, not recreated)
@@ -105,7 +105,7 @@ void main() {
       );
 
       // Navigate to /parent (index child)
-      router.navigate(.parse('/parent'));
+      router.navigate(path: '/parent');
       await tester.pumpAndSettle();
 
       // Initial render
@@ -114,7 +114,7 @@ void main() {
       expect(child2Builds, 0);
 
       // Navigate to /parent/child2
-      router.navigate(.parse('/parent/child2'));
+      router.navigate(path: '/parent/child2');
       await tester.pumpAndSettle();
 
       // Parent should not rebuild when child changes
@@ -123,7 +123,7 @@ void main() {
       expect(child2Builds, greaterThan(0));
 
       // Navigate back to /parent
-      router.navigate(.parse('/parent'));
+      router.navigate(path: '/parent');
       await tester.pumpAndSettle();
 
       expect(find.text('Child1'), findsOneWidget);
@@ -161,14 +161,14 @@ void main() {
       expect(find.text('Home'), findsOneWidget);
 
       // Navigate to detail/1
-      router.navigate(.parse('/detail/1'));
+      router.navigate(path: '/detail/1');
       await tester.pumpAndSettle();
 
       final builds1 = detailBuilds;
       expect(builds1, greaterThan(0));
 
       // Navigate to detail/2 (new push)
-      router.navigate(.parse('/detail/2'));
+      router.navigate(path: '/detail/2');
       await tester.pumpAndSettle();
 
       // Should create a new widget instance (new history entry)
@@ -200,7 +200,7 @@ void main() {
       );
 
       // Navigate to /admin
-      router.navigate(.parse('/admin'));
+      router.navigate(path: '/admin');
       await tester.pumpAndSettle();
 
       // Should render declarative route, not widget-scoped
@@ -227,21 +227,21 @@ void main() {
       );
 
       // Navigate to /about (not in declarative routes)
-      router.navigate(.parse('/about'));
+      router.navigate(path: '/about');
       await tester.pumpAndSettle();
 
       // Should render from child Routes
       expect(find.text('About'), findsOneWidget);
 
       // Navigate to /admin (in declarative routes)
-      router.navigate(.parse('/admin'));
+      router.navigate(path: '/admin');
       await tester.pumpAndSettle();
 
       // Should render from declarative routes
       expect(find.text('Static Admin'), findsOneWidget);
 
       // Navigate to / (not in declarative routes, should use child Routes)
-      router.navigate(.parse('/'));
+      router.navigate(path: '/');
       await tester.pumpAndSettle();
 
       expect(find.text('Home'), findsOneWidget);

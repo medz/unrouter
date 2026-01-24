@@ -51,7 +51,7 @@ void main() {
       await tester.pumpWidget(MaterialApp.router(routerConfig: router));
 
       // Navigate to /users
-      router.navigate(.parse('/users'));
+      router.navigate(path: '/users');
       await tester.pumpAndSettle();
       expect(find.text('Users'), findsOneWidget);
 
@@ -193,7 +193,7 @@ void main() {
 
       await tester.pumpWidget(MaterialApp.router(routerConfig: router));
 
-      router.navigate(.parse('/parent'));
+      router.navigate(path: '/parent');
       await tester.pumpAndSettle();
 
       final layoutText = tester.widget<Text>(
@@ -212,7 +212,7 @@ void main() {
       expect(indexText.data, contains('matched:2'));
       expect(indexText.data, contains('params:{}'));
 
-      router.navigate(.parse('/parent/42'));
+      router.navigate(path: '/parent/42');
       await tester.pumpAndSettle();
 
       final childText = tester.widget<Text>(
@@ -237,7 +237,7 @@ class HomePage extends StatelessWidget {
         children: [
           const Text('Home'),
           ElevatedButton(
-            onPressed: () => context.navigate(.parse('/about')),
+            onPressed: () => context.navigate(path: '/about'),
             child: const Text('Go to About'),
           ),
         ],
@@ -257,7 +257,7 @@ class AboutPage extends StatelessWidget {
           const Text('About'),
           ElevatedButton(
             onPressed: () {
-              context.navigate(.parse('/contact'), replace: true);
+              context.navigate(path: '/contact', replace: true);
             },
             child: const Text('Replace with Contact'),
           ),
@@ -299,7 +299,7 @@ class UsersPage extends StatelessWidget {
         children: [
           const Text('Users'),
           ElevatedButton(
-            onPressed: () => context.navigate(.parse('/users/123')),
+            onPressed: () => context.navigate(path: '/users/123'),
             child: const Text('View User 123'),
           ),
         ],
@@ -318,7 +318,7 @@ class UserDetailPage extends StatelessWidget {
         children: [
           const Text('User Detail'),
           ElevatedButton(
-            onPressed: () => context.navigate(.parse('edit')),
+            onPressed: () => context.navigate(path: 'edit'),
             child: const Text('Edit (relative)'),
           ),
         ],

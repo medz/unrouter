@@ -24,7 +24,7 @@ void main() {
       );
 
       // Navigate to /products (should match and render ProductsPage)
-      router.navigate(.parse('/products'));
+      router.navigate(path: '/products');
       await tester.pumpAndSettle();
 
       expect(find.text('Products Page'), findsOneWidget);
@@ -32,7 +32,7 @@ void main() {
 
       // Navigate to /products/123 (should partially match products route,
       // then ProductsPage's Routes widget should match :id)
-      router.navigate(.parse('/products/123'));
+      router.navigate(path: '/products/123');
       await tester.pumpAndSettle();
 
       expect(find.text('Products Page'), findsOneWidget);
@@ -57,7 +57,7 @@ void main() {
       );
 
       // Navigate to /shop/category/electronics
-      router.navigate(.parse('/shop/category/electronics'));
+      router.navigate(path: '/shop/category/electronics');
       await tester.pumpAndSettle();
 
       // ShopPage should render and its internal Routes should match remaining path
@@ -83,7 +83,7 @@ void main() {
       );
 
       // Navigate to /products/special (should fully match second route)
-      router.navigate(.parse('/products/special'));
+      router.navigate(path: '/products/special');
       await tester.pumpAndSettle();
 
       expect(find.text('Special Products'), findsOneWidget);
