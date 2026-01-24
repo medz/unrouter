@@ -68,6 +68,9 @@ String _relativeOrAbsolute(String filePath, String rootDir) {
 String? _parseDynamicSegment(String segment) {
   if (segment.startsWith('[') && segment.endsWith(']')) {
     final inner = segment.substring(1, segment.length - 1);
+    if (inner == '...') {
+      return '*';
+    }
     if (inner.startsWith('...') && inner.length > 3) {
       return '*';
     }

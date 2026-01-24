@@ -601,7 +601,14 @@ String _uniqueAlias(String base, Set<String> usedAliases) {
 }
 
 _RouteParseResult _parseRouteFile(String filePath) {
-  final content = File(filePath).readAsStringSync();
+  String content;
+  try {
+    content = File(filePath).readAsStringSync();
+  } on FileSystemException catch (error) {
+    return _RouteParseResult(error: 'Failed to read $filePath: $error');
+  } catch (error) {
+    return _RouteParseResult(error: 'Failed to read $filePath: $error');
+  }
   final result = parseString(
     content: content,
     throwIfDiagnostics: false,

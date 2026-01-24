@@ -363,7 +363,7 @@ Notes:
 
 Examples:
 
-```
+```text
 lib/pages/index.dart                  → /
 lib/pages/about.dart                  → /about
 lib/pages/users/index.dart            → /users
@@ -374,7 +374,7 @@ lib/pages/docs/[...path].dart         → /docs/*
 If a path segment has both a file and children, the children are generated
 as nested routes. For example:
 
-```
+```text
 lib/pages/users/[id].dart
 lib/pages/users/[id]/settings.dart
 ```
