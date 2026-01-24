@@ -573,12 +573,26 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
   }
 
   @override
-  Future<Navigation> call(
-    Uri uri, {
+  Future<Navigation> call({
+    String? name,
+    String? path,
+    Map<String, String> params = const {},
+    Map<String, String>? queryParameters,
+    String? fragment,
     Object? state,
     bool replace = false,
   }) async {
-    final requested = RouteInformation(uri: resolveUri(uri), state: state);
+    final requestedUri = _resolveRequestedUri(
+      name: name,
+      path: path,
+      params: params,
+      queryParameters: queryParameters,
+      fragment: fragment,
+    );
+    final requested = RouteInformation(
+      uri: resolveUri(requestedUri),
+      state: state,
+    );
     final previous = currentConfiguration;
     final context = GuardContext(
       to: requested,
@@ -635,21 +649,18 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
   }
 
   @override
-  Future<Navigation> route(
-    String name, {
+  Uri route({
+    required String name,
     Map<String, String> params = const {},
     Map<String, String>? queryParameters,
     String? fragment,
-    Object? state,
-    bool replace = false,
   }) {
-    final uri = _namedRoutes.resolve(
+    return _namedRoutes.resolve(
       name,
       params: params,
       queryParameters: queryParameters,
       fragment: fragment,
     );
-    return call(uri, state: state, replace: replace);
   }
 
   @override
@@ -665,6 +676,53 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
     history.go(delta);
     return completer.future;
   }
+
+  Uri _resolveRequestedUri({
+    required String? name,
+    required String? path,
+    required Map<String, String> params,
+    required Map<String, String>? queryParameters,
+    required String? fragment,
+  }) {
+    final hasName = name != null && name.isNotEmpty;
+    final hasPath = path != null && path.isNotEmpty;
+
+    if (!hasName && !hasPath) {
+      throw FlutterError(
+        'Navigate.call requires either a route name or a path.\n'
+        'Provide `name` for named routes or `path` for direct navigation.',
+      );
+    }
+
+    if (hasName && hasPath) {
+      throw FlutterError(
+        'Navigate.call received both name and path.\n'
+        'Provide only one.',
+      );
+    }
+
+    if (hasName) {
+      return _namedRoutes.resolve(
+        name,
+        params: params,
+        queryParameters: queryParameters,
+        fragment: fragment,
+      );
+    }
+
+    final raw = Uri.parse(path!);
+    final query = queryParameters == null
+        ? (raw.hasQuery && raw.query.isNotEmpty ? raw.query : null)
+        : Uri(queryParameters: queryParameters).query;
+    final effectiveFragment = fragment ??
+        (raw.hasFragment && raw.fragment.isNotEmpty ? raw.fragment : null);
+
+    return Uri(
+      path: raw.path,
+      query: query,
+      fragment: effectiveFragment,
+    );
+  }
 }
 
 String? _resolveMatchedName(List<MatchedRoute> matches) {
@@ -676,6 +734,7 @@ String? _resolveMatchedName(List<MatchedRoute> matches) {
   }
   return null;
 }
+
 
 class _UnrouterPage extends Page {
   const _UnrouterPage({super.key}) : super(canPop: false);

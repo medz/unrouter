@@ -57,20 +57,34 @@ final class NavigationFailed extends Navigation {
 /// All methods return a `Future<Navigation>` describing the result. You can
 /// ignore the future if you don't need the outcome.
 abstract interface class Navigate {
-  /// Navigates to [uri].
+  /// Navigates to a named route or a path.
   ///
-  /// - If `uri.path` starts with `/`, navigation is absolute.
+  /// Provide either [name] (for [Inlet.name]) or [path] (for direct paths).
+  ///
+  /// - If [path] starts with `/`, navigation is absolute.
   /// - Otherwise, the path is appended to the current location (relative
   ///   navigation).
+  ///
+  /// For named routes, [params] are substituted into the route pattern.
+  /// Optional params are omitted when not provided. Optional static segments
+  /// are included when generating the path.
   ///
   /// The optional [state] is stored on the history entry and can be read via
   /// [RouteInformation.state] (see [RouteState.location]).
   ///
   /// If [replace] is `true`, the current history entry is replaced instead of
   /// pushing a new one.
-  Future<Navigation> call(Uri uri, {Object? state, bool replace = false});
+  Future<Navigation> call({
+    String? name,
+    String? path,
+    Map<String, String> params = const {},
+    Map<String, String>? queryParameters,
+    String? fragment,
+    Object? state,
+    bool replace = false,
+  });
 
-  /// Navigates to a named route defined with [Inlet.name].
+  /// Generates a URI for a named route defined with [Inlet.name].
   ///
   /// [params] are substituted into dynamic segments in the route pattern.
   /// Optional params are omitted when not provided. Optional static segments
@@ -80,13 +94,11 @@ abstract interface class Navigate {
   ///
   /// Throws a [FlutterError] if the route name is unknown or required params
   /// are missing.
-  Future<Navigation> route(
-    String name, {
+  Uri route({
+    required String name,
     Map<String, String> params = const {},
     Map<String, String>? queryParameters,
     String? fragment,
-    Object? state,
-    bool replace = false,
   });
 
   /// Moves within the history stack by [delta] entries.

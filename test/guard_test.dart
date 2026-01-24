@@ -36,7 +36,7 @@ void main() {
     await tester.pumpWidget(wrap(router));
     expect(find.text('Home'), findsOneWidget);
 
-    final result = await router.navigate(.parse('/login'));
+    final result = await router.navigate(path: '/login');
     await pumpGuards(tester);
 
     expect(called, isTrue);
@@ -60,7 +60,7 @@ void main() {
     await tester.pumpWidget(wrap(router));
     expect(find.text('Home'), findsOneWidget);
 
-    final result = await router.navigate(.parse('/login'));
+    final result = await router.navigate(path: '/login');
     await pumpGuards(tester);
 
     expect(find.text('Home'), findsOneWidget);
@@ -93,7 +93,7 @@ void main() {
 
     await tester.pumpWidget(wrap(router));
 
-    final result = await router.navigate(.parse('/login'));
+    final result = await router.navigate(path: '/login');
     await pumpGuards(tester);
 
     expect(firstCalled, isTrue);
@@ -117,7 +117,7 @@ void main() {
 
     await tester.pumpWidget(wrap(router));
 
-    final navigation = router.navigate(.parse('/login'));
+    final navigation = router.navigate(path: '/login');
     await tester.pump();
 
     expect(find.text('Home'), findsOneWidget);
@@ -148,7 +148,7 @@ void main() {
 
     await tester.pumpWidget(wrap(router));
 
-    final result = await router.navigate(.parse('/login'));
+    final result = await router.navigate(path: '/login');
     await pumpGuards(tester);
 
     expect(result, isA<NavigationCancelled>());
@@ -176,7 +176,7 @@ void main() {
 
     await tester.pumpWidget(wrap(router));
 
-    final result = await router.navigate(.parse('/login'));
+    final result = await router.navigate(path: '/login');
     await pumpGuards(tester);
 
     expect(result, isA<NavigationFailed>());
@@ -199,7 +199,7 @@ void main() {
     );
 
     await tester.pumpWidget(wrap(router));
-    final result = await router.navigate(.parse('/register'));
+    final result = await router.navigate(path: '/register');
     await pumpGuards(tester);
 
     expect(result, isA<NavigationRedirected>());
@@ -222,7 +222,7 @@ void main() {
     );
 
     await tester.pumpWidget(wrap(router));
-    final result = await router.navigate(.parse('/login'), replace: true);
+    final result = await router.navigate(path: '/login', replace: true);
     await pumpGuards(tester);
 
     expect(result, isA<NavigationSuccess>());
@@ -252,7 +252,7 @@ void main() {
     );
 
     await tester.pumpWidget(wrap(router));
-    final result = await router.navigate(.parse('/register'));
+    final result = await router.navigate(path: '/register');
     await pumpGuards(tester);
 
     expect(result, isA<NavigationRedirected>());
@@ -277,7 +277,7 @@ void main() {
     );
 
     await tester.pumpWidget(wrap(router));
-    final result = await router.navigate(.parse('/admin'));
+    final result = await router.navigate(path: '/admin');
     await pumpGuards(tester);
 
     expect(result, isA<NavigationCancelled>());
@@ -303,7 +303,7 @@ void main() {
     );
 
     await tester.pumpWidget(wrap(router));
-    final result = await router.navigate(.parse('/admin'));
+    final result = await router.navigate(path: '/admin');
     await pumpGuards(tester);
 
     expect(result, isA<NavigationRedirected>());
@@ -347,7 +347,7 @@ void main() {
     );
 
     await tester.pumpWidget(wrap(router));
-    final result = await router.navigate(.parse('/admin/users'));
+    final result = await router.navigate(path: '/admin/users');
     await pumpGuards(tester);
 
     expect(result, isA<NavigationSuccess>());
@@ -461,7 +461,7 @@ void main() {
     await tester.pumpWidget(wrap(router));
     expect(find.text('Login'), findsOneWidget);
 
-    router.navigate(.parse('/register'));
+    router.navigate(path: '/register');
     await pumpGuards(tester);
     expect(find.text('Register'), findsOneWidget);
 
@@ -536,7 +536,7 @@ void main() {
     );
 
     await tester.pumpWidget(wrap(router));
-    router.navigate(.parse('/register'));
+    router.navigate(path: '/register');
     await pumpGuards(tester);
     expect(find.text('Register'), findsOneWidget);
 
@@ -563,7 +563,7 @@ void main() {
     );
 
     await tester.pumpWidget(wrap(router));
-    final result = await router.navigate(.parse('/login'));
+    final result = await router.navigate(path: '/login');
     await pumpGuards(tester);
 
     expect(result, isA<NavigationCancelled>());

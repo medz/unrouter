@@ -48,7 +48,7 @@ void main() {
     );
 
     await tester.pumpWidget(wrap(router));
-    await router.navigate(.parse('/about'));
+    await router.navigate(path: '/about');
     await pumpPop(tester);
     expect(find.text('About'), findsOneWidget);
 
@@ -83,7 +83,7 @@ void main() {
     );
 
     await tester.pumpWidget(wrap(router));
-    await router.navigate(.parse('/about'));
+    await router.navigate(path: '/about');
     await pumpPop(tester);
 
     final navigation = router.navigate.back();
@@ -120,9 +120,9 @@ void main() {
     );
 
     await tester.pumpWidget(wrap(router));
-    await router.navigate(.parse('/a'));
+    await router.navigate(path: '/a');
     await pumpPop(tester);
-    await router.navigate(.parse('/b'));
+    await router.navigate(path: '/b');
     await pumpPop(tester);
 
     final navigation = router.navigate.back();
@@ -155,7 +155,7 @@ void main() {
     );
 
     await tester.pumpWidget(wrap(router));
-    await router.navigate(.parse('/b'));
+    await router.navigate(path: '/b');
     await pumpPop(tester);
     expect(find.text('B'), findsOneWidget);
 
@@ -222,7 +222,7 @@ void main() {
     );
 
     await tester.pumpWidget(wrap(router));
-    await router.navigate(.parse('/a'));
+    await router.navigate(path: '/a');
     await pumpPop(tester);
     guardCalled = 0;
     blockerCalled = 0;
@@ -267,7 +267,7 @@ void main() {
     );
 
     await tester.pumpWidget(wrap(router));
-    await router.navigate(.parse('/a'));
+    await router.navigate(path: '/a');
     await pumpPop(tester);
     guardCalled = 0;
     blockerCalled = 0;
@@ -375,7 +375,7 @@ void main() {
     );
 
     await tester.pumpWidget(wrap(router));
-    await router.navigate(.parse('/b'));
+    await router.navigate(path: '/b');
     await pumpPop(tester);
     guardCalled = 0;
     blockerCalled = 0;
@@ -418,7 +418,7 @@ void main() {
     );
 
     await tester.pumpWidget(wrap(router));
-    await router.navigate(.parse('/nested'));
+    await router.navigate(path: '/nested');
     await pumpPop(tester);
 
     final navigation = router.navigate.back();
@@ -458,7 +458,7 @@ void main() {
     );
 
     await tester.pumpWidget(wrap(router));
-    await router.navigate(.parse('/nested'));
+    await router.navigate(path: '/nested');
     await pumpPop(tester);
 
     final navigation = router.navigate.back();
@@ -484,7 +484,7 @@ void main() {
     );
 
     await tester.pumpWidget(wrap(router));
-    await router.navigate(.parse('/parent/child'));
+    await router.navigate(path: '/parent/child');
     await pumpPop(tester);
     expect(find.text('Child'), findsOneWidget);
 
@@ -525,9 +525,9 @@ void main() {
     );
 
     await tester.pumpWidget(wrap(router));
-    await router.navigate(.parse('/parent/child'));
+    await router.navigate(path: '/parent/child');
     await pumpPop(tester);
-    await router.navigate(.parse('/parent/other'));
+    await router.navigate(path: '/parent/other');
     await pumpPop(tester);
 
     final navigation = router.navigate.back();
@@ -562,7 +562,7 @@ void main() {
     );
 
     await tester.pumpWidget(wrap(router));
-    await router.navigate(.parse('/app/child'));
+    await router.navigate(path: '/app/child');
     await pumpPop(tester);
     guardCalled = 0;
     blockerCalled = 0;
@@ -607,7 +607,7 @@ void main() {
     );
 
     await tester.pumpWidget(wrap(router));
-    await router.navigate(.parse('/app/child'));
+    await router.navigate(path: '/app/child');
     await pumpPop(tester);
     guardCalled = 0;
     blockerCalled = 0;
@@ -647,9 +647,9 @@ void main() {
     );
 
     await tester.pumpWidget(wrap(router));
-    await router.navigate(.parse('/app/child'));
+    await router.navigate(path: '/app/child');
     await pumpPop(tester);
-    await router.navigate(.parse('/app/other'));
+    await router.navigate(path: '/app/other');
     await pumpPop(tester);
 
     final navigation = router.navigate.back();
@@ -682,7 +682,7 @@ void main() {
     );
 
     await tester.pumpWidget(wrap(router));
-    await router.navigate(.parse('/app/child'));
+    await router.navigate(path: '/app/child');
     await pumpPop(tester);
 
     final navigation = router.navigate.back();

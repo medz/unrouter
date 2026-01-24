@@ -45,7 +45,7 @@ void main() {
     await tester.pumpWidget(wrap(router));
     expect(homeController.value, 1.0);
 
-    router.navigate(.parse('/details'));
+    router.navigate(path: '/details');
     await tester.pump();
     await tester.pump();
 
@@ -107,7 +107,7 @@ void main() {
 
     await tester.pumpWidget(wrap(router));
 
-    router.navigate(.parse('/login'), replace: true);
+    router.navigate(path: '/login', replace: true);
     await tester.pump();
     await tester.pump();
 

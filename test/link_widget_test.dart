@@ -41,7 +41,7 @@ void main() {
       await tester.pumpWidget(MaterialApp.router(routerConfig: router));
 
       // Navigate to about
-      router.navigate(.parse('/about'));
+      router.navigate(path: '/about');
       await tester.pumpAndSettle();
       expect(find.text('About Page'), findsOneWidget);
 

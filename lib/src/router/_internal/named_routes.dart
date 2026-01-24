@@ -19,7 +19,7 @@ class NamedRouteResolver {
   }) {
     if (_routes == null) {
       throw FlutterError(
-        'Navigate.route requires declarative routes (Unrouter.routes).\n'
+        'Named routes require declarative routes (Unrouter.routes).\n'
         'No routes were provided to Unrouter.',
       );
     }

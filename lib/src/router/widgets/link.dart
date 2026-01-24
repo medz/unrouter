@@ -88,7 +88,7 @@ class Link extends StatelessWidget {
   Widget build(BuildContext context) {
     Future<Navigation> navigate({Object? state, bool? replace}) {
       return context.navigate(
-        to,
+        path: to.toString(),
         state: state ?? this.state,
         replace: replace ?? this.replace,
       );

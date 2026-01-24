@@ -142,14 +142,14 @@ void main() => runApp(MaterialApp.router(routerConfig: router));
 
 ```dart
 // Anywhere in your widget tree
-context.navigate(.parse('/about'));
-context.navigate(.parse('/users/123'));
+context.navigate(path: '/about');
+context.navigate(path: '/users/123');
 context.navigate.back();
 
 // Relative navigation
-context.navigate(.parse('edit'));         // /users/123/edit
-context.navigate(.parse('./edit'));       // /users/123/edit
-context.navigate(.parse('../settings'));  // /users/settings
+context.navigate(path: 'edit');         // /users/123/edit
+context.navigate(path: './edit');       // /users/123/edit
+context.navigate(path: '../settings');  // /users/settings
 ```
 
 </details>
@@ -193,7 +193,7 @@ Unrouter provides the most complete web routing implementation in Flutter:
 
 ```dart
 // Browser-style navigation
-router.navigate(.parse('/about'));
+router.navigate(path: '/about');
 router.navigate.back();
 router.navigate.forward();
 router.navigate.go(-2);  // Go back 2 entries
@@ -206,7 +206,7 @@ URI-based navigation with compile-time safety and zero build steps:
 ```dart
 final id = '123';
 final uri = Uri(path: '/users/$id', queryParameters: {'tab': 'profile'});
-context.navigate(uri);
+context.navigate(path: uri.toString());
 ```
 
 ### 🎯 Zero boilerplate
@@ -573,10 +573,10 @@ Unrouter provides browser-style navigation with complete history control.
 
 ```dart
 // Push new route
-context.navigate(.parse('/about'));
+context.navigate(path: '/about');
 
 // Replace current route
-context.navigate(.parse('/login'), replace: true);
+context.navigate(path: '/login', replace: true);
 
 // Navigate back
 context.navigate.back();
@@ -602,15 +602,21 @@ final router = Unrouter(
 );
 
 // Navigate by name
-context.navigate.route('home');
-context.navigate.route('userDetail', params: {'id': '123'});
+context.navigate(name: 'home');
+context.navigate(name: 'userDetail', params: {'id': '123'});
 
 // Add query/fragment
-context.navigate.route(
-  'userDetail',
+context.navigate(
+  name: 'userDetail',
   params: {'id': '123'},
   queryParameters: {'tab': 'profile'},
   fragment: 'top',
+);
+
+// Generate a URI for a named route
+final uri = context.navigate.route(
+  name: 'userDetail',
+  params: {'id': '123'},
 );
 ```
 
@@ -624,7 +630,7 @@ included when generating named routes.
 ```dart
 final router = Unrouter(routes: const [...]);
 
-router.navigate(.parse('/about'));
+router.navigate(path: '/about');
 router.navigate.back();
 ```
 
@@ -635,10 +641,10 @@ Unrouter supports relative paths with dot segment normalization:
 ```dart
 // Current URL: /users/123
 
-context.navigate(.parse('edit'));         // /users/123/edit
-context.navigate(.parse('./edit'));       // /users/123/edit
-context.navigate(.parse('../456'));       // /users/456
-context.navigate(.parse('../../about'));  // /about
+context.navigate(path: 'edit');         // /users/123/edit
+context.navigate(path: './edit');       // /users/123/edit
+context.navigate(path: '../456');       // /users/456
+context.navigate(path: '../../about');  // /about
 ```
 
 **Important**: Query and fragment come from the new URI, not the current location:
@@ -646,10 +652,10 @@ context.navigate(.parse('../../about'));  // /about
 ```dart
 // Current: /users/123?tab=profile#section
 
-context.navigate(.parse('../456'));
+context.navigate(path: '../456');
 // Result: /users/456 (no query/fragment)
 
-context.navigate(.parse('../456?tab=posts'));
+context.navigate(path: '../456?tab=posts');
 // Result: /users/456?tab=posts
 ```
 
@@ -661,14 +667,14 @@ Use `Uri` class for type-safe navigation:
 final userId = '123';
 
 // String interpolation
-context.navigate(.parse('/users/$userId'));
+context.navigate(path: '/users/$userId');
 
 // Uri constructor
 final uri = Uri(
   path: '/users/$userId',
   queryParameters: {'tab': 'profile', 'sort': 'name'},
 );
-context.navigate(uri);  // /users/123?tab=profile&sort=name
+context.navigate(path: uri.toString());  // /users/123?tab=profile&sort=name
 ```
 
 ### Navigation results
@@ -676,7 +682,7 @@ context.navigate(uri);  // /users/123?tab=profile&sort=name
 All navigation methods return `Future<Navigation>` for awaitable results:
 
 ```dart
-final result = await context.navigate(.parse('/login'));
+final result = await context.navigate(path: '/login');
 
 switch (result) {
   case NavigationAllowed():
@@ -691,7 +697,7 @@ switch (result) {
 ### Context extensions
 
 ```dart
-context.navigate(.parse('/about'));       // Navigate
+context.navigate(path: '/about');       // Navigate
 context.navigate.back();                  // Back
 context.navigate.forward();               // Forward
 context.navigate.go(-1);                  // Go by delta
@@ -711,8 +717,7 @@ Attach arbitrary state to navigation entries:
 
 ```dart
 // Navigate with state
-context.navigate(
-  .parse('/product/123'),
+context.navigate(path: '/product/123',
   state: {'source': 'home', 'campaign': 'summer-sale'},
 );
 
@@ -971,7 +976,7 @@ RouteBlocker(
 
 **What does NOT trigger blockers**:
 - `context.navigate.forward()` or `navigate.go(1)` (positive delta)
-- `context.navigate(.parse('/path'))` (new navigation)
+- `context.navigate(path: '/path')` (new navigation)
 - `Navigator.pop()` (handled by Flutter's PopScope/WillPopScope)
 
 ### Nested blockers
@@ -1332,8 +1337,7 @@ Attach and read arbitrary state:
 
 ```dart
 // Navigate with state
-context.navigate(
-  .parse('/product/123'),
+context.navigate(path: '/product/123',
   state: {
     'source': 'home',
     'referrer': 'banner',
@@ -1705,7 +1709,7 @@ testWidgets('navigates to about page', (tester) async {
 
   expect(find.text('Home'), findsOneWidget);
 
-  router.navigate(.parse('/about'));
+  router.navigate(path: '/about');
   await tester.pumpAndSettle();
 
   expect(find.text('About'), findsOneWidget);
@@ -1759,13 +1763,13 @@ testWidgets('guard redirects to login', (tester) async {
 
   await tester.pumpWidget(MaterialApp.router(routerConfig: router));
 
-  router.navigate(.parse('/profile'));
+  router.navigate(path: '/profile');
   await tester.pumpAndSettle();
 
   expect(find.text('Login'), findsOneWidget);
 
   isAuthenticated = true;
-  router.navigate(.parse('/profile'));
+  router.navigate(path: '/profile');
   await tester.pumpAndSettle();
 
   expect(find.text('Profile'), findsOneWidget);
@@ -1786,7 +1790,7 @@ testWidgets('back navigation works', (tester) async {
 
   await tester.pumpWidget(MaterialApp.router(routerConfig: router));
 
-  router.navigate(.parse('/about'));
+  router.navigate(path: '/about');
   await tester.pumpAndSettle();
   expect(find.text('About'), findsOneWidget);
 
@@ -1847,9 +1851,9 @@ flutter test test/navigation_test.dart
 
 | API | Description |
 |-----|-------------|
-| `Navigate` | Navigation interface with push/replace/back/forward/go/route |
+| `Navigate` | Navigation interface with push/replace/back/forward/go + route URI builder |
 | `context.navigate` | Navigate from any widget |
-| `context.navigate.route(name, ...)` | Navigate by route name |
+| `context.navigate.route(name: ..., ...)` | Generate a URI for a named route |
 | `context.navigate.back()` | Go back in history |
 | `context.navigate.forward()` | Go forward in history |
 | `context.navigate.go(delta)` | Go by history offset |
@@ -1927,7 +1931,7 @@ flutter test test/navigation_test.dart
 
 ```dart
 // Navigation
-context.navigate(.parse('/about'))
+context.navigate(path: '/about')
 context.navigate.back()
 context.navigate.forward()
 context.navigate.go(-1)
@@ -2131,8 +2135,8 @@ context.go('/users/123');
 context.push('/about');
 
 // Unrouter
-context.navigate(.parse('/users/123'));
-context.navigate(.parse('/about'));
+context.navigate(path: '/users/123');
+context.navigate(path: '/about');
 ```
 
 **Parameters**:
@@ -2175,7 +2179,7 @@ final router = Unrouter(
 context.router.push(UserDetailRoute(id: '123'));
 
 // Unrouter
-context.navigate(.parse('/users/123'));
+context.navigate(path: '/users/123');
 ```
 
 ### From Navigator 1.0
@@ -2214,7 +2218,7 @@ Navigator.of(context).pushNamed('/about');
 Navigator.of(context).pop();
 
 // Unrouter
-context.navigate(.parse('/about'));
+context.navigate(path: '/about');
 context.navigate.back();
 ```
 

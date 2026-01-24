@@ -25,12 +25,12 @@ void main() {
 
       expect(find.text('Name: home'), findsOneWidget);
 
-      await router.navigate.route('about');
+      await router.navigate(name: 'about');
       await tester.pumpAndSettle();
       expect(find.text('Name: about'), findsOneWidget);
     });
 
-    testWidgets('navigate.route resolves names with params', (tester) async {
+    testWidgets('navigate resolves names with params', (tester) async {
       final router = Unrouter(
         routes: [
           Inlet(name: 'home', factory: () => const Text('Home')),
@@ -45,8 +45,8 @@ void main() {
 
       await tester.pumpWidget(wrapRouter(router));
 
-      final result = await router.navigate.route(
-        'userDetail',
+      final result = await router.navigate(
+        name: 'userDetail',
         params: {'id': '123'},
       );
       await tester.pumpAndSettle();
@@ -57,7 +57,7 @@ void main() {
       expect(find.text('User 123'), findsOneWidget);
     });
 
-    testWidgets('navigate.route supports nested paths and query', (
+    testWidgets('navigate supports nested paths and query', (
       tester,
     ) async {
       final router = Unrouter(
@@ -82,12 +82,12 @@ void main() {
 
       await tester.pumpWidget(wrapRouter(router));
 
-      await router.navigate.route('user', params: {'id': '42'});
+      await router.navigate(name: 'user', params: {'id': '42'});
       await tester.pumpAndSettle();
       expect(router.history.location.uri.path, '/users/42');
 
-      await router.navigate.route(
-        'search',
+      await router.navigate(
+        name: 'search',
         queryParameters: {'q': 'flutter'},
         fragment: 'top',
       );
@@ -98,7 +98,7 @@ void main() {
       expect(find.text('Search'), findsOneWidget);
     });
 
-    testWidgets('navigate.route handles optional params', (tester) async {
+    testWidgets('navigate handles optional params', (tester) async {
       final router = Unrouter(
         routes: [
           Inlet(
@@ -112,16 +112,16 @@ void main() {
 
       await tester.pumpWidget(wrapRouter(router));
 
-      await router.navigate.route('about');
+      await router.navigate(name: 'about');
       await tester.pumpAndSettle();
       expect(router.history.location.uri.path, '/about');
 
-      await router.navigate.route('about', params: {'lang': 'en'});
+      await router.navigate(name: 'about', params: {'lang': 'en'});
       await tester.pumpAndSettle();
       expect(router.history.location.uri.path, '/en/about');
     });
 
-    testWidgets('navigate.route includes optional static segments', (
+    testWidgets('navigate includes optional static segments', (
       tester,
     ) async {
       final router = Unrouter(
@@ -137,12 +137,38 @@ void main() {
 
       await tester.pumpWidget(wrapRouter(router));
 
-      await router.navigate.route('editUser', params: {'id': '9'});
+      await router.navigate(name: 'editUser', params: {'id': '9'});
       await tester.pumpAndSettle();
       expect(router.history.location.uri.path, '/users/9/edit');
     });
 
-    testWidgets('navigate.route throws for invalid names or params', (
+    testWidgets('navigate.route generates URIs', (tester) async {
+      final router = Unrouter(
+        routes: [
+          Inlet(
+            name: 'userDetail',
+            path: 'users/:id',
+            factory: UserDetailPage.new,
+          ),
+        ],
+        history: MemoryHistory(),
+      );
+
+      await tester.pumpWidget(wrapRouter(router));
+
+      final uri = router.navigate.route(
+        name: 'userDetail',
+        params: {'id': '123'},
+        queryParameters: {'tab': 'profile'},
+        fragment: 'top',
+      );
+
+      expect(uri.path, '/users/123');
+      expect(uri.query, 'tab=profile');
+      expect(uri.fragment, 'top');
+    });
+
+    testWidgets('navigate throws for invalid names or params', (
       tester,
     ) async {
       final router = Unrouter(
@@ -160,11 +186,11 @@ void main() {
       await tester.pumpWidget(wrapRouter(router));
 
       expect(
-        () => router.navigate.route('missing'),
+        () => router.navigate(name: 'missing'),
         throwsA(isA<FlutterError>()),
       );
       expect(
-        () => router.navigate.route('userDetail'),
+        () => router.navigate(name: 'userDetail'),
         throwsA(isA<FlutterError>()),
       );
     });

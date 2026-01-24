@@ -59,7 +59,7 @@ void main() {
 
       expect(find.text('Index'), findsOneWidget);
 
-      router.navigate(.parse('/about'));
+      router.navigate(path: '/about');
       await tester.pumpAndSettle();
 
       expect(find.text('Index'), findsNothing);
@@ -128,7 +128,7 @@ void main() {
       expect(find.text('Concerts Layout'), findsOneWidget);
       expect(find.text('All Concerts'), findsOneWidget);
 
-      router.navigate(.parse('/concerts/trending'));
+      router.navigate(path: '/concerts/trending');
       await tester.pumpAndSettle();
 
       expect(find.text('Concerts Layout'), findsOneWidget);
@@ -193,7 +193,7 @@ void main() {
 
       expect(find.text('Login'), findsOneWidget);
 
-      router.navigate(.parse('/register'));
+      router.navigate(path: '/register');
       await tester.pumpAndSettle();
 
       expect(find.text('Auth Layout'), findsOneWidget);

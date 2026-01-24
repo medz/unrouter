@@ -45,8 +45,9 @@ class Inlet {
 
   /// Optional unique name for this route.
   ///
-  /// Named routes can be used with `Navigate.route(...)` to avoid hard-coded
-  /// URIs. Names must be unique within the route tree.
+  /// Named routes can be used with `Navigate` (call with `name`) or
+  /// `Navigate.route(...)` to generate URIs. Names must be unique within
+  /// the route tree.
   final String? name;
 
   /// Factory function that creates the widget for this route.
