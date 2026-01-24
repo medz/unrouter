@@ -18,15 +18,15 @@ import 'guard.dart';
 /// Example:
 /// ```dart
 /// final routes = [
-///   Inlet(factory: HomePage.new),
-///   Inlet(path: 'about', factory: AboutPage.new),
+///   Inlet(name: 'home', factory: HomePage.new),
+///   Inlet(name: 'about', path: 'about', factory: AboutPage.new),
 ///   Inlet(factory: AuthLayout.new, children: [
-///     Inlet(path: 'login', factory: LoginPage.new),
-///     Inlet(path: 'register', factory: RegisterPage.new),
+///     Inlet(name: 'login', path: 'login', factory: LoginPage.new),
+///     Inlet(name: 'register', path: 'register', factory: RegisterPage.new),
 ///   ]),
 ///   Inlet(path: 'users', factory: UsersLayout.new, children: [
-///     Inlet(factory: UsersIndexPage.new),
-///     Inlet(path: ':id', factory: UserDetailPage.new),
+///     Inlet(name: 'usersIndex', factory: UsersIndexPage.new),
+///     Inlet(name: 'userDetail', path: ':id', factory: UserDetailPage.new),
 ///   ]),
 /// ];
 /// ```
@@ -43,6 +43,12 @@ class Inlet {
   /// - Wildcard: `'*'`
   final String path;
 
+  /// Optional unique name for this route.
+  ///
+  /// Named routes can be used with `Navigate.route(...)` to avoid hard-coded
+  /// URIs. Names must be unique within the route tree.
+  final String? name;
+
   /// Factory function that creates the widget for this route.
   final Widget Function() factory;
 
@@ -57,6 +63,7 @@ class Inlet {
 
   const Inlet({
     this.path = '',
+    this.name,
     required this.factory,
     this.guards = const [],
     this.children = const [],

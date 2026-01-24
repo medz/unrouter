@@ -108,8 +108,8 @@ import 'package:unrouter/unrouter.dart';
 void main() => runApp(
   Unrouter(
     routes: const [
-      Inlet(factory: HomePage.new),
-      Inlet(path: 'about', factory: AboutPage.new),
+      Inlet(name: 'home', factory: HomePage.new),
+      Inlet(name: 'about', path: 'about', factory: AboutPage.new),
     ],
   ),
 );
@@ -588,6 +588,36 @@ context.navigate.forward();
 context.navigate.go(-2);  // Back 2 entries
 context.navigate.go(1);   // Forward 1 entry
 ```
+
+### Named routes
+
+Give routes a `name` and navigate without hard-coded URIs:
+
+```dart
+final router = Unrouter(
+  routes: const [
+    Inlet(name: 'home', factory: HomePage.new),
+    Inlet(name: 'userDetail', path: 'users/:id', factory: UserDetailPage.new),
+  ],
+);
+
+// Navigate by name
+context.navigate.route('home');
+context.navigate.route('userDetail', params: {'id': '123'});
+
+// Add query/fragment
+context.navigate.route(
+  'userDetail',
+  params: {'id': '123'},
+  queryParameters: {'tab': 'profile'},
+  fragment: 'top',
+);
+```
+
+Route names must be unique within the route tree and are available only for
+declarative routes (`Unrouter.routes`).
+Optional params are omitted when not provided; optional static segments are
+included when generating named routes.
 
 ### Navigation from shared router instance
 
@@ -1806,7 +1836,7 @@ flutter test test/navigation_test.dart
 | Class | Description |
 |-------|-------------|
 | `Unrouter` | Main router widget and `RouterConfig<RouteInformation>` |
-| `Inlet` | Route definition (index/layout/leaf/nested) |
+| `Inlet` | Route definition (index/layout/leaf/nested) with optional name |
 | `Outlet` | Renders next matched child route (for declarative routes) |
 | `Routes` | Widget-scoped route matcher |
 | `Link` | Declarative navigation widget |
@@ -1815,8 +1845,9 @@ flutter test test/navigation_test.dart
 
 | API | Description |
 |-----|-------------|
-| `Navigate` | Navigation interface with push/replace/back/forward/go |
+| `Navigate` | Navigation interface with push/replace/back/forward/go/route |
 | `context.navigate` | Navigate from any widget |
+| `context.navigate.route(name, ...)` | Navigate by route name |
 | `context.navigate.back()` | Go back in history |
 | `context.navigate.forward()` | Go forward in history |
 | `context.navigate.go(delta)` | Go by history offset |

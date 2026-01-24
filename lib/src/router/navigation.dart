@@ -70,6 +70,25 @@ abstract interface class Navigate {
   /// pushing a new one.
   Future<Navigation> call(Uri uri, {Object? state, bool replace = false});
 
+  /// Navigates to a named route defined with [Inlet.name].
+  ///
+  /// [params] are substituted into dynamic segments in the route pattern.
+  /// Optional params are omitted when not provided. Optional static segments
+  /// are included when generating the path.
+  ///
+  /// [queryParameters] and [fragment] are appended to the generated URI.
+  ///
+  /// Throws a [FlutterError] if the route name is unknown or required params
+  /// are missing.
+  Future<Navigation> route(
+    String name, {
+    Map<String, String> params = const {},
+    Map<String, String>? queryParameters,
+    String? fragment,
+    Object? state,
+    bool replace = false,
+  });
+
   /// Moves within the history stack by [delta] entries.
   Future<Navigation> go(int delta);
 

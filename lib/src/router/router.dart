@@ -6,6 +6,7 @@ import 'package:unrouter/history.dart';
 
 import '_internal/create_history.memory.dart'
     if (dart.library.js_interop) '_internal/create_history.browser.dart';
+import '_internal/named_routes.dart';
 import '_internal/stacked_route_view.dart';
 import 'blocker.dart';
 import 'guard.dart';
@@ -204,6 +205,7 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
   }
 
   final Unrouter router;
+  late final NamedRouteResolver _namedRoutes = NamedRouteResolver(routes);
 
   /// Declarative routes configuration for centralized route matching.
   Iterable<Inlet>? get routes => router.routes;
@@ -621,6 +623,24 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
         stackTrace: stackTrace,
       );
     }
+  }
+
+  @override
+  Future<Navigation> route(
+    String name, {
+    Map<String, String> params = const {},
+    Map<String, String>? queryParameters,
+    String? fragment,
+    Object? state,
+    bool replace = false,
+  }) {
+    final uri = _namedRoutes.resolve(
+      name,
+      params: params,
+      queryParameters: queryParameters,
+      fragment: fragment,
+    );
+    return call(uri, state: state, replace: replace);
   }
 
   @override
