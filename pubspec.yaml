@@ -3,6 +3,8 @@ description: "A Flutter router that gives you routing flexibility: define routes
 version: 0.6.0
 
 repository: https://github.com/medz/unrouter
+funding:
+  - https://github.com/sponsors/medz
 topics:
   - router
   - routing
