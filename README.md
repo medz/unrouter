@@ -273,6 +273,9 @@ Notes:
 - `index.dart` maps to the directory root.
 - `[id].dart` maps to a named parameter (`:id`).
 - `[...path].dart` maps to a wildcard (`*`).
+- Group segments in parentheses (e.g. `(auth)`) are ignored in the URL path.
+- `(group).dart` creates a pathless layout for that group; if it is missing, the
+  group is purely organizational.
 - Folder segments map to path segments, and `index.dart` becomes the parent path.
 
 Examples:
@@ -283,6 +286,9 @@ lib/pages/about.dart                  -> /about
 lib/pages/users/index.dart            -> /users
 lib/pages/users/[id].dart             -> /users/:id
 lib/pages/docs/[...path].dart         -> /docs/*
+lib/pages/(auth)/login.dart           -> /login
+lib/pages/(auth).dart                 -> / (pathless layout)
+lib/pages/(marketing)/about.dart      -> /about
 ```
 
 If a path segment has both a file and children, the children are generated as
@@ -304,6 +310,9 @@ Inlet(
   ],
 );
 ```
+
+If both `users.dart` and `users/index.dart` exist, `users.dart` becomes the
+parent route and `users/index.dart` becomes its index child (`path: ''`).
 
 ### 3) Add metadata (optional)
 

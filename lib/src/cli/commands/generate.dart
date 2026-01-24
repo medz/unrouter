@@ -96,17 +96,18 @@ Future<int> runGenerate(
   }
   final routeFiles = <_RouteFile>[];
   final usedAliases = <String>{};
-  final seenPaths = <String, String>{};
+  final seenTreeKeys = <String, String>{};
 
   for (final entry in scannedRoutes) {
     final normalizedPath = _normalizeRoutePath(entry.path);
-    if (seenPaths.containsKey(normalizedPath)) {
+    final treeKey = _treeKey(entry.treeSegments);
+    if (seenTreeKeys.containsKey(treeKey)) {
       reportError(
-        '${errorLabel('Error')}: Duplicate route path "$normalizedPath" from ${entry.file} and ${seenPaths[normalizedPath]}.',
+        '${errorLabel('Error')}: Duplicate route path "${_treePathLabel(entry.treeSegments)}" from ${entry.file} and ${seenTreeKeys[treeKey]}.',
       );
       return 1;
     }
-    seenPaths[normalizedPath] = entry.file;
+    seenTreeKeys[treeKey] = entry.file;
 
     final absoluteFile = _absoluteFile(entry.file, resolved.rootDir);
     final parsedRoute = _parseRouteFile(absoluteFile);
@@ -136,8 +137,9 @@ Future<int> runGenerate(
       _RouteFile(
         path: normalizedPath,
         filePath: absoluteFile,
-        segments: _splitSegments(normalizedPath),
-        isIndex: _isIndexFile(absoluteFile, pagesDirectory.path),
+        treeSegments: entry.treeSegments,
+        pathSegments: entry.pathSegments,
+        isIndex: entry.isIndex,
         importPath: importPath,
         importAlias: alias,
         className: className,
@@ -149,7 +151,7 @@ Future<int> runGenerate(
     );
   }
 
-  routeFiles.sort((a, b) => a.path.compareTo(b.path));
+  routeFiles.sort(_compareRoutePaths);
 
   if (!quietOutput) {
     stdout.writeln(
@@ -157,28 +159,33 @@ Future<int> runGenerate(
     );
   }
 
-  final routesByPath = <String, _RouteFile>{
-    for (final route in routeFiles) route.path: route,
+  if (_validateDuplicatePaths(routeFiles, reportError)) {
+    return 1;
+  }
+
+  final routesByTree = <String, _RouteFile>{
+    for (final route in routeFiles) _treeKey(route.treeSegments): route,
   };
 
-  final nodesByPath = <String, _RouteNode>{
-    for (final route in routeFiles) route.path: _RouteNode(route),
+  final nodesByTree = <String, _RouteNode>{
+    for (final route in routeFiles)
+      _treeKey(route.treeSegments): _RouteNode(route),
   };
 
   final roots = <_RouteNode>[];
   for (final route in routeFiles) {
-    final parent = _findParentRoute(route, routesByPath);
-    final node = nodesByPath[route.path]!;
+    final parent = _findParentRoute(route, routesByTree);
+    final node = nodesByTree[_treeKey(route.treeSegments)]!;
     if (parent == null) {
       roots.add(node);
     } else {
-      nodesByPath[parent.path]!.children.add(node);
+      nodesByTree[_treeKey(parent.treeSegments)]!.children.add(node);
     }
   }
 
-  roots.sort((a, b) => a.route.path.compareTo(b.route.path));
-  for (final node in nodesByPath.values) {
-    node.children.sort((a, b) => a.route.path.compareTo(b.route.path));
+  roots.sort((a, b) => _compareRoutePaths(a.route, b.route));
+  for (final node in nodesByTree.values) {
+    node.children.sort((a, b) => _compareRoutePaths(a.route, b.route));
   }
   for (final root in roots) {
     _computeConstFlags(root);
@@ -364,6 +371,71 @@ String _normalizeRoutePath(String path) {
   return path;
 }
 
+String _treeKey(List<String> segments) {
+  if (segments.isEmpty) return '';
+  return segments.join('/');
+}
+
+String _treePathLabel(List<String> segments) {
+  if (segments.isEmpty) return '/';
+  return segments.join('/');
+}
+
+int _compareRoutePaths(_RouteFile a, _RouteFile b) {
+  final pathCompare = a.path.compareTo(b.path);
+  if (pathCompare != 0) return pathCompare;
+  final treeA = _treeKey(a.treeSegments);
+  final treeB = _treeKey(b.treeSegments);
+  return treeA.compareTo(treeB);
+}
+
+bool _validateDuplicatePaths(
+  List<_RouteFile> routes,
+  void Function(String message) reportError,
+) {
+  final routesByPath = <String, List<_RouteFile>>{};
+  for (final route in routes) {
+    routesByPath.putIfAbsent(route.path, () => []).add(route);
+  }
+
+  var hasError = false;
+  for (final entry in routesByPath.entries) {
+    if (entry.key.isEmpty) {
+      continue;
+    }
+    final list = entry.value;
+    if (list.length <= 1) continue;
+    list.sort((a, b) => a.treeSegments.length.compareTo(b.treeSegments.length));
+    for (var i = 1; i < list.length; i++) {
+      final shorter = list[i - 1];
+      final longer = list[i];
+      if (!_isTreePrefix(shorter.treeSegments, longer.treeSegments)) {
+        reportError(
+          '${errorLabel('Error')}: Route path "${_normalizeRoutePath(entry.key).isEmpty ? '/' : '/${_normalizeRoutePath(entry.key)}'}" maps to multiple unrelated files: ${_relativeToCwd(shorter.filePath)} and ${_relativeToCwd(longer.filePath)}.',
+        );
+        hasError = true;
+        break;
+      }
+      if (shorter.isIndex) {
+        reportError(
+          '${errorLabel('Error')}: Index route ${_relativeToCwd(shorter.filePath)} cannot act as a parent for other routes with the same path "${_normalizeRoutePath(entry.key).isEmpty ? '/' : '/${_normalizeRoutePath(entry.key)}'}".',
+        );
+        hasError = true;
+        break;
+      }
+    }
+  }
+  return hasError;
+}
+
+bool _isTreePrefix(List<String> a, List<String> b) {
+  if (a.length >= b.length) return false;
+  for (var i = 0; i < a.length; i++) {
+    if (a[i] != b[i]) return false;
+  }
+  return true;
+}
+
 String _absoluteFile(String filePath, String rootDir) {
   if (p.isAbsolute(filePath)) return filePath;
   return p.normalize(p.join(rootDir, filePath));
@@ -434,24 +506,14 @@ String _escapeString(String value) {
   return escaped.replaceAll("'", "\\'");
 }
 
-List<String> _splitSegments(String path) {
-  if (path.isEmpty) return const [];
-  return path.split('/');
-}
-
-bool _isIndexFile(String absoluteFile, String pagesRoot) {
-  final relative = p.relative(absoluteFile, from: pagesRoot);
-  return p.basenameWithoutExtension(relative) == 'index';
-}
-
 _RouteFile? _findParentRoute(
   _RouteFile route,
-  Map<String, _RouteFile> routesByPath,
+  Map<String, _RouteFile> routesByTree,
 ) {
-  if (route.segments.length <= 1) return null;
-  for (var i = route.segments.length - 1; i >= 1; i--) {
-    final prefix = route.segments.sublist(0, i).join('/');
-    final candidate = routesByPath[prefix];
+  if (route.treeSegments.length <= 1) return null;
+  for (var i = route.treeSegments.length - 1; i >= 1; i--) {
+    final prefix = _treeKey(route.treeSegments.sublist(0, i));
+    final candidate = routesByTree[prefix];
     if (candidate != null && !candidate.isIndex) {
       return candidate;
     }
@@ -554,9 +616,9 @@ void _writeRouteNode(
 
 String _relativePath(_RouteFile route, _RouteFile? parent) {
   if (parent == null) return route.path;
-  final offset = parent.segments.length;
-  if (route.segments.length <= offset) return '';
-  return route.segments.sublist(offset).join('/');
+  final offset = parent.pathSegments.length;
+  if (route.pathSegments.length <= offset) return '';
+  return route.pathSegments.sublist(offset).join('/');
 }
 
 String _buildGuardList(_RouteFile route, List<_GuardRef> guardRefs) {
@@ -830,7 +892,8 @@ class _RouteFile {
   const _RouteFile({
     required this.path,
     required this.filePath,
-    required this.segments,
+    required this.treeSegments,
+    required this.pathSegments,
     required this.isIndex,
     required this.importPath,
     required this.importAlias,
@@ -843,7 +906,8 @@ class _RouteFile {
 
   final String path;
   final String filePath;
-  final List<String> segments;
+  final List<String> treeSegments;
+  final List<String> pathSegments;
   final bool isIndex;
   final String importPath;
   final String importAlias;
