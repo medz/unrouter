@@ -380,8 +380,9 @@ final router = Unrouter(
 ```
 
 The generator picks the widget class for a page file by:
-1) Prefer class names ending in `Page` or `Screen`.
-2) Otherwise, use the first class that extends a `Widget` type.
+1) Prefer a widget annotated with `@RouteMeta(...)`.
+2) Otherwise, prefer class names ending in `Page` or `Screen`.
+3) Otherwise, use the first class that extends a `Widget` type.
 
 ### 5) Generate routes
 
