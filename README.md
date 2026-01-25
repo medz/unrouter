@@ -359,9 +359,11 @@ class UserDetailPage extends StatelessWidget {
 }
 ```
 
-When using annotations, `name` must be a string literal or a public identifier,
-and `guards` must be a list literal of public guard functions. If you need
-expressions, keep using the top-level `route` variable.
+When using annotations, arguments must be compile-time constants: `name` must
+be a const string literal or a const identifier referencing a const, and
+`guards` must be a const list literal of const public guard function
+identifiers. If you need non-const expressions, keep using the top-level
+`route` variable.
 
 For top-level `route` variables, if `name` or `guards` are not literals, the
 generator falls back to `route.name` / `route.guards` when building `Inlet`s.
