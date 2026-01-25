@@ -321,6 +321,7 @@ You can add page-level metadata to influence generated routes:
 
 ```dart
 // lib/pages/users/[id].dart
+import 'package:flutter/widgets.dart';
 import 'package:unrouter/unrouter.dart';
 
 Future<GuardResult> authGuard(GuardContext context) async {
@@ -333,8 +334,39 @@ const route = RouteMeta(
 );
 ```
 
-If `name` or `guards` are not literals, the generator falls back to
-`route.name` / `route.guards` when building `Inlet`s.
+You can also attach metadata directly to the page widget. If any widget in a
+page file has `@RouteMeta(...)`, that widget becomes the page widget for
+generation (even if it doesn't end with `Page` or `Screen`):
+
+```dart
+// lib/pages/users/[id].dart
+import 'package:flutter/widgets.dart';
+import 'package:unrouter/unrouter.dart';
+
+Future<GuardResult> authGuard(GuardContext context) async {
+  return GuardResult.allow;
+}
+
+@RouteMeta(
+  name: 'userDetail',
+  guards: const [authGuard],
+)
+class UserDetailPage extends StatelessWidget {
+  const UserDetailPage({super.key});
+
+  @override
+  Widget build(BuildContext context) => const SizedBox();
+}
+```
+
+When using annotations, arguments must be compile-time constants: `name` must
+be a const string literal or a const identifier referencing a const, and
+`guards` must be a const list literal of const public guard function
+identifiers. If you need non-const expressions, keep using the top-level
+`route` variable.
+
+For top-level `route` variables, if `name` or `guards` are not literals, the
+generator falls back to `route.name` / `route.guards` when building `Inlet`s.
 
 ### 4) Use the generated routes
 
@@ -348,8 +380,9 @@ final router = Unrouter(
 ```
 
 The generator picks the widget class for a page file by:
-1) Prefer class names ending in `Page` or `Screen`.
-2) Otherwise, use the first class that extends a `Widget` type.
+1) Prefer a widget annotated with `@RouteMeta(...)`.
+2) Otherwise, prefer class names ending in `Page` or `Screen`.
+3) Otherwise, use the first class that extends a `Widget` type.
 
 ### 5) Generate routes
 

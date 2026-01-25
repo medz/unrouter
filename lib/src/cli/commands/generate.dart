@@ -145,6 +145,7 @@ Future<int> runGenerate(
         className: className,
         hasName: meta?.hasName ?? false,
         nameLiteral: meta?.nameLiteral,
+        nameRef: meta?.nameRef,
         hasGuards: meta?.hasGuards ?? false,
         guardRefs: meta?.guardRefs,
       ),
@@ -539,7 +540,9 @@ void _computeConstFlags(_RouteNode node) {
 }
 
 bool _isSelfConst(_RouteFile route) {
-  if (route.hasName && route.nameLiteral == null) return false;
+  if (route.hasName && route.nameLiteral == null && route.nameRef == null) {
+    return false;
+  }
   if (route.hasGuards && route.guardRefs == null) return false;
   return true;
 }
@@ -574,6 +577,8 @@ void _writeRouteNode(
     if (node.route.nameLiteral != null) {
       final nameLiteral = _escapeString(node.route.nameLiteral!);
       buffer.writeln('$indentStr  name: \'$nameLiteral\',');
+    } else if (node.route.nameRef != null) {
+      buffer.writeln('$indentStr  name: ${_buildNameRef(node.route)},');
     } else {
       buffer.writeln('$indentStr  name: ${node.route.importAlias}.route.name,');
     }
@@ -619,6 +624,15 @@ String _relativePath(_RouteFile route, _RouteFile? parent) {
   final offset = parent.pathSegments.length;
   if (route.pathSegments.length <= offset) return '';
   return route.pathSegments.sublist(offset).join('/');
+}
+
+String _buildNameRef(_RouteFile route) {
+  final ref = route.nameRef!;
+  final qualifier = ref.qualifier;
+  if (qualifier == null) {
+    return '${route.importAlias}.${ref.identifier}';
+  }
+  return '${route.importAlias}.$qualifier.${ref.identifier}';
 }
 
 String _buildGuardList(_RouteFile route, List<_GuardRef> guardRefs) {
@@ -677,7 +691,12 @@ _RouteParseResult _parseRouteFile(String filePath) {
     path: filePath,
   );
 
-  final className = _findPageClassName(result.unit);
+  final pageClassResult = _findPageClass(result.unit, filePath);
+  if (pageClassResult.error != null) {
+    return _RouteParseResult(error: pageClassResult.error);
+  }
+  final pageClass = pageClassResult.pageClass;
+  final className = pageClass?.name;
   final topLevelFunctions = _collectTopLevelFunctions(result.unit);
   final importPrefixes = _collectImportPrefixes(result.unit);
   final metaResult = _extractRouteMeta(
@@ -685,6 +704,7 @@ _RouteParseResult _parseRouteFile(String filePath) {
     filePath,
     topLevelFunctions,
     importPrefixes,
+    pageClass?.declaration,
   );
   if (metaResult.error != null) {
     return _RouteParseResult(error: metaResult.error);
@@ -693,9 +713,10 @@ _RouteParseResult _parseRouteFile(String filePath) {
   return _RouteParseResult(className: className, meta: metaResult.meta);
 }
 
-String? _findPageClassName(CompilationUnit unit) {
-  final preferred = <String>[];
-  final candidates = <String>[];
+_PageClassResult _findPageClass(CompilationUnit unit, String filePath) {
+  final preferred = <_PageClass>[];
+  final candidates = <_PageClass>[];
+  _PageClass? annotated;
 
   for (final declaration in unit.declarations) {
     if (declaration is! ClassDeclaration) continue;
@@ -705,19 +726,44 @@ String? _findPageClassName(CompilationUnit unit) {
     final className = declaration.namePart.typeName.lexeme;
     final superName = extendsClause.superclass.name.lexeme;
 
+    final pageClass = _PageClass(className, declaration);
+    final hasAnnotation = declaration.metadata.any(_isRouteMetaAnnotation);
+
+    if (hasAnnotation) {
+      if (!_isWidgetBase(superName)) {
+        return _PageClassResult(
+          error:
+              'RouteMeta annotation in $filePath must be on a Widget class.',
+        );
+      }
+      if (annotated != null) {
+        return _PageClassResult(
+          error: 'Multiple RouteMeta annotations found in $filePath.',
+        );
+      }
+      annotated = pageClass;
+    }
+
     if (_isPreferredClassName(className)) {
-      preferred.add(className);
+      preferred.add(pageClass);
       continue;
     }
 
     if (_isWidgetBase(superName)) {
-      candidates.add(className);
+      candidates.add(pageClass);
     }
   }
 
-  if (preferred.isNotEmpty) return preferred.first;
-  if (candidates.isNotEmpty) return candidates.first;
-  return null;
+  if (annotated != null) {
+    return _PageClassResult(pageClass: annotated);
+  }
+  if (preferred.isNotEmpty) {
+    return _PageClassResult(pageClass: preferred.first);
+  }
+  if (candidates.isNotEmpty) {
+    return _PageClassResult(pageClass: candidates.first);
+  }
+  return const _PageClassResult();
 }
 
 Set<String> _collectTopLevelFunctions(CompilationUnit unit) {
@@ -749,8 +795,23 @@ _RouteMetaResult _extractRouteMeta(
   String filePath,
   Set<String> topLevelFunctions,
   Map<String, String> importPrefixes,
+  ClassDeclaration? pageClass,
 ) {
   _RouteMeta? meta;
+  _RouteMeta? annotationMeta;
+
+  if (pageClass != null) {
+    final annotationResult = _extractAnnotationRouteMeta(
+      pageClass,
+      filePath,
+      topLevelFunctions,
+      importPrefixes,
+    );
+    if (annotationResult.error != null) {
+      return annotationResult;
+    }
+    annotationMeta = annotationResult.meta;
+  }
 
   for (final declaration in unit.declarations) {
     if (declaration is! TopLevelVariableDeclaration) continue;
@@ -828,13 +889,126 @@ _RouteMetaResult _extractRouteMeta(
       meta = _RouteMeta(
         hasName: hasName,
         nameLiteral: nameLiteral,
+        nameRef: null,
         hasGuards: hasGuards,
         guardRefs: guardRefs,
       );
     }
   }
 
+  if (meta != null && annotationMeta != null) {
+    return _RouteMetaResult(
+      error:
+          'RouteMeta is defined both as a top-level "route" and as an annotation in $filePath.',
+    );
+  }
+
+  return _RouteMetaResult(meta: meta ?? annotationMeta);
+}
+
+_RouteMetaResult _extractAnnotationRouteMeta(
+  ClassDeclaration declaration,
+  String filePath,
+  Set<String> topLevelFunctions,
+  Map<String, String> importPrefixes,
+) {
+  _RouteMeta? meta;
+
+  for (final annotation in declaration.metadata) {
+    if (!_isRouteMetaAnnotation(annotation)) continue;
+    if (meta != null) {
+      return _RouteMetaResult(
+        error: 'Multiple RouteMeta annotations found in $filePath.',
+      );
+    }
+
+    final args = annotation.arguments;
+    var hasName = false;
+    String? nameLiteral;
+    _RouteNameRef? nameRef;
+    var hasGuards = false;
+    List<_GuardRef>? guardRefs;
+
+    if (args != null) {
+      for (final argument in args.arguments) {
+        if (argument is! NamedExpression) {
+          return _RouteMetaResult(
+            error:
+                'RouteMeta annotation in $filePath must use named arguments: name, guards.',
+          );
+        }
+        final label = argument.name.label.name;
+
+        if (label == 'name') {
+          hasName = true;
+          final expression = argument.expression;
+          if (expression is StringLiteral) {
+            final literal = expression.stringValue;
+            if (literal == null) {
+              return _RouteMetaResult(
+                error:
+                    'RouteMeta.name in $filePath must be a string literal or a public identifier.',
+              );
+            }
+            nameLiteral = literal;
+          } else {
+            final ref = _parseRouteNameRef(expression, importPrefixes);
+            if (ref == null) {
+              return _RouteMetaResult(
+                error:
+                    'RouteMeta.name in $filePath must be a string literal or a public identifier.',
+              );
+            }
+            nameRef = ref;
+          }
+          continue;
+        }
+
+        if (label == 'guards') {
+          hasGuards = true;
+          final expression = argument.expression;
+          if (expression is! ListLiteral) {
+            return _RouteMetaResult(
+              error: 'RouteMeta.guards in $filePath must be a list literal.',
+            );
+          }
+          guardRefs = _parseGuardList(
+            expression,
+            topLevelFunctions,
+            importPrefixes,
+          );
+          if (guardRefs == null) {
+            return _RouteMetaResult(
+              error:
+                  'RouteMeta.guards in $filePath must reference public guard functions.',
+            );
+          }
+          continue;
+        }
+      }
+    }
+
+    meta = _RouteMeta(
+      hasName: hasName,
+      nameLiteral: nameLiteral,
+      nameRef: nameRef,
+      hasGuards: hasGuards,
+      guardRefs: guardRefs,
+    );
+  }
+
   return _RouteMetaResult(meta: meta);
+}
+
+bool _isRouteMetaAnnotation(Annotation annotation) {
+  final name = annotation.name;
+  if (name is SimpleIdentifier) {
+    return name.name == 'RouteMeta';
+  }
+  if (name is PrefixedIdentifier) {
+    return name.identifier.name == 'RouteMeta';
+  }
+  return false;
 }
 
 bool _isPreferredClassName(String className) {
@@ -851,6 +1025,25 @@ String _relativeToCwd(String absolutePath) {
     return p.relative(absolutePath, from: cwd);
   }
   return absolutePath;
+}
+
+_RouteNameRef? _parseRouteNameRef(
+  Expression expression,
+  Map<String, String> importPrefixes,
+) {
+  if (expression is SimpleIdentifier) {
+    final name = expression.name;
+    if (name.startsWith('_')) return null;
+    return _RouteNameRef.simple(name);
+  }
+  if (expression is PrefixedIdentifier) {
+    final prefix = expression.prefix.name;
+    final name = expression.identifier.name;
+    if (prefix.startsWith('_') || name.startsWith('_')) return null;
+    if (importPrefixes.containsKey(prefix)) return null;
+    return _RouteNameRef.prefixed(prefix, name);
+  }
+  return null;
 }
 
 List<_GuardRef>? _parseGuardList(
@@ -888,6 +1081,29 @@ List<_GuardRef>? _parseGuardList(
   return refs;
 }
 
+class _PageClass {
+  const _PageClass(this.name, this.declaration);
+
+  final String name;
+  final ClassDeclaration declaration;
+}
+
+class _PageClassResult {
+  const _PageClassResult({this.pageClass, this.error});
+
+  final _PageClass? pageClass;
+  final String? error;
+}
+
+class _RouteNameRef {
+  const _RouteNameRef.simple(this.identifier) : qualifier = null;
+
+  const _RouteNameRef.prefixed(this.qualifier, this.identifier);
+
+  final String? qualifier;
+  final String identifier;
+}
+
 class _RouteFile {
   const _RouteFile({
     required this.path,
@@ -900,6 +1116,7 @@ class _RouteFile {
     required this.className,
     required this.hasName,
     required this.nameLiteral,
+    required this.nameRef,
     required this.hasGuards,
     required this.guardRefs,
   });
@@ -914,6 +1131,7 @@ class _RouteFile {
   final String className;
   final bool hasName;
   final String? nameLiteral;
+  final _RouteNameRef? nameRef;
   final bool hasGuards;
   final List<_GuardRef>? guardRefs;
 }
@@ -931,12 +1149,14 @@ class _RouteMeta {
   const _RouteMeta({
     required this.hasName,
     required this.nameLiteral,
+    required this.nameRef,
     required this.hasGuards,
     required this.guardRefs,
   });
 
   final bool hasName;
   final String? nameLiteral;
+  final _RouteNameRef? nameRef;
   final bool hasGuards;
   final List<_GuardRef>? guardRefs;
 }
