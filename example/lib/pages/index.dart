@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:unrouter/unrouter.dart';
 import 'package:example/widgets/legacy_details_page.dart';
 
-const route = RouteMeta(name: 'home');
+GuardResult test(GuardContext context) {
+  return .allow;
+}
 
+@RouteMeta(name: 'home', guards: [test])
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 

@@ -17,7 +17,12 @@ import './pages/products.dart' as page_products;
 import './pages/route_animation.dart' as page_route_animation;
 
 const routes = <Inlet>[
-  Inlet(path: '', name: 'home', factory: page_index.HomePage.new),
+  Inlet(
+    path: '',
+    name: 'home',
+    guards: [page_index.test],
+    factory: page_index.HomePage.new,
+  ),
   Inlet(
     path: '',
     factory: page_auth.AuthLayout.new,
@@ -34,7 +39,11 @@ const routes = <Inlet>[
       ),
     ],
   ),
-  Inlet(path: 'about', name: 'about', factory: page_about.AboutPage.new),
+  Inlet(
+    path: 'about',
+    name: 'about',
+    factory: page_about.AboutPage.new,
+  ),
   Inlet(
     path: 'concerts',
     name: 'concerts',
