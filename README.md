@@ -321,6 +321,7 @@ You can add page-level metadata to influence generated routes:
 
 ```dart
 // lib/pages/users/[id].dart
+import 'package:flutter/widgets.dart';
 import 'package:unrouter/unrouter.dart';
 
 Future<GuardResult> authGuard(GuardContext context) async {
@@ -333,8 +334,36 @@ const route = RouteMeta(
 );
 ```
 
-If `name` or `guards` are not literals, the generator falls back to
-`route.name` / `route.guards` when building `Inlet`s.
+You can also attach metadata directly to the page widget. If any widget in a
+page file has `@RouteMeta(...)`, that widget becomes the page widget for
+generation (even if it doesn't end with `Page` or `Screen`):
+
+```dart
+// lib/pages/users/[id].dart
+import 'package:unrouter/unrouter.dart';
+
+Future<GuardResult> authGuard(GuardContext context) async {
+  return GuardResult.allow;
+}
+
+@RouteMeta(
+  name: 'userDetail',
+  guards: const [authGuard],
+)
+class UserDetailPage extends StatelessWidget {
+  const UserDetailPage({super.key});
+
+  @override
+  Widget build(BuildContext context) => const SizedBox();
+}
+```
+
+When using annotations, `name` must be a string literal or a public identifier,
+and `guards` must be a list literal of public guard functions. If you need
+expressions, keep using the top-level `route` variable.
+
+For top-level `route` variables, if `name` or `guards` are not literals, the
+generator falls back to `route.name` / `route.guards` when building `Inlet`s.
 
 ### 4) Use the generated routes
 

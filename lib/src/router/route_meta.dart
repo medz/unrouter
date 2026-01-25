@@ -4,8 +4,9 @@ import 'guard.dart';
 
 /// Metadata for file-based routing pages.
 ///
-/// The CLI reads this metadata from page files (without executing them) to
-/// populate generated [Inlet] definitions.
+/// The CLI reads this metadata from page files (without executing them) from a
+/// top-level `route` variable or a `@RouteMeta(...)` annotation on the page
+/// widget class to populate generated [Inlet] definitions.
 @immutable
 class RouteMeta {
   const RouteMeta({this.name, this.guards = const []});

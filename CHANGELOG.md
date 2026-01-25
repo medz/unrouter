@@ -1,5 +1,10 @@
 ## Unreleased
 
+### Features
+
+- CLI file-based routing now supports `@RouteMeta(...)` annotations on page
+  widgets in addition to top-level `route` variables.
+
 ## 0.7.1 (2026-01-24)
 
 ### Fixes

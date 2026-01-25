@@ -255,6 +255,85 @@ class ImportedGuardPage extends StatelessWidget {
     );
   });
 
+  test('generate reads RouteMeta annotation on page widget', () async {
+    writePubspec(temp.path);
+
+    final pagesDir = Directory(p.join(temp.path, 'lib', 'pages'))
+      ..createSync(recursive: true);
+
+    writePage(p.join(pagesDir.path, 'index.dart'), 'HomePage');
+
+    File(p.join(pagesDir.path, 'annotated.dart')).writeAsStringSync('''
+import 'package:flutter/widgets.dart';
+import 'package:unrouter/unrouter.dart';
+
+const routeName = 'annotated';
+
+Future<GuardResult> authGuard(GuardContext context) async {
+  return GuardResult.allow;
+}
+
+class HelperPage extends StatelessWidget {
+  const HelperPage({super.key});
+
+  @override
+  Widget build(BuildContext context) => const SizedBox();
+}
+
+@RouteMeta(
+  name: routeName,
+  guards: const [authGuard],
+)
+class AnnotatedView extends StatelessWidget {
+  const AnnotatedView({super.key});
+
+  @override
+  Widget build(BuildContext context) => const SizedBox();
+}
+''');
+
+    final code = await runGenerate(parseArgs());
+    expect(code, 0);
+
+    final contents = File(p.join(temp.path, 'lib', 'routes.dart'))
+        .readAsStringSync();
+    expect(contents, contains("name: page_annotated.routeName,"));
+    expect(contents, contains('guards: [page_annotated.authGuard],'));
+    expect(
+      contents,
+      contains('factory: page_annotated.AnnotatedView.new,'),
+    );
+  });
+
+  test('generate fails when RouteMeta is defined twice', () async {
+    writePubspec(temp.path);
+
+    final pagesDir = Directory(p.join(temp.path, 'lib', 'pages'))
+      ..createSync(recursive: true);
+
+    File(p.join(pagesDir.path, 'double.dart')).writeAsStringSync('''
+import 'package:flutter/widgets.dart';
+import 'package:unrouter/unrouter.dart';
+
+const route = RouteMeta(
+  name: 'fromRoute',
+);
+
+@RouteMeta(
+  name: 'fromAnnotation',
+)
+class DoublePage extends StatelessWidget {
+  const DoublePage({super.key});
+
+  @override
+  Widget build(BuildContext context) => const SizedBox();
+}
+''');
+
+    final code = await runGenerate(parseArgs());
+    expect(code, 1);
+  });
+
   test(
     'generate falls back for non-literal guards and keeps const nodes',
     () async {
