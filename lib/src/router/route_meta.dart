@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:meta/meta_meta.dart';
 
 import 'guard.dart';
 
@@ -8,6 +9,7 @@ import 'guard.dart';
 /// top-level `route` variable or a `@RouteMeta(...)` annotation on the page
 /// widget class to populate generated [Inlet] definitions.
 @immutable
+@Target({.classType})
 class RouteMeta {
   const RouteMeta({this.name, this.guards = const []});
 
