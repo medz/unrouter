@@ -338,24 +338,6 @@ You can also attach metadata directly to the page widget. If any widget in a
 page file has `@RouteMeta(...)`, that widget becomes the page widget for
 generation (even if it doesn't end with `Page` or `Screen`):
 
-```dart
-// lib/pages/users/[id].dart
-import 'package:unrouter/unrouter.dart';
-
-Future<GuardResult> authGuard(GuardContext context) async {
-  return GuardResult.allow;
-}
-
-@RouteMeta(
-  name: 'userDetail',
-  guards: const [authGuard],
-)
-class UserDetailPage extends StatelessWidget {
-  const UserDetailPage({super.key});
-
-  @override
-  Widget build(BuildContext context) => const SizedBox();
-}
 ```
 
 When using annotations, `name` must be a string literal or a public identifier,
