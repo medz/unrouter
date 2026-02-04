@@ -219,6 +219,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.2.0"
+  roux:
+    dependency: transitive
+    description:
+      name: roux
+      sha256: "64c2816ba94a6dfcdc8843ef4373b739da61cbadf470491ad122f7d95c773387"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.1"
   sky_engine:
     dependency: transitive
     description: flutter
