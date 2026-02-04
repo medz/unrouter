@@ -14,10 +14,10 @@ void main() {
   group('Basic Routing', () {
     testWidgets('renders index route', (tester) async {
       final router = Unrouter(
-        routes: [
+        routes: RouteIndex.fromRoutes([
           Inlet(factory: () => const Text('Index')),
           Inlet(path: 'about', factory: () => const Text('About')),
-        ],
+        ]),
         history: MemoryHistory(),
       );
 
@@ -29,10 +29,10 @@ void main() {
 
     testWidgets('renders path route', (tester) async {
       final router = Unrouter(
-        routes: [
+        routes: RouteIndex.fromRoutes([
           Inlet(factory: () => const Text('Index')),
           Inlet(path: 'about', factory: () => const Text('About')),
-        ],
+        ]),
         history: MemoryHistory(
           initialEntries: [RouteInformation(uri: Uri.parse('/about'))],
         ),
@@ -48,10 +48,10 @@ void main() {
       late Unrouter router;
 
       router = Unrouter(
-        routes: [
+        routes: RouteIndex.fromRoutes([
           Inlet(factory: () => const Text('Index')),
           Inlet(path: 'about', factory: () => const Text('About')),
-        ],
+        ]),
         history: MemoryHistory(),
       );
 
@@ -76,7 +76,7 @@ void main() {
       }
 
       final router = Unrouter(
-        routes: [
+        routes: RouteIndex.fromRoutes([
           Inlet(
             path: 'concerts',
             factory: createConcerts,
@@ -85,7 +85,7 @@ void main() {
               Inlet(path: 'trending', factory: () => const Text('Trending')),
             ],
           ),
-        ],
+        ]),
         history: MemoryHistory(
           initialEntries: [RouteInformation(uri: Uri.parse('/concerts'))],
         ),
@@ -108,7 +108,7 @@ void main() {
       }
 
       router = Unrouter(
-        routes: [
+        routes: RouteIndex.fromRoutes([
           Inlet(
             path: 'concerts',
             factory: createConcerts,
@@ -117,7 +117,7 @@ void main() {
               Inlet(path: 'trending', factory: () => const Text('Trending')),
             ],
           ),
-        ],
+        ]),
         history: MemoryHistory(
           initialEntries: [RouteInformation(uri: Uri.parse('/concerts'))],
         ),
@@ -146,7 +146,7 @@ void main() {
       }
 
       final router = Unrouter(
-        routes: [
+        routes: RouteIndex.fromRoutes([
           Inlet(
             factory: createAuth,
             children: [
@@ -154,7 +154,7 @@ void main() {
               Inlet(path: 'register', factory: () => const Text('Register')),
             ],
           ),
-        ],
+        ]),
         history: MemoryHistory(
           initialEntries: [RouteInformation(uri: Uri.parse('/login'))],
         ),
@@ -175,7 +175,7 @@ void main() {
       }
 
       router = Unrouter(
-        routes: [
+        routes: RouteIndex.fromRoutes([
           Inlet(
             factory: createAuth,
             children: [
@@ -183,7 +183,7 @@ void main() {
               Inlet(path: 'register', factory: () => const Text('Register')),
             ],
           ),
-        ],
+        ]),
         history: MemoryHistory(
           initialEntries: [RouteInformation(uri: Uri.parse('/login'))],
         ),
@@ -215,7 +215,7 @@ void main() {
       }
 
       final router = Unrouter(
-        routes: [Inlet(path: ':id', factory: createUser)],
+        routes: RouteIndex.fromRoutes([Inlet(path: ':id', factory: createUser)]),
         history: MemoryHistory(
           initialEntries: [RouteInformation(uri: Uri.parse('/123'))],
         ),
@@ -242,13 +242,13 @@ void main() {
       }
 
       final router = Unrouter(
-        routes: [
+        routes: RouteIndex.fromRoutes([
           Inlet(
             path: 'users',
             factory: createUsers,
             children: [Inlet(path: ':id', factory: createUser)],
           ),
-        ],
+        ]),
         history: MemoryHistory(
           initialEntries: [RouteInformation(uri: Uri.parse('/users/123'))],
         ),
@@ -293,7 +293,7 @@ void main() {
       }
 
       final router = Unrouter(
-        routes: [
+        routes: RouteIndex.fromRoutes([
           Inlet(
             factory: createApp,
             children: [
@@ -310,7 +310,7 @@ void main() {
               ),
             ],
           ),
-        ],
+        ]),
         history: MemoryHistory(
           initialEntries: [RouteInformation(uri: Uri.parse('/users/123/456'))],
         ),

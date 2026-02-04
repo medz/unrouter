@@ -229,7 +229,10 @@ class ImportedGuardPage extends StatelessWidget {
       contents,
       contains("Inlet(path: '', factory: page_index.HomePage.new),"),
     );
-    expect(contents, contains('const routes = <Inlet>['));
+    expect(
+      contents,
+      contains('final routes = RouteIndex.fromRoutes(const <Inlet>['),
+    );
     expect(contents, contains("Inlet(\n    path: 'users/:id',"));
     expect(contents, contains("children: [\n      Inlet(path: 'settings',"));
     expect(
@@ -415,7 +418,7 @@ class UserSettingsPage extends StatelessWidget {
       final outputFile = File(p.join(temp.path, 'lib', 'routes.dart'));
       final contents = outputFile.readAsStringSync();
 
-      expect(contents, contains('final routes = <Inlet>['));
+      expect(contents, contains('final routes = RouteIndex.fromRoutes(<Inlet>['));
       expect(contents, contains("path: 'guards/anonymous_guard',"));
       expect(
         contents,
@@ -489,7 +492,7 @@ class MixedGuardPage extends StatelessWidget {
       p.join(temp.path, 'lib', 'routes.dart'),
     ).readAsStringSync();
 
-    expect(contents, contains('final routes = <Inlet>['));
+    expect(contents, contains('final routes = RouteIndex.fromRoutes(<Inlet>['));
     expect(contents, contains('name: page_guards_mixed_guard.route.name,'));
     expect(
       contents,
@@ -677,6 +680,6 @@ class DocsPage extends StatelessWidget {
       p.join(temp.path, 'lib', 'routes.dart'),
     ).readAsStringSync();
 
-    expect(contents, contains("path: 'docs/*path'"));
+    expect(contents, contains("path: 'docs/**:path'"));
   });
 }

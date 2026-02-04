@@ -66,12 +66,9 @@ abstract interface class Navigate {
   ///   navigation).
   ///
   /// For named routes and path patterns, [params] are substituted into the
-  /// route pattern (`:id`, optional `?` segments, and `*`/`*name` wildcard).
-  /// Optional params are omitted when not provided. Optional static segments
-  /// are included when generating the path.
-  ///
-  /// When using optional segments in [path], pass query values via [query]
-  /// instead of embedding them in the path string.
+  /// route pattern (`:id`, `*` single-segment wildcard, and `**`/`**:name`
+  /// multi-segment wildcard). `*` values use `_0`, `_1`, ... param keys and
+  /// `**` uses `_` unless a name is provided.
   ///
   /// The optional [state] is stored on the history entry and can be read via
   /// [RouteInformation.state] (see [RouteState.location]).
@@ -94,8 +91,6 @@ abstract interface class Navigate {
   /// Generates a URI for a named route or path pattern.
   ///
   /// [params] are substituted into dynamic segments in the route pattern.
-  /// Optional params are omitted when not provided. Optional static segments
-  /// are included when generating the path.
   ///
   /// [query] and [fragment] are appended to the generated URI.
   ///

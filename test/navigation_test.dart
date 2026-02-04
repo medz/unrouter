@@ -16,10 +16,10 @@ void main() {
       late Unrouter router;
 
       router = Unrouter(
-        routes: [
+        routes: RouteIndex.fromRoutes([
           Inlet(factory: () => const Text('Home')),
           Inlet(path: 'about', factory: () => const Text('About')),
-        ],
+        ]),
         history: MemoryHistory(),
       );
 
@@ -43,11 +43,11 @@ void main() {
       late Unrouter router;
 
       router = Unrouter(
-        routes: [
+        routes: RouteIndex.fromRoutes([
           Inlet(factory: () => const Text('Home')),
           Inlet(path: 'about', factory: () => const Text('About')),
           Inlet(path: 'contact', factory: () => const Text('Contact')),
-        ],
+        ]),
         history: MemoryHistory(),
       );
 
@@ -75,11 +75,11 @@ void main() {
       late Unrouter router;
 
       router = Unrouter(
-        routes: [
+        routes: RouteIndex.fromRoutes([
           Inlet(factory: () => const Text('Home')),
           Inlet(path: 'about', factory: () => const Text('About')),
           Inlet(path: 'contact', factory: () => const Text('Contact')),
-        ],
+        ]),
         history: MemoryHistory(),
       );
 
@@ -103,10 +103,10 @@ void main() {
       late Unrouter router;
 
       router = Unrouter(
-        routes: [
+        routes: RouteIndex.fromRoutes([
           Inlet(factory: () => const Text('Home')),
           Inlet(path: 'about', factory: () => const Text('About')),
-        ],
+        ]),
         history: MemoryHistory(),
       );
 
@@ -128,10 +128,10 @@ void main() {
       late Unrouter router;
 
       router = Unrouter(
-        routes: [
+        routes: RouteIndex.fromRoutes([
           Inlet(factory: () => const Text('Home')),
           Inlet(path: 'about', factory: () => const Text('About')),
-        ],
+        ]),
         history: MemoryHistory(),
       );
 
@@ -153,11 +153,11 @@ void main() {
       late Unrouter router;
 
       router = Unrouter(
-        routes: [
+        routes: RouteIndex.fromRoutes([
           Inlet(factory: () => const Text('Page 0')),
           Inlet(path: '1', factory: () => const Text('Page 1')),
           Inlet(path: '2', factory: () => const Text('Page 2')),
-        ],
+        ]),
         history: MemoryHistory(),
       );
 
@@ -185,11 +185,11 @@ void main() {
       late Unrouter router;
 
       router = Unrouter(
-        routes: [
+        routes: RouteIndex.fromRoutes([
           Inlet(factory: () => const Text('Page 0')),
           Inlet(path: '1', factory: () => const Text('Page 1')),
           Inlet(path: '2', factory: () => const Text('Page 2')),
-        ],
+        ]),
         history: MemoryHistory(),
       );
 
@@ -219,7 +219,7 @@ void main() {
       }
 
       router = Unrouter(
-        routes: [
+        routes: RouteIndex.fromRoutes([
           Inlet(
             path: 'section',
             factory: createLayout,
@@ -228,7 +228,7 @@ void main() {
               Inlet(path: 'b', factory: () => const Text('Page B')),
             ],
           ),
-        ],
+        ]),
         history: MemoryHistory(
           initialEntries: [RouteInformation(uri: Uri.parse('/section/a'))],
         ),

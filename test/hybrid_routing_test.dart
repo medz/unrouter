@@ -12,14 +12,14 @@ void main() {
 
       router = Unrouter(
         history: MemoryHistory(),
-        routes: const [
+        routes: RouteIndex.fromRoutes(const [
           Inlet(factory: HomePage.new),
           Inlet(path: 'admin', factory: AdminPage.new),
-        ],
-        child: Routes(const [
+        ]),
+        child: Routes(RouteIndex.fromRoutes(const [
           Inlet(path: 'admin', factory: DynamicAdminPage.new),
           Inlet(path: 'settings', factory: SettingsPage.new),
-        ]),
+        ])),
       );
 
       await tester.pumpWidget(
@@ -47,10 +47,10 @@ void main() {
 
       router = Unrouter(
         history: MemoryHistory(),
-        routes: const [
+        routes: RouteIndex.fromRoutes(const [
           Inlet(factory: HomePage.new),
           Inlet(path: 'static', factory: StaticPage.new),
-        ],
+        ]),
         // Child is not directly Routes, but contains Routes internally
         child: const WrapperWidget(),
       );
@@ -78,30 +78,39 @@ void main() {
     });
 
     testWidgets(
-      'static route partial match with child Routes as fallback for different paths',
+      'static routes match fully, child Routes handles other paths',
       (tester) async {
         late Unrouter router;
 
         router = Unrouter(
           history: MemoryHistory(),
-          routes: const [
+          routes: RouteIndex.fromRoutes(const [
             Inlet(path: 'products', factory: ProductsPageWithRoutes.new),
-          ],
-          child: Routes(const [
+          ]),
+          child: Routes(RouteIndex.fromRoutes(const [
+            Inlet(path: 'products/:id', factory: ProductDetailInner.new),
             Inlet(path: 'users/:id', factory: UserDetailPage.new),
             Inlet(path: 'posts/:id', factory: PostDetailPage.new),
-          ]),
+          ])),
         );
 
         await tester.pumpWidget(
           Directionality(textDirection: TextDirection.ltr, child: router),
         );
 
-        // Navigate to /products/123 - partial match on static route
-        router.navigate(path: '/products/123');
+        // Navigate to /products - matches static route
+        router.navigate(path: '/products');
         await tester.pumpAndSettle();
 
         expect(find.text('Products Container'), findsOneWidget);
+        expect(find.text('Product: 123'), findsNothing);
+
+        // Navigate to /products/123 - static route no longer matches fully,
+        // fall back to child Routes
+        router.navigate(path: '/products/123');
+        await tester.pumpAndSettle();
+
+        expect(find.text('Products Container'), findsNothing);
         expect(find.text('Product: 123'), findsOneWidget);
 
         // Navigate to /users/456 - no match in static routes, use child Routes
@@ -125,11 +134,13 @@ void main() {
 
       router = Unrouter(
         history: MemoryHistory(),
-        routes: const [Inlet(path: 'items/:id', factory: StaticItemPage.new)],
-        child: Routes(const [
+        routes: RouteIndex.fromRoutes(
+          const [Inlet(path: 'items/:id', factory: StaticItemPage.new)],
+        ),
+        child: Routes(RouteIndex.fromRoutes(const [
           Inlet(path: 'items/:id', factory: DynamicItemPage.new),
           Inlet(path: 'categories/:name', factory: CategoryPage.new),
-        ]),
+        ])),
       );
 
       await tester.pumpWidget(
@@ -151,35 +162,46 @@ void main() {
     });
 
     testWidgets(
-      'static partial match route with Routes + child Routes fallback',
+      'static route without full match falls back to child Routes',
       (tester) async {
         late Unrouter router;
 
         router = Unrouter(
           history: MemoryHistory(),
-          routes: const [Inlet(path: 'shop', factory: ShopPageWithRoutes.new)],
-          child: Routes(const [
+          routes: RouteIndex.fromRoutes(
+            const [Inlet(path: 'shop', factory: ShopPageWithRoutes.new)],
+          ),
+          child: Routes(RouteIndex.fromRoutes(const [
+            Inlet(path: 'shop/products/:id', factory: ShopProductPage.new),
+            Inlet(path: 'shop/categories/:name', factory: ShopCategoryPage.new),
             Inlet(path: 'account/:section', factory: AccountPage.new),
-          ]),
+          ])),
         );
 
         await tester.pumpWidget(
           Directionality(textDirection: TextDirection.ltr, child: router),
         );
 
-        // Navigate to /shop/products/123
-        // Static route partially matches 'shop', ShopPageWithRoutes handles rest
+        // Navigate to /shop - matches static route
+        router.navigate(path: '/shop');
+        await tester.pumpAndSettle();
+
+        expect(find.text('Shop Container'), findsOneWidget);
+        expect(find.text('Shop Product: 123'), findsNothing);
+
+        // Navigate to /shop/products/123 - static route no longer matches fully,
+        // fall back to child Routes
         router.navigate(path: '/shop/products/123');
         await tester.pumpAndSettle();
 
-        expect(find.text('Shop Container'), findsOneWidget);
+        expect(find.text('Shop Container'), findsNothing);
         expect(find.text('Shop Product: 123'), findsOneWidget);
 
-        // Navigate to /shop/categories/toys
+        // Navigate to /shop/categories/toys - child Routes handles it
         router.navigate(path: '/shop/categories/toys');
         await tester.pumpAndSettle();
 
-        expect(find.text('Shop Container'), findsOneWidget);
+        expect(find.text('Shop Container'), findsNothing);
         expect(find.text('Shop Category: toys'), findsOneWidget);
 
         // Navigate to /account/profile - no match in static, use child Routes
@@ -198,7 +220,7 @@ void main() {
 
       router = Unrouter(
         history: MemoryHistory(),
-        routes: const [Inlet(factory: HomePage.new)],
+        routes: RouteIndex.fromRoutes(const [Inlet(factory: HomePage.new)]),
         child: const DeepWrapper(),
       );
 
@@ -225,7 +247,9 @@ void main() {
 
       router = Unrouter(
         history: MemoryHistory(),
-        routes: const [Inlet(path: 'exact', factory: ExactPage.new)],
+        routes: RouteIndex.fromRoutes(
+          const [Inlet(path: 'exact', factory: ExactPage.new)],
+        ),
         child: const ComplexFallback(),
       );
 
@@ -295,10 +319,12 @@ class WrapperWidget extends StatelessWidget {
     return Column(
       children: [
         const Text('Wrapper'),
-        Routes(const [
-          Inlet(path: 'dynamic', factory: DynamicPage.new),
-          Inlet(path: 'other', factory: OtherPage.new),
-        ]),
+        Routes(
+          RouteIndex.fromRoutes(const [
+            Inlet(path: 'dynamic', factory: DynamicPage.new),
+            Inlet(path: 'other', factory: OtherPage.new),
+          ]),
+        ),
       ],
     );
   }
@@ -323,12 +349,7 @@ class ProductsPageWithRoutes extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        const Text('Products Container'),
-        Routes(const [Inlet(path: ':id', factory: ProductDetailInner.new)]),
-      ],
-    );
+    return const Text('Products Container');
   }
 }
 
@@ -403,15 +424,7 @@ class ShopPageWithRoutes extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        const Text('Shop Container'),
-        Routes(const [
-          Inlet(path: 'products/:id', factory: ShopProductPage.new),
-          Inlet(path: 'categories/:name', factory: ShopCategoryPage.new),
-        ]),
-      ],
-    );
+    return const Text('Shop Container');
   }
 }
 
@@ -468,7 +481,11 @@ class DeepWrapperLevel2 extends StatelessWidget {
     return Column(
       children: [
         const Text('Deep Wrapper Level 2'),
-        Routes(const [Inlet(path: 'deep', factory: DeepPage.new)]),
+        Routes(
+          RouteIndex.fromRoutes(
+            const [Inlet(path: 'deep', factory: DeepPage.new)],
+          ),
+        ),
       ],
     );
   }
@@ -496,9 +513,11 @@ class ComplexFallback extends StatelessWidget {
     return Column(
       children: [
         const Text('Complex Fallback'),
-        Routes(const [
-          Inlet(path: 'fallback/*', factory: NestedFallbackPage.new),
-        ]),
+        Routes(
+          RouteIndex.fromRoutes(const [
+            Inlet(path: 'fallback/**:path', factory: NestedFallbackPage.new),
+          ]),
+        ),
       ],
     );
   }
@@ -510,9 +529,7 @@ class NestedFallbackPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final state = context.routeState;
-    // Get the remaining path after 'fallback/'
-    final location = state.location.uri.path;
-    final remaining = location.replaceFirst(RegExp(r'^/fallback/'), '');
+    final remaining = state.params['path'] ?? '';
     return Text('Nested: $remaining');
   }
 }

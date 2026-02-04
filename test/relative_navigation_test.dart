@@ -8,11 +8,11 @@ void main() {
     tester,
   ) async {
     final router = Unrouter(
-      routes: [
+      routes: RouteIndex.fromRoutes([
         Inlet(factory: () => const Text('Home')),
         Inlet(path: 'users/:id', factory: () => const Text('User Detail')),
         Inlet(path: 'users/:id/edit', factory: () => const Text('Edit User')),
-      ],
+      ]),
       history: MemoryHistory(),
     );
 
@@ -37,11 +37,11 @@ void main() {
 
   testWidgets('absolute navigation overrides current path', (tester) async {
     final router = Unrouter(
-      routes: [
+      routes: RouteIndex.fromRoutes([
         Inlet(factory: () => const Text('Home')),
         Inlet(path: 'about', factory: () => const Text('About')),
         Inlet(path: 'users', factory: () => const Text('Users')),
-      ],
+      ]),
       history: MemoryHistory(),
     );
 
@@ -61,10 +61,10 @@ void main() {
 
   testWidgets('relative navigation with query and fragment', (tester) async {
     final router = Unrouter(
-      routes: [
+      routes: RouteIndex.fromRoutes([
         Inlet(path: 'users', factory: () => const Text('Users')),
         Inlet(path: 'users/:id', factory: () => const Text('User Detail')),
-      ],
+      ]),
       history: MemoryHistory(),
     );
 
@@ -86,7 +86,7 @@ void main() {
 
   testWidgets('relative navigation normalizes dot segments', (tester) async {
     final router = Unrouter(
-      routes: [
+      routes: RouteIndex.fromRoutes([
         Inlet(factory: () => const Text('Home')),
         Inlet(path: 'users/:id', factory: () => const Text('User Detail')),
         Inlet(path: 'users/:id/edit', factory: () => const Text('Edit User')),
@@ -94,7 +94,7 @@ void main() {
           path: 'users/:id/settings',
           factory: () => const Text('User Settings'),
         ),
-      ],
+      ]),
       history: MemoryHistory(),
     );
 
@@ -120,10 +120,10 @@ void main() {
 
   testWidgets('relative navigation clamps ".." at root', (tester) async {
     final router = Unrouter(
-      routes: [
+      routes: RouteIndex.fromRoutes([
         Inlet(factory: () => const Text('Home')),
         Inlet(path: 'users', factory: () => const Text('Users')),
-      ],
+      ]),
       history: MemoryHistory(),
     );
 

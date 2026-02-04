@@ -4,19 +4,19 @@ import 'package:unrouter/history.dart';
 import 'package:unrouter/unrouter.dart';
 
 void main() {
-  group('Declarative routes with partial matching for nested Routes widget', () {
-    testWidgets('declarative route with Routes widget matches nested paths', (
+  group('Declarative routes require full matches', () {
+    testWidgets('declarative route does not match extra segments', (
       tester,
     ) async {
       late Unrouter router;
 
       router = Unrouter(
         history: MemoryHistory(),
-        routes: const [
+        routes: RouteIndex.fromRoutes(const [
           Inlet(factory: HomePage.new),
-          // Declarative route that will be partially matched
+          // Declarative route that must fully match
           Inlet(path: 'products', factory: ProductsPage.new),
-        ],
+        ]),
       );
 
       await tester.pumpWidget(
@@ -30,52 +30,57 @@ void main() {
       expect(find.text('Products Page'), findsOneWidget);
       expect(find.text('Product List'), findsOneWidget);
 
-      // Navigate to /products/123 (should partially match products route,
-      // then ProductsPage's Routes widget should match :id)
+      // Navigate to /products/123 (no partial match)
       router.navigate(path: '/products/123');
       await tester.pumpAndSettle();
 
-      expect(find.text('Products Page'), findsOneWidget);
-      expect(find.text('Product Detail: 123'), findsOneWidget);
+      expect(find.text('Products Page'), findsNothing);
+      expect(find.text('Product Detail: 123'), findsNothing);
     });
 
-    testWidgets('partial match allows component to handle remaining segments', (
+    testWidgets('extra segments do not render nested Routes', (
       tester,
     ) async {
       late Unrouter router;
 
       router = Unrouter(
         history: MemoryHistory(),
-        routes: const [
-          // Declarative route without children - should still partially match
+        routes: RouteIndex.fromRoutes(const [
+          // Declarative route without children - no partial match
           Inlet(path: 'shop', factory: ShopPage.new),
-        ],
+        ]),
       );
 
       await tester.pumpWidget(
         Directionality(textDirection: TextDirection.ltr, child: router),
       );
 
-      // Navigate to /shop/category/electronics
+      // Navigate to /shop
+      router.navigate(path: '/shop');
+      await tester.pumpAndSettle();
+
+      expect(find.text('Shop'), findsOneWidget);
+      expect(find.text('Category: electronics'), findsNothing);
+
+      // Navigate to /shop/category/electronics (no partial match)
       router.navigate(path: '/shop/category/electronics');
       await tester.pumpAndSettle();
 
-      // ShopPage should render and its internal Routes should match remaining path
-      expect(find.text('Shop'), findsOneWidget);
-      expect(find.text('Category: electronics'), findsOneWidget);
+      expect(find.text('Shop'), findsNothing);
+      expect(find.text('Category: electronics'), findsNothing);
     });
 
-    testWidgets('full match takes precedence over partial match', (
+    testWidgets('full match takes precedence when multiple routes match', (
       tester,
     ) async {
       late Unrouter router;
 
       router = Unrouter(
         history: MemoryHistory(),
-        routes: const [
+        routes: RouteIndex.fromRoutes(const [
           Inlet(path: 'products', factory: ProductsPage.new),
           Inlet(path: 'products/special', factory: SpecialProductsPage.new),
-        ],
+        ]),
       );
 
       await tester.pumpWidget(
@@ -109,10 +114,12 @@ class ProductsPage extends StatelessWidget {
     return Column(
       children: [
         const Text('Products Page'),
-        Routes(const [
-          Inlet(factory: ProductList.new),
-          Inlet(path: ':id', factory: ProductDetail.new),
-        ]),
+        Routes(
+          RouteIndex.fromRoutes(const [
+            Inlet(factory: ProductList.new),
+            Inlet(path: ':id', factory: ProductDetail.new),
+          ]),
+        ),
       ],
     );
   }
@@ -146,9 +153,9 @@ class ShopPage extends StatelessWidget {
     return Column(
       children: [
         const Text('Shop'),
-        Routes(const [
+        Routes(RouteIndex.fromRoutes(const [
           Inlet(path: 'category/:name', factory: CategoryPage.new),
-        ]),
+        ])),
       ],
     );
   }

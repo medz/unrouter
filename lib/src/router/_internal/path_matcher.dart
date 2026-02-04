@@ -1,3 +1,5 @@
+import 'package:roux/roux.dart' show routeToRegExp;
+
 /// Normalizes a path by removing leading/trailing slashes and empty segments.
 ///
 /// Examples:
@@ -94,24 +96,65 @@ class PathMatch {
   );
 }
 
+final Map<String, RegExp> _routeRegexCache = <String, RegExp>{};
+
+String normalizePattern(String? pattern) {
+  final normalized = normalizePath(pattern);
+  if (normalized.isEmpty) return '';
+  return normalized.replaceAll(r'\:', '%3A');
+}
+
+RegExp _routeRegexFor(String normalizedPattern) {
+  final pattern = normalizedPattern.isEmpty ? '/' : '/$normalizedPattern';
+  return _routeRegexCache.putIfAbsent(pattern, () => routeToRegExp(pattern));
+}
+
+PathSpecificity _patternSpecificity(List<String> segments) {
+  var staticCount = 0;
+  var dynamicCount = 0;
+  var wildcardCount = 0;
+
+  for (final segment in segments) {
+    if (segment == r'\*' || segment == r'\*\*') {
+      staticCount += 1;
+      continue;
+    }
+    if (segment.startsWith('**') || segment == '*') {
+      wildcardCount += 1;
+      continue;
+    }
+    if (segment.contains(':')) {
+      dynamicCount += 1;
+      continue;
+    }
+    staticCount += 1;
+  }
+
+  return PathSpecificity(
+    staticCount: staticCount,
+    dynamicCount: dynamicCount,
+    wildcardCount: wildcardCount,
+  );
+}
+
 /// Matches a path pattern against a path.
 ///
 /// Supports:
 /// - Static segments: `'about'`, `'users/profile'`
 /// - Dynamic params: `':id'`, `':userId'`
-/// - Optional params: `':id?'`
-/// - Optional segments: `'edit?'`
-/// - Wildcard: `'*'`, `'*name'`
+/// - Embedded params: `'/files/:name.:ext'`
+/// - Single-segment wildcard: `'*'`
+/// - Multi-segment wildcard: `'**'`, `'**:path'`
 ///
 /// Returns [PathMatch] with:
 /// - `matched`: whether the pattern matched
 /// - `params`: extracted parameters
 /// - `remaining`: unconsumed path segments
 PathMatch matchPath(String? pattern, List<String> pathSegments) {
-  final normalizedPattern = normalizePath(pattern);
-  var staticCount = 0;
-  var dynamicCount = 0;
-  var wildcardCount = 0;
+  final normalizedPattern = normalizePattern(pattern);
+  if (normalizedPattern.contains('?')) {
+    return PathMatch.noMatch;
+  }
 
   // Index route matches empty path
   if (normalizedPattern.isEmpty) {
@@ -119,134 +162,49 @@ PathMatch matchPath(String? pattern, List<String> pathSegments) {
       matched: pathSegments.isEmpty,
       params: const {},
       remaining: pathSegments,
-      specificity: PathSpecificity(
-        staticCount: staticCount,
-        dynamicCount: dynamicCount,
-        wildcardCount: wildcardCount,
-      ),
+      specificity: const PathSpecificity(),
     );
   }
 
   final patternSegments = splitPath(normalizedPattern);
-  final params = <String, String>{};
-  var pathIndex = 0;
+  final hasMultiWildcard = patternSegments.any((segment) {
+    if (segment == r'\*\*') return false;
+    return segment.startsWith('**');
+  });
 
-  for (var i = 0; i < patternSegments.length; i++) {
-    final patternSegment = patternSegments[i];
-
-    // Wildcard: match everything remaining
-    if (patternSegment.startsWith('*')) {
-      wildcardCount += 1;
-      final name = patternSegment.substring(1);
-      final value = pathSegments.sublist(pathIndex).join('/');
-      if (name.isEmpty) {
-        params['*'] = value;
-      } else {
-        params[name] = value;
-      }
-      return PathMatch(
-        matched: true,
-        params: params,
-        remaining: [], // Wildcard consumes all remaining segments
-        specificity: PathSpecificity(
-          staticCount: staticCount,
-          dynamicCount: dynamicCount,
-          wildcardCount: wildcardCount,
-        ),
-      );
-    }
-
-    // No more path segments to match
-    if (pathIndex >= pathSegments.length) {
-      // Check if remaining pattern segments are all optional
-      final remainingOptional = patternSegments
-          .skip(i)
-          .every((s) => s.endsWith('?'));
-
-      if (remainingOptional) {
-        return PathMatch(
-          matched: true,
-          params: params,
-          remaining: [],
-          specificity: PathSpecificity(
-            staticCount: staticCount,
-            dynamicCount: dynamicCount,
-            wildcardCount: wildcardCount,
-          ),
-        );
-      }
-
+  List<String> matchedSegments;
+  List<String> remainingSegments;
+  if (hasMultiWildcard) {
+    matchedSegments = pathSegments;
+    remainingSegments = const [];
+  } else {
+    if (pathSegments.length < patternSegments.length) {
       return PathMatch.noMatch;
     }
+    matchedSegments = pathSegments.sublist(0, patternSegments.length);
+    remainingSegments = pathSegments.sublist(patternSegments.length);
+  }
 
-    final pathSegment = pathSegments[pathIndex];
-
-    // Optional segment
-    if (patternSegment.endsWith('?')) {
-      final segmentWithoutQuestion = patternSegment.substring(
-        0,
-        patternSegment.length - 1,
-      );
-
-      // Dynamic optional param: `:id?`
-      if (segmentWithoutQuestion.startsWith(':')) {
-        final paramName = segmentWithoutQuestion.substring(1);
-
-        // Try to match - if next pattern segment matches current path segment,
-        // then this optional param should be skipped
-        if (i + 1 < patternSegments.length) {
-          final nextPattern = patternSegments[i + 1];
-          if (!nextPattern.startsWith(':') && nextPattern == pathSegment) {
-            // Skip this optional param
-            continue;
-          }
-        }
-
-        // Otherwise, consume this segment as the param
-        params[paramName] = pathSegment;
-        dynamicCount += 1;
-        pathIndex++;
-        continue;
-      }
-
-      // Static optional segment: `edit?`
-      if (segmentWithoutQuestion == pathSegment) {
-        staticCount += 1;
-        pathIndex++;
-      }
-      // If not matched, it's optional so just continue
-      continue;
-    }
-
-    // Dynamic param: `:id`
-    if (patternSegment.startsWith(':')) {
-      final paramName = patternSegment.substring(1);
-      params[paramName] = pathSegment;
-      dynamicCount += 1;
-      pathIndex++;
-      continue;
-    }
-
-    // Static segment: must match exactly
-    if (patternSegment == pathSegment) {
-      staticCount += 1;
-      pathIndex++;
-      continue;
-    }
-
-    // No match
+  final candidatePath =
+      matchedSegments.isEmpty ? '/' : '/${matchedSegments.join('/')}';
+  final regex = _routeRegexFor(normalizedPattern);
+  final match = regex.firstMatch(candidatePath);
+  if (match == null) {
     return PathMatch.noMatch;
   }
 
-  // Return matched with remaining path segments
+  final params = <String, String>{};
+  for (final name in match.groupNames) {
+    final value = match.namedGroup(name);
+    if (value != null) {
+      params[name] = value;
+    }
+  }
+
   return PathMatch(
     matched: true,
     params: params,
-    remaining: pathSegments.sublist(pathIndex),
-    specificity: PathSpecificity(
-      staticCount: staticCount,
-      dynamicCount: dynamicCount,
-      wildcardCount: wildcardCount,
-    ),
+    remaining: remainingSegments,
+    specificity: _patternSpecificity(patternSegments),
   );
 }

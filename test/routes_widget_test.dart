@@ -12,10 +12,10 @@ void main() {
 
       final router = Unrouter(
         history: history,
-        child: Routes(const [
+        child: Routes(RouteIndex.fromRoutes(const [
           Inlet(factory: HomePage.new),
           Inlet(path: 'about', factory: AboutPage.new),
-        ]),
+        ])),
       );
 
       await tester.pumpWidget(
@@ -31,10 +31,10 @@ void main() {
 
       router = Unrouter(
         history: MemoryHistory(),
-        child: Routes(const [
+        child: Routes(RouteIndex.fromRoutes(const [
           Inlet(factory: HomePage.new),
           Inlet(path: 'about', factory: AboutPage.new),
-        ]),
+        ])),
       );
 
       await tester.pumpWidget(
@@ -51,17 +51,17 @@ void main() {
       expect(find.text('About'), findsOneWidget);
     });
 
-    testWidgets('nested Routes work correctly', (tester) async {
+    testWidgets('nested Routes require full match', (tester) async {
       late Unrouter router;
 
       router = Unrouter(
         history: MemoryHistory(
           initialEntries: [RouteInformation(uri: Uri.parse('/about'))],
         ),
-        child: Routes(const [
+        child: Routes(RouteIndex.fromRoutes(const [
           Inlet(factory: HomePage.new),
           Inlet(path: 'about', factory: AboutPageWithNestedRoutes.new),
-        ]),
+        ])),
       );
 
       await tester.pumpWidget(
@@ -72,13 +72,13 @@ void main() {
       expect(find.text('About Home'), findsOneWidget);
       expect(find.text('About Details'), findsNothing);
 
-      // Navigate to /about/details
+      // Navigate to /about/details (no partial match)
       router.navigate(path: '/about/details');
       await tester.pumpAndSettle();
 
-      expect(find.text('About'), findsOneWidget);
+      expect(find.text('About'), findsNothing);
       expect(find.text('About Home'), findsNothing);
-      expect(find.text('About Details'), findsOneWidget);
+      expect(find.text('About Details'), findsNothing);
     });
 
     testWidgets('routes + child combination works', (tester) async {
@@ -86,11 +86,11 @@ void main() {
 
       router = Unrouter(
         history: MemoryHistory(),
-        routes: const [Inlet(path: 'static', factory: StaticPage.new)],
-        child: Routes(const [
+        routes: RouteIndex.fromRoutes(const [Inlet(path: 'static', factory: StaticPage.new)]),
+        child: Routes(RouteIndex.fromRoutes(const [
           Inlet(factory: HomePage.new),
           Inlet(path: 'about', factory: AboutPage.new),
-        ]),
+        ])),
       );
 
       await tester.pumpWidget(
@@ -122,10 +122,10 @@ void main() {
 
       final router = Unrouter(
         history: history,
-        child: Routes(const [
+        child: Routes(RouteIndex.fromRoutes(const [
           Inlet(factory: HomePage.new),
           Inlet(path: 'about', factory: AboutPage.new),
-        ]),
+        ])),
       );
 
       await tester.pumpWidget(
@@ -172,10 +172,10 @@ class AboutPageWithNestedRoutes extends StatelessWidget {
     return Column(
       children: [
         const Text('About'),
-        Routes(const [
+        Routes(RouteIndex.fromRoutes(const [
           Inlet(factory: AboutHomePage.new),
           Inlet(path: 'details', factory: AboutDetailsPage.new),
-        ]),
+        ])),
       ],
     );
   }

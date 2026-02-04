@@ -66,7 +66,6 @@ _MatchResult _matchRecursive(
   int offset,
 ) {
   _MatchResult? bestFullMatch;
-  _MatchResult? bestPartialMatch;
 
   _MatchResult pickBest(_MatchResult? current, _MatchResult candidate) {
     if (current == null) return candidate;
@@ -96,8 +95,6 @@ _MatchResult _matchRecursive(
           );
           if (candidate.fullyMatched) {
             bestFullMatch = pickBest(bestFullMatch, candidate);
-          } else {
-            bestPartialMatch = pickBest(bestPartialMatch, candidate);
           }
         }
       }
@@ -114,7 +111,7 @@ _MatchResult _matchRecursive(
       }
     } else {
       // Path route - try to match current segment
-      if (offset < segments.length) {
+      if (offset <= segments.length) {
         final remainingPath = segments.sublist(offset);
         final match = matchPath(route.path, remainingPath);
 
@@ -124,17 +121,14 @@ _MatchResult _matchRecursive(
           final newOffset = offset + consumedCount;
 
           if (route.children.isEmpty) {
-            // Leaf route
-            final candidate = _MatchResult(
-              [MatchedRoute(route, match.params)],
-              newOffset >= segments.length,
-              consumedCount,
-              match.specificity,
-            );
-            if (candidate.fullyMatched) {
+            if (newOffset >= segments.length && match.remaining.isEmpty) {
+              final candidate = _MatchResult(
+                [MatchedRoute(route, match.params)],
+                true,
+                consumedCount,
+                match.specificity,
+              );
               bestFullMatch = pickBest(bestFullMatch, candidate);
-            } else {
-              bestPartialMatch = pickBest(bestPartialMatch, candidate);
             }
           } else {
             // Has children - try to match remaining
@@ -143,26 +137,14 @@ _MatchResult _matchRecursive(
               segments,
               newOffset,
             );
-            if (childResult.matches.isNotEmpty) {
+            if (childResult.matches.isNotEmpty && childResult.fullyMatched) {
               final candidate = _MatchResult(
                 [MatchedRoute(route, match.params), ...childResult.matches],
-                childResult.fullyMatched,
+                true,
                 consumedCount + childResult.consumedSegments,
                 match.specificity + childResult.specificity,
               );
-              if (candidate.fullyMatched) {
-                bestFullMatch = pickBest(bestFullMatch, candidate);
-              } else {
-                bestPartialMatch = pickBest(bestPartialMatch, candidate);
-              }
-            } else if (match.remaining.isNotEmpty) {
-              final candidate = _MatchResult(
-                [MatchedRoute(route, match.params)],
-                false,
-                consumedCount,
-                match.specificity,
-              );
-              bestPartialMatch = pickBest(bestPartialMatch, candidate);
+              bestFullMatch = pickBest(bestFullMatch, candidate);
             }
           }
         }
@@ -172,9 +154,6 @@ _MatchResult _matchRecursive(
 
   if (bestFullMatch != null) {
     return bestFullMatch;
-  }
-  if (bestPartialMatch != null) {
-    return bestPartialMatch;
   }
 
   // No match found

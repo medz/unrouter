@@ -68,7 +68,7 @@ void main() {
       final register = _Counts();
 
       final router = Unrouter(
-        routes: [
+        routes: RouteIndex.fromRoutes([
           Inlet(
             factory: trackedLayoutFactory('Auth', auth),
             children: [
@@ -79,7 +79,7 @@ void main() {
               ),
             ],
           ),
-        ],
+        ]),
         history: MemoryHistory(
           initialEntries: [RouteInformation(uri: Uri.parse('/login'))],
         ),
@@ -154,7 +154,7 @@ void main() {
       final child2 = _Counts();
 
       final router = Unrouter(
-        routes: [
+        routes: RouteIndex.fromRoutes([
           Inlet(
             path: 'parent',
             factory: trackedLayoutFactory('Parent', parent),
@@ -169,7 +169,7 @@ void main() {
               ),
             ],
           ),
-        ],
+        ]),
         history: MemoryHistory(
           initialEntries: [RouteInformation(uri: Uri.parse('/parent/child1'))],
         ),

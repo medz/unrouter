@@ -7,43 +7,56 @@ String buildPathFromPattern({
   required Map<String, String> params,
   required String label,
 }) {
-  final segments = splitPath(pattern);
+  if (pattern.contains('?')) {
+    throw FlutterError(
+      'Optional segments are not supported.\n'
+      'Pattern: "$pattern".',
+    );
+  }
+
+  final normalizedPattern = normalizePattern(pattern);
+  final segments = splitPath(normalizedPattern);
   if (segments.isEmpty) return '';
 
   final resolved = <String>[];
+  var unnamedWildcardIndex = 0;
+  final paramToken = RegExp(r':(\w+)');
   for (final rawSegment in segments) {
-    if (rawSegment.startsWith('*')) {
-      final paramName = rawSegment.length > 1 ? rawSegment.substring(1) : '*';
+    if (rawSegment.startsWith('**')) {
+      final paramName =
+          rawSegment == '**'
+              ? '_'
+              : (rawSegment.length > 3 ? rawSegment.substring(3) : '');
       final wildcardValue = params[paramName];
-      if (wildcardValue == null || wildcardValue.isEmpty) {
+      if (paramName.isEmpty) {
+        throw FlutterError(
+          'Missing param for wildcard in route "$label".\n'
+          'Pattern: "$pattern".',
+        );
+      }
+      if ((wildcardValue == null || wildcardValue.isEmpty) && paramName != '_') {
         throw FlutterError(
           'Missing param "$paramName" for route "$label".\n'
           'Pattern: "$pattern".',
         );
       }
-      final wildcardSegments = splitPath(wildcardValue);
-      if (wildcardSegments.isNotEmpty) {
-        for (final segment in wildcardSegments) {
-          resolved.add(Uri.encodeComponent(segment));
+      if (wildcardValue != null && wildcardValue.isNotEmpty) {
+        final wildcardSegments = splitPath(wildcardValue);
+        if (wildcardSegments.isNotEmpty) {
+          for (final segment in wildcardSegments) {
+            resolved.add(Uri.encodeComponent(segment));
+          }
+        } else {
+          resolved.add(Uri.encodeComponent(wildcardValue));
         }
-      } else {
-        resolved.add(Uri.encodeComponent(wildcardValue));
       }
       break;
     }
 
-    final isOptional = rawSegment.endsWith('?');
-    final segment = isOptional
-        ? rawSegment.substring(0, rawSegment.length - 1)
-        : rawSegment;
-
-    if (segment.startsWith(':')) {
-      final paramName = segment.substring(1);
+    if (rawSegment == '*') {
+      final paramName = '_${unnamedWildcardIndex++}';
       final value = params[paramName];
       if (value == null || value.isEmpty) {
-        if (isOptional) {
-          continue;
-        }
         throw FlutterError(
           'Missing param "$paramName" for route "$label".\n'
           'Pattern: "$pattern".',
@@ -53,12 +66,26 @@ String buildPathFromPattern({
       continue;
     }
 
-    if (isOptional) {
+    if (rawSegment.contains(':')) {
+      final segment = rawSegment.replaceAllMapped(paramToken, (match) {
+        final name = match.group(1);
+        if (name == null || name.isEmpty) {
+          return '';
+        }
+        final value = params[name];
+        if (value == null || value.isEmpty) {
+          throw FlutterError(
+            'Missing param "$name" for route "$label".\n'
+            'Pattern: "$pattern".',
+          );
+        }
+        return Uri.encodeComponent(value);
+      });
       resolved.add(segment);
       continue;
     }
 
-    resolved.add(segment);
+    resolved.add(rawSegment);
   }
 
   return resolved.join('/');

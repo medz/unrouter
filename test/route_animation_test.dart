@@ -35,10 +35,10 @@ void main() {
     }
 
     final router = Unrouter(
-      routes: [
+      routes: RouteIndex.fromRoutes([
         Inlet(factory: home),
         Inlet(path: 'details', factory: details),
-      ],
+      ]),
       history: MemoryHistory(),
     );
 
@@ -95,11 +95,11 @@ void main() {
     }
 
     final router = Unrouter(
-      routes: [
+      routes: RouteIndex.fromRoutes([
         Inlet(factory: () => const Text('Home')),
         Inlet(path: 'details', factory: details),
         Inlet(path: 'login', factory: login),
-      ],
+      ]),
       history: MemoryHistory(
         initialEntries: [RouteInformation(uri: Uri.parse('/details'))],
       ),

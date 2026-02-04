@@ -14,10 +14,10 @@ void main() {
   group('Named routes', () {
     testWidgets('context.location exposes matched route name', (tester) async {
       final router = Unrouter(
-        routes: [
+        routes: RouteIndex.fromRoutes([
           Inlet(name: 'home', factory: NameProbePage.new),
           Inlet(name: 'about', path: 'about', factory: NameProbePage.new),
-        ],
+        ]),
         history: MemoryHistory(),
       );
 
@@ -32,14 +32,14 @@ void main() {
 
     testWidgets('navigate resolves names with params', (tester) async {
       final router = Unrouter(
-        routes: [
+        routes: RouteIndex.fromRoutes([
           Inlet(name: 'home', factory: () => const Text('Home')),
           Inlet(
             name: 'userDetail',
             path: 'users/:id',
             factory: UserDetailPage.new,
           ),
-        ],
+        ]),
         history: MemoryHistory(),
       );
 
@@ -59,7 +59,7 @@ void main() {
 
     testWidgets('navigate supports nested paths and query', (tester) async {
       final router = Unrouter(
-        routes: [
+        routes: RouteIndex.fromRoutes([
           Inlet(name: 'home', factory: () => const Text('Home')),
           Inlet(
             path: 'users',
@@ -70,7 +70,7 @@ void main() {
             ],
           ),
           Inlet(name: 'search', path: 'search', factory: SearchPage.new),
-        ],
+        ]),
         history: MemoryHistory(),
       );
 
@@ -92,57 +92,15 @@ void main() {
       expect(find.text('Search'), findsOneWidget);
     });
 
-    testWidgets('navigate handles optional params', (tester) async {
-      final router = Unrouter(
-        routes: [
-          Inlet(
-            name: 'about',
-            path: ':lang?/about',
-            factory: () => const Text('About'),
-          ),
-        ],
-        history: MemoryHistory(),
-      );
-
-      await tester.pumpWidget(wrapRouter(router));
-
-      await router.navigate(name: 'about');
-      await tester.pumpAndSettle();
-      expect(router.history.location.uri.path, '/about');
-
-      await router.navigate(name: 'about', params: {'lang': 'en'});
-      await tester.pumpAndSettle();
-      expect(router.history.location.uri.path, '/en/about');
-    });
-
-    testWidgets('navigate includes optional static segments', (tester) async {
-      final router = Unrouter(
-        routes: [
-          Inlet(
-            name: 'editUser',
-            path: 'users/:id/edit?',
-            factory: () => const Text('Edit'),
-          ),
-        ],
-        history: MemoryHistory(),
-      );
-
-      await tester.pumpWidget(wrapRouter(router));
-
-      await router.navigate(name: 'editUser', params: {'id': '9'});
-      await tester.pumpAndSettle();
-      expect(router.history.location.uri.path, '/users/9/edit');
-    });
-
     testWidgets('navigate.route generates URIs', (tester) async {
       final router = Unrouter(
-        routes: [
+        routes: RouteIndex.fromRoutes([
           Inlet(
             name: 'userDetail',
             path: 'users/:id',
             factory: UserDetailPage.new,
           ),
-        ],
+        ]),
         history: MemoryHistory(),
       );
 
@@ -162,7 +120,9 @@ void main() {
 
     testWidgets('navigate.route supports path patterns', (tester) async {
       final router = Unrouter(
-        routes: [Inlet(name: 'home', factory: () => const Text('Home'))],
+        routes: RouteIndex.fromRoutes(
+          [Inlet(name: 'home', factory: () => const Text('Home'))],
+        ),
         history: MemoryHistory(),
       );
 
@@ -178,20 +138,20 @@ void main() {
 
     testWidgets('navigate.route supports named wildcards', (tester) async {
       final router = Unrouter(
-        routes: [
+        routes: RouteIndex.fromRoutes([
           Inlet(
             name: 'docs',
-            path: 'docs/*path',
+            path: 'docs/**:path',
             factory: () => const Text('Docs'),
           ),
-        ],
+        ]),
         history: MemoryHistory(),
       );
 
       await tester.pumpWidget(wrapRouter(router));
 
       final uri = router.navigate.route(
-        path: '/docs/*path',
+        path: '/docs/**:path',
         params: {'path': 'a/b'},
       );
 
@@ -200,7 +160,9 @@ void main() {
 
     testWidgets('navigate supports path patterns', (tester) async {
       final router = Unrouter(
-        routes: [Inlet(path: 'users/:id', factory: UserDetailPage.new)],
+        routes: RouteIndex.fromRoutes(
+          [Inlet(path: 'users/:id', factory: UserDetailPage.new)],
+        ),
         history: MemoryHistory(),
       );
 
@@ -215,14 +177,14 @@ void main() {
 
     testWidgets('navigate throws for invalid names or params', (tester) async {
       final router = Unrouter(
-        routes: [
+        routes: RouteIndex.fromRoutes([
           Inlet(name: 'home', factory: () => const Text('Home')),
           Inlet(
             name: 'userDetail',
             path: 'users/:id',
             factory: UserDetailPage.new,
           ),
-        ],
+        ]),
         history: MemoryHistory(),
       );
 

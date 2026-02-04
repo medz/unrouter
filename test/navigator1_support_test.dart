@@ -12,7 +12,7 @@ void main() {
     tester,
   ) async {
     final router = Unrouter(
-      routes: [Inlet(factory: () => const _DialogPage(label: 'Home'))],
+      routes: RouteIndex.fromRoutes([Inlet(factory: () => const _DialogPage(label: 'Home'))]),
       history: MemoryHistory(),
     );
 
@@ -29,7 +29,7 @@ void main() {
     tester,
   ) async {
     final router = Unrouter(
-      routes: [Inlet(factory: () => const _BottomSheetPage(label: 'Home'))],
+      routes: RouteIndex.fromRoutes([Inlet(factory: () => const _BottomSheetPage(label: 'Home'))]),
       history: MemoryHistory(),
     );
 
@@ -50,7 +50,7 @@ void main() {
     tester,
   ) async {
     final router = Unrouter(
-      routes: [Inlet(factory: () => const _PushPage(label: 'Home'))],
+      routes: RouteIndex.fromRoutes([Inlet(factory: () => const _PushPage(label: 'Home'))]),
       history: MemoryHistory(),
     );
 
@@ -72,7 +72,7 @@ void main() {
     tester,
   ) async {
     final router = Unrouter(
-      routes: [Inlet(factory: () => const _GeneralDialogPage(label: 'Home'))],
+      routes: RouteIndex.fromRoutes([Inlet(factory: () => const _GeneralDialogPage(label: 'Home'))]),
       history: MemoryHistory(),
     );
 
@@ -90,7 +90,7 @@ void main() {
 
   testWidgets('showMenu works with navigator 1 support', (tester) async {
     final router = Unrouter(
-      routes: [Inlet(factory: () => const _MenuPage(label: 'Home'))],
+      routes: RouteIndex.fromRoutes([Inlet(factory: () => const _MenuPage(label: 'Home'))]),
       history: MemoryHistory(),
     );
 
@@ -110,13 +110,13 @@ void main() {
     tester,
   ) async {
     final router = Unrouter(
-      routes: [
+      routes: RouteIndex.fromRoutes([
         Inlet(factory: () => const _DialogPage(label: 'Home')),
         Inlet(
           path: 'about',
           factory: () => const _DialogPage(label: 'About'),
         ),
-      ],
+      ]),
       history: MemoryHistory(),
     );
 
@@ -144,13 +144,13 @@ void main() {
     tester,
   ) async {
     final router = Unrouter(
-      routes: [
+      routes: RouteIndex.fromRoutes([
         Inlet(factory: () => const _PushPage(label: 'Home')),
         Inlet(
           path: 'about',
           factory: () => const _PushPage(label: 'About'),
         ),
-      ],
+      ]),
       history: MemoryHistory(),
     );
 
@@ -176,7 +176,7 @@ void main() {
 
   testWidgets('Navigator.popUntil pops to first', (tester) async {
     final router = Unrouter(
-      routes: [Inlet(factory: () => const _PushPage(label: 'Home'))],
+      routes: RouteIndex.fromRoutes([Inlet(factory: () => const _PushPage(label: 'Home'))]),
       history: MemoryHistory(),
     );
 
@@ -202,7 +202,7 @@ void main() {
     tester,
   ) async {
     final router = Unrouter(
-      routes: [Inlet(factory: () => const _NestedNavigatorPage(label: 'Home'))],
+      routes: RouteIndex.fromRoutes([Inlet(factory: () => const _NestedNavigatorPage(label: 'Home'))]),
       history: MemoryHistory(),
     );
 
@@ -224,7 +224,7 @@ void main() {
     tester,
   ) async {
     final router = Unrouter(
-      routes: [Inlet(factory: () => const _DialogPage(label: 'Home'))],
+      routes: RouteIndex.fromRoutes([Inlet(factory: () => const _DialogPage(label: 'Home'))]),
       history: MemoryHistory(),
       enableNavigator1: false,
     );

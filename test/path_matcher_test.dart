@@ -93,50 +93,29 @@ void main() {
       expect(match.remaining, []);
     });
 
-    test('matches optional params when present', () {
-      final match = matchPath(':lang?/about', ['en', 'about']);
+    test('matches embedded params', () {
+      final match = matchPath('files/:name.:ext', ['files', 'report.pdf']);
       expect(match.matched, true);
-      expect(match.params, {'lang': 'en'});
+      expect(match.params, {'name': 'report', 'ext': 'pdf'});
       expect(match.remaining, []);
     });
 
-    test('matches optional params when absent', () {
-      final match = matchPath(':lang?/about', ['about']);
-      expect(match.matched, true);
-      expect(match.params, {});
-      expect(match.remaining, []);
-    });
-
-    test('matches optional static segments when present', () {
-      final match = matchPath('users/:id/edit?', ['users', '123', 'edit']);
-      expect(match.matched, true);
-      expect(match.params, {'id': '123'});
-      expect(match.remaining, []);
-    });
-
-    test('matches optional static segments when absent', () {
-      final match = matchPath('users/:id/edit?', ['users', '123']);
-      expect(match.matched, true);
-      expect(match.params, {'id': '123'});
-      expect(match.remaining, []);
-    });
-
-    test('matches wildcard', () {
+    test('matches single-segment wildcard', () {
       final match = matchPath('files/*', ['files', 'a', 'b', 'c']);
       expect(match.matched, true);
-      expect(match.params, {'*': 'a/b/c'});
-      expect(match.remaining, []);
+      expect(match.params, {'_0': 'a'});
+      expect(match.remaining, ['b', 'c']);
     });
 
-    test('wildcard consumes all remaining segments', () {
-      final match = matchPath('*', ['any', 'path', 'here']);
+    test('matches multi-segment wildcard', () {
+      final match = matchPath('files/**', ['files', 'a', 'b', 'c']);
       expect(match.matched, true);
-      expect(match.params, {'*': 'any/path/here'});
+      expect(match.params, {'_': 'a/b/c'});
       expect(match.remaining, []);
     });
 
-    test('captures named wildcard params', () {
-      final match = matchPath('files/*path', ['files', 'a', 'b']);
+    test('captures named multi-wildcard params', () {
+      final match = matchPath('files/**:path', ['files', 'a', 'b']);
       expect(match.matched, true);
       expect(match.params, {'path': 'a/b'});
       expect(match.remaining, []);
@@ -149,14 +128,5 @@ void main() {
       expect(match.remaining, ['login']);
     });
 
-    test('handles complex optional patterns', () {
-      final match1 = matchPath('users/:id?/posts', ['users', 'posts']);
-      expect(match1.matched, true);
-      expect(match1.params, {});
-
-      final match2 = matchPath('users/:id?/posts', ['users', '123', 'posts']);
-      expect(match2.matched, true);
-      expect(match2.params, {'id': '123'});
-    });
   });
 }

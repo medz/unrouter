@@ -13,10 +13,17 @@ void main() {
 
         router = Unrouter(
           history: MemoryHistory(),
-          routes: const [
+          routes: RouteIndex.fromRoutes(const [
             Inlet(factory: HomePage.new),
-            Inlet(path: 'products', factory: ProductsPageWithRoutes.new),
-          ],
+            Inlet(
+              path: 'products',
+              factory: ProductsPageWithRoutes.new,
+              children: [
+                Inlet(factory: ProductList.new),
+                Inlet(path: ':id', factory: ProductDetail.new),
+              ],
+            ),
+          ]),
         );
 
         await tester.pumpWidget(
@@ -46,10 +53,17 @@ void main() {
             ],
             initialIndex: 2, // Currently at /products/1
           ),
-          routes: const [
+          routes: RouteIndex.fromRoutes(const [
             Inlet(factory: HomePage.new),
-            Inlet(path: 'products', factory: ProductsPageWithRoutes.new),
-          ],
+            Inlet(
+              path: 'products',
+              factory: ProductsPageWithRoutes.new,
+              children: [
+                Inlet(factory: ProductList.new),
+                Inlet(path: ':id', factory: ProductDetail.new),
+              ],
+            ),
+          ]),
         );
 
         await tester.pumpWidget(
@@ -85,7 +99,7 @@ void main() {
 
       router = Unrouter(
         history: MemoryHistory(),
-        routes: const [
+        routes: RouteIndex.fromRoutes(const [
           Inlet(factory: HomePage.new),
           Inlet(
             factory: AuthLayout.new,
@@ -94,7 +108,7 @@ void main() {
               Inlet(path: 'register', factory: RegisterPage.new),
             ],
           ),
-        ],
+        ]),
       );
 
       await tester.pumpWidget(
@@ -124,7 +138,7 @@ void main() {
           ],
           initialIndex: 2, // Currently at /register
         ),
-        routes: const [
+        routes: RouteIndex.fromRoutes(const [
           Inlet(factory: HomePage.new),
           Inlet(
             factory: AuthLayout.new,
@@ -133,7 +147,7 @@ void main() {
               Inlet(path: 'register', factory: RegisterPage.new),
             ],
           ),
-        ],
+        ]),
       );
 
       await tester.pumpWidget(
@@ -174,13 +188,7 @@ class ProductsPageWithRoutes extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      children: [
-        const Text('Products Container'),
-        Routes(const [
-          Inlet(factory: ProductList.new),
-          Inlet(path: ':id', factory: ProductDetail.new),
-        ]),
-      ],
+      children: [const Text('Products Container'), const Outlet()],
     );
   }
 }

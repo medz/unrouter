@@ -16,7 +16,7 @@ import './pages/nested_animation/reviews.dart' as page_nested_animation_reviews;
 import './pages/products.dart' as page_products;
 import './pages/route_animation.dart' as page_route_animation;
 
-const routes = <Inlet>[
+final routes = RouteIndex.fromRoutes(const <Inlet>[
   Inlet(
     path: '',
     name: 'home',
@@ -98,4 +98,4 @@ const routes = <Inlet>[
     name: 'routeAnimation',
     factory: page_route_animation.RouteAnimationPage.new,
   ),
-];
+]);

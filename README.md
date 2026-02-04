@@ -50,10 +50,10 @@ import 'package:unrouter/unrouter.dart';
 
 void main() => runApp(
   Unrouter(
-    routes: const [
+    routes: RouteIndex.fromRoutes(const [
       Inlet(name: 'home', factory: HomePage.new),
       Inlet(name: 'about', path: 'about', factory: AboutPage.new),
-    ],
+    ]),
   ),
 );
 ```
@@ -63,7 +63,7 @@ void main() => runApp(
 ```dart
 final router = Unrouter(
   strategy: .browser,
-  routes: const [
+  routes: RouteIndex.fromRoutes(const [
     Inlet(factory: HomePage.new),
     Inlet(path: 'about', factory: AboutPage.new),
     Inlet(
@@ -74,8 +74,8 @@ final router = Unrouter(
         Inlet(path: ':id', factory: UserDetailPage.new),
       ],
     ),
-    Inlet(path: '*', factory: NotFoundPage.new),
-  ],
+    Inlet(path: '**', factory: NotFoundPage.new),
+  ]),
 );
 
 void main() => runApp(MaterialApp.router(routerConfig: router));
@@ -98,7 +98,7 @@ context.navigate(path: '../settings');  // /users/settings
 ### Unrouter
 
 `Unrouter` is a `RouterConfig` you can pass to `MaterialApp.router` or use as a
-standalone widget. Provide either `routes`, `child`, or both.
+standalone widget. Provide either `routes` (a `RouteIndex`), `child`, or both.
 
 ### Inlet
 
@@ -136,31 +136,31 @@ class UsersLayout extends StatelessWidget {
 
 ```dart
 Unrouter(
-  routes: const [
+  routes: RouteIndex.fromRoutes(const [
     Inlet(path: 'admin', factory: AdminPage.new),
-  ],
+  ]),
 )
 ```
 
 ### Widget-scoped
 
 ```dart
-Routes([
+Routes(RouteIndex.fromRoutes([
   Inlet(factory: HomePage.new),
   Inlet(path: 'settings', factory: SettingsPage.new),
-])
+]))
 ```
 
 ### Hybrid
 
 ```dart
 Unrouter(
-  routes: const [
+  routes: RouteIndex.fromRoutes(const [
     Inlet(path: 'admin', factory: AdminPage.new),
-  ],
-  child: Routes([
-    Inlet(factory: HomePage.new),
   ]),
+  child: Routes(RouteIndex.fromRoutes([
+    Inlet(factory: HomePage.new),
+  ])),
 )
 ```
 
@@ -169,14 +169,15 @@ Unrouter(
 Supported path tokens:
 - Static segments: `about`
 - Named params: `users/:id`
-- Optional segments: `:id?`
-- Wildcards: `*`, `*name` (catch-all)
+- Embedded params: `files/:name.:ext`
+- Single-segment wildcard: `*` (params `_0`, `_1`, ...)
+- Multi-segment wildcard: `**` (params `_`) or `**:path`
 
 ```dart
 Inlet(path: 'users/:id', factory: UserDetailPage.new);
-Inlet(path: 'blog/:slug?', factory: BlogPage.new);
-Inlet(path: 'docs/*path', factory: DocsPage.new);
-Inlet(path: '*', factory: NotFoundPage.new);
+Inlet(path: 'files/:name.:ext', factory: FilePage.new);
+Inlet(path: 'docs/**:path', factory: DocsPage.new);
+Inlet(path: '**', factory: NotFoundPage.new);
 ```
 
 Named routes let you generate URIs and navigate by name:
@@ -273,7 +274,7 @@ Notes:
 
 - `index.dart` maps to the directory root.
 - `[id].dart` maps to a named parameter (`:id`).
-- `[...path].dart` maps to a wildcard (`*path`) and exposes `path` in params.
+- `[...path].dart` maps to a wildcard (`**:path`) and exposes `path` in params.
 - Group segments in parentheses (e.g. `(auth)`) are ignored in the URL path.
 - `(group).dart` creates a pathless layout for that group; if it is missing, the
   group is purely organizational.
@@ -286,7 +287,7 @@ lib/pages/index.dart                  -> /
 lib/pages/about.dart                  -> /about
 lib/pages/users/index.dart            -> /users
 lib/pages/users/[id].dart             -> /users/:id
-lib/pages/docs/[...path].dart         -> /docs/*path
+lib/pages/docs/[...path].dart         -> /docs/**:path
 lib/pages/(auth)/login.dart           -> /login
 lib/pages/(auth).dart                 -> / (pathless layout)
 lib/pages/(marketing)/about.dart      -> /about
@@ -419,10 +420,10 @@ Future<GuardResult> authGuard(GuardContext context) async {
 
 Unrouter(
   guards: [authGuard],
-  routes: const [
+  routes: RouteIndex.fromRoutes(const [
     Inlet(path: 'login', factory: LoginPage.new),
     Inlet(path: 'admin', factory: AdminPage.new),
-  ],
+  ]),
 )
 ```
 
@@ -433,9 +434,9 @@ Use `RouteBlocker` to intercept back/pop events and confirm navigation.
 ```dart
 RouteBlocker(
   onWillPop: (context) async => !await confirmLeave(),
-  child: Routes([
+  child: Routes(RouteIndex.fromRoutes([
     Inlet(factory: EditPage.new),
-  ]),
+  ])),
 )
 ```
 
@@ -468,7 +469,7 @@ Navigator APIs:
 ```dart
 Unrouter(
   enableNavigator1: true,
-  routes: const [...],
+  routes: RouteIndex.fromRoutes(const [...]),
 )
 ```
 
@@ -477,7 +478,7 @@ Unrouter(
 ```dart
 Unrouter(
   strategy: .browser, // or .hash
-  routes: const [...],
+  routes: RouteIndex.fromRoutes(const [...]),
 )
 ```
 

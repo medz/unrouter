@@ -1,5 +1,12 @@
 ## Unreleased
 
+### Breaking Changes
+
+- Replace route matching with roux full-path semantics; partial matching and
+  optional `?` segments are no longer supported.
+- `Unrouter` and `Routes` now take a `RouteIndex` instead of a `List<Inlet>`,
+  and the CLI generator emits `RouteIndex.fromRoutes(...)`.
+
 ### Features
 
 - CLI file-based routing now supports `@RouteMeta(...)` annotations on page

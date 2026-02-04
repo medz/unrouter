@@ -486,7 +486,9 @@ String _buildOutput(
 
   buffer
     ..writeln('')
-    ..writeln('${useConstRoutes ? 'const' : 'final'} routes = <Inlet>[');
+    ..writeln(
+      'final routes = RouteIndex.fromRoutes(${useConstRoutes ? 'const ' : ''}<Inlet>[',
+    );
 
   for (final node in roots) {
     _writeRouteNode(
@@ -498,7 +500,7 @@ String _buildOutput(
     );
   }
 
-  buffer.writeln('];');
+  buffer.writeln(']);');
   return buffer.toString();
 }
 

@@ -111,5 +111,5 @@ const String outputTemplate = '''
 // GENERATED CODE - DO NOT MODIFY BY HAND.
 import 'package:unrouter/unrouter.dart';
 
-const routes = <Inlet>[];
+final routes = RouteIndex.fromRoutes(const <Inlet>[]);
 ''';

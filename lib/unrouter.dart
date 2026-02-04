@@ -10,6 +10,7 @@ export 'src/router/extensions.dart';
 export 'src/router/navigation.dart';
 export 'src/router/route_location.dart';
 export 'src/router/route_meta.dart';
+export 'src/router/route_index.dart';
 export 'src/router/route_state.dart';
 export 'src/router/route_matcher.dart' show MatchedRoute;
 export 'src/router/router.dart';

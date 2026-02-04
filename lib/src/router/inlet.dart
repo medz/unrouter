@@ -17,7 +17,7 @@ import 'guard.dart';
 ///
 /// Example:
 /// ```dart
-/// final routes = [
+/// final routes = RouteIndex.fromRoutes([
 ///   Inlet(name: 'home', factory: HomePage.new),
 ///   Inlet(name: 'about', path: 'about', factory: AboutPage.new),
 ///   Inlet(factory: AuthLayout.new, children: [
@@ -28,7 +28,7 @@ import 'guard.dart';
 ///     Inlet(name: 'usersIndex', factory: UsersIndexPage.new),
 ///     Inlet(name: 'userDetail', path: ':id', factory: UserDetailPage.new),
 ///   ]),
-/// ];
+/// ]);
 /// ```
 class Inlet {
   /// Path pattern for this route.
@@ -39,8 +39,9 @@ class Inlet {
   /// - `''` for index routes and layout routes
   /// - Static segments: `'about'`, `'users'`
   /// - Dynamic params: `':id'`, `':userId'`
-  /// - Optional params/segments: `':id?'`, `'edit?'`
-  /// - Wildcard: `'*'`, `'*name'`
+  /// - Embedded params: `'files/:name.:ext'`
+  /// - Single-segment wildcard: `'*'` (params `_0`, `_1`, ...)
+  /// - Multi-segment wildcard: `'**'` (params `_`) or `'**:path'`
   final String path;
 
   /// Optional unique name for this route.

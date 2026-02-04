@@ -25,10 +25,10 @@ void main() {
 
       router = Unrouter(
         history: MemoryHistory(),
-        child: Routes([
+        child: Routes(RouteIndex.fromRoutes([
           Inlet(factory: createHome),
           Inlet(path: 'about', factory: createAbout),
-        ]),
+        ])),
       );
 
       await tester.pumpWidget(
@@ -70,34 +70,32 @@ void main() {
 
       router = Unrouter(
         history: MemoryHistory(),
-        child: Routes([
+        child: Routes(RouteIndex.fromRoutes([
           Inlet(
             path: 'parent',
             factory: () {
               parentBuilds++;
               return Column(
-                children: [
-                  const Text('Parent'),
-                  Routes([
-                    Inlet(
-                      factory: () {
-                        child1Builds++;
-                        return const Text('Child1');
-                      },
-                    ),
-                    Inlet(
-                      path: 'child2',
-                      factory: () {
-                        child2Builds++;
-                        return const Text('Child2');
-                      },
-                    ),
-                  ]),
-                ],
+                children: [const Text('Parent'), const Outlet()],
               );
             },
+            children: [
+              Inlet(
+                factory: () {
+                  child1Builds++;
+                  return const Text('Child1');
+                },
+              ),
+              Inlet(
+                path: 'child2',
+                factory: () {
+                  child2Builds++;
+                  return const Text('Child2');
+                },
+              ),
+            ],
           ),
-        ]),
+        ])),
       );
 
       await tester.pumpWidget(
@@ -148,10 +146,10 @@ void main() {
 
       router = Unrouter(
         history: MemoryHistory(),
-        child: Routes([
+        child: Routes(RouteIndex.fromRoutes([
           Inlet(factory: () => const Text('Home')),
           Inlet(path: 'detail/:id', factory: createDetail),
-        ]),
+        ])),
       );
 
       await tester.pumpWidget(
@@ -184,15 +182,15 @@ void main() {
 
       router = Unrouter(
         history: MemoryHistory(),
-        routes: const [
+        routes: RouteIndex.fromRoutes(const [
           // Declarative route for /admin
           Inlet(path: 'admin', factory: StaticAdminPage.new),
-        ],
-        child: Routes(const [
+        ]),
+        child: Routes(RouteIndex.fromRoutes(const [
           // Widget-scoped route also tries to handle /admin
           Inlet(factory: HomePage.new),
           Inlet(path: 'admin', factory: DynamicAdminPage.new),
-        ]),
+        ])),
       );
 
       await tester.pumpWidget(
@@ -215,11 +213,11 @@ void main() {
 
       router = Unrouter(
         history: MemoryHistory(),
-        routes: const [Inlet(path: 'admin', factory: StaticAdminPage.new)],
-        child: Routes(const [
+        routes: RouteIndex.fromRoutes(const [Inlet(path: 'admin', factory: StaticAdminPage.new)]),
+        child: Routes(RouteIndex.fromRoutes(const [
           Inlet(factory: HomePage.new),
           Inlet(path: 'about', factory: AboutPage.new),
-        ]),
+        ])),
       );
 
       await tester.pumpWidget(
@@ -299,10 +297,10 @@ class SettingsRoutesContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Routes(const [
+    return Routes(RouteIndex.fromRoutes(const [
       Inlet(factory: SettingsHome.new),
       Inlet(path: 'profile', factory: SettingsProfile.new),
-    ]);
+    ]));
   }
 }
 
@@ -332,10 +330,10 @@ class Level1Page extends StatelessWidget {
     return Column(
       children: [
         const Text('Level1'),
-        Routes(const [
+        Routes(RouteIndex.fromRoutes(const [
           Inlet(factory: Level1Home.new),
           Inlet(path: 'level2', factory: Level2Page.new),
-        ]),
+        ])),
       ],
     );
   }

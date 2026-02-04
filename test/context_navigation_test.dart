@@ -7,10 +7,10 @@ void main() {
   group('BuildContext navigation extensions', () {
     testWidgets('context.navigate navigates to new route', (tester) async {
       final router = Unrouter(
-        routes: [
+        routes: RouteIndex.fromRoutes([
           Inlet(factory: () => const HomePage()),
           Inlet(path: 'about', factory: () => const AboutPage()),
-        ],
+        ]),
         history: MemoryHistory(),
       );
 
@@ -29,7 +29,9 @@ void main() {
 
     testWidgets('context.router accesses router instance', (tester) async {
       final router = Unrouter(
-        routes: [Inlet(factory: () => const RouterAccessPage())],
+        routes: RouteIndex.fromRoutes(
+          [Inlet(factory: () => const RouterAccessPage())],
+        ),
         history: MemoryHistory(),
       );
 
@@ -40,11 +42,11 @@ void main() {
 
     testWidgets('context.navigate with relative path', (tester) async {
       final router = Unrouter(
-        routes: [
+        routes: RouteIndex.fromRoutes([
           Inlet(path: 'users', factory: () => const UsersPage()),
           Inlet(path: 'users/:id', factory: () => const UserDetailPage()),
           Inlet(path: 'users/:id/edit', factory: () => const EditUserPage()),
-        ],
+        ]),
         history: MemoryHistory(),
       );
 
@@ -69,11 +71,11 @@ void main() {
 
     testWidgets('context.navigate with replace option', (tester) async {
       final router = Unrouter(
-        routes: [
+        routes: RouteIndex.fromRoutes([
           Inlet(factory: () => const HomePage()),
           Inlet(path: 'about', factory: () => const AboutPage()),
           Inlet(path: 'contact', factory: () => const ContactPage()),
-        ],
+        ]),
         history: MemoryHistory(),
       );
 
@@ -173,7 +175,7 @@ void main() {
 
     testWidgets('route state accessors expose granular values', (tester) async {
       final router = Unrouter(
-        routes: [
+        routes: RouteIndex.fromRoutes([
           Inlet(
             path: 'parent',
             factory: () => Column(
@@ -187,7 +189,7 @@ void main() {
               Inlet(path: ':id', factory: RouteInfoPanel.child),
             ],
           ),
-        ],
+        ]),
         history: MemoryHistory(),
       );
 

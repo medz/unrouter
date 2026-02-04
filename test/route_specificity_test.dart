@@ -15,7 +15,7 @@ void main() {
     tester,
   ) async {
     final router = Unrouter(
-      routes: [
+      routes: RouteIndex.fromRoutes([
         Inlet(
           name: 'concerts',
           path: 'concerts',
@@ -29,7 +29,7 @@ void main() {
             ),
           ],
         ),
-      ],
+      ]),
       history: MemoryHistory(),
     );
 
@@ -47,7 +47,7 @@ void main() {
 
   testWidgets('param routes still match when static does not', (tester) async {
     final router = Unrouter(
-      routes: [
+      routes: RouteIndex.fromRoutes([
         Inlet(
           name: 'concerts',
           path: 'concerts',
@@ -61,7 +61,7 @@ void main() {
             ),
           ],
         ),
-      ],
+      ]),
       history: MemoryHistory(),
     );
 

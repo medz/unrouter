@@ -6,7 +6,7 @@ import 'package:unrouter/unrouter.dart';
 void main() {
   testWidgets('nested routes with relative navigation', (tester) async {
     final router = Unrouter(
-      routes: [
+      routes: RouteIndex.fromRoutes([
         Inlet(factory: () => const Text('Home')),
         Inlet(
           path: 'users',
@@ -16,7 +16,7 @@ void main() {
             Inlet(path: ':id/edit', factory: () => const EditUser()),
           ],
         ),
-      ],
+      ]),
       history: MemoryHistory(),
     );
 

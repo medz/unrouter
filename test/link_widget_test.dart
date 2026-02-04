@@ -7,10 +7,10 @@ void main() {
   group('Link widget', () {
     testWidgets('navigates when tapped', (tester) async {
       final router = Unrouter(
-        routes: [
+        routes: RouteIndex.fromRoutes([
           Inlet(factory: () => const HomePage()),
           Inlet(path: 'about', factory: () => const AboutPage()),
-        ],
+        ]),
         history: MemoryHistory(),
       );
 
@@ -30,11 +30,11 @@ void main() {
 
     testWidgets('supports replace option', (tester) async {
       final router = Unrouter(
-        routes: [
+        routes: RouteIndex.fromRoutes([
           Inlet(factory: () => const HomePage()),
           Inlet(path: 'about', factory: () => const AboutPage()),
           Inlet(path: 'contact', factory: () => const ContactPage()),
-        ],
+        ]),
         history: MemoryHistory(),
       );
 
@@ -60,7 +60,7 @@ void main() {
     testWidgets('supports state parameter', (tester) async {
       Object? capturedState;
       final router = Unrouter(
-        routes: [
+        routes: RouteIndex.fromRoutes([
           Inlet(factory: () => const HomePage()),
           Inlet(
             path: 'about',
@@ -72,7 +72,7 @@ void main() {
               },
             ),
           ),
-        ],
+        ]),
         history: MemoryHistory(),
       );
 
@@ -90,10 +90,10 @@ void main() {
       tester,
     ) async {
       final router = Unrouter(
-        routes: [
+        routes: RouteIndex.fromRoutes([
           Inlet(factory: () => const BuilderTestPage()),
           Inlet(path: 'target', factory: () => const TargetPage()),
-        ],
+        ]),
         history: MemoryHistory(),
       );
 
@@ -114,11 +114,11 @@ void main() {
       tester,
     ) async {
       final router = Unrouter(
-        routes: [
+        routes: RouteIndex.fromRoutes([
           Inlet(factory: () => const OverrideTestPage()),
           Inlet(path: 'page1', factory: () => const Page1()),
           Inlet(path: 'page2', factory: () => const Page2()),
-        ],
+        ]),
         history: MemoryHistory(),
       );
 
@@ -142,10 +142,10 @@ void main() {
 
     testWidgets('Link has proper semantics', (tester) async {
       final router = Unrouter(
-        routes: [
+        routes: RouteIndex.fromRoutes([
           Inlet(factory: () => const HomePage()),
           Inlet(path: 'about', factory: () => const AboutPage()),
-        ],
+        ]),
         history: MemoryHistory(),
       );
 
@@ -164,10 +164,10 @@ void main() {
 
     testWidgets('Link has mouse cursor on hover', (tester) async {
       final router = Unrouter(
-        routes: [
+        routes: RouteIndex.fromRoutes([
           Inlet(factory: () => const HomePage()),
           Inlet(path: 'about', factory: () => const AboutPage()),
-        ],
+        ]),
         history: MemoryHistory(),
       );
 

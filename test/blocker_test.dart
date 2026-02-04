@@ -29,7 +29,7 @@ void main() {
     var blockedCalls = 0;
     final router = Unrouter(
       history: MemoryHistory(),
-      routes: [
+      routes: RouteIndex.fromRoutes([
         Inlet(factory: () => const Text('Home')),
         Inlet(
           path: 'about',
@@ -44,7 +44,7 @@ void main() {
             child: const Text('About'),
           ),
         ),
-      ],
+      ]),
     );
 
     await tester.pumpWidget(wrap(router));
@@ -67,7 +67,7 @@ void main() {
     var willPopCalls = 0;
     final router = Unrouter(
       history: MemoryHistory(),
-      routes: [
+      routes: RouteIndex.fromRoutes([
         Inlet(factory: () => const Text('Home')),
         Inlet(
           path: 'about',
@@ -79,7 +79,7 @@ void main() {
             child: const Text('About'),
           ),
         ),
-      ],
+      ]),
     );
 
     await tester.pumpWidget(wrap(router));
@@ -102,7 +102,7 @@ void main() {
     var layoutCalled = false;
     final router = Unrouter(
       history: MemoryHistory(),
-      routes: [
+      routes: RouteIndex.fromRoutes([
         Inlet(
           factory: () => RouteBlocker(
             onWillPop: (ctx) async {
@@ -116,7 +116,7 @@ void main() {
             Inlet(path: 'b', factory: () => const Text('B')),
           ],
         ),
-      ],
+      ]),
     );
 
     await tester.pumpWidget(wrap(router));
@@ -139,7 +139,7 @@ void main() {
     var called = false;
     final router = Unrouter(
       history: MemoryHistory(),
-      child: Routes([
+      child: Routes(RouteIndex.fromRoutes([
         Inlet(factory: () => const Text('Index')),
         Inlet(
           path: 'b',
@@ -151,7 +151,7 @@ void main() {
             child: const Text('B'),
           ),
         ),
-      ]),
+      ])),
     );
 
     await tester.pumpWidget(wrap(router));
@@ -173,7 +173,7 @@ void main() {
     var called = false;
     final router = Unrouter(
       history: MemoryHistory(),
-      routes: [
+      routes: RouteIndex.fromRoutes([
         Inlet(
           factory: () => RouteBlocker(
             onWillPop: (ctx) async {
@@ -183,7 +183,7 @@ void main() {
             child: const Text('Home'),
           ),
         ),
-      ],
+      ]),
     );
 
     await tester.pumpWidget(wrap(router));
@@ -206,7 +206,7 @@ void main() {
           return GuardResult.allow;
         },
       ],
-      routes: [
+      routes: RouteIndex.fromRoutes([
         Inlet(factory: () => const Text('Home')),
         Inlet(
           path: 'a',
@@ -218,7 +218,7 @@ void main() {
             child: const Text('A'),
           ),
         ),
-      ],
+      ]),
     );
 
     await tester.pumpWidget(wrap(router));
@@ -251,7 +251,7 @@ void main() {
           return GuardResult.allow;
         },
       ],
-      routes: [
+      routes: RouteIndex.fromRoutes([
         Inlet(factory: () => const Text('Home')),
         Inlet(
           path: 'a',
@@ -263,7 +263,7 @@ void main() {
             child: const Text('A'),
           ),
         ),
-      ],
+      ]),
     );
 
     await tester.pumpWidget(wrap(router));
@@ -306,7 +306,7 @@ void main() {
           return GuardResult.allow;
         },
       ],
-      routes: [
+      routes: RouteIndex.fromRoutes([
         Inlet(factory: () => const Text('Home')),
         Inlet(path: 'blocked', factory: () => const Text('Blocked')),
         Inlet(path: 'login', factory: () => const Text('Login')),
@@ -320,7 +320,7 @@ void main() {
             child: const Text('A'),
           ),
         ),
-      ],
+      ]),
     );
 
     await tester.pumpWidget(wrap(router));
@@ -359,7 +359,7 @@ void main() {
           return GuardResult.allow;
         },
       ],
-      child: Routes([
+      child: Routes(RouteIndex.fromRoutes([
         Inlet(factory: () => const Text('Index')),
         Inlet(
           path: 'b',
@@ -371,7 +371,7 @@ void main() {
             child: const Text('B'),
           ),
         ),
-      ]),
+      ])),
     );
 
     await tester.pumpWidget(wrap(router));
@@ -396,7 +396,7 @@ void main() {
     var childCalled = 0;
     final router = Unrouter(
       history: MemoryHistory(),
-      routes: [
+      routes: RouteIndex.fromRoutes([
         Inlet(factory: () => const Text('Home')),
         Inlet(
           path: 'nested',
@@ -414,7 +414,7 @@ void main() {
             ),
           ),
         ),
-      ],
+      ]),
     );
 
     await tester.pumpWidget(wrap(router));
@@ -436,7 +436,7 @@ void main() {
     var childCalled = 0;
     final router = Unrouter(
       history: MemoryHistory(),
-      routes: [
+      routes: RouteIndex.fromRoutes([
         Inlet(factory: () => const Text('Home')),
         Inlet(
           path: 'nested',
@@ -454,7 +454,7 @@ void main() {
             ),
           ),
         ),
-      ],
+      ]),
     );
 
     await tester.pumpWidget(wrap(router));
@@ -477,10 +477,30 @@ void main() {
     var leafCalled = 0;
     final router = Unrouter(
       history: MemoryHistory(),
-      child: Routes([
+      child: Routes(RouteIndex.fromRoutes([
         Inlet(factory: () => const Text('Index')),
-        Inlet(path: 'parent', factory: () => const _NestedRoutesHost()),
-      ]),
+        Inlet(
+          path: 'parent',
+          factory: () => const _NestedRoutesHost(),
+          children: [
+            Inlet(factory: () => const Text('ParentIndex')),
+            Inlet(
+              path: 'child',
+              factory: () => RouteBlocker(
+                onWillPop: (ctx) async {
+                  final callback = _NestedRoutesHost.onLeafPop;
+                  if (callback != null) {
+                    return callback(ctx);
+                  }
+                  return true;
+                },
+                child: const Text('Child'),
+              ),
+            ),
+            Inlet(path: 'other', factory: () => const Text('Other')),
+          ],
+        ),
+      ])),
     );
 
     await tester.pumpWidget(wrap(router));
@@ -509,7 +529,7 @@ void main() {
     var parentCalled = 0;
     final router = Unrouter(
       history: MemoryHistory(),
-      child: Routes([
+      child: Routes(RouteIndex.fromRoutes([
         Inlet(factory: () => const Text('Index')),
         Inlet(
           path: 'parent',
@@ -520,8 +540,25 @@ void main() {
             },
             child: const _NestedRoutesHost(),
           ),
+          children: [
+            Inlet(factory: () => const Text('ParentIndex')),
+            Inlet(
+              path: 'child',
+              factory: () => RouteBlocker(
+                onWillPop: (ctx) async {
+                  final callback = _NestedRoutesHost.onLeafPop;
+                  if (callback != null) {
+                    return callback(ctx);
+                  }
+                  return true;
+                },
+                child: const Text('Child'),
+              ),
+            ),
+            Inlet(path: 'other', factory: () => const Text('Other')),
+          ],
         ),
-      ]),
+      ])),
     );
 
     await tester.pumpWidget(wrap(router));
@@ -555,10 +592,30 @@ void main() {
           return GuardResult.allow;
         },
       ],
-      routes: [
+      routes: RouteIndex.fromRoutes([
         Inlet(factory: () => const Text('Home')),
-        Inlet(path: 'app', factory: () => const _HybridHost()),
-      ],
+        Inlet(
+          path: 'app',
+          factory: () => const _HybridHost(),
+          children: [
+            Inlet(factory: () => const Text('AppIndex')),
+            Inlet(
+              path: 'child',
+              factory: () => RouteBlocker(
+                onWillPop: (ctx) async {
+                  final callback = _HybridHost.onLeafPop;
+                  if (callback != null) {
+                    return callback(ctx);
+                  }
+                  return true;
+                },
+                child: const Text('AppChild'),
+              ),
+            ),
+            Inlet(path: 'other', factory: () => const Text('AppOther')),
+          ],
+        ),
+      ]),
     );
 
     await tester.pumpWidget(wrap(router));
@@ -600,10 +657,30 @@ void main() {
           return GuardResult.allow;
         },
       ],
-      routes: [
+      routes: RouteIndex.fromRoutes([
         Inlet(factory: () => const Text('Home')),
-        Inlet(path: 'app', factory: () => const _HybridHost()),
-      ],
+        Inlet(
+          path: 'app',
+          factory: () => const _HybridHost(),
+          children: [
+            Inlet(factory: () => const Text('AppIndex')),
+            Inlet(
+              path: 'child',
+              factory: () => RouteBlocker(
+                onWillPop: (ctx) async {
+                  final callback = _HybridHost.onLeafPop;
+                  if (callback != null) {
+                    return callback(ctx);
+                  }
+                  return true;
+                },
+                child: const Text('AppChild'),
+              ),
+            ),
+            Inlet(path: 'other', factory: () => const Text('AppOther')),
+          ],
+        ),
+      ]),
     );
 
     await tester.pumpWidget(wrap(router));
@@ -631,7 +708,7 @@ void main() {
     var parentCalled = 0;
     final router = Unrouter(
       history: MemoryHistory(),
-      routes: [
+      routes: RouteIndex.fromRoutes([
         Inlet(factory: () => const Text('Home')),
         Inlet(
           path: 'app',
@@ -642,8 +719,25 @@ void main() {
             },
             child: const _HybridHost(),
           ),
+          children: [
+            Inlet(factory: () => const Text('AppIndex')),
+            Inlet(
+              path: 'child',
+              factory: () => RouteBlocker(
+                onWillPop: (ctx) async {
+                  final callback = _HybridHost.onLeafPop;
+                  if (callback != null) {
+                    return callback(ctx);
+                  }
+                  return true;
+                },
+                child: const Text('AppChild'),
+              ),
+            ),
+            Inlet(path: 'other', factory: () => const Text('AppOther')),
+          ],
         ),
-      ],
+      ]),
     );
 
     await tester.pumpWidget(wrap(router));
@@ -666,7 +760,7 @@ void main() {
     var parentCalled = 0;
     final router = Unrouter(
       history: MemoryHistory(),
-      routes: [
+      routes: RouteIndex.fromRoutes([
         Inlet(factory: () => const Text('Home')),
         Inlet(
           path: 'app',
@@ -677,8 +771,25 @@ void main() {
             },
             child: const _HybridHost(),
           ),
+          children: [
+            Inlet(factory: () => const Text('AppIndex')),
+            Inlet(
+              path: 'child',
+              factory: () => RouteBlocker(
+                onWillPop: (ctx) async {
+                  final callback = _HybridHost.onLeafPop;
+                  if (callback != null) {
+                    return callback(ctx);
+                  }
+                  return true;
+                },
+                child: const Text('AppChild'),
+              ),
+            ),
+            Inlet(path: 'other', factory: () => const Text('AppOther')),
+          ],
         ),
-      ],
+      ]),
     );
 
     await tester.pumpWidget(wrap(router));
@@ -718,17 +829,46 @@ void main() {
             return GuardResult.allow;
           },
         ],
-        routes: [
+        routes: RouteIndex.fromRoutes([
           Inlet(factory: () => const Text('Home')),
           Inlet(path: 'login', factory: () => const Text('Login')),
           Inlet(
             path: 'app',
             factory: () => const _DeepHybridHost(),
             children: [
-              Inlet(path: 'section', factory: () => const _SectionShell()),
+              Inlet(
+                path: 'section',
+                factory: () => const _SectionShell(),
+                children: [
+                  Inlet(
+                    path: 'detail',
+                    factory: () => const _DetailShell(),
+                    children: [
+                      Inlet(factory: () => const Text('DetailIndex')),
+                      Inlet(
+                        path: 'child',
+                        factory: () => RouteBlocker(
+                          onWillPop: (ctx) async {
+                            final completer = _DetailShell.leafCompleter;
+                            if (completer != null) {
+                              return completer.future;
+                            }
+                            return true;
+                          },
+                          child: const Text('DetailChild'),
+                        ),
+                      ),
+                      Inlet(
+                        path: 'other',
+                        factory: () => const Text('DetailOther'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ],
           ),
-        ],
+        ]),
       );
 
       await tester.pumpWidget(wrap(router));
@@ -773,17 +913,46 @@ void main() {
           return GuardResult.allow;
         },
       ],
-      routes: [
+      routes: RouteIndex.fromRoutes([
         Inlet(factory: () => const Text('Home')),
         Inlet(path: 'login', factory: () => const Text('Login')),
         Inlet(
           path: 'app',
           factory: () => const _DeepHybridHost(),
           children: [
-            Inlet(path: 'section', factory: () => const _SectionShell()),
+            Inlet(
+              path: 'section',
+              factory: () => const _SectionShell(),
+              children: [
+                Inlet(
+                  path: 'detail',
+                  factory: () => const _DetailShell(),
+                  children: [
+                    Inlet(factory: () => const Text('DetailIndex')),
+                    Inlet(
+                      path: 'child',
+                      factory: () => RouteBlocker(
+                        onWillPop: (ctx) async {
+                          final completer = _DetailShell.leafCompleter;
+                          if (completer != null) {
+                            return completer.future;
+                          }
+                          return true;
+                        },
+                        child: const Text('DetailChild'),
+                      ),
+                    ),
+                    Inlet(
+                      path: 'other',
+                      factory: () => const Text('DetailOther'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ],
         ),
-      ],
+      ]),
     );
 
     await tester.pumpWidget(wrap(router));
@@ -812,23 +981,7 @@ class _NestedRoutesHost extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Routes([
-      Inlet(factory: () => const Text('ParentIndex')),
-      Inlet(
-        path: 'child',
-        factory: () => RouteBlocker(
-          onWillPop: (ctx) async {
-            final callback = onLeafPop;
-            if (callback != null) {
-              return callback(ctx);
-            }
-            return true;
-          },
-          child: const Text('Child'),
-        ),
-      ),
-      Inlet(path: 'other', factory: () => const Text('Other')),
-    ]);
+    return const Outlet();
   }
 }
 
@@ -839,23 +992,7 @@ class _HybridHost extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Routes([
-      Inlet(factory: () => const Text('AppIndex')),
-      Inlet(
-        path: 'child',
-        factory: () => RouteBlocker(
-          onWillPop: (ctx) async {
-            final callback = onLeafPop;
-            if (callback != null) {
-              return callback(ctx);
-            }
-            return true;
-          },
-          child: const Text('AppChild'),
-        ),
-      ),
-      Inlet(path: 'other', factory: () => const Text('AppOther')),
-    ]);
+    return const Outlet();
   }
 }
 
@@ -880,15 +1017,12 @@ class _SectionShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final routes = Routes([
-      Inlet(factory: () => const Text('SectionIndex')),
-      Inlet(path: 'detail', factory: () => const _DetailShell()),
-    ]);
     final callback = onSectionPop;
+    final content = const Outlet();
     if (callback == null) {
-      return routes;
+      return content;
     }
-    return RouteBlocker(onWillPop: callback, child: routes);
+    return RouteBlocker(onWillPop: callback, child: content);
   }
 }
 
@@ -899,22 +1033,6 @@ class _DetailShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Routes([
-      Inlet(factory: () => const Text('DetailIndex')),
-      Inlet(
-        path: 'child',
-        factory: () => RouteBlocker(
-          onWillPop: (ctx) async {
-            final completer = leafCompleter;
-            if (completer != null) {
-              return completer.future;
-            }
-            return true;
-          },
-          child: const Text('DetailChild'),
-        ),
-      ),
-      Inlet(path: 'other', factory: () => const Text('DetailOther')),
-    ]);
+    return const Outlet();
   }
 }

@@ -120,11 +120,11 @@ String? _parseDynamicSegment(String segment) {
   if (segment.startsWith('[') && segment.endsWith(']')) {
     final inner = segment.substring(1, segment.length - 1);
     if (inner == '...') {
-      return '*';
+      return '**';
     }
     if (inner.startsWith('...') && inner.length > 3) {
       final name = inner.substring(3);
-      return '*$name';
+      return '**:$name';
     }
     if (inner.isNotEmpty) {
       return ':$inner';

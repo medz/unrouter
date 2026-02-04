@@ -11,8 +11,8 @@ import '_internal/route_path_builder.dart';
 import '_internal/stacked_route_view.dart';
 import 'blocker.dart';
 import 'guard.dart';
-import 'inlet.dart';
 import 'navigation.dart';
+import 'route_index.dart';
 import 'route_location.dart';
 import 'route_matcher.dart';
 import 'route_state.dart';
@@ -24,7 +24,7 @@ import 'url_strategy.dart';
 /// `Unrouter` is a [RouterConfig] you can pass directly to
 /// `MaterialApp.router(routerConfig: ...)`, or use as a standalone widget.
 ///
-/// It matches the current URL against a tree of [Inlet] routes and renders the
+/// It matches the current URL against a [RouteIndex] and renders the
 /// matched widgets as a stacked tree. Layout and nested routes must include an
 /// `Outlet` to render their matched child.
 ///
@@ -47,8 +47,8 @@ class Unrouter extends StatelessWidget
   ///
   /// At least one of [routes] or [child] must be provided.
   ///
-  /// Provide [routes] as a stable list (prefer `const`) so route widget caching
-  /// can work effectively.
+  /// Provide [routes] as a stable [RouteIndex] (create via
+  /// `RouteIndex.fromRoutes`) so route widget caching can work effectively.
   ///
   /// If [history] is omitted, a default implementation is selected based on the
   /// platform and [strategy].
@@ -73,7 +73,7 @@ class Unrouter extends StatelessWidget
   ///
   /// If provided, these routes are matched first. If [child] is also provided
   /// and no route matches, [child] is rendered as fallback.
-  final List<Inlet>? routes;
+  final RouteIndex? routes;
 
   /// Widget-scoped child to render when declarative routes don't match or when no routes are provided.
   ///
@@ -187,7 +187,7 @@ class _InformationParser extends RouteInformationParser<RouteInformation> {
 ///
 /// The delegate:
 /// - Listens to [History] `pop` events and updates [currentConfiguration].
-/// - Matches the current path against declarative [Inlet] routes (if provided).
+/// - Matches the current path against declarative routes (if provided).
 /// - Provides [RouteState] to descendants.
 /// - Renders widget-scoped [child] if declarative routes don't match or if no routes are provided.
 class UnrouterDelegate extends RouterDelegate<RouteInformation>
@@ -207,10 +207,11 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
   }
 
   final Unrouter router;
-  late final NamedRouteResolver _namedRoutes = NamedRouteResolver(routes);
+  late final NamedRouteResolver _namedRoutes =
+      NamedRouteResolver(routes?.routes);
 
   /// Declarative routes configuration for centralized route matching.
-  Iterable<Inlet>? get routes => router.routes;
+  RouteIndex? get routes => router.routes;
 
   /// Widget-scoped child to render when declarative routes don't match or when no routes are provided.
   Widget? get child => router.child;
@@ -410,9 +411,9 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
   }
 
   Iterable<Guard> _resolveRouteGuards(RouteInformation routeInformation) {
-    final routeList = routes;
-    if (routeList == null) return const [];
-    final result = matchRoutes(routeList, routeInformation.uri.path);
+    final routeIndex = routes;
+    if (routeIndex == null) return const [];
+    final result = routeIndex.match(routeInformation.uri.path);
     if (result.matches.isEmpty) return const [];
     return [for (final match in result.matches) ...match.route.guards];
   }
@@ -431,8 +432,7 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
       return;
     }
 
-    final result = matchRoutes(routes!, location.path);
-    // Accept both full matches and partial matches (for widget-scoped Routes support)
+    final result = routes!.match(location.path);
     _matchedRoutes = result.matches;
     final name = _resolveMatchedName(_matchedRoutes);
     currentConfiguration = RouteLocation(
@@ -746,7 +746,7 @@ class UnrouterDelegate extends RouterDelegate<RouteInformation>
       );
     }
 
-    final result = matchRoutes(routeList, location.uri.path);
+    final result = routeList.match(location.uri.path);
     final name = _resolveMatchedName(result.matches);
     return RouteLocation(uri: location.uri, state: location.state, name: name);
   }
@@ -780,23 +780,7 @@ _ParsedPath _splitPathAndQuery(String raw) {
     path = path.substring(0, fragmentIndex);
   }
 
-  int queryIndex = -1;
-  for (var i = 0; i < path.length; i++) {
-    if (path.codeUnitAt(i) != 63) continue; // '?'
-    final hasNext = i + 1 < path.length;
-    if (!hasNext) {
-      // Trailing '?' is an optional segment marker.
-      continue;
-    }
-    final next = path.codeUnitAt(i + 1);
-    if (next == 47) {
-      // "?/" indicates optional segment, not query.
-      continue;
-    }
-    queryIndex = i;
-    break;
-  }
-
+  final queryIndex = path.indexOf('?');
   String? query;
   if (queryIndex != -1) {
     query = path.substring(queryIndex + 1);
@@ -810,11 +794,6 @@ bool _containsPatternSyntax(String path) {
   for (var i = 0; i < path.length; i++) {
     final char = path.codeUnitAt(i);
     if (char == 58 || char == 42) return true; // ':' or '*'
-    if (char == 63) {
-      final hasNext = i + 1 < path.length;
-      if (!hasNext) return true;
-      if (path.codeUnitAt(i + 1) == 47) return true;
-    }
   }
   return false;
 }

@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:unrouter/history.dart';
 
-import 'inlet.dart';
+import 'route_index.dart';
 import 'route_matcher.dart';
 import '_internal/route_state_scope.dart';
 import '_internal/routes_matcher.dart';
@@ -212,7 +212,7 @@ abstract class BlockerScopeData {
   ScopeMatch match(RouteInformation location);
 
   BlockerScopeData createRoutesScope({
-    required List<Inlet> routes,
+    required RouteIndex routes,
     required int anchorLevel,
     required List<MatchedRoute> anchorPrefix,
   });
@@ -221,7 +221,7 @@ abstract class BlockerScopeData {
 class _RootBlockerScopeData extends BlockerScopeData {
   const _RootBlockerScopeData(this.routes);
 
-  final Iterable<Inlet>? routes;
+  final RouteIndex? routes;
 
   @override
   int get depth => 0;
@@ -231,13 +231,13 @@ class _RootBlockerScopeData extends BlockerScopeData {
     if (routes == null) {
       return const ScopeMatch(active: true, matches: []);
     }
-    final result = matchRoutes(routes!, location.uri.path);
+    final result = routes!.match(location.uri.path);
     return ScopeMatch(active: true, matches: result.matches);
   }
 
   @override
   BlockerScopeData createRoutesScope({
-    required List<Inlet> routes,
+    required RouteIndex routes,
     required int anchorLevel,
     required List<MatchedRoute> anchorPrefix,
   }) {
@@ -259,7 +259,7 @@ class _RoutesBlockerScopeData extends BlockerScopeData {
   });
 
   final BlockerScopeData parent;
-  final List<Inlet> routes;
+  final RouteIndex routes;
   final int anchorLevel;
   final List<MatchedRoute> anchorPrefix;
 
@@ -281,13 +281,13 @@ class _RoutesBlockerScopeData extends BlockerScopeData {
       parentMatch.matches,
       anchorLevel,
     );
-    final result = matchRoutesGreedy(routes, pathToMatch);
+    final result = routes.match(pathToMatch);
     return ScopeMatch(active: true, matches: result.matches);
   }
 
   @override
   BlockerScopeData createRoutesScope({
-    required List<Inlet> routes,
+    required RouteIndex routes,
     required int anchorLevel,
     required List<MatchedRoute> anchorPrefix,
   }) {
@@ -522,6 +522,6 @@ bool _prefixMatches(List<MatchedRoute> anchor, List<MatchedRoute> current) {
 }
 
 @internal
-BlockerScopeData createRootBlockerScope(Iterable<Inlet>? routes) {
+BlockerScopeData createRootBlockerScope(RouteIndex? routes) {
   return _RootBlockerScopeData(routes);
 }

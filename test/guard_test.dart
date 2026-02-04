@@ -20,10 +20,10 @@ void main() {
   testWidgets('guard allow permits navigation', (tester) async {
     var called = false;
     final router = Unrouter(
-      routes: [
+      routes: RouteIndex.fromRoutes([
         Inlet(factory: () => const Text('Home')),
         Inlet(path: 'login', factory: () => const Text('Login')),
-      ],
+      ]),
       history: MemoryHistory(),
       guards: [
         (context) {
@@ -49,10 +49,10 @@ void main() {
 
   testWidgets('guard cancel blocks navigation', (tester) async {
     final router = Unrouter(
-      routes: [
+      routes: RouteIndex.fromRoutes([
         Inlet(factory: () => const Text('Home')),
         Inlet(path: 'login', factory: () => const Text('Login')),
-      ],
+      ]),
       history: MemoryHistory(),
       guards: [(context) => GuardResult.cancel],
     );
@@ -74,10 +74,10 @@ void main() {
     var firstCalled = false;
     var secondCalled = false;
     final router = Unrouter(
-      routes: [
+      routes: RouteIndex.fromRoutes([
         Inlet(factory: () => const Text('Home')),
         Inlet(path: 'login', factory: () => const Text('Login')),
-      ],
+      ]),
       history: MemoryHistory(),
       guards: [
         (context) {
@@ -107,10 +107,10 @@ void main() {
   testWidgets('async guard waits for completion', (tester) async {
     final completer = Completer<GuardResult>();
     final router = Unrouter(
-      routes: [
+      routes: RouteIndex.fromRoutes([
         Inlet(factory: () => const Text('Home')),
         Inlet(path: 'login', factory: () => const Text('Login')),
-      ],
+      ]),
       history: MemoryHistory(),
       guards: [(context) => completer.future],
     );
@@ -134,10 +134,10 @@ void main() {
 
   testWidgets('GuardResult error is handled as guard result', (tester) async {
     final router = Unrouter(
-      routes: [
+      routes: RouteIndex.fromRoutes([
         Inlet(factory: () => const Text('Home')),
         Inlet(path: 'login', factory: () => const Text('Login')),
-      ],
+      ]),
       history: MemoryHistory(),
       guards: [
         (context) {
@@ -159,10 +159,10 @@ void main() {
 
   testWidgets('guard error cancels and reports exception', (tester) async {
     final router = Unrouter(
-      routes: [
+      routes: RouteIndex.fromRoutes([
         Inlet(factory: () => const Text('Home')),
         Inlet(path: 'login', factory: () => const Text('Login')),
-      ],
+      ]),
       history: MemoryHistory(),
       guards: [
         (context) {
@@ -189,11 +189,11 @@ void main() {
 
   testWidgets('guard redirect replaces by default', (tester) async {
     final router = Unrouter(
-      routes: [
+      routes: RouteIndex.fromRoutes([
         Inlet(factory: () => const Text('Home')),
         Inlet(path: 'login', factory: () => const Text('Login')),
         Inlet(path: 'register', factory: () => const Text('Register')),
-      ],
+      ]),
       history: MemoryHistory(),
       guards: [(context) => GuardResult.redirect(path: '/login')],
     );
@@ -213,10 +213,10 @@ void main() {
 
   testWidgets('guard allow respects replace navigation', (tester) async {
     final router = Unrouter(
-      routes: [
+      routes: RouteIndex.fromRoutes([
         Inlet(factory: () => const Text('Home')),
         Inlet(path: 'login', factory: () => const Text('Login')),
-      ],
+      ]),
       history: MemoryHistory(),
       guards: [(context) => GuardResult.allow],
     );
@@ -235,11 +235,11 @@ void main() {
 
   testWidgets('guard redirect can push when replace is false', (tester) async {
     final router = Unrouter(
-      routes: [
+      routes: RouteIndex.fromRoutes([
         Inlet(factory: () => const Text('Home')),
         Inlet(path: 'login', factory: () => const Text('Login')),
         Inlet(path: 'register', factory: () => const Text('Register')),
-      ],
+      ]),
       history: MemoryHistory(),
       guards: [
         (context) {
@@ -265,14 +265,14 @@ void main() {
 
   testWidgets('inlet guard cancel blocks navigation', (tester) async {
     final router = Unrouter(
-      routes: [
+      routes: RouteIndex.fromRoutes([
         Inlet(factory: () => const Text('Home')),
         Inlet(
           path: 'admin',
           guards: [(context) => GuardResult.cancel],
           factory: () => const Text('Admin'),
         ),
-      ],
+      ]),
       history: MemoryHistory(),
     );
 
@@ -288,7 +288,7 @@ void main() {
 
   testWidgets('inlet guard redirect works', (tester) async {
     final router = Unrouter(
-      routes: [
+      routes: RouteIndex.fromRoutes([
         Inlet(factory: () => const Text('Home')),
         Inlet(path: 'login', factory: () => const Text('Login')),
         Inlet(
@@ -296,7 +296,7 @@ void main() {
           guards: [(context) => GuardResult.redirect(path: '/login')],
           factory: () => const Text('Admin'),
         ),
-      ],
+      ]),
       history: MemoryHistory(),
     );
 
@@ -317,7 +317,7 @@ void main() {
     }
 
     final router = Unrouter(
-      routes: [
+      routes: RouteIndex.fromRoutes([
         Inlet(
           path: 'admin',
           guards: [
@@ -340,7 +340,7 @@ void main() {
             ),
           ],
         ),
-      ],
+      ]),
       history: MemoryHistory(),
     );
 
@@ -355,10 +355,10 @@ void main() {
 
   testWidgets('setNewRoutePath is guarded (allow)', (tester) async {
     final router = Unrouter(
-      routes: [
+      routes: RouteIndex.fromRoutes([
         Inlet(factory: () => const Text('Home')),
         Inlet(path: 'login', factory: () => const Text('Login')),
-      ],
+      ]),
       history: MemoryHistory(),
       guards: [(context) => GuardResult.allow],
     );
@@ -377,10 +377,10 @@ void main() {
 
   testWidgets('setNewRoutePath is guarded (cancel)', (tester) async {
     final router = Unrouter(
-      routes: [
+      routes: RouteIndex.fromRoutes([
         Inlet(factory: () => const Text('Home')),
         Inlet(path: 'login', factory: () => const Text('Login')),
-      ],
+      ]),
       history: MemoryHistory(),
       guards: [
         (context) {
@@ -407,11 +407,11 @@ void main() {
 
   testWidgets('setNewRoutePath is guarded (redirect)', (tester) async {
     final router = Unrouter(
-      routes: [
+      routes: RouteIndex.fromRoutes([
         Inlet(factory: () => const Text('Home')),
         Inlet(path: 'login', factory: () => const Text('Login')),
         Inlet(path: 'blocked', factory: () => const Text('Blocked')),
-      ],
+      ]),
       history: MemoryHistory(),
       guards: [
         (context) {
@@ -437,11 +437,11 @@ void main() {
 
   testWidgets('guard cancel on pop restores previous location', (tester) async {
     final router = Unrouter(
-      routes: [
+      routes: RouteIndex.fromRoutes([
         Inlet(factory: () => const Text('Home')),
         Inlet(path: 'login', factory: () => const Text('Login')),
         Inlet(path: 'register', factory: () => const Text('Register')),
-      ],
+      ]),
       history: MemoryHistory(
         initialEntries: [RouteInformation(uri: Uri.parse('/login'))],
       ),
@@ -477,10 +477,10 @@ void main() {
     tester,
   ) async {
     final router = Unrouter(
-      routes: [
+      routes: RouteIndex.fromRoutes([
         Inlet(path: 'login', factory: () => const Text('Login')),
         Inlet(path: 'register', factory: () => const Text('Register')),
-      ],
+      ]),
       history: _NullDeltaHistory(
         initialEntries: [
           RouteInformation(uri: Uri.parse('/login')),
@@ -513,12 +513,12 @@ void main() {
 
   testWidgets('guard redirect on pop syncs history', (tester) async {
     final router = Unrouter(
-      routes: [
+      routes: RouteIndex.fromRoutes([
         Inlet(factory: () => const Text('Home')),
         Inlet(path: 'login', factory: () => const Text('Login')),
         Inlet(path: 'register', factory: () => const Text('Register')),
         Inlet(path: 'blocked', factory: () => const Text('Blocked')),
-      ],
+      ]),
       history: MemoryHistory(
         initialEntries: [RouteInformation(uri: Uri.parse('/login'))],
       ),
@@ -551,10 +551,10 @@ void main() {
 
   testWidgets('maxRedirects blocks redirect when set to zero', (tester) async {
     final router = Unrouter(
-      routes: [
+      routes: RouteIndex.fromRoutes([
         Inlet(factory: () => const Text('Home')),
         Inlet(path: 'login', factory: () => const Text('Login')),
-      ],
+      ]),
       history: MemoryHistory(),
       guards: [(context) => GuardResult.redirect(path: '/login')],
       maxRedirects: 0,

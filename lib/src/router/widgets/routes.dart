@@ -2,8 +2,8 @@ import 'package:flutter/widgets.dart';
 
 import '../_internal/routes_matcher.dart';
 import '../blocker.dart';
-import '../inlet.dart';
 import '../extensions.dart';
+import '../route_index.dart';
 import '../route_matcher.dart';
 import '../route_state.dart';
 import '../_internal/stacked_route_view.dart';
@@ -11,11 +11,14 @@ import '../_internal/stacked_route_view.dart';
 /// A widget that matches and renders routes based on the current location.
 ///
 /// Unlike [Outlet], which renders the next child in a pre-matched declarative route stack,
-/// `Routes` accepts its own [routes] list and performs matching based
+/// `Routes` accepts its own [RouteIndex] and performs matching based
 /// on the current location and rendering level.
 ///
 /// This enables widget-scoped routing where routes are defined directly within
 /// the component tree rather than centrally in `Unrouter.routes`.
+///
+/// `Routes` performs full matching for its scope. For nested paths, define
+/// child [Inlet] routes and render them with [Outlet].
 ///
 /// Example:
 /// ```dart
@@ -25,21 +28,21 @@ import '../_internal/stacked_route_view.dart';
 ///     return Column(
 ///       children: [
 ///         Text('About'),
-///         Routes([
+///         Routes(RouteIndex.fromRoutes([
 ///           Inlet(factory: AboutHome.new),
 ///           Inlet(path: 'details', factory: AboutDetails.new),
-///         ]),
+///         ])),
 ///       ],
 ///     );
 ///   }
 /// }
 /// ```
 class Routes extends StatelessWidget {
-  /// Creates a Routes widget with a list of route definitions.
+  /// Creates a Routes widget with a [RouteIndex].
   const Routes(this.routes, {super.key});
 
   /// The routes to match against the current location.
-  final List<Inlet> routes;
+  final RouteIndex routes;
 
   @override
   Widget build(BuildContext context) {
@@ -56,9 +59,7 @@ class Routes extends StatelessWidget {
         : resolveRoutesPath(state.location, state.matchedRoutes, state.level);
 
     // Match routes against the determined path
-    // For dynamic routes, we want to allow partial matches
-    // so that nested Routes widgets can continue matching
-    final result = matchRoutesGreedy(routes, pathToMatch);
+    final result = routes.match(pathToMatch);
 
     if (result.matches.isEmpty) {
       return const SizedBox.shrink();

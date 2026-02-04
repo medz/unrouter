@@ -41,10 +41,12 @@ class ProductsPage extends StatelessWidget {
             ),
           ),
           Expanded(
-            child: Routes(const [
-              Inlet(factory: ProductsList.new),
-              Inlet(path: ':id', factory: ProductDetail.new),
-            ]),
+            child: Routes(
+              RouteIndex.fromRoutes(const [
+                Inlet(factory: ProductsList.new),
+                Inlet(path: ':id', factory: ProductDetail.new),
+              ]),
+            ),
           ),
         ],
       ),
