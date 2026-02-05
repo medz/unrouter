@@ -1,7 +1,9 @@
 import 'package:flutter/widgets.dart';
+import 'package:unrouter/src/router_delegate.dart';
 import 'package:unstory/unstory.dart';
 
-import 'route_infoirmation_provider.dart';
+import 'route_information_parser.dart';
+import 'route_information_provider.dart';
 
 class Unrouter extends StatelessWidget
     implements RouterConfig<HistoryLocation> {
@@ -18,18 +20,16 @@ class Unrouter extends StatelessWidget
   final String? restorationScopeId;
 
   @override
-  RouteInformationProvider routeInformationProvider;
+  final RouteInformationProvider routeInformationProvider;
+
+  @override
+  late final routerDelegate = UnrouterDelegate(this);
 
   @override
   BackButtonDispatcher? get backButtonDispatcher => throw UnimplementedError();
 
   @override
-  RouteInformationParser<HistoryLocation>? get routeInformationParser =>
-      throw UnimplementedError();
-
-  @override
-  RouterDelegate<HistoryLocation> get routerDelegate =>
-      throw UnimplementedError();
+  get routeInformationParser => const UnrouterRouteInformationParser();
 
   @override
   Widget build(BuildContext context) {
