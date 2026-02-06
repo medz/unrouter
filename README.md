@@ -69,6 +69,8 @@ Import `unrouter.dart` explicitly when you need core routing APIs.
   `cd bench && dart run main.dart`
 - Tuned run (rounds/samples/long-lived rounds):
   `cd bench && dart run main.dart --rounds=48 --samples=7 --long-lived-rounds=64`
+- Stability-focused performance comparison (warmup + repeated run aggregation):
+  `cd bench && dart run main.dart --performance-only --warmup-rounds=24 --warmup-samples=2 --performance-runs=5 --rounds=48 --samples=7`
 - Optional raw suites:
   `cd bench && flutter test --tags behavior`
   `cd bench && flutter test --tags performance`

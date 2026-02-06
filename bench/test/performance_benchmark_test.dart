@@ -17,11 +17,27 @@ void main() {
         'UNROUTER_BENCH_SAMPLES',
         defaultValue: 5,
       );
+      const warmupRounds = int.fromEnvironment(
+        'UNROUTER_BENCH_WARMUP_ROUNDS',
+        defaultValue: 12,
+      );
+      const warmupSamples = int.fromEnvironment(
+        'UNROUTER_BENCH_WARMUP_SAMPLES',
+        defaultValue: 1,
+      );
 
       final series = <PerformanceSeries>[];
       for (final harness in createHarnesses()) {
         await harness.attach(tester);
         try {
+          if (warmupRounds > 0 && warmupSamples > 0) {
+            await runPerformanceSeries(
+              harness,
+              tester,
+              rounds: warmupRounds,
+              samples: warmupSamples,
+            );
+          }
           series.add(
             await runPerformanceSeries(
               harness,

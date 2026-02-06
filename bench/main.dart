@@ -29,6 +29,9 @@ Future<void> main(List<String> rawArgs) async {
     defaults: <String, Object?>{
       'rounds': '24',
       'samples': '5',
+      'warmup-rounds': '12',
+      'warmup-samples': '1',
+      'performance-runs': '3',
       'long-lived-rounds': '40',
       'behavior-only': false,
       'performance-only': false,
@@ -38,6 +41,9 @@ Future<void> main(List<String> rawArgs) async {
     aliases: <String, String>{
       'r': 'rounds',
       's': 'samples',
+      'w': 'warmup-rounds',
+      'x': 'warmup-samples',
+      'n': 'performance-runs',
       'l': 'long-lived-rounds',
       'b': 'behavior-only',
       'p': 'performance-only',
@@ -50,7 +56,14 @@ Future<void> main(List<String> rawArgs) async {
       'verbose',
       'help',
     ],
-    string: const <String>['rounds', 'samples', 'long-lived-rounds'],
+    string: const <String>[
+      'rounds',
+      'samples',
+      'warmup-rounds',
+      'warmup-samples',
+      'performance-runs',
+      'long-lived-rounds',
+    ],
   );
 
   if (_readBool(parsed, 'help')) {
@@ -66,8 +79,9 @@ Future<void> main(List<String> rawArgs) async {
 
   stdout.writeln(
     '[router-benchmark] rounds=${config.rounds}, samples=${config.samples}, '
-    'longLivedRounds=${config.longLivedRounds}, behavior=${config.runBehavior}, '
-    'performance=${config.runPerformance}',
+    'warmupRounds=${config.warmupRounds}, warmupSamples=${config.warmupSamples}, '
+    'performanceRuns=${config.performanceRuns}, longLivedRounds=${config.longLivedRounds}, '
+    'behavior=${config.runBehavior}, performance=${config.runPerformance}',
   );
 
   final stopwatch = Stopwatch()..start();
@@ -118,17 +132,37 @@ _BenchConfig? _parseConfig(Args args) {
     _readString(args, 'samples', '5'),
     'samples',
   );
+  final warmupRounds = _parseNonNegativeInt(
+    _readString(args, 'warmup-rounds', '12'),
+    'warmup-rounds',
+  );
+  final warmupSamples = _parseNonNegativeInt(
+    _readString(args, 'warmup-samples', '1'),
+    'warmup-samples',
+  );
+  final performanceRuns = _parsePositiveInt(
+    _readString(args, 'performance-runs', '3'),
+    'performance-runs',
+  );
   final longLivedRounds = _parsePositiveInt(
     _readString(args, 'long-lived-rounds', '40'),
     'long-lived-rounds',
   );
-  if (rounds == null || samples == null || longLivedRounds == null) {
+  if (rounds == null ||
+      samples == null ||
+      warmupRounds == null ||
+      warmupSamples == null ||
+      performanceRuns == null ||
+      longLivedRounds == null) {
     return null;
   }
 
   return _BenchConfig(
     rounds: rounds,
     samples: samples,
+    warmupRounds: warmupRounds,
+    warmupSamples: warmupSamples,
+    performanceRuns: performanceRuns,
     longLivedRounds: longLivedRounds,
     runBehavior: !performanceOnly,
     runPerformance: !behaviorOnly,
@@ -151,6 +185,15 @@ bool _readBool(Args args, String key) {
 int? _parsePositiveInt(String raw, String option) {
   final value = int.tryParse(raw);
   if (value == null || value <= 0) {
+    stderr.writeln('[router-benchmark] invalid --$option: $raw');
+    return null;
+  }
+  return value;
+}
+
+int? _parseNonNegativeInt(String raw, String option) {
+  final value = int.tryParse(raw);
+  if (value == null || value < 0) {
     stderr.writeln('[router-benchmark] invalid --$option: $raw');
     return null;
   }
@@ -204,43 +247,174 @@ Future<_BehaviorRunResult> _runBehaviorSuite(_BenchConfig config) async {
 }
 
 Future<_PerformanceRunResult> _runPerformanceSuite(_BenchConfig config) async {
-  final byRouter = <String, _PerformanceRouterResult>{};
-  final result = await _runCommand(
-    executable: 'flutter',
-    arguments: <String>[
-      'test',
-      '--reporter=expanded',
-      'test/performance_benchmark_test.dart',
-      '--dart-define=UNROUTER_BENCH_ROUNDS=${config.rounds}',
-      '--dart-define=UNROUTER_BENCH_SAMPLES=${config.samples}',
-    ],
-    workingDirectory: config.benchDirectory,
-    verbose: config.verbose,
-    onLine: (line) {
-      final match = _performancePattern.firstMatch(_stripAnsi(line).trim());
-      if (match == null) {
-        return;
-      }
-      byRouter[match.group(1)!] = _PerformanceRouterResult(
-        router: match.group(1)!,
-        samples: int.parse(match.group(2)!),
-        rounds: int.parse(match.group(3)!),
-        meanUs: double.parse(match.group(4)!),
-        p50Us: double.parse(match.group(5)!),
-        p95Us: double.parse(match.group(6)!),
-        checksumParity: match.group(7) == 'true',
-        checksum: int.parse(match.group(8)!),
-      );
-    },
-  );
+  final runs = <_PerformanceSuiteRun>[];
+  final allLines = <String>[];
+  var firstNonZeroExitCode = 0;
 
-  final routers = byRouter.values.toList(growable: false)
-    ..sort((a, b) => a.router.compareTo(b.router));
+  for (var runIndex = 1; runIndex <= config.performanceRuns; runIndex++) {
+    if (config.performanceRuns > 1) {
+      stdout.writeln(
+        '[router-benchmark] performance run $runIndex/${config.performanceRuns}',
+      );
+    }
+
+    final byRouter = <String, _PerformanceRouterResult>{};
+    final result = await _runCommand(
+      executable: 'flutter',
+      arguments: <String>[
+        'test',
+        '--reporter=expanded',
+        'test/performance_benchmark_test.dart',
+        '--dart-define=UNROUTER_BENCH_ROUNDS=${config.rounds}',
+        '--dart-define=UNROUTER_BENCH_SAMPLES=${config.samples}',
+        '--dart-define=UNROUTER_BENCH_WARMUP_ROUNDS=${config.warmupRounds}',
+        '--dart-define=UNROUTER_BENCH_WARMUP_SAMPLES=${config.warmupSamples}',
+      ],
+      workingDirectory: config.benchDirectory,
+      verbose: config.verbose,
+      onLine: (line) {
+        final match = _performancePattern.firstMatch(_stripAnsi(line).trim());
+        if (match == null) {
+          return;
+        }
+        byRouter[match.group(1)!] = _PerformanceRouterResult(
+          router: match.group(1)!,
+          samples: int.parse(match.group(2)!),
+          rounds: int.parse(match.group(3)!),
+          meanUs: double.parse(match.group(4)!),
+          p50Us: double.parse(match.group(5)!),
+          p95Us: double.parse(match.group(6)!),
+          checksumParity: match.group(7) == 'true',
+          checksum: int.parse(match.group(8)!),
+          capturedRuns: 1,
+          totalRuns: 1,
+          meanCvPercent: 0,
+        );
+      },
+    );
+
+    if (result.exitCode != 0 && firstNonZeroExitCode == 0) {
+      firstNonZeroExitCode = result.exitCode;
+    }
+    allLines.addAll(result.lines.map((line) => '[run $runIndex] $line'));
+
+    final routers = byRouter.values.toList(growable: false)
+      ..sort((a, b) => a.router.compareTo(b.router));
+    runs.add(_PerformanceSuiteRun(routers: routers));
+  }
+
+  final aggregatedRouters = _aggregatePerformanceRouters(runs);
   return _PerformanceRunResult(
-    exitCode: result.exitCode,
-    routers: routers,
-    lines: result.lines,
+    exitCode: firstNonZeroExitCode,
+    routers: aggregatedRouters,
+    lines: allLines,
+    runCount: config.performanceRuns,
+    warmupRounds: config.warmupRounds,
+    warmupSamples: config.warmupSamples,
   );
+}
+
+List<_PerformanceRouterResult> _aggregatePerformanceRouters(
+  List<_PerformanceSuiteRun> runs,
+) {
+  if (runs.isEmpty) {
+    return const <_PerformanceRouterResult>[];
+  }
+
+  final totalRuns = runs.length;
+  final expectedRouters = runs.first.routers
+      .map((router) => router.router)
+      .toSet();
+  for (final run in runs.skip(1)) {
+    expectedRouters.addAll(run.routers.map((router) => router.router));
+  }
+
+  final byRouter = <String, List<_PerformanceRouterResult>>{};
+  for (final run in runs) {
+    for (final router in run.routers) {
+      byRouter.putIfAbsent(router.router, () => <_PerformanceRouterResult>[]);
+      byRouter[router.router]!.add(router);
+    }
+  }
+
+  final aggregated = <_PerformanceRouterResult>[];
+  final sortedRouters = expectedRouters.toList()..sort();
+  for (final routerName in sortedRouters) {
+    final entries = byRouter[routerName] ?? const <_PerformanceRouterResult>[];
+    if (entries.isEmpty) {
+      aggregated.add(
+        _PerformanceRouterResult(
+          router: routerName,
+          samples: 0,
+          rounds: 0,
+          meanUs: 0,
+          p50Us: 0,
+          p95Us: 0,
+          checksumParity: false,
+          checksum: -1,
+          capturedRuns: 0,
+          totalRuns: totalRuns,
+          meanCvPercent: 0,
+        ),
+      );
+      continue;
+    }
+
+    final means = entries.map((entry) => entry.meanUs).toList(growable: false);
+    final p50s = entries.map((entry) => entry.p50Us).toList(growable: false);
+    final p95s = entries.map((entry) => entry.p95Us).toList(growable: false);
+    final checksums = entries.map((entry) => entry.checksum).toSet();
+    final allChecksumParity = entries.every((entry) => entry.checksumParity);
+    final checksumAligned = checksums.length == 1;
+
+    aggregated.add(
+      _PerformanceRouterResult(
+        router: routerName,
+        samples: entries.first.samples,
+        rounds: entries.first.rounds,
+        meanUs: _median(means),
+        p50Us: _median(p50s),
+        p95Us: _median(p95s),
+        checksumParity: allChecksumParity && checksumAligned,
+        checksum: checksumAligned ? entries.first.checksum : -1,
+        capturedRuns: entries.length,
+        totalRuns: totalRuns,
+        meanCvPercent: _coefficientOfVariationPercent(means),
+      ),
+    );
+  }
+  return aggregated;
+}
+
+double _median(List<double> values) {
+  if (values.isEmpty) {
+    return 0;
+  }
+  final sorted = List<double>.from(values)..sort();
+  final middle = sorted.length ~/ 2;
+  if (sorted.length.isOdd) {
+    return sorted[middle];
+  }
+  return (sorted[middle - 1] + sorted[middle]) / 2;
+}
+
+double _coefficientOfVariationPercent(List<double> values) {
+  if (values.length < 2) {
+    return 0;
+  }
+  final mean =
+      values.fold<double>(0, (sum, value) => sum + value) / values.length;
+  if (mean == 0) {
+    return 0;
+  }
+  final variance =
+      values.fold<double>(
+        0,
+        (sum, value) => sum + (value - mean) * (value - mean),
+      ) /
+      (values.length - 1);
+  final standardDeviation = math.sqrt(variance);
+  return (standardDeviation / mean) * 100;
 }
 
 Future<_CommandResult> _runCommand({
@@ -364,7 +538,8 @@ String _renderSummary({
   buffer.writeln('Bench: ${config.benchDirectory}');
   buffer.writeln(
     'Config: rounds=${config.rounds}, samples=${config.samples}, '
-    'longLivedRounds=${config.longLivedRounds}',
+    'warmupRounds=${config.warmupRounds}, warmupSamples=${config.warmupSamples}, '
+    'performanceRuns=${config.performanceRuns}, longLivedRounds=${config.longLivedRounds}',
   );
   buffer.writeln('Elapsed: ${elapsed.inMilliseconds} ms');
 
@@ -403,18 +578,26 @@ String _renderSummary({
       ]),
     );
     buffer.writeln('Suite exit code: ${performance.exitCode}');
+    buffer.writeln(
+      'Aggregation: median across ${performance.runCount} run(s), '
+      'warmup=${performance.warmupSamples}x${performance.warmupRounds}',
+    );
     if (performance.routers.isEmpty) {
       buffer.writeln('No performance markers captured.');
     } else {
+      final bestMean = performance.bestMeanUs;
       buffer.writeln(
         _renderTable(
           headers: const <String>[
             'Router',
+            'Runs',
             'Samples',
             'Rounds',
             'Mean(us)',
             'P50(us)',
             'P95(us)',
+            'MeanCV%',
+            'Delta',
             'ChecksumParity',
             'Checksum',
           ],
@@ -422,11 +605,18 @@ String _renderSummary({
               .map(
                 (router) => <String>[
                   router.router,
+                  '${router.capturedRuns}/${router.totalRuns}',
                   router.samples.toString(),
                   router.rounds.toString(),
                   router.meanUs.toStringAsFixed(1),
                   router.p50Us.toStringAsFixed(1),
                   router.p95Us.toStringAsFixed(1),
+                  router.meanCvPercent.toStringAsFixed(1),
+                  _deltaPercentText(
+                    router.meanUs,
+                    bestMean,
+                    fallback: router.hasCompleteRuns ? '0.0%' : '-',
+                  ),
                   router.checksumParity ? 'OK' : 'FAIL',
                   router.checksum.toString(),
                 ],
@@ -492,6 +682,18 @@ String _tableRule(List<int> widths) {
   return '|-${widths.map((width) => ''.padRight(width, '-')).join('-|-')}-|';
 }
 
+String _deltaPercentText(
+  double value,
+  double? baseline, {
+  String fallback = '-',
+}) {
+  if (baseline == null || baseline <= 0) {
+    return fallback;
+  }
+  final delta = ((value - baseline) / baseline) * 100;
+  return '${delta.toStringAsFixed(1)}%';
+}
+
 String _behaviorTitle(String script) {
   switch (script) {
     case 'sharedNavigation':
@@ -522,6 +724,9 @@ Usage: dart run main.dart [options]
 Options:
   -r, --rounds=<n>             Performance rounds per sample (default: 24)
   -s, --samples=<n>            Performance sample count (default: 5)
+  -w, --warmup-rounds=<n>      Warmup rounds per warmup sample (default: 12)
+  -x, --warmup-samples=<n>     Warmup sample count (default: 1)
+  -n, --performance-runs=<n>   Repeat performance suite N times and aggregate median (default: 3)
   -l, --long-lived-rounds=<n>  Long-lived behavior rounds (default: 40)
   -b, --behavior-only          Run only behavior suite
   -p, --performance-only       Run only performance suite
@@ -534,6 +739,9 @@ class _BenchConfig {
   const _BenchConfig({
     required this.rounds,
     required this.samples,
+    required this.warmupRounds,
+    required this.warmupSamples,
+    required this.performanceRuns,
     required this.longLivedRounds,
     required this.runBehavior,
     required this.runPerformance,
@@ -542,6 +750,9 @@ class _BenchConfig {
 
   final int rounds;
   final int samples;
+  final int warmupRounds;
+  final int warmupSamples;
+  final int performanceRuns;
   final int longLivedRounds;
   final bool runBehavior;
   final bool runPerformance;
@@ -612,16 +823,25 @@ class _PerformanceRunResult {
     required this.exitCode,
     required this.routers,
     required this.lines,
+    required this.runCount,
+    required this.warmupRounds,
+    required this.warmupSamples,
   });
 
   const _PerformanceRunResult.skipped()
     : exitCode = 0,
       routers = const <_PerformanceRouterResult>[],
-      lines = const <String>[];
+      lines = const <String>[],
+      runCount = 0,
+      warmupRounds = 0,
+      warmupSamples = 0;
 
   final int exitCode;
   final List<_PerformanceRouterResult> routers;
   final List<String> lines;
+  final int runCount;
+  final int warmupRounds;
+  final int warmupSamples;
 
   bool get checksumAligned {
     if (routers.length < 2) {
@@ -635,8 +855,22 @@ class _PerformanceRunResult {
     if (routers.isEmpty) {
       return exitCode == 0;
     }
-    final allParity = routers.every((router) => router.checksumParity);
+    final allParity = routers.every(
+      (router) => router.checksumParity && router.hasCompleteRuns,
+    );
     return exitCode == 0 && allParity && checksumAligned;
+  }
+
+  double? get bestMeanUs {
+    final completeRouters = routers
+        .where((router) => router.hasCompleteRuns && router.meanUs > 0)
+        .toList(growable: false);
+    if (completeRouters.isEmpty) {
+      return null;
+    }
+    return completeRouters
+        .map((router) => router.meanUs)
+        .reduce((left, right) => left < right ? left : right);
   }
 }
 
@@ -650,6 +884,9 @@ class _PerformanceRouterResult {
     required this.p95Us,
     required this.checksumParity,
     required this.checksum,
+    required this.capturedRuns,
+    required this.totalRuns,
+    required this.meanCvPercent,
   });
 
   final String router;
@@ -660,4 +897,15 @@ class _PerformanceRouterResult {
   final double p95Us;
   final bool checksumParity;
   final int checksum;
+  final int capturedRuns;
+  final int totalRuns;
+  final double meanCvPercent;
+
+  bool get hasCompleteRuns => capturedRuns == totalRuns;
+}
+
+class _PerformanceSuiteRun {
+  const _PerformanceSuiteRun({required this.routers});
+
+  final List<_PerformanceRouterResult> routers;
 }

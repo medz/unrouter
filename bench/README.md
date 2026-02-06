@@ -10,13 +10,25 @@ Run the full benchmark (behavior + performance) and print a terminal summary:
 dart run main.dart
 ```
 
-Tune rounds and sample count:
+Tune rounds, samples, and long-lived behavior rounds:
 
 ```bash
 dart run main.dart \
   --rounds=48 \
   --samples=7 \
   --long-lived-rounds=64
+```
+
+Stability-focused performance run (warmup + repeated suite aggregation):
+
+```bash
+dart run main.dart \
+  --performance-only \
+  --warmup-rounds=24 \
+  --warmup-samples=2 \
+  --performance-runs=5 \
+  --rounds=48 \
+  --samples=7
 ```
 
 Run only behavior parity:

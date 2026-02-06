@@ -86,6 +86,19 @@ dart run main.dart \
   --long-lived-rounds=64
 ```
 
+Stability-focused performance comparison:
+
+```bash
+cd bench
+dart run main.dart \
+  --performance-only \
+  --warmup-rounds=24 \
+  --warmup-samples=2 \
+  --performance-runs=5 \
+  --rounds=48 \
+  --samples=7
+```
+
 Behavior-only run:
 
 ```bash
@@ -124,6 +137,8 @@ dart run main.dart --verbose
   baseline for browser-like round-trips.
 - `bench/main.dart` runs both suites and prints a visual terminal summary
   directly, without writing JSON report files.
+- For performance stability, use warmup (`--warmup-rounds`, `--warmup-samples`)
+  and repeated-run median aggregation (`--performance-runs`).
 - This baseline favors correctness first. Performance output is informative and
   intended for trend tracking, not strict cross-package winner declarations.
 - For richer coverage, add more scripts over time (redirect/guard, nested shell,
