@@ -84,6 +84,11 @@
 - Switch `package:unrouter/unrouter.dart` to core-only default entrypoint and require explicit `machine.dart` / `devtools.dart` imports for advanced APIs.
 - Remove `package:unrouter/core.dart` alias and make `package:unrouter/unrouter.dart` the single core entrypoint.
 - Stop re-exporting core/machine layers from `machine.dart` and `devtools.dart`; layered consumers now import each required entrypoint explicitly.
+- Add cross-router differential benchmark coverage (`unrouter`, `go_router`, `zenrouter`) for shared navigation behavior parity and baseline script performance reporting.
+- Add benchmark guide `docs/router_benchmarking.md` with adapter onboarding workflow and run commands.
+- Move benchmark suite into dedicated `bench/` project to isolate benchmark runs from package test CI.
+- Split benchmark execution into tagged behavior/performance suites (`--tags behavior` and `--tags performance`) for independent CI policies.
+- Expand behavior differential coverage with redirect (`/legacy/:id -> /users/:id`) and guard redirect (`/protected -> /login`) parity scripts.
 - Split `lib/src/navigation.dart` into dedicated part files (`navigation_machine.dart`, `navigation_inspector.dart`, `navigation_state.dart`) to reduce monolithic runtime complexity.
 - Reorganize `lib/src/` into domain folders (`core/`, `runtime/`, `devtools/`, `platform/`) to improve internal boundaries and maintainability.
 - Further decompose `lib/src/runtime/navigation` machine internals into focused part modules (`navigation_machine_commands_actions.dart`, `navigation_machine_envelope.dart`, `navigation_machine_api.dart`, `navigation_machine_runtime.dart`).

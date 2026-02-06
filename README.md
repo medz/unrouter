@@ -62,6 +62,16 @@ flutter pub add unrouter
 `machine.dart` and `devtools.dart` do not re-export core symbols.
 Import `unrouter.dart` explicitly when you need core routing APIs.
 
+## Router benchmarks
+
+- Bench project location: `bench/`
+- Behavior parity (CI default in benchmark workflow):
+  `cd bench && flutter test --tags behavior`
+- Performance baseline (scheduled/manual benchmark workflow):
+  `cd bench && flutter test --tags performance`
+- Benchmark guide:
+  `docs/router_benchmarking.md`
+
 ## Example
 
 ```bash

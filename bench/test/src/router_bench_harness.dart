@@ -1,0 +1,511 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart' hide RouteData;
+import 'package:unrouter/unrouter.dart';
+import 'package:unstory/unstory.dart';
+import 'package:zenrouter/zenrouter.dart';
+
+List<RouterBenchHarness> createHarnesses() {
+  return <RouterBenchHarness>[
+    UnrouterBenchHarness(),
+    GoRouterBenchHarness(),
+    ZenRouterBenchHarness(),
+  ];
+}
+
+Future<BehaviorSnapshot> runSharedNavigationScript(
+  RouterBenchHarness harness,
+  WidgetTester tester,
+) async {
+  final checkpoints = <String>[harness.location];
+  final pushResults = <Object?>[];
+
+  await harness.go('/users/1');
+  await harness.pump(tester);
+  checkpoints.add(harness.location);
+
+  final pushOne = harness.push('/settings');
+  await harness.pump(tester);
+
+  await harness.pop(7);
+  await harness.pump(tester);
+  pushResults.add(await pushOne);
+  checkpoints.add(harness.location);
+
+  await harness.go('/users/2');
+  await harness.pump(tester);
+  checkpoints.add(harness.location);
+
+  final pushTwo = harness.push('/settings');
+  await harness.pump(tester);
+
+  await harness.pop();
+  await harness.pump(tester);
+  pushResults.add(await pushTwo);
+  checkpoints.add(harness.location);
+
+  return BehaviorSnapshot(
+    routerName: harness.routerName,
+    checkpoints: checkpoints,
+    pushResults: pushResults,
+  );
+}
+
+Future<String> runRedirectScript(
+  RouterBenchHarness harness,
+  WidgetTester tester,
+) async {
+  await harness.go('/legacy/9');
+  await harness.pump(tester);
+  return harness.location;
+}
+
+Future<String> runGuardRedirectScript(
+  RouterBenchHarness harness,
+  WidgetTester tester,
+) async {
+  await harness.go('/protected');
+  await harness.pump(tester);
+  return harness.location;
+}
+
+Future<PerformanceMetric> runPerformanceScript(
+  RouterBenchHarness harness,
+  WidgetTester tester, {
+  required int rounds,
+}) async {
+  var checksum = 0;
+  final stopwatch = Stopwatch()..start();
+
+  for (var i = 0; i < rounds; i++) {
+    final userId = (i % 9) + 1;
+    await harness.go('/users/$userId');
+    await harness.pump(tester);
+    checksum += harness.location.length;
+
+    final pending = harness.push('/settings');
+    await harness.pump(tester);
+    checksum += harness.location.length;
+
+    await harness.pop(i);
+    await harness.pump(tester);
+    final result = await pending;
+    checksum += result is int ? result : 0;
+
+    await harness.go('/');
+    await harness.pump(tester);
+    checksum += harness.location.length;
+  }
+
+  stopwatch.stop();
+  return PerformanceMetric(
+    routerName: harness.routerName,
+    rounds: rounds,
+    elapsed: stopwatch.elapsed,
+    checksum: checksum,
+  );
+}
+
+class BehaviorSnapshot {
+  const BehaviorSnapshot({
+    required this.routerName,
+    required this.checkpoints,
+    required this.pushResults,
+  });
+
+  final String routerName;
+  final List<String> checkpoints;
+  final List<Object?> pushResults;
+}
+
+class PerformanceMetric {
+  const PerformanceMetric({
+    required this.routerName,
+    required this.rounds,
+    required this.elapsed,
+    required this.checksum,
+  });
+
+  final String routerName;
+  final int rounds;
+  final Duration elapsed;
+  final int checksum;
+
+  double get averageMicrosPerRound {
+    if (rounds == 0) {
+      return 0;
+    }
+    return elapsed.inMicroseconds / rounds;
+  }
+}
+
+abstract class RouterBenchHarness {
+  String get routerName;
+
+  String get location;
+
+  Future<void> attach(WidgetTester tester);
+
+  Future<void> detach(WidgetTester tester);
+
+  Future<void> go(String location);
+
+  Future<Object?> push(String location);
+
+  Future<void> pop([Object? result]);
+
+  Future<void> pump(WidgetTester tester) async {
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 16));
+  }
+}
+
+sealed class _UnrouterBenchRoute implements RouteData {
+  const _UnrouterBenchRoute();
+}
+
+final class _UnrouterHomeRoute extends _UnrouterBenchRoute {
+  const _UnrouterHomeRoute();
+
+  @override
+  Uri toUri() => Uri(path: '/');
+}
+
+final class _UnrouterUserRoute extends _UnrouterBenchRoute {
+  const _UnrouterUserRoute(this.userId);
+
+  final String userId;
+
+  @override
+  Uri toUri() => Uri(path: '/users/$userId');
+}
+
+final class _UnrouterLegacyRoute extends _UnrouterBenchRoute {
+  const _UnrouterLegacyRoute(this.userId);
+
+  final String userId;
+
+  @override
+  Uri toUri() => Uri(path: '/legacy/$userId');
+}
+
+final class _UnrouterSettingsRoute extends _UnrouterBenchRoute {
+  const _UnrouterSettingsRoute();
+
+  @override
+  Uri toUri() => Uri(path: '/settings');
+}
+
+final class _UnrouterLoginRoute extends _UnrouterBenchRoute {
+  const _UnrouterLoginRoute();
+
+  @override
+  Uri toUri() => Uri(path: '/login');
+}
+
+final class _UnrouterProtectedRoute extends _UnrouterBenchRoute {
+  const _UnrouterProtectedRoute();
+
+  @override
+  Uri toUri() => Uri(path: '/protected');
+}
+
+class UnrouterBenchHarness extends RouterBenchHarness {
+  final Completer<UnrouterController<_UnrouterBenchRoute>>
+  _controllerCompleter = Completer<UnrouterController<_UnrouterBenchRoute>>();
+
+  late final Unrouter<_UnrouterBenchRoute> _router =
+      Unrouter<_UnrouterBenchRoute>(
+        history: MemoryHistory(),
+        routes: [
+          route<_UnrouterHomeRoute>(
+            path: '/',
+            parse: (_) => const _UnrouterHomeRoute(),
+            builder: (context, route) {
+              _bindController(context);
+              return const SizedBox.shrink();
+            },
+          ),
+          route<_UnrouterUserRoute>(
+            path: '/users/:id',
+            parse: (state) => _UnrouterUserRoute(state.path('id')),
+            builder: (context, route) {
+              _bindController(context);
+              return const SizedBox.shrink();
+            },
+          ),
+          route<_UnrouterLegacyRoute>(
+            path: '/legacy/:id',
+            parse: (state) => _UnrouterLegacyRoute(state.path('id')),
+            redirect: (context) => Uri(path: '/users/${context.route.userId}'),
+            builder: (context, route) {
+              _bindController(context);
+              return const SizedBox.shrink();
+            },
+          ),
+          route<_UnrouterSettingsRoute>(
+            path: '/settings',
+            parse: (_) => const _UnrouterSettingsRoute(),
+            builder: (context, route) {
+              _bindController(context);
+              return const SizedBox.shrink();
+            },
+          ),
+          route<_UnrouterLoginRoute>(
+            path: '/login',
+            parse: (_) => const _UnrouterLoginRoute(),
+            builder: (context, route) {
+              _bindController(context);
+              return const SizedBox.shrink();
+            },
+          ),
+          route<_UnrouterProtectedRoute>(
+            path: '/protected',
+            parse: (_) => const _UnrouterProtectedRoute(),
+            guards: [(_) => RouteGuardResult.redirect(Uri(path: '/login'))],
+            builder: (context, route) {
+              _bindController(context);
+              return const SizedBox.shrink();
+            },
+          ),
+        ],
+      );
+
+  late UnrouterController<_UnrouterBenchRoute> _controller;
+
+  @override
+  String get routerName => 'unrouter';
+
+  @override
+  String get location => _controller.uri.path;
+
+  @override
+  Future<void> attach(WidgetTester tester) async {
+    await tester.pumpWidget(MaterialApp.router(routerConfig: _router));
+    await pump(tester);
+    _controller = await _controllerCompleter.future.timeout(
+      const Duration(seconds: 2),
+    );
+  }
+
+  @override
+  Future<void> detach(WidgetTester tester) async {
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+  }
+
+  @override
+  Future<void> go(String location) async {
+    _controller.goUri(Uri.parse(location));
+  }
+
+  @override
+  Future<Object?> push(String location) {
+    return _controller.pushUri<Object?>(Uri.parse(location));
+  }
+
+  @override
+  Future<void> pop([Object? result]) async {
+    _controller.pop(result);
+  }
+
+  void _bindController(BuildContext context) {
+    if (_controllerCompleter.isCompleted) {
+      return;
+    }
+    _controllerCompleter.complete(context.unrouterAs<_UnrouterBenchRoute>());
+  }
+}
+
+class GoRouterBenchHarness extends RouterBenchHarness {
+  late final GoRouter _router = GoRouter(
+    initialLocation: '/',
+    routes: <RouteBase>[
+      GoRoute(path: '/', builder: (context, state) => const SizedBox.shrink()),
+      GoRoute(
+        path: '/users/:id',
+        builder: (context, state) => const SizedBox.shrink(),
+      ),
+      GoRoute(
+        path: '/settings',
+        builder: (context, state) => const SizedBox.shrink(),
+      ),
+      GoRoute(
+        path: '/legacy/:id',
+        redirect: (_, state) => '/users/${state.pathParameters['id']}',
+        builder: (context, state) => const SizedBox.shrink(),
+      ),
+      GoRoute(
+        path: '/login',
+        builder: (context, state) => const SizedBox.shrink(),
+      ),
+      GoRoute(
+        path: '/protected',
+        redirect: (context, state) => '/login',
+        builder: (context, state) => const SizedBox.shrink(),
+      ),
+    ],
+  );
+
+  @override
+  String get routerName => 'go_router';
+
+  @override
+  String get location => _router.routeInformationProvider.value.uri.path;
+
+  @override
+  Future<void> attach(WidgetTester tester) async {
+    await tester.pumpWidget(MaterialApp.router(routerConfig: _router));
+    await pump(tester);
+  }
+
+  @override
+  Future<void> detach(WidgetTester tester) async {
+    _router.dispose();
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+  }
+
+  @override
+  Future<void> go(String location) async {
+    _router.go(location);
+  }
+
+  @override
+  Future<Object?> push(String location) {
+    return _router.push<Object?>(location);
+  }
+
+  @override
+  Future<void> pop([Object? result]) async {
+    _router.pop(result);
+  }
+}
+
+abstract class _ZenBenchRoute extends RouteTarget with RouteUnique {
+  _ZenBenchRoute();
+
+  @override
+  Widget build(
+    covariant _ZenBenchCoordinator coordinator,
+    BuildContext context,
+  ) {
+    return const SizedBox.shrink();
+  }
+}
+
+final class _ZenHomeRoute extends _ZenBenchRoute {
+  _ZenHomeRoute();
+
+  @override
+  Uri toUri() => Uri(path: '/');
+}
+
+final class _ZenUserRoute extends _ZenBenchRoute {
+  _ZenUserRoute(this.userId);
+
+  final String userId;
+
+  @override
+  List<Object?> get props => [userId];
+
+  @override
+  Uri toUri() => Uri(path: '/users/$userId');
+}
+
+final class _ZenSettingsRoute extends _ZenBenchRoute {
+  _ZenSettingsRoute();
+
+  @override
+  Uri toUri() => Uri(path: '/settings');
+}
+
+final class _ZenLoginRoute extends _ZenBenchRoute {
+  _ZenLoginRoute();
+
+  @override
+  Uri toUri() => Uri(path: '/login');
+}
+
+class _ZenBenchCoordinator extends Coordinator<_ZenBenchRoute> {
+  @override
+  FutureOr<_ZenBenchRoute> parseRouteFromUri(Uri uri) {
+    return _routeForUri(uri);
+  }
+
+  _ZenBenchRoute routeForLocation(String location) {
+    return _routeForUri(Uri.parse(location));
+  }
+
+  _ZenBenchRoute _routeForUri(Uri uri) {
+    final segments = uri.pathSegments.where((segment) => segment.isNotEmpty);
+    final parts = segments.toList(growable: false);
+    if (parts.isEmpty) {
+      return _ZenHomeRoute();
+    }
+
+    if (parts.length == 2 && parts[0] == 'users') {
+      return _ZenUserRoute(parts[1]);
+    }
+    if (parts.length == 2 && parts[0] == 'legacy') {
+      return _ZenUserRoute(parts[1]);
+    }
+    if (parts.length == 1 && parts[0] == 'settings') {
+      return _ZenSettingsRoute();
+    }
+    if (parts.length == 1 && parts[0] == 'login') {
+      return _ZenLoginRoute();
+    }
+    if (parts.length == 1 && parts[0] == 'protected') {
+      return _ZenLoginRoute();
+    }
+
+    return _ZenHomeRoute();
+  }
+}
+
+class ZenRouterBenchHarness extends RouterBenchHarness {
+  late final _ZenBenchCoordinator _coordinator = _ZenBenchCoordinator();
+
+  @override
+  String get routerName => 'zenrouter';
+
+  @override
+  String get location {
+    final active = _coordinator.activePath.activeRoute;
+    if (active != null) {
+      return active.toUri().path;
+    }
+    return _coordinator.routeInformationProvider.value.uri.path;
+  }
+
+  @override
+  Future<void> attach(WidgetTester tester) async {
+    await tester.pumpWidget(MaterialApp.router(routerConfig: _coordinator));
+    await pump(tester);
+  }
+
+  @override
+  Future<void> detach(WidgetTester tester) async {
+    _coordinator.dispose();
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+  }
+
+  @override
+  Future<void> go(String location) {
+    return _coordinator.replace(_coordinator.routeForLocation(location));
+  }
+
+  @override
+  Future<Object?> push(String location) {
+    return _coordinator.push<Object>(_coordinator.routeForLocation(location));
+  }
+
+  @override
+  Future<void> pop([Object? result]) {
+    return _coordinator.pop(result);
+  }
+}

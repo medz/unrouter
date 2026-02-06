@@ -1,0 +1,7 @@
+tags:
+  router-bench:
+    description: Shared differential router benchmark suite.
+  behavior:
+    description: Deterministic cross-router behavior parity checks.
+  performance:
+    description: Baseline performance trend checks for shared scripts.
