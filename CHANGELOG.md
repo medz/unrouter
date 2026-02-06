@@ -88,3 +88,5 @@
 - Further decompose `lib/src/core/route_definition.dart` into focused part modules (`route_definition_records.dart`, `route_definition_shell.dart`, `route_definition_guards.dart`, `route_definition_parser.dart`).
 - Further decompose `lib/src/devtools/inspector_panel_widget.dart` by moving state helper methods into `inspector_panel_widget_state_methods.dart`.
 - Decouple machine command/runtime internals from `UnrouterController` concrete type via internal runtime-host interfaces, further thinning controller responsibilities and reducing cross-module coupling.
+- Extract machine core types/envelopes/commands/actions into `lib/src/runtime/machine_kernel.dart` as a Flutter-free runtime kernel module, with controller-side host/runtime adapters kept in `navigation.dart`.
+- Split `UnrouterController` lifecycle/configuration APIs into `lib/src/runtime/navigation_controller_lifecycle.dart` to reduce `navigation.dart` surface complexity while preserving behavior.

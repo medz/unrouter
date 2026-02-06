@@ -1,9 +1,9 @@
-part of 'navigation.dart';
+part of 'machine_kernel.dart';
 
 class UnrouterMachine<R extends RouteData> {
-  const UnrouterMachine._(this._host);
+  const UnrouterMachine.host(this._host);
 
-  final _UnrouterMachineHost<R> _host;
+  final UnrouterMachineHost<R> _host;
 
   UnrouterMachineState get state => _host.machineState;
 

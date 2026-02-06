@@ -9,5 +9,6 @@ export 'src/runtime/navigation.dart'
         UnrouterHistoryStateRequest,
         UnrouterHistoryStateComposer,
         UnrouterController,
+        UnrouterControllerLifecycleMethods,
         UnrouterScope,
         UnrouterBuildContextExtension;

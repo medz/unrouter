@@ -1,4 +1,4 @@
-part of 'navigation.dart';
+part of 'machine_kernel.dart';
 
 sealed class UnrouterMachineCommand<T> {
   const UnrouterMachineCommand();
@@ -89,7 +89,7 @@ sealed class UnrouterMachineCommand<T> {
 
   UnrouterMachineEvent get event;
 
-  T _execute(_UnrouterMachineCommandRuntime runtime);
+  T execute(UnrouterMachineCommandRuntime runtime);
 }
 
 final class _UnrouterMachineRouteRequestCommand
@@ -103,8 +103,8 @@ final class _UnrouterMachineRouteRequestCommand
   UnrouterMachineEvent get event => UnrouterMachineEvent.request;
 
   @override
-  Future<void> _execute(_UnrouterMachineCommandRuntime runtime) {
-    return runtime._dispatchRouteRequest(uri, state: state);
+  Future<void> execute(UnrouterMachineCommandRuntime runtime) {
+    return runtime.dispatchRouteRequest(uri, state: state);
   }
 }
 
@@ -125,8 +125,8 @@ final class _UnrouterMachineGoUriCommand extends UnrouterMachineCommand<void> {
   UnrouterMachineEvent get event => UnrouterMachineEvent.goUri;
 
   @override
-  void _execute(_UnrouterMachineCommandRuntime runtime) {
-    runtime._goUriViaRuntime(
+  void execute(UnrouterMachineCommandRuntime runtime) {
+    runtime.goUri(
       uri,
       state: state,
       completePendingResult: completePendingResult,
@@ -153,8 +153,8 @@ final class _UnrouterMachineReplaceUriCommand
   UnrouterMachineEvent get event => UnrouterMachineEvent.replaceUri;
 
   @override
-  void _execute(_UnrouterMachineCommandRuntime runtime) {
-    runtime._replaceUriViaRuntime(
+  void execute(UnrouterMachineCommandRuntime runtime) {
+    runtime.replaceUri(
       uri,
       state: state,
       completePendingResult: completePendingResult,
@@ -174,8 +174,8 @@ final class _UnrouterMachinePushUriCommand<T extends Object?>
   UnrouterMachineEvent get event => UnrouterMachineEvent.pushUri;
 
   @override
-  Future<T?> _execute(_UnrouterMachineCommandRuntime runtime) {
-    return runtime._pushUriViaRuntime<T>(uri, state: state);
+  Future<T?> execute(UnrouterMachineCommandRuntime runtime) {
+    return runtime.pushUri<T>(uri, state: state);
   }
 }
 
@@ -188,8 +188,8 @@ final class _UnrouterMachinePopCommand extends UnrouterMachineCommand<bool> {
   UnrouterMachineEvent get event => UnrouterMachineEvent.pop;
 
   @override
-  bool _execute(_UnrouterMachineCommandRuntime runtime) {
-    return runtime._popViaRuntime(result);
+  bool execute(UnrouterMachineCommandRuntime runtime) {
+    return runtime.pop(result);
   }
 }
 
@@ -205,8 +205,8 @@ final class _UnrouterMachinePopToUriCommand
   UnrouterMachineEvent get event => UnrouterMachineEvent.popToUri;
 
   @override
-  void _execute(_UnrouterMachineCommandRuntime runtime) {
-    runtime._popToUriViaRuntime(uri, state: state, result: result);
+  void execute(UnrouterMachineCommandRuntime runtime) {
+    runtime.popToUri(uri, state: state, result: result);
   }
 }
 
@@ -217,8 +217,8 @@ final class _UnrouterMachineBackCommand extends UnrouterMachineCommand<bool> {
   UnrouterMachineEvent get event => UnrouterMachineEvent.back;
 
   @override
-  bool _execute(_UnrouterMachineCommandRuntime runtime) {
-    return runtime._backViaRuntime();
+  bool execute(UnrouterMachineCommandRuntime runtime) {
+    return runtime.back();
   }
 }
 
@@ -230,8 +230,8 @@ final class _UnrouterMachineForwardCommand
   UnrouterMachineEvent get event => UnrouterMachineEvent.forward;
 
   @override
-  void _execute(_UnrouterMachineCommandRuntime runtime) {
-    runtime._forwardViaRuntime();
+  void execute(UnrouterMachineCommandRuntime runtime) {
+    runtime.forward();
   }
 }
 
@@ -245,8 +245,8 @@ final class _UnrouterMachineGoDeltaCommand
   UnrouterMachineEvent get event => UnrouterMachineEvent.goDelta;
 
   @override
-  void _execute(_UnrouterMachineCommandRuntime runtime) {
-    runtime._goDeltaViaRuntime(delta);
+  void execute(UnrouterMachineCommandRuntime runtime) {
+    runtime.goDelta(delta);
   }
 }
 
@@ -268,8 +268,8 @@ final class _UnrouterMachineSwitchBranchCommand
   UnrouterMachineEvent get event => UnrouterMachineEvent.switchBranch;
 
   @override
-  bool _execute(_UnrouterMachineCommandRuntime runtime) {
-    return runtime._switchBranchViaRuntime(
+  bool execute(UnrouterMachineCommandRuntime runtime) {
+    return runtime.switchBranch(
       index,
       initialLocation: initialLocation,
       completePendingResult: completePendingResult,
@@ -288,8 +288,8 @@ final class _UnrouterMachinePopBranchCommand
   UnrouterMachineEvent get event => UnrouterMachineEvent.popBranch;
 
   @override
-  bool _execute(_UnrouterMachineCommandRuntime runtime) {
-    return runtime._popBranchViaRuntime(result);
+  bool execute(UnrouterMachineCommandRuntime runtime) {
+    return runtime.popBranch(result);
   }
 }
 

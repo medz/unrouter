@@ -1,4 +1,4 @@
-part of 'navigation.dart';
+part of 'machine_kernel.dart';
 
 enum UnrouterMachineActionEnvelopeState {
   accepted,

@@ -1,5 +1,5 @@
 export 'core.dart';
-export 'src/runtime/navigation.dart'
+export 'src/runtime/machine_kernel.dart'
     show
         UnrouterMachineSource,
         UnrouterMachineEventGroup,
@@ -23,5 +23,5 @@ export 'src/runtime/navigation.dart'
         UnrouterMachineActionFailureCategory,
         UnrouterMachineActionFailure,
         UnrouterMachineActionEnvelope,
-        UnrouterMachine,
-        UnrouterMachineBuildContextExtension;
+        UnrouterMachine;
+export 'src/runtime/navigation.dart' show UnrouterMachineBuildContextExtension;
