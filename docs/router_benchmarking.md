@@ -38,6 +38,19 @@ The behavior suite uses only shared semantics:
    - `go('/legacy/9')` and expect canonical location `/users/9`
 3. Guard redirect script:
    - `go('/protected')` and expect redirected location `/login`
+4. Nested navigation script:
+   - `go('/workspace/inbox')`
+   - `push('/workspace/inbox/details/3')`
+   - `pop(11)` and verify push result
+   - `go('/workspace/archive')`
+   - `push('/workspace/archive/details/5')`
+   - `pop()` and verify nullable push result
+5. Browser-like back-forward script:
+   - `go('/users/1')`
+   - `push('/users/2')` then `pop('back')`
+   - `push('/users/2')` then `pop('forward')`
+6. Long-lived restoration script:
+   - Repeats mixed `go/push/pop` rounds and verifies stable checksums/final location
 
 Expected location checkpoints (shared semantics only):
 
@@ -89,6 +102,9 @@ flutter test --tags performance --dart-define=UNROUTER_BENCH_ROUNDS=48
 
 - `push()` immediate location updates are intentionally not asserted in the
   shared script because different routers expose this timing differently.
+- Browser back/forward APIs are not fully portable across compared routers in
+  widget tests. The benchmark uses a shared push/pop script as the parity
+  baseline for browser-like round-trips.
 - CI policy:
   `behavior` runs on push/pull requests in benchmark workflow.
   `performance` runs on schedule/manual dispatch only.

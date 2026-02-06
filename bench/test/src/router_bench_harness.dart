@@ -71,6 +71,139 @@ Future<String> runGuardRedirectScript(
   return harness.location;
 }
 
+Future<BehaviorSnapshot> runNestedNavigationScript(
+  RouterBenchHarness harness,
+  WidgetTester tester,
+) async {
+  final checkpoints = <String>[harness.location];
+  final pushResults = <Object?>[];
+
+  await harness.go('/workspace/inbox');
+  await harness.pump(tester);
+  checkpoints.add(harness.location);
+
+  final pushOne = harness.push('/workspace/inbox/details/3');
+  await harness.pump(tester);
+
+  await harness.pop(11);
+  await harness.pump(tester);
+  pushResults.add(await pushOne);
+  checkpoints.add(harness.location);
+
+  await harness.go('/workspace/archive');
+  await harness.pump(tester);
+  checkpoints.add(harness.location);
+
+  final pushTwo = harness.push('/workspace/archive/details/5');
+  await harness.pump(tester);
+
+  await harness.pop();
+  await harness.pump(tester);
+  pushResults.add(await pushTwo);
+  checkpoints.add(harness.location);
+
+  return BehaviorSnapshot(
+    routerName: harness.routerName,
+    checkpoints: checkpoints,
+    pushResults: pushResults,
+  );
+}
+
+Future<BehaviorSnapshot> runBackForwardNavigationScript(
+  RouterBenchHarness harness,
+  WidgetTester tester,
+) async {
+  final checkpoints = <String>[harness.location];
+  final pushResults = <Object?>[];
+
+  await harness.go('/users/1');
+  await harness.pump(tester);
+  checkpoints.add(harness.location);
+
+  final pushOne = harness.push('/users/2');
+  await harness.pump(tester);
+  await harness.pop('back');
+  await harness.pump(tester);
+  pushResults.add(await pushOne);
+  checkpoints.add(harness.location);
+
+  final pushTwo = harness.push('/users/2');
+  await harness.pump(tester);
+  await harness.pop('forward');
+  await harness.pump(tester);
+  pushResults.add(await pushTwo);
+  checkpoints.add(harness.location);
+
+  return BehaviorSnapshot(
+    routerName: harness.routerName,
+    checkpoints: checkpoints,
+    pushResults: pushResults,
+  );
+}
+
+Future<LongLivedSnapshot> runLongLivedRestorationScript(
+  RouterBenchHarness harness,
+  WidgetTester tester, {
+  required int rounds,
+}) async {
+  var resultChecksum = 0;
+  var userChecksum = 0;
+
+  for (var i = 1; i <= rounds; i++) {
+    final userId = ((i * 3) % 9) + 1;
+    await harness.go('/users/$userId');
+    await harness.pump(tester);
+
+    final pending = harness.push('/settings');
+    await harness.pump(tester);
+
+    await harness.pop(i);
+    await harness.pump(tester);
+    final result = await pending;
+
+    if (result is! int) {
+      throw StateError(
+        'Expected int push result at round $i for ${harness.routerName}, got $result',
+      );
+    }
+    resultChecksum += result;
+
+    final parsedUserId = _readTrailingUserId(harness.location);
+    if (parsedUserId == null) {
+      throw StateError(
+        'Expected /users/:id location after pop at round $i for ${harness.routerName}, got ${harness.location}',
+      );
+    }
+    userChecksum += parsedUserId;
+
+    if (i % 8 == 0) {
+      await harness.go('/workspace/archive');
+      await harness.pump(tester);
+      await harness.go('/workspace/inbox');
+      await harness.pump(tester);
+    }
+  }
+
+  await harness.go('/');
+  await harness.pump(tester);
+
+  return LongLivedSnapshot(
+    routerName: harness.routerName,
+    rounds: rounds,
+    finalLocation: harness.location,
+    resultChecksum: resultChecksum,
+    userChecksum: userChecksum,
+  );
+}
+
+int? _readTrailingUserId(String location) {
+  final segments = Uri.parse(location).pathSegments;
+  if (segments.length != 2 || segments.first != 'users') {
+    return null;
+  }
+  return int.tryParse(segments[1]);
+}
+
 Future<PerformanceMetric> runPerformanceScript(
   RouterBenchHarness harness,
   WidgetTester tester, {
@@ -141,6 +274,22 @@ class PerformanceMetric {
   }
 }
 
+class LongLivedSnapshot {
+  const LongLivedSnapshot({
+    required this.routerName,
+    required this.rounds,
+    required this.finalLocation,
+    required this.resultChecksum,
+    required this.userChecksum,
+  });
+
+  final String routerName;
+  final int rounds;
+  final String finalLocation;
+  final int resultChecksum;
+  final int userChecksum;
+}
+
 abstract class RouterBenchHarness {
   String get routerName;
 
@@ -191,6 +340,25 @@ final class _UnrouterLegacyRoute extends _UnrouterBenchRoute {
   Uri toUri() => Uri(path: '/legacy/$userId');
 }
 
+final class _UnrouterWorkspaceRoute extends _UnrouterBenchRoute {
+  const _UnrouterWorkspaceRoute(this.tab);
+
+  final String tab;
+
+  @override
+  Uri toUri() => Uri(path: '/workspace/$tab');
+}
+
+final class _UnrouterWorkspaceDetailRoute extends _UnrouterBenchRoute {
+  const _UnrouterWorkspaceDetailRoute(this.tab, this.detailId);
+
+  final String tab;
+  final String detailId;
+
+  @override
+  Uri toUri() => Uri(path: '/workspace/$tab/details/$detailId');
+}
+
 final class _UnrouterSettingsRoute extends _UnrouterBenchRoute {
   const _UnrouterSettingsRoute();
 
@@ -231,6 +399,25 @@ class UnrouterBenchHarness extends RouterBenchHarness {
           route<_UnrouterUserRoute>(
             path: '/users/:id',
             parse: (state) => _UnrouterUserRoute(state.path('id')),
+            builder: (context, route) {
+              _bindController(context);
+              return const SizedBox.shrink();
+            },
+          ),
+          route<_UnrouterWorkspaceRoute>(
+            path: '/workspace/:tab',
+            parse: (state) => _UnrouterWorkspaceRoute(state.path('tab')),
+            builder: (context, route) {
+              _bindController(context);
+              return const SizedBox.shrink();
+            },
+          ),
+          route<_UnrouterWorkspaceDetailRoute>(
+            path: '/workspace/:tab/details/:id',
+            parse: (state) => _UnrouterWorkspaceDetailRoute(
+              state.path('tab'),
+              state.path('id'),
+            ),
             builder: (context, route) {
               _bindController(context);
               return const SizedBox.shrink();
@@ -329,6 +516,14 @@ class GoRouterBenchHarness extends RouterBenchHarness {
         builder: (context, state) => const SizedBox.shrink(),
       ),
       GoRoute(
+        path: '/workspace/:tab',
+        builder: (context, state) => const SizedBox.shrink(),
+      ),
+      GoRoute(
+        path: '/workspace/:tab/details/:id',
+        builder: (context, state) => const SizedBox.shrink(),
+      ),
+      GoRoute(
         path: '/settings',
         builder: (context, state) => const SizedBox.shrink(),
       ),
@@ -422,6 +617,31 @@ final class _ZenSettingsRoute extends _ZenBenchRoute {
   Uri toUri() => Uri(path: '/settings');
 }
 
+final class _ZenWorkspaceRoute extends _ZenBenchRoute {
+  _ZenWorkspaceRoute(this.tab);
+
+  final String tab;
+
+  @override
+  List<Object?> get props => [tab];
+
+  @override
+  Uri toUri() => Uri(path: '/workspace/$tab');
+}
+
+final class _ZenWorkspaceDetailRoute extends _ZenBenchRoute {
+  _ZenWorkspaceDetailRoute(this.tab, this.detailId);
+
+  final String tab;
+  final String detailId;
+
+  @override
+  List<Object?> get props => [tab, detailId];
+
+  @override
+  Uri toUri() => Uri(path: '/workspace/$tab/details/$detailId');
+}
+
 final class _ZenLoginRoute extends _ZenBenchRoute {
   _ZenLoginRoute();
 
@@ -448,6 +668,12 @@ class _ZenBenchCoordinator extends Coordinator<_ZenBenchRoute> {
 
     if (parts.length == 2 && parts[0] == 'users') {
       return _ZenUserRoute(parts[1]);
+    }
+    if (parts.length == 2 && parts[0] == 'workspace') {
+      return _ZenWorkspaceRoute(parts[1]);
+    }
+    if (parts.length == 4 && parts[0] == 'workspace' && parts[2] == 'details') {
+      return _ZenWorkspaceDetailRoute(parts[1], parts[3]);
     }
     if (parts.length == 2 && parts[0] == 'legacy') {
       return _ZenUserRoute(parts[1]);
