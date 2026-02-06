@@ -2,6 +2,12 @@ name: unrouter
 description: "A fresh redesign of Unrouter."
 version: 0.0.1
 repository: https://github.com/medz/unrouter
+topics:
+  - flutter
+  - router
+  - navigation
+  - routing
+  - web
 
 environment:
   sdk: ^3.10.0
