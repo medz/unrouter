@@ -66,9 +66,7 @@ class UnrouterDelegate<R extends RouteData>
     );
 
     unawaited(
-      _controller.machine.dispatchTyped<Future<void>>(
-        UnrouterMachineCommand.routeRequest(initial.uri, state: initial.state),
-      ),
+      _controller.dispatchRouteRequest(initial.uri, state: initial.state),
     );
   }
 
@@ -105,24 +103,20 @@ class UnrouterDelegate<R extends RouteData>
 
   @override
   Future<bool> popRoute() async {
-    if (_controller.machine.dispatchTyped<bool>(
+    if (_controller.machine.dispatch<bool>(
       UnrouterMachineCommand.popBranch(),
     )) {
       return true;
     }
 
-    return _controller.machine.dispatchTyped<bool>(
-      UnrouterMachineCommand.back(),
-    );
+    return _controller.machine.dispatch<bool>(UnrouterMachineCommand.back());
   }
 
   @override
   Future<void> setNewRoutePath(HistoryLocation configuration) {
-    return _controller.machine.dispatchTyped<Future<void>>(
-      UnrouterMachineCommand.routeRequest(
-        configuration.uri,
-        state: configuration.state,
-      ),
+    return _controller.dispatchRouteRequest(
+      configuration.uri,
+      state: configuration.state,
     );
   }
 

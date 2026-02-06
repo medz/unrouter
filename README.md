@@ -7,7 +7,7 @@ A URL-first typed router for Flutter.
 - Typed route objects via `RouteData`
 - Route matching powered by `roux`
 - Browser history integration via `unstory`
-- Core API by default, optional machine and devtools layers
+- Core API by default with an optional machine layer
 
 ## Install
 
@@ -18,8 +18,7 @@ flutter pub add unrouter
 ## Entrypoints
 
 - `package:unrouter/unrouter.dart`: core routing API
-- `package:unrouter/machine.dart`: machine commands/actions
-- `package:unrouter/devtools.dart`: inspector/panel/replay tooling
+- `package:unrouter/machine.dart`: machine commands
 
 Import `unrouter.dart` explicitly. Other entrypoints do not re-export core APIs.
 
@@ -85,14 +84,11 @@ flutter pub get
 flutter run -d chrome
 ```
 
-Open `/debug` (or tap the bug icon) for inspector/panel/replay diagnostics.
-
 ## Docs
 
 - Overview: `doc/README.md`
 - Getting started: `doc/getting_started.md`
 - Core routing: `doc/core_routing.md`
 - Machine API: `doc/machine_api.md`
-- Devtools: `doc/devtools.md`
-- Contracts: `doc/state_envelope.md`, `doc/machine_action_envelope_schema.md`
+- Contracts: `doc/state_envelope.md`
 - Benchmark guide: `doc/router_benchmarking.md`

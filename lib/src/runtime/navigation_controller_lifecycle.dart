@@ -102,6 +102,11 @@ extension UnrouterControllerLifecycleMethods<R extends RouteData>
     setHistoryStateComposer(null);
   }
 
+  /// Dispatches a route-resolution request through the internal route machine.
+  Future<void> dispatchRouteRequest(Uri uri, {Object? state}) {
+    return _dispatchRouteRequest(uri, state: state);
+  }
+
   /// Forces current state publication to listeners.
   void publishState() {
     _stateStore.refresh();

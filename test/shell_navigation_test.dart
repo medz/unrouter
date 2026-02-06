@@ -527,7 +527,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(machine, isNotNull);
 
-    final pending = machine!.dispatchTyped<Future<int?>>(
+    final pending = machine!.dispatch<Future<int?>>(
       UnrouterMachineCommand.pushUri<int>(Uri(path: '/a/detail')),
     );
     unawaited(
@@ -537,7 +537,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    final switched = machine!.dispatchTyped<bool>(
+    final switched = machine!.dispatch<bool>(
       UnrouterMachineCommand.switchBranch(1),
     );
     expect(switched, isTrue);
@@ -546,9 +546,9 @@ void main() {
     expect(router.routeInformationProvider.value.uri.path, '/b');
     expect(completed, isFalse);
 
-    machine!.dispatchTyped<bool>(UnrouterMachineCommand.switchBranch(0));
+    machine!.dispatch<bool>(UnrouterMachineCommand.switchBranch(0));
     await tester.pumpAndSettle();
-    machine!.dispatchTyped<bool>(UnrouterMachineCommand.popBranch());
+    machine!.dispatch<bool>(UnrouterMachineCommand.popBranch());
     await tester.pumpAndSettle();
 
     await expectLater(pending, completion(isNull));
@@ -569,12 +569,12 @@ void main() {
       await tester.pumpAndSettle();
       expect(machine, isNotNull);
 
-      final pending = machine!.dispatchTyped<Future<int?>>(
+      final pending = machine!.dispatch<Future<int?>>(
         UnrouterMachineCommand.pushUri<int>(Uri(path: '/a/detail')),
       );
       await tester.pumpAndSettle();
 
-      final switched = machine!.dispatchTyped<bool>(
+      final switched = machine!.dispatch<bool>(
         UnrouterMachineCommand.switchBranch(
           1,
           completePendingResult: true,
@@ -603,41 +603,41 @@ void main() {
     await tester.pumpAndSettle();
     expect(machine, isNotNull);
 
-    machine!.dispatchTyped<Future<Object?>>(
+    machine!.dispatch<Future<Object?>>(
       UnrouterMachineCommand.pushUri(Uri(path: '/a/detail')),
     );
     await tester.pumpAndSettle();
-    machine!.dispatchTyped<Future<Object?>>(
+    machine!.dispatch<Future<Object?>>(
       UnrouterMachineCommand.pushUri(Uri(path: '/a/edit')),
     );
     await tester.pumpAndSettle();
 
-    machine!.dispatchTyped<bool>(UnrouterMachineCommand.switchBranch(1));
+    machine!.dispatch<bool>(UnrouterMachineCommand.switchBranch(1));
     await tester.pumpAndSettle();
-    machine!.dispatchTyped<Future<Object?>>(
+    machine!.dispatch<Future<Object?>>(
       UnrouterMachineCommand.pushUri(Uri(path: '/b/detail')),
     );
     await tester.pumpAndSettle();
 
-    machine!.dispatchTyped<bool>(UnrouterMachineCommand.switchBranch(0));
+    machine!.dispatch<bool>(UnrouterMachineCommand.switchBranch(0));
     await tester.pumpAndSettle();
     expect(router.routeInformationProvider.value.uri.path, '/a/edit');
 
-    machine!.dispatchTyped<bool>(
+    machine!.dispatch<bool>(
       UnrouterMachineCommand.switchBranch(1, initialLocation: true),
     );
     await tester.pumpAndSettle();
     expect(router.routeInformationProvider.value.uri.path, '/b');
     expect(
-      machine!.dispatchTyped<bool>(UnrouterMachineCommand.popBranch()),
+      machine!.dispatch<bool>(UnrouterMachineCommand.popBranch()),
       isFalse,
     );
 
-    machine!.dispatchTyped<bool>(UnrouterMachineCommand.switchBranch(0));
+    machine!.dispatch<bool>(UnrouterMachineCommand.switchBranch(0));
     await tester.pumpAndSettle();
     expect(router.routeInformationProvider.value.uri.path, '/a/edit');
 
-    machine!.dispatchTyped<bool>(
+    machine!.dispatch<bool>(
       UnrouterMachineCommand.switchBranch(0, initialLocation: true),
     );
     await tester.pumpAndSettle();
@@ -658,21 +658,21 @@ void main() {
       await tester.pumpAndSettle();
       expect(machine, isNotNull);
 
-      machine!.dispatchTyped<bool>(UnrouterMachineCommand.switchBranch(1));
+      machine!.dispatch<bool>(UnrouterMachineCommand.switchBranch(1));
       await tester.pumpAndSettle();
-      machine!.dispatchTyped<Future<Object?>>(
+      machine!.dispatch<Future<Object?>>(
         UnrouterMachineCommand.pushUri(Uri(path: '/b/detail')),
       );
       await tester.pumpAndSettle();
-      machine!.dispatchTyped<bool>(UnrouterMachineCommand.switchBranch(0));
+      machine!.dispatch<bool>(UnrouterMachineCommand.switchBranch(0));
       await tester.pumpAndSettle();
 
-      final pending = machine!.dispatchTyped<Future<int?>>(
+      final pending = machine!.dispatch<Future<int?>>(
         UnrouterMachineCommand.pushUri<int>(Uri(path: '/a/detail')),
       );
       await tester.pumpAndSettle();
 
-      final switched = machine!.dispatchTyped<bool>(
+      final switched = machine!.dispatch<bool>(
         UnrouterMachineCommand.switchBranch(
           1,
           initialLocation: true,
@@ -685,14 +685,14 @@ void main() {
 
       expect(router.routeInformationProvider.value.uri.path, '/b');
       expect(
-        machine!.dispatchTyped<bool>(UnrouterMachineCommand.popBranch()),
+        machine!.dispatch<bool>(UnrouterMachineCommand.popBranch()),
         isFalse,
       );
       await expectLater(pending, completion(5));
     },
   );
 
-  testWidgets('machine action envelope classifies shell rejection codes', (
+  testWidgets('machine command returns false for invalid shell transitions', (
     tester,
   ) async {
     UnrouterMachine<AppRoute>? machine;
@@ -706,43 +706,25 @@ void main() {
     await tester.pumpAndSettle();
     expect(machine, isNotNull);
 
-    final unavailable = machine!.dispatchActionEnvelope<bool>(
-      UnrouterMachineAction.switchBranch(99),
+    final unavailable = machine!.dispatch<bool>(
+      UnrouterMachineCommand.switchBranch(99),
     );
-    expect(unavailable.state, UnrouterMachineActionEnvelopeState.rejected);
-    expect(
-      unavailable.rejectCode,
-      UnrouterMachineActionRejectCode.branchUnavailable,
-    );
-    expect(unavailable.rejectReason, isNotEmpty);
-    expect(
-      unavailable.failure?.category,
-      UnrouterMachineActionFailureCategory.shell,
-    );
-    expect(unavailable.failure?.retryable, isFalse);
+    expect(unavailable, isFalse);
 
-    final empty = machine!.dispatchActionEnvelope<bool>(
-      UnrouterMachineAction.popBranch(),
-    );
-    expect(empty.state, UnrouterMachineActionEnvelopeState.rejected);
-    expect(empty.rejectCode, UnrouterMachineActionRejectCode.branchEmpty);
-    expect(empty.rejectReason, isNotEmpty);
-    expect(empty.failure?.category, UnrouterMachineActionFailureCategory.shell);
-    expect(empty.failure?.retryable, isTrue);
+    final empty = machine!.dispatch<bool>(UnrouterMachineCommand.popBranch());
+    expect(empty, isFalse);
 
-    final envelopeTail = machine!.timeline
-        .where((entry) => entry.event == UnrouterMachineEvent.actionEnvelope)
-        .toList(growable: false);
-    expect(envelopeTail, hasLength(2));
     expect(
-      envelopeTail.map((entry) => entry.payload['actionRejectCode']).toList(),
-      <Object?>['branchUnavailable', 'branchEmpty'],
+      machine!.timeline.any(
+        (entry) => entry.event == UnrouterMachineEvent.switchBranch,
+      ),
+      isTrue,
     );
     expect(
-      envelopeTail
-          .map((entry) => entry.payload['actionFailureCategory'])
-          .toList(),
-      <Object?>['shell', 'shell'],
+      machine!.timeline.any(
+        (entry) => entry.event == UnrouterMachineEvent.popBranch,
+      ),
+      isTrue,
     );
   });
 
@@ -1065,47 +1047,47 @@ Future<_ShellMachineDeterminismSnapshot> _runShellMachineDeterminismScenario(
 
   final steps = <void Function()>[
     () {
-      machine!.dispatchTyped<Future<Object?>>(
+      machine!.dispatch<Future<Object?>>(
         UnrouterMachineCommand.pushUri(Uri(path: '/a/detail')),
       );
     },
     () {
-      machine!.dispatchTyped<Future<Object?>>(
+      machine!.dispatch<Future<Object?>>(
         UnrouterMachineCommand.pushUri(Uri(path: '/a/edit')),
       );
     },
     () {
-      machine!.dispatchTyped<bool>(UnrouterMachineCommand.switchBranch(1));
+      machine!.dispatch<bool>(UnrouterMachineCommand.switchBranch(1));
     },
     () {
-      machine!.dispatchTyped<Future<Object?>>(
+      machine!.dispatch<Future<Object?>>(
         UnrouterMachineCommand.pushUri(Uri(path: '/b/detail')),
       );
     },
     () {
-      machine!.dispatchTyped<bool>(UnrouterMachineCommand.popBranch());
+      machine!.dispatch<bool>(UnrouterMachineCommand.popBranch());
     },
     () {
-      machine!.dispatchTyped<bool>(UnrouterMachineCommand.switchBranch(0));
+      machine!.dispatch<bool>(UnrouterMachineCommand.switchBranch(0));
     },
     () {
-      machine!.dispatchTyped<bool>(UnrouterMachineCommand.popBranch());
+      machine!.dispatch<bool>(UnrouterMachineCommand.popBranch());
     },
     () {
-      machine!.dispatchTyped<bool>(
+      machine!.dispatch<bool>(
         UnrouterMachineCommand.switchBranch(1, initialLocation: true),
       );
     },
     () {
-      machine!.dispatchTyped<Future<Object?>>(
+      machine!.dispatch<Future<Object?>>(
         UnrouterMachineCommand.pushUri(Uri(path: '/about')),
       );
     },
     () {
-      machine!.dispatchTyped<bool>(UnrouterMachineCommand.back());
+      machine!.dispatch<bool>(UnrouterMachineCommand.back());
     },
     () {
-      machine!.dispatchTyped<bool>(UnrouterMachineCommand.switchBranch(0));
+      machine!.dispatch<bool>(UnrouterMachineCommand.switchBranch(0));
     },
   ];
 

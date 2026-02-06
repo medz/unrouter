@@ -14,8 +14,7 @@ import 'package:unrouter/unrouter.dart';
 
 Use additional entrypoints only when needed:
 
-- `package:unrouter/machine.dart`: machine command/action APIs.
-- `package:unrouter/devtools.dart`: inspector, panel, and replay tooling.
+- `package:unrouter/machine.dart`: machine command APIs.
 
 ## Minimal typed router
 
@@ -79,5 +78,4 @@ context.unrouter.pop(7);
 ## Next reads
 
 - Core behavior and advanced route features: `doc/core_routing.md`
-- Debug and diagnostics tooling: `doc/devtools.md`
-- Command/action machine API: `doc/machine_api.md`
+- Command machine API: `doc/machine_api.md`

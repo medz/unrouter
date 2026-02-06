@@ -1,10 +1,8 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:unrouter/devtools.dart';
 import 'package:unrouter/machine.dart';
 import 'package:unrouter/unrouter.dart';
 import 'package:unstory/unstory.dart';
@@ -125,15 +123,13 @@ void main() {
     expect(machine, isNotNull);
     expect(machine!.state.uri.toString(), '/');
 
-    final pushResult = machine!.dispatchTyped<Future<Object?>>(
+    final pushResult = machine!.dispatch<Future<Object?>>(
       UnrouterMachineCommand.pushUri(Uri(path: '/users/21')),
     );
     await tester.pumpAndSettle();
     expect(find.text('user:21'), findsOneWidget);
 
-    final wentBack = machine!.dispatchTyped<bool>(
-      UnrouterMachineCommand.back(),
-    );
+    final wentBack = machine!.dispatch<bool>(UnrouterMachineCommand.back());
     expect(wentBack, isTrue);
     await tester.pumpAndSettle();
     expect(find.text('home'), findsOneWidget);
@@ -153,7 +149,7 @@ void main() {
     );
   });
 
-  testWidgets('supports public machine action API draft layer', (tester) async {
+  testWidgets('supports additional machine command operations', (tester) async {
     UnrouterMachine<AppRoute>? machine;
 
     final router = Unrouter<AppRoute>(
@@ -179,37 +175,28 @@ void main() {
     await tester.pumpAndSettle();
     expect(machine, isNotNull);
 
-    machine!.dispatchAction<void>(
-      UnrouterMachineAction.navigateToRoute(const UserRoute(id: 21)),
+    machine!.dispatch<void>(
+      UnrouterMachineCommand.goUri(Uri(path: '/users/21')),
     );
     await tester.pumpAndSettle();
     expect(find.text('user:21'), findsOneWidget);
 
-    machine!.dispatchAction<void>(
-      UnrouterMachineAction.replaceRoute(const UserRoute(id: 23)),
+    machine!.dispatch<void>(
+      UnrouterMachineCommand.replaceUri(Uri(path: '/users/23')),
     );
     await tester.pumpAndSettle();
     expect(find.text('user:23'), findsOneWidget);
 
-    machine!.dispatchAction<void>(
-      UnrouterMachineAction.navigateRoute(
-        const UserRoute(id: 24),
-        mode: UnrouterMachineNavigateMode.replace,
-      ),
-    );
-    await tester.pumpAndSettle();
-    expect(find.text('user:24'), findsOneWidget);
-
-    final pushResult = machine!.dispatchAction<Future<int?>>(
-      UnrouterMachineAction.pushRoute<UserRoute, int>(const UserRoute(id: 22)),
+    final pushResult = machine!.dispatch<Future<int?>>(
+      UnrouterMachineCommand.pushUri<int>(Uri(path: '/users/22')),
     );
     await tester.pumpAndSettle();
     expect(find.text('user:22'), findsOneWidget);
 
-    final popped = machine!.dispatchAction<bool>(UnrouterMachineAction.pop(9));
+    final popped = machine!.dispatch<bool>(UnrouterMachineCommand.pop(9));
     expect(popped, isTrue);
     await tester.pumpAndSettle();
-    expect(find.text('user:24'), findsOneWidget);
+    expect(find.text('user:23'), findsOneWidget);
 
     await expectLater(pushResult, completion(9));
     expect(
@@ -236,7 +223,7 @@ void main() {
     );
   });
 
-  testWidgets('classifies machine action envelopes by dispatch outcome', (
+  testWidgets('projects typed payloads for command transitions', (
     tester,
   ) async {
     UnrouterMachine<AppRoute>? machine;
@@ -264,133 +251,33 @@ void main() {
     await tester.pumpAndSettle();
     expect(machine, isNotNull);
 
-    final rejected = machine!.dispatchActionEnvelope<bool>(
-      UnrouterMachineAction.back(),
-    );
-    expect(rejected.state, UnrouterMachineActionEnvelopeState.rejected);
-    expect(rejected.isAccepted, isFalse);
-    expect(rejected.value, isFalse);
-    expect(rejected.rejectCode, UnrouterMachineActionRejectCode.noBackHistory);
-    expect(rejected.rejectReason, isNotEmpty);
-    expect(rejected.failure, isNotNull);
-    expect(
-      rejected.failure?.category,
-      UnrouterMachineActionFailureCategory.history,
-    );
-    expect(rejected.failure?.retryable, isTrue);
-    final rejectedJson = rejected.toJson();
-    final rejectedFailure = rejectedJson['failure'] as Map<String, Object?>?;
-    expect(
-      rejectedFailure?['code'],
-      UnrouterMachineActionRejectCode.noBackHistory.name,
-    );
-    expect(
-      rejectedFailure?['category'],
-      UnrouterMachineActionFailureCategory.history.name,
-    );
-    expect(
-      UnrouterMachineActionEnvelope.isSchemaVersionCompatible(
-        rejectedJson['schemaVersion']! as int,
-      ),
-      isTrue,
-    );
-    expect(
-      UnrouterMachineActionEnvelope.isEventVersionCompatible(
-        rejectedJson['eventVersion']! as int,
-      ),
-      isTrue,
-    );
-    expect(
-      rejectedJson['schemaVersion'],
-      UnrouterMachineActionEnvelope.schemaVersion,
-    );
-    expect(
-      rejectedJson['eventVersion'],
-      UnrouterMachineActionEnvelope.eventVersion,
-    );
-    expect(rejectedJson['producer'], UnrouterMachineActionEnvelope.producer);
+    final cannotBack = machine!.dispatch<bool>(UnrouterMachineCommand.back());
+    expect(cannotBack, isFalse);
 
-    final accepted = machine!.dispatchActionEnvelope<void>(
-      UnrouterMachineAction.navigateToRoute(const UserRoute(id: 31)),
+    machine!.dispatch<void>(
+      UnrouterMachineCommand.goUri(Uri(path: '/users/31')),
     );
-    expect(accepted.state, UnrouterMachineActionEnvelopeState.accepted);
     await tester.pumpAndSettle();
     expect(find.text('user:31'), findsOneWidget);
 
-    final deferred = machine!.dispatchActionEnvelope<Future<int?>>(
-      UnrouterMachineAction.pushRoute<UserRoute, int>(const UserRoute(id: 32)),
+    final deferred = machine!.dispatch<Future<int?>>(
+      UnrouterMachineCommand.pushUri<int>(Uri(path: '/users/32')),
     );
-    expect(deferred.state, UnrouterMachineActionEnvelopeState.deferred);
     await tester.pumpAndSettle();
     expect(find.text('user:32'), findsOneWidget);
 
-    final completed = machine!.dispatchActionEnvelope<bool>(
-      UnrouterMachineAction.pop(11),
-    );
-    expect(completed.state, UnrouterMachineActionEnvelopeState.completed);
-    expect(completed.value, isTrue);
+    final completed = machine!.dispatch<bool>(UnrouterMachineCommand.pop(11));
+    expect(completed, isTrue);
     await tester.pumpAndSettle();
     expect(find.text('user:31'), findsOneWidget);
 
-    await expectLater(deferred.value, completion(11));
-    final envelopeTransitions = machine!.timeline
-        .where((entry) => entry.event == UnrouterMachineEvent.actionEnvelope)
-        .toList(growable: false);
-    expect(envelopeTransitions, hasLength(5));
-    expect(
-      envelopeTransitions
-          .map((entry) => entry.payload['actionState'])
-          .toList(growable: false),
-      containsAll(<String>['rejected', 'accepted', 'deferred', 'completed']),
-    );
-    expect(
-      envelopeTransitions
-          .map((entry) => entry.payload['actionEnvelope'])
-          .every((value) => value is Map<String, Object?>),
-      isTrue,
-    );
-    expect(
-      envelopeTransitions
-          .map((entry) => entry.payload['actionEnvelopeSchemaVersion'])
-          .toSet(),
-      {UnrouterMachineActionEnvelope.schemaVersion},
-    );
-    expect(
-      envelopeTransitions
-          .map((entry) => entry.payload['actionEnvelopeEventVersion'])
-          .toSet(),
-      {UnrouterMachineActionEnvelope.eventVersion},
-    );
-    expect(
-      envelopeTransitions
-          .map((entry) => entry.payload['actionEnvelopeProducer'])
-          .toSet(),
-      {UnrouterMachineActionEnvelope.producer},
-    );
-    expect(
-      envelopeTransitions
-          .map((entry) => entry.payload['actionEnvelopePhase'])
-          .toList(growable: false),
-      containsAll(<String>['dispatch', 'settled']),
-    );
-    expect(
-      envelopeTransitions.any(
-        (entry) => entry.payload['actionFailure'] is Map<String, Object?>,
-      ),
-      isTrue,
-    );
+    await expectLater(deferred, completion(11));
 
-    final typedTimeline = machine!.typedTimeline;
+    final typedTimeline = machine!.timeline
+        .map((entry) => entry.typed)
+        .toList(growable: false);
     expect(typedTimeline, hasLength(machine!.timeline.length));
     expect(typedTimeline, isNotEmpty);
-    expect(
-      typedTimeline.any(
-        (entry) =>
-            entry.payload.kind ==
-            UnrouterMachineTypedPayloadKind.actionEnvelope,
-      ),
-      isTrue,
-    );
     expect(
       typedTimeline.any(
         (entry) =>
@@ -436,26 +323,6 @@ void main() {
       typedControllerConfiguredPayload.redirectDiagnosticsEnabled,
       isFalse,
     );
-    final typedRejected = envelopeTransitions
-        .firstWhere((entry) => entry.payload['actionState'] == 'rejected')
-        .typed;
-    expect(
-      typedRejected.payload.kind,
-      UnrouterMachineTypedPayloadKind.actionEnvelope,
-    );
-    final typedRejectedPayload =
-        typedRejected.payload as UnrouterMachineActionEnvelopeTypedPayload;
-    expect(
-      typedRejectedPayload.actionState,
-      UnrouterMachineActionEnvelopeState.rejected,
-    );
-    expect(typedRejectedPayload.actionEvent, UnrouterMachineEvent.back);
-    expect(
-      typedRejectedPayload.failure?.category,
-      UnrouterMachineActionFailureCategory.history,
-    );
-    expect(typedRejectedPayload.isSchemaCompatible, isTrue);
-    expect(typedRejectedPayload.isEventCompatible, isTrue);
 
     final typedRoute = typedTimeline.firstWhere(
       (entry) => entry.payload.kind == UnrouterMachineTypedPayloadKind.route,
@@ -494,10 +361,9 @@ void main() {
     expect(typedControllerPayload.historyAction, machine!.state.historyAction);
   });
 
-  testWidgets('emits typed controller lifecycle transitions for updates', (
+  testWidgets('records controller lifecycle transitions during setup', (
     tester,
   ) async {
-    UnrouterController<AppRoute>? controller;
     UnrouterMachine<AppRoute>? machine;
 
     final router = Unrouter<AppRoute>(
@@ -507,7 +373,6 @@ void main() {
           path: '/',
           parse: (_) => const HomeRoute(),
           builder: (context, _) {
-            controller ??= context.unrouterAs<AppRoute>();
             machine ??= context.unrouterMachineAs<AppRoute>();
             return const Text('home');
           },
@@ -518,60 +383,26 @@ void main() {
     await tester.pumpWidget(MaterialApp.router(routerConfig: router));
     await tester.pumpAndSettle();
 
-    controller!.setHistoryStateComposer((request) => request.state);
-    controller!.clearHistoryStateComposer();
-    controller!.setShellBranchResolvers(
-      resolveTarget: (index, {required initialLocation}) =>
-          Uri(path: '/users/${index + 1}'),
-      popTarget: () => Uri(path: '/'),
-    );
-    controller!.clearShellBranchResolvers();
-
-    final typedTimeline = machine!.typedTimeline;
-    final historyComposerEntries = typedTimeline
-        .where(
-          (entry) =>
-              entry.event ==
-              UnrouterMachineEvent.controllerHistoryStateComposerChanged,
-        )
+    final typedTimeline = machine!.timeline
+        .map((entry) => entry.typed)
         .toList(growable: false);
-    expect(historyComposerEntries, isNotEmpty);
-    expect(
-      historyComposerEntries
-          .map(
-            (entry) => (entry.payload as UnrouterMachineControllerTypedPayload)
-                .enabled,
-          )
-          .toList(growable: false),
-      containsAll(<bool?>[true, false]),
-    );
 
-    final shellResolverEntries = typedTimeline
-        .where(
-          (entry) =>
-              entry.event ==
-              UnrouterMachineEvent.controllerShellResolversChanged,
-        )
-        .toList(growable: false);
-    expect(shellResolverEntries, isNotEmpty);
-    expect(
-      shellResolverEntries
-          .map(
-            (entry) => (entry.payload as UnrouterMachineControllerTypedPayload)
-                .enabled,
-          )
-          .toList(growable: false),
-      containsAll(<bool?>[true, false]),
+    final configuredEntry = typedTimeline.firstWhere(
+      (entry) =>
+          entry.event == UnrouterMachineEvent.controllerRouteMachineConfigured,
     );
-    expect(
-      shellResolverEntries
-          .map(
-            (entry) => (entry.payload as UnrouterMachineControllerTypedPayload)
-                .hadCustomShellResolvers,
-          )
-          .contains(true),
-      isTrue,
+    final configuredPayload =
+        configuredEntry.payload as UnrouterMachineControllerTypedPayload;
+    expect(configuredPayload.maxRedirectHops, router.maxRedirectHops);
+    expect(configuredPayload.redirectLoopPolicy, router.redirectLoopPolicy);
+
+    final shellResolversEntry = typedTimeline.firstWhere(
+      (entry) =>
+          entry.event == UnrouterMachineEvent.controllerShellResolversChanged,
     );
+    final shellResolversPayload =
+        shellResolversEntry.payload as UnrouterMachineControllerTypedPayload;
+    expect(shellResolversPayload.enabled, isTrue);
   });
 
   testWidgets('exposes route-state snapshot for matched routes', (
@@ -719,225 +550,7 @@ void main() {
     expect(timeline.last.snapshot.routePath, '/users/:id');
     expect(timeline.last.snapshot.historyIndex, 1);
 
-    controller!.clearStateTimeline();
-    final resetTimeline = controller!.stateTimeline;
-    expect(resetTimeline, hasLength(1));
-    expect(resetTimeline.single.snapshot.routePath, '/users/:id');
-
     unsubscribe();
-  });
-
-  testWidgets('exposes inspector debug report and timeline tail', (
-    tester,
-  ) async {
-    UnrouterInspector<AppRoute>? inspector;
-    UnrouterMachine<AppRoute>? machine;
-
-    final router = Unrouter<AppRoute>(
-      history: MemoryHistory(),
-      routes: [
-        route<HomeRoute>(
-          path: '/',
-          parse: (_) => const HomeRoute(),
-          builder: (context, _) {
-            inspector ??= context.unrouterAs<AppRoute>().inspector;
-            machine ??= context.unrouterMachineAs<AppRoute>();
-            return Center(
-              child: TextButton(
-                key: const Key('go-inspector-user'),
-                onPressed: () {
-                  context.unrouter.push(const UserRoute(id: 13));
-                },
-                child: const Text('home'),
-              ),
-            );
-          },
-        ),
-        route<UserRoute>(
-          path: '/users/:id',
-          parse: (state) => UserRoute(id: state.pathInt('id')),
-          builder: (_, route) => Text('user:${route.id}'),
-        ),
-      ],
-    );
-
-    await tester.pumpWidget(MaterialApp.router(routerConfig: router));
-    await tester.pumpAndSettle();
-
-    expect(inspector, isNotNull);
-    expect(machine, isNotNull);
-    final envelope = machine!.dispatchActionEnvelope<bool>(
-      UnrouterMachineAction.back(),
-    );
-    expect(envelope.state, UnrouterMachineActionEnvelopeState.rejected);
-    final initial = inspector!.debugReport(timelineTail: 1);
-    expect(initial['resolution'], 'matched');
-    expect(initial['routePath'], '/');
-    expect(initial['timelineLength'] as int, greaterThanOrEqualTo(1));
-    expect(initial['machineTimelineLength'] as int, greaterThanOrEqualTo(1));
-    final initialTail = initial['timelineTail']! as List<Object?>;
-    expect(initialTail, hasLength(1));
-    final initialMachineTail = initial['machineTimelineTail']! as List<Object?>;
-    expect(initialMachineTail, isNotEmpty);
-
-    await tester.tap(find.byKey(const Key('go-inspector-user')));
-    await tester.pumpAndSettle();
-
-    final report = inspector!.debugReport(timelineTail: 1);
-    expect(report['routePath'], '/users/:id');
-    expect(report['routeType'], 'UserRoute');
-    expect(report['historyIndex'], 1);
-    expect(report['timelineLength'] as int, greaterThanOrEqualTo(2));
-    expect(report['machineTimelineLength'] as int, greaterThanOrEqualTo(2));
-    final tail = report['timelineTail']! as List<Object?>;
-    expect(tail, hasLength(1));
-    final tailEntry = tail.single as Map<String, Object?>;
-    expect(tailEntry['routePath'], '/users/:id');
-    expect(tailEntry['resolution'], 'matched');
-    final machineTail = report['machineTimelineTail'] as List<Object?>;
-    expect(machineTail, isNotEmpty);
-    final machineEntry = machineTail.last as Map<String, Object?>;
-    expect(machineEntry['source'], isNotNull);
-    expect(machineEntry['event'], isNotNull);
-    expect(machineEntry['eventGroup'], isNotNull);
-    expect(machineEntry['from'], isA<Map<String, Object?>>());
-    expect(machineEntry['to'], isA<Map<String, Object?>>());
-
-    final filtered = inspector!.debugTimeline(
-      query: '/users/13',
-      resolutions: {UnrouterResolutionState.matched},
-      actions: {HistoryAction.push},
-    );
-    expect(filtered, hasLength(1));
-    expect(filtered.single['uri'], '/users/13');
-
-    final machineRouteOnly = inspector!.debugMachineTimeline(
-      sources: const {UnrouterMachineSource.route},
-      events: const {UnrouterMachineEvent.commit},
-    );
-    expect(machineRouteOnly, isNotEmpty);
-    expect(
-      machineRouteOnly.every((entry) => entry['source'] == 'route'),
-      isTrue,
-    );
-    expect(
-      machineRouteOnly.every((entry) => entry['event'] == 'commit'),
-      isTrue,
-    );
-
-    final machineByGroup = inspector!.debugMachineTimeline(
-      eventGroups: const {UnrouterMachineEventGroup.routeResolution},
-    );
-    expect(machineByGroup, isNotEmpty);
-    expect(
-      machineByGroup.every((entry) => entry['eventGroup'] == 'routeResolution'),
-      isTrue,
-    );
-
-    final machineByQuery = inspector!.debugMachineTimeline(query: '/users/13');
-    expect(machineByQuery, isNotEmpty);
-
-    final envelopeTail = inspector!.debugMachineTimeline(
-      events: const {UnrouterMachineEvent.actionEnvelope},
-    );
-    expect(envelopeTail, isNotEmpty);
-    final envelopeEntry = envelopeTail.last;
-    final payload = envelopeEntry['payload'] as Map<String, Object?>?;
-    final envelopePayload = payload?['actionEnvelope'] as Map<String, Object?>?;
-    final actionFailure = payload?['actionFailure'] as Map<String, Object?>?;
-    final envelopeFailure =
-        envelopePayload?['failure'] as Map<String, Object?>?;
-    expect(envelopeEntry['event'], UnrouterMachineEvent.actionEnvelope.name);
-    expect(
-      envelopeEntry['eventGroup'],
-      UnrouterMachineEventGroup.lifecycle.name,
-    );
-    expect(payload?['actionState'], 'rejected');
-    expect(payload?['actionEnvelopePhase'], 'dispatch');
-    expect(
-      payload?['actionEnvelopeSchemaVersion'],
-      UnrouterMachineActionEnvelope.schemaVersion,
-    );
-    expect(
-      payload?['actionEnvelopeEventVersion'],
-      UnrouterMachineActionEnvelope.eventVersion,
-    );
-    expect(
-      payload?['actionEnvelopeProducer'],
-      UnrouterMachineActionEnvelope.producer,
-    );
-    expect(
-      payload?['actionFailureCategory'],
-      UnrouterMachineActionFailureCategory.history.name,
-    );
-    expect(envelopePayload?['state'], 'rejected');
-    expect(
-      envelopePayload?['schemaVersion'],
-      UnrouterMachineActionEnvelope.schemaVersion,
-    );
-    expect(
-      envelopePayload?['eventVersion'],
-      UnrouterMachineActionEnvelope.eventVersion,
-    );
-    expect(
-      envelopePayload?['rejectCode'],
-      UnrouterMachineActionRejectCode.noBackHistory.name,
-    );
-    expect(
-      actionFailure?['code'],
-      UnrouterMachineActionRejectCode.noBackHistory.name,
-    );
-    expect(
-      actionFailure?['category'],
-      UnrouterMachineActionFailureCategory.history.name,
-    );
-    expect(
-      envelopeFailure?['code'],
-      UnrouterMachineActionRejectCode.noBackHistory.name,
-    );
-
-    final typedEnvelopeTail = inspector!.debugTypedMachineTimeline(
-      events: const {UnrouterMachineEvent.actionEnvelope},
-    );
-    expect(typedEnvelopeTail, isNotEmpty);
-    final typedEnvelope = typedEnvelopeTail.last;
-    final typedPayload = typedEnvelope['payload'] as Map<String, Object?>?;
-    expect(
-      typedPayload?['kind'],
-      UnrouterMachineTypedPayloadKind.actionEnvelope.name,
-    );
-    expect(
-      typedPayload?['actionState'],
-      UnrouterMachineActionEnvelopeState.rejected.name,
-    );
-    expect(typedPayload?['isSchemaCompatible'], isTrue);
-
-    expect(
-      machineByQuery.any(
-        (entry) =>
-            entry['fromUri'] == '/users/13' || entry['toUri'] == '/users/13',
-      ),
-      isTrue,
-    );
-
-    final export = inspector!.exportDebugReportJson(
-      timelineTail: 1,
-      machineQuery: '/users/13',
-      machineEventGroups: const {UnrouterMachineEventGroup.routeResolution},
-      query: '/users/13',
-    );
-    final decoded = jsonDecode(export) as Map<String, Object?>;
-    final exportedTail = decoded['timelineTail'] as List<Object?>;
-    expect(exportedTail, hasLength(1));
-    final exportedMachineTail = decoded['machineTimelineTail'] as List<Object?>;
-    expect(exportedMachineTail, isNotEmpty);
-    expect(
-      exportedMachineTail.every(
-        (entry) =>
-            (entry as Map<String, Object?>)['eventGroup'] == 'routeResolution',
-      ),
-      isTrue,
-    );
   });
 
   testWidgets('keeps current route when guard blocks navigation', (

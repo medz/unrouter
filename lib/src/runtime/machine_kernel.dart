@@ -1,12 +1,9 @@
-import 'dart:async';
-
 import 'package:unstory/unstory.dart';
 
 import '../core/redirect_diagnostics.dart';
 import '../core/route_data.dart';
 
 part 'navigation_machine_commands_actions.dart';
-part 'navigation_machine_envelope.dart';
 part 'navigation_machine_api.dart';
 
 /// Normalized route resolution state shared by runtime and machine timelines.
@@ -109,7 +106,6 @@ enum UnrouterMachineEvent {
   controllerHistoryStateComposerChanged,
   controllerShellResolversChanged,
   controllerDisposed,
-  actionEnvelope,
   goUri,
   replaceUri,
   pushUri,
@@ -146,7 +142,6 @@ extension UnrouterMachineEventGrouping on UnrouterMachineEvent {
       case UnrouterMachineEvent.controllerHistoryStateComposerChanged:
       case UnrouterMachineEvent.controllerShellResolversChanged:
       case UnrouterMachineEvent.controllerDisposed:
-      case UnrouterMachineEvent.actionEnvelope:
         return UnrouterMachineEventGroup.lifecycle;
       case UnrouterMachineEvent.goUri:
       case UnrouterMachineEvent.replaceUri:
@@ -290,13 +285,7 @@ class UnrouterMachineTransitionEntry {
 }
 
 /// Discriminator for typed machine payload models.
-enum UnrouterMachineTypedPayloadKind {
-  generic,
-  actionEnvelope,
-  navigation,
-  route,
-  controller,
-}
+enum UnrouterMachineTypedPayloadKind { generic, navigation, route, controller }
 
 /// Base type for typed machine payload projections.
 sealed class UnrouterMachineTypedPayload {
@@ -321,189 +310,6 @@ class UnrouterMachineGenericTypedPayload extends UnrouterMachineTypedPayload {
   @override
   Map<String, Object?> toJson() {
     return <String, Object?>{'kind': kind.name, 'raw': raw};
-  }
-}
-
-/// Typed payload parser for `actionEnvelope` transitions.
-class UnrouterMachineActionEnvelopeTypedPayload
-    extends UnrouterMachineTypedPayload {
-  const UnrouterMachineActionEnvelopeTypedPayload({
-    required this.raw,
-    required this.schemaVersion,
-    required this.eventVersion,
-    required this.producer,
-    required this.phase,
-    required this.actionEvent,
-    required this.actionState,
-    required this.envelope,
-    required this.failure,
-    required this.rejectCode,
-    required this.rejectReason,
-    required this.metadata,
-  });
-
-  factory UnrouterMachineActionEnvelopeTypedPayload.fromPayload(
-    Map<String, Object?> payload,
-  ) {
-    final envelope = _asMap(payload['actionEnvelope']);
-    final actionEvent = _parseMachineEvent(
-      payload['actionEvent']?.toString() ?? envelope?['event']?.toString(),
-    );
-    final actionState = _parseActionEnvelopeState(
-      payload['actionState']?.toString() ?? envelope?['state']?.toString(),
-    );
-    final failure =
-        UnrouterMachineActionFailure.tryParse(payload['actionFailure']) ??
-        UnrouterMachineActionFailure.tryParse(envelope?['failure']);
-    final metadata = <String, Object?>{...payload}
-      ..remove('actionEnvelopeSchemaVersion')
-      ..remove('actionEnvelopeEventVersion')
-      ..remove('actionEnvelopeProducer')
-      ..remove('actionEnvelopePhase')
-      ..remove('actionEnvelope')
-      ..remove('actionEvent')
-      ..remove('actionState')
-      ..remove('actionFailure')
-      ..remove('actionFailureCategory')
-      ..remove('actionFailureRetryable')
-      ..remove('actionRejectCode')
-      ..remove('actionRejectReason');
-    return UnrouterMachineActionEnvelopeTypedPayload(
-      raw: Map<String, Object?>.unmodifiable(payload),
-      schemaVersion:
-          _toInt(payload['actionEnvelopeSchemaVersion']) ??
-          _toInt(envelope?['schemaVersion']),
-      eventVersion:
-          _toInt(payload['actionEnvelopeEventVersion']) ??
-          _toInt(envelope?['eventVersion']),
-      producer:
-          payload['actionEnvelopeProducer']?.toString() ??
-          envelope?['producer']?.toString(),
-      phase: payload['actionEnvelopePhase']?.toString(),
-      actionEvent: actionEvent,
-      actionState: actionState,
-      envelope: envelope == null
-          ? null
-          : Map<String, Object?>.unmodifiable(envelope),
-      failure: failure,
-      rejectCode:
-          UnrouterMachineActionFailure.tryParseCode(
-            payload['actionRejectCode']?.toString(),
-          ) ??
-          UnrouterMachineActionFailure.tryParseCode(
-            envelope?['rejectCode']?.toString(),
-          ),
-      rejectReason:
-          payload['actionRejectReason']?.toString() ??
-          envelope?['rejectReason']?.toString(),
-      metadata: Map<String, Object?>.unmodifiable(metadata),
-    );
-  }
-
-  final Map<String, Object?> raw;
-  final int? schemaVersion;
-  final int? eventVersion;
-  final String? producer;
-  final String? phase;
-  final UnrouterMachineEvent? actionEvent;
-  final UnrouterMachineActionEnvelopeState? actionState;
-  final Map<String, Object?>? envelope;
-  final UnrouterMachineActionFailure? failure;
-  final UnrouterMachineActionRejectCode? rejectCode;
-  final String? rejectReason;
-  final Map<String, Object?> metadata;
-
-  @override
-  UnrouterMachineTypedPayloadKind get kind {
-    return UnrouterMachineTypedPayloadKind.actionEnvelope;
-  }
-
-  /// Whether envelope schema version is compatible with current runtime.
-  bool get isSchemaCompatible {
-    final version = schemaVersion;
-    if (version == null) {
-      return true;
-    }
-    return UnrouterMachineActionEnvelope.isSchemaVersionCompatible(version);
-  }
-
-  /// Whether envelope event version is compatible with current runtime.
-  bool get isEventCompatible {
-    final version = eventVersion;
-    if (version == null) {
-      return true;
-    }
-    return UnrouterMachineActionEnvelope.isEventVersionCompatible(version);
-  }
-
-  @override
-  Map<String, Object?> toJson() {
-    return <String, Object?>{
-      'kind': kind.name,
-      'schemaVersion': schemaVersion,
-      'eventVersion': eventVersion,
-      'producer': producer,
-      'phase': phase,
-      'actionEvent': actionEvent?.name,
-      'actionState': actionState?.name,
-      'isSchemaCompatible': isSchemaCompatible,
-      'isEventCompatible': isEventCompatible,
-      'rejectCode': rejectCode?.name,
-      'rejectReason': rejectReason,
-      'failure': failure?.toJson(),
-      'envelope': envelope,
-      'metadata': metadata,
-    };
-  }
-
-  static Map<String, Object?>? _asMap(Object? value) {
-    if (value is! Map<Object?, Object?>) {
-      return null;
-    }
-    final next = <String, Object?>{};
-    for (final entry in value.entries) {
-      next['${entry.key}'] = entry.value;
-    }
-    return next;
-  }
-
-  static int? _toInt(Object? value) {
-    if (value is int) {
-      return value;
-    }
-    if (value is num) {
-      return value.toInt();
-    }
-    if (value is String) {
-      return int.tryParse(value);
-    }
-    return null;
-  }
-
-  static UnrouterMachineEvent? _parseMachineEvent(String? value) {
-    if (value == null || value.isEmpty) {
-      return null;
-    }
-    for (final event in UnrouterMachineEvent.values) {
-      if (event.name == value) {
-        return event;
-      }
-    }
-    return null;
-  }
-
-  static UnrouterMachineActionEnvelopeState? _parseActionEnvelopeState(
-    String? value,
-  ) {
-    if (value == null || value.isEmpty) {
-      return null;
-    }
-    for (final state in UnrouterMachineActionEnvelopeState.values) {
-      if (state.name == value) {
-        return state;
-      }
-    }
-    return null;
   }
 }
 
@@ -866,17 +672,13 @@ class UnrouterMachineTypedTransition {
   factory UnrouterMachineTypedTransition.fromEntry(
     UnrouterMachineTransitionEntry entry,
   ) {
-    final payload = switch (entry.event) {
-      UnrouterMachineEvent.actionEnvelope =>
-        UnrouterMachineActionEnvelopeTypedPayload.fromPayload(entry.payload),
-      _ => switch (entry.source) {
-        UnrouterMachineSource.navigation =>
-          UnrouterMachineNavigationTypedPayload.fromPayload(entry.payload),
-        UnrouterMachineSource.route =>
-          UnrouterMachineRouteTypedPayload.fromTransition(entry),
-        UnrouterMachineSource.controller =>
-          UnrouterMachineControllerTypedPayload.fromTransition(entry),
-      },
+    final payload = switch (entry.source) {
+      UnrouterMachineSource.navigation =>
+        UnrouterMachineNavigationTypedPayload.fromPayload(entry.payload),
+      UnrouterMachineSource.route =>
+        UnrouterMachineRouteTypedPayload.fromTransition(entry),
+      UnrouterMachineSource.controller =>
+        UnrouterMachineControllerTypedPayload.fromTransition(entry),
     };
     return UnrouterMachineTypedTransition(
       sequence: entry.sequence,
@@ -918,8 +720,6 @@ class UnrouterMachineTypedTransition {
 
 /// Runtime contract required by machine commands.
 abstract interface class UnrouterMachineCommandRuntime {
-  Future<void> dispatchRouteRequest(Uri uri, {Object? state});
-
   void goUri(
     Uri uri, {
     Object? state,
@@ -962,12 +762,4 @@ abstract interface class UnrouterMachineHost<R extends RouteData>
   UnrouterMachineState get machineState;
 
   List<UnrouterMachineTransitionEntry> get machineTimeline;
-
-  T dispatchMachineCommand<T>(UnrouterMachineCommand<T> command);
-
-  void recordActionEnvelope<T>(
-    UnrouterMachineActionEnvelope<T> envelope, {
-    String phase = 'dispatch',
-    Map<String, Object?> metadata = const <String, Object?>{},
-  });
 }

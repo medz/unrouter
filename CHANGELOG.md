@@ -1,5 +1,17 @@
 ## Unreleased
 
+### Changed
+
+- Removed `package:unrouter/devtools.dart` and all built-in inspector/replay
+  implementations to keep the package focused on core routing and machine APIs.
+- Simplified docs, tests, and example app to match the slimmer public surface.
+- Simplified machine API to command-first dispatch by removing declarative
+  action/envelope layers and related schema contracts.
+- Tightened machine/controller public surface: merged dispatch entrypoint into
+  `machine.dispatch<T>()`, removed `typedTimeline`, removed public
+  `routeRequest` command, and stopped exporting controller lifecycle/composer
+  APIs from `package:unrouter/unrouter.dart`.
+
 ## 0.8.0
 
 ### Added
