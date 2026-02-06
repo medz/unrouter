@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:collection';
-import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
@@ -15,7 +14,6 @@ export 'machine_kernel.dart';
 
 part 'navigation_machine_runtime.dart';
 part 'navigation_controller_lifecycle.dart';
-part 'navigation_inspector.dart';
 part 'navigation_state.dart';
 
 /// Input payload for [UnrouterHistoryStateComposer].
@@ -36,19 +34,6 @@ class UnrouterHistoryStateRequest {
 /// Composes custom `history.state` payload before navigation writes.
 typedef UnrouterHistoryStateComposer =
     Object? Function(UnrouterHistoryStateRequest request);
-
-/// Minimal data source consumed by [UnrouterInspector].
-abstract interface class UnrouterInspectorSource<R extends RouteData> {
-  UnrouterStateSnapshot<R> get state;
-
-  ValueListenable<UnrouterStateSnapshot<R>> get stateListenable;
-
-  List<UnrouterStateTimelineEntry<R>> get stateTimeline;
-
-  UnrouterMachineState get machineState;
-
-  List<UnrouterMachineTransitionEntry> get machineTimeline;
-}
 
 class _UnrouterControllerMachineHost<R extends RouteData>
     implements UnrouterMachineHost<R> {
@@ -169,8 +154,7 @@ class _UnrouterControllerMachineHost<R extends RouteData>
 }
 
 /// Runtime controller backing `BuildContext.unrouter`.
-class UnrouterController<R extends RouteData>
-    implements UnrouterInspectorSource<R> {
+class UnrouterController<R extends RouteData> {
   UnrouterController({
     required UnrouterRouteInformationProvider routeInformationProvider,
     required R? Function() routeGetter,
@@ -336,30 +320,22 @@ class UnrouterController<R extends RouteData>
   /// Raw `history.state` payload of current location.
   Object? get historyState => _routeInformationProvider.value.state;
 
-  @override
   UnrouterStateSnapshot<R> get state => _stateStore.current.cast<R>();
 
-  /// Inspector facade for state, timeline, and export helpers.
-  UnrouterInspector<R> get inspector => UnrouterInspector<R>(this);
-
-  @override
   ValueListenable<UnrouterStateSnapshot<R>> get stateListenable {
     return _stateListenable;
   }
 
-  @override
   List<UnrouterStateTimelineEntry<R>> get stateTimeline {
     return List<UnrouterStateTimelineEntry<R>>.unmodifiable(
       _stateStore.timeline.map((entry) => entry.cast<R>()),
     );
   }
 
-  @override
   List<UnrouterMachineTransitionEntry> get machineTimeline {
     return _machineStore.entries;
   }
 
-  @override
   UnrouterMachineState get machineState => _captureMachineState();
 
   /// Machine facade for typed command/action dispatch.

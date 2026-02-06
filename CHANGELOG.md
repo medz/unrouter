@@ -1,5 +1,11 @@
 ## Unreleased
 
+### Changed
+
+- Removed `package:unrouter/devtools.dart` and all built-in inspector/replay
+  implementations to keep the package focused on core routing and machine APIs.
+- Simplified docs, tests, and example app to match the slimmer public surface.
+
 ## 0.8.0
 
 ### Added

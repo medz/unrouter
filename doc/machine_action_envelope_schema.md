@@ -1,7 +1,7 @@
 # Unrouter Machine Action Envelope Schema
 
 This document defines the machine action-envelope payload contract used by
-inspector/bridge/replay tooling.
+machine diagnostics tooling.
 
 ## Scope
 
@@ -93,7 +93,6 @@ For strongly typed consumers, transition entries expose typed projections:
 
 - `UnrouterMachineTransitionEntry.typed`
 - `UnrouterMachine.typedTimeline`
-- `UnrouterInspector.debugTypedMachineTimeline(...)`
 
 `actionEnvelope` events are parsed into
 `UnrouterMachineActionEnvelopeTypedPayload`, while non-envelope events keep a

@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:unrouter/devtools.dart';
 import 'package:unrouter/machine.dart';
 import 'package:unrouter/unrouter.dart';
 import 'package:unstory/unstory.dart';
@@ -74,64 +73,6 @@ void main() {
         );
       }
     });
-
-    test(
-      'replay action-envelope compatibility validation stays within scale budgets',
-      () {
-        final scenarios = <_PerformanceScenario>[
-          _PerformanceScenario(
-            entryCount: 300,
-            rounds: 30,
-            maxElapsed: const Duration(seconds: 3),
-          ),
-          _PerformanceScenario(
-            entryCount: 900,
-            rounds: 20,
-            maxElapsed: const Duration(seconds: 6),
-          ),
-          _PerformanceScenario(
-            entryCount: 1800,
-            rounds: 10,
-            maxElapsed: const Duration(seconds: 6),
-          ),
-        ];
-
-        for (final scenario in scenarios) {
-          final store = UnrouterInspectorReplayStore();
-          final startAt = DateTime(2026, 2, 6, 14, 0, 0);
-          for (var i = 0; i < scenario.entryCount; i++) {
-            store.add(
-              UnrouterInspectorEmission(
-                reason: UnrouterInspectorEmissionReason.manual,
-                recordedAt: startAt.add(Duration(milliseconds: i)),
-                report: <String, Object?>{
-                  'machineTimelineTail': <Object?>[
-                    _actionEnvelopeEntryForIndex(i).toJson(),
-                  ],
-                },
-              ),
-            );
-          }
-
-          final stopwatch = Stopwatch()..start();
-          late UnrouterInspectorReplayValidationResult result;
-          for (var round = 0; round < scenario.rounds; round++) {
-            result = store.validateActionEnvelopeCompatibility();
-          }
-          stopwatch.stop();
-
-          expect(result.errorCount, 0);
-          expect(result.warningCount, 0);
-          expect(
-            stopwatch.elapsed,
-            lessThan(scenario.maxElapsed),
-            reason:
-                'compat validation exceeded budget for entryCount=${scenario.entryCount}',
-          );
-          store.dispose();
-        }
-      },
-    );
   });
 }
 
