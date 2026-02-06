@@ -5,5 +5,3 @@ tags:
     description: Deterministic cross-router behavior parity checks.
   performance:
     description: Baseline performance trend checks for shared scripts.
-  report:
-    description: Structured benchmark report generation.

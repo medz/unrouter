@@ -37,12 +37,14 @@ void main() {
 
       for (final item in series) {
         debugPrint(
-          '[router-benchmark] ${item.routerName}: samples=${item.sampleCount}, '
-          'rounds=${item.rounds}, '
-          'meanUs=${item.meanAverageMicrosPerRound.toStringAsFixed(1)}, '
-          'p50Us=${item.p50AverageMicrosPerRound.toStringAsFixed(1)}, '
-          'p95Us=${item.p95AverageMicrosPerRound.toStringAsFixed(1)}, '
-          'checksumParity=${item.checksumParity}, '
+          '[router-benchmark][performance] '
+          'router=${item.routerName} '
+          'samples=${item.sampleCount} '
+          'rounds=${item.rounds} '
+          'meanUs=${item.meanAverageMicrosPerRound.toStringAsFixed(1)} '
+          'p50Us=${item.p50AverageMicrosPerRound.toStringAsFixed(1)} '
+          'p95Us=${item.p95AverageMicrosPerRound.toStringAsFixed(1)} '
+          'checksumParity=${item.checksumParity} '
           'checksum=${item.checksum ?? -1}',
         );
       }

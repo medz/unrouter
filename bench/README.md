@@ -4,56 +4,42 @@ Differential router benchmark suite for `unrouter`, `go_router`, and `zenrouter`
 
 ## Run
 
-Behavior parity:
+Run the full benchmark (behavior + performance) and print a terminal summary:
 
 ```bash
-flutter test --tags behavior
-```
-
-Performance baseline:
-
-```bash
-flutter test --tags performance
+dart run main.dart
 ```
 
 Tune rounds and sample count:
 
 ```bash
-flutter test --tags performance \
-  --dart-define=UNROUTER_BENCH_ROUNDS=48 \
-  --dart-define=UNROUTER_BENCH_SAMPLES=7
-```
-
-Generate a structured JSON report:
-
-```bash
-dart run tool/generate_report.dart
-```
-
-Custom report output and rounds:
-
-```bash
-dart run tool/generate_report.dart \
-  --output=results/manual_report.json \
+dart run main.dart \
   --rounds=48 \
   --samples=7 \
   --long-lived-rounds=64
 ```
 
-Regression alert against a baseline report (`+15%` default threshold):
+Run only behavior parity:
 
 ```bash
-dart run tool/generate_report.dart \
-  --output=results/current.json \
-  --baseline=results/baseline.json
+dart run main.dart --behavior-only
 ```
 
-Tighten threshold or fail on regression:
+Run only performance baseline:
 
 ```bash
-dart run tool/generate_report.dart \
-  --output=results/current.json \
-  --baseline=results/baseline.json \
-  --threshold-percent=10 \
-  --fail-on-regression
+dart run main.dart --performance-only
+```
+
+Show raw `flutter test` output while running:
+
+```bash
+dart run main.dart --verbose
+```
+
+You can still run raw suites directly if needed:
+
+```bash
+flutter test --tags behavior
+flutter test --tags performance
 ```

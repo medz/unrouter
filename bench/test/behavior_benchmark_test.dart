@@ -1,9 +1,15 @@
 @Tags(<String>['router-bench', 'behavior'])
 library;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'src/router_bench_harness.dart';
+
+const int _longLivedRounds = int.fromEnvironment(
+  'UNROUTER_BENCH_LONG_LIVED_ROUNDS',
+  defaultValue: 40,
+);
 
 void main() {
   group('Router differential benchmark (behavior)', () {
@@ -45,6 +51,12 @@ void main() {
               'Push-result mismatch between ${base.routerName} and ${snapshot.routerName}',
         );
       }
+
+      _emitBehaviorSummary(
+        script: 'sharedNavigation',
+        parity: true,
+        expected: true,
+      );
     });
 
     testWidgets('redirect semantics parity', (tester) async {
@@ -70,6 +82,8 @@ void main() {
           reason: 'Redirect mismatch between ${base.$1} and ${snapshot.$1}',
         );
       }
+
+      _emitBehaviorSummary(script: 'redirect', parity: true, expected: true);
     });
 
     testWidgets('guard redirect semantics parity', (tester) async {
@@ -95,6 +109,12 @@ void main() {
           reason: 'Guard mismatch between ${base.$1} and ${snapshot.$1}',
         );
       }
+
+      _emitBehaviorSummary(
+        script: 'guardRedirect',
+        parity: true,
+        expected: true,
+      );
     });
 
     testWidgets('nested navigation semantics parity', (tester) async {
@@ -135,6 +155,12 @@ void main() {
               'Nested push-result mismatch between ${base.routerName} and ${snapshot.routerName}',
         );
       }
+
+      _emitBehaviorSummary(
+        script: 'nestedNavigation',
+        parity: true,
+        expected: true,
+      );
     });
 
     testWidgets('browser-like back-forward parity', (tester) async {
@@ -177,12 +203,17 @@ void main() {
               'Back-forward result mismatch between ${base.routerName} and ${snapshot.routerName}',
         );
       }
+
+      _emitBehaviorSummary(
+        script: 'browserLikeBackForward',
+        parity: true,
+        expected: true,
+      );
     });
 
     testWidgets('long-lived restoration parity', (tester) async {
-      const rounds = 40;
-      final expectedResultChecksum = _sumIntegers(rounds);
-      final expectedUserChecksum = _sumGeneratedUserIds(rounds);
+      final expectedResultChecksum = _sumIntegers(_longLivedRounds);
+      final expectedUserChecksum = _sumGeneratedUserIds(_longLivedRounds);
 
       final snapshots = <LongLivedSnapshot>[];
       for (final harness in createHarnesses()) {
@@ -191,9 +222,9 @@ void main() {
           final snapshot = await runLongLivedRestorationScript(
             harness,
             tester,
-            rounds: rounds,
+            rounds: _longLivedRounds,
           );
-          expect(snapshot.rounds, rounds);
+          expect(snapshot.rounds, _longLivedRounds);
           expect(snapshot.finalLocation, '/');
           expect(snapshot.resultChecksum, expectedResultChecksum);
           expect(snapshot.userChecksum, expectedUserChecksum);
@@ -224,8 +255,25 @@ void main() {
               'Long-lived user checksum mismatch between ${base.routerName} and ${snapshot.routerName}',
         );
       }
+
+      _emitBehaviorSummary(
+        script: 'longLivedRestoration',
+        parity: true,
+        expected: true,
+      );
     });
   });
+}
+
+void _emitBehaviorSummary({
+  required String script,
+  required bool parity,
+  required bool expected,
+}) {
+  debugPrint(
+    '[router-benchmark][behavior] '
+    'script=$script parity=$parity expected=$expected',
+  );
 }
 
 int _sumIntegers(int value) {

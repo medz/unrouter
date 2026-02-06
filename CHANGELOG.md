@@ -90,11 +90,13 @@
 - Split benchmark execution into tagged behavior/performance suites (`--tags behavior` and `--tags performance`) for independent CI policies.
 - Expand behavior differential coverage with redirect (`/legacy/:id -> /users/:id`) and guard redirect (`/protected -> /login`) parity scripts.
 - Add nested navigation, browser-like back-forward, and long-lived restoration parity scripts to the differential benchmark behavior suite.
-- Add `report` benchmark mode and `bench/tool/generate_report.dart` to emit structured JSON benchmark reports with environment/version metadata under `bench/results/`.
 - Stabilize benchmark performance checksum to use semantic checkpoints instead of push-timing-sensitive location lengths.
-- Add multi-sample performance aggregation with percentile summaries (`p50`/`p95`) for benchmark tests and structured reports.
-- Add local baseline regression strategy to benchmark reporting (`--baseline`, `--threshold-percent`, optional `--fail-on-regression`) with default alert-only behavior.
+- Add multi-sample performance aggregation with percentile summaries (`p50`/`p95`) for benchmark tests.
 - Remove benchmark GitHub Actions workflow integration and keep benchmark execution as explicit local/manual workflows.
+- Add `bench/main.dart` as a single benchmark entrypoint that runs behavior + performance suites and prints a visual terminal summary.
+- Remove JSON benchmark report generation/readback flow and retire the dedicated `report` benchmark tag/tool scripts.
+- Add machine-readable behavior/performance benchmark markers for CLI summary parsing.
+- Move benchmark `flutter_test` and `flutter_lints` entries into `bench` `dependencies` for unified dependency management.
 - Split `lib/src/navigation.dart` into dedicated part files (`navigation_machine.dart`, `navigation_inspector.dart`, `navigation_state.dart`) to reduce monolithic runtime complexity.
 - Reorganize `lib/src/` into domain folders (`core/`, `runtime/`, `devtools/`, `platform/`) to improve internal boundaries and maintainability.
 - Further decompose `lib/src/runtime/navigation` machine internals into focused part modules (`navigation_machine_commands_actions.dart`, `navigation_machine_envelope.dart`, `navigation_machine_api.dart`, `navigation_machine_runtime.dart`).

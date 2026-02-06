@@ -69,56 +69,42 @@ Expected push results for shared navigation script:
 
 Run from `bench/`:
 
-Behavior parity only:
+Recommended single-command run (behavior + performance + terminal summary):
 
 ```bash
 cd bench
-flutter test --tags behavior
+dart run main.dart
 ```
 
-Performance baseline only:
+Tune rounds/sample size/long-lived rounds:
 
 ```bash
 cd bench
-flutter test --tags performance
+dart run main.dart \
+  --rounds=48 \
+  --samples=7 \
+  --long-lived-rounds=64
 ```
 
-You can raise/lower performance rounds and sample size with compile-time
-defines:
+Behavior-only run:
 
 ```bash
 cd bench
-flutter test --tags performance \
-  --dart-define=UNROUTER_BENCH_ROUNDS=48 \
-  --dart-define=UNROUTER_BENCH_SAMPLES=7
+dart run main.dart --behavior-only
 ```
 
-Generate a structured benchmark report JSON:
+Performance-only run:
 
 ```bash
 cd bench
-dart run tool/generate_report.dart
+dart run main.dart --performance-only
 ```
 
-Generate a report with regression alerting against a baseline report (default
-threshold `+15%`, alert-only):
+Debug mode (stream raw `flutter test` output):
 
 ```bash
 cd bench
-dart run tool/generate_report.dart \
-  --output=results/current.json \
-  --baseline=results/baseline.json
-```
-
-Fail-fast mode for local gates:
-
-```bash
-cd bench
-dart run tool/generate_report.dart \
-  --output=results/current.json \
-  --baseline=results/baseline.json \
-  --threshold-percent=10 \
-  --fail-on-regression
+dart run main.dart --verbose
 ```
 
 ## Add a new adapter
@@ -136,9 +122,8 @@ dart run tool/generate_report.dart \
 - Browser back/forward APIs are not fully portable across compared routers in
   widget tests. The benchmark uses a shared push/pop script as the parity
   baseline for browser-like round-trips.
-- Structured report output is written under `bench/results/` and includes
-  machine/environment metadata, multi-sample performance summaries
-  (`min/mean/p50/p95/max`), and optional regression check results.
+- `bench/main.dart` runs both suites and prints a visual terminal summary
+  directly, without writing JSON report files.
 - This baseline favors correctness first. Performance output is informative and
   intended for trend tracking, not strict cross-package winner declarations.
 - For richer coverage, add more scripts over time (redirect/guard, nested shell,

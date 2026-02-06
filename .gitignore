@@ -31,4 +31,3 @@ migrate_working_dir/
 /coverage/
 /bench/build/
 /bench/pubspec.lock
-/bench/results/*.json
