@@ -90,6 +90,13 @@ cd bench
 flutter test --tags performance --dart-define=UNROUTER_BENCH_ROUNDS=48
 ```
 
+Generate a structured benchmark report JSON:
+
+```bash
+cd bench
+dart run tool/generate_report.dart
+```
+
 ## Add a new adapter
 
 1. Implement `RouterBenchHarness` in `bench/test/src/router_bench_harness.dart`.
@@ -108,6 +115,8 @@ flutter test --tags performance --dart-define=UNROUTER_BENCH_ROUNDS=48
 - CI policy:
   `behavior` runs on push/pull requests in benchmark workflow.
   `performance` runs on schedule/manual dispatch only.
+- Structured report output is written under `bench/results/` and includes
+  machine/environment metadata and behavior/performance summaries.
 - This baseline favors correctness first. Performance output is informative and
   intended for trend tracking, not strict cross-package winner declarations.
 - For richer coverage, add more scripts over time (redirect/guard, nested shell,

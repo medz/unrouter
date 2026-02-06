@@ -216,20 +216,22 @@ Future<PerformanceMetric> runPerformanceScript(
     final userId = (i % 9) + 1;
     await harness.go('/users/$userId');
     await harness.pump(tester);
-    checksum += harness.location.length;
+    checksum += _readTrailingUserId(harness.location) ?? 0;
 
     final pending = harness.push('/settings');
     await harness.pump(tester);
-    checksum += harness.location.length;
 
     await harness.pop(i);
     await harness.pump(tester);
     final result = await pending;
-    checksum += result is int ? result : 0;
+    if (result is int) {
+      checksum += result;
+    }
+    checksum += harness.location == '/users/$userId' ? 1 : 0;
 
     await harness.go('/');
     await harness.pump(tester);
-    checksum += harness.location.length;
+    checksum += harness.location == '/' ? 1 : 0;
   }
 
   stopwatch.stop();

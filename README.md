@@ -69,6 +69,8 @@ Import `unrouter.dart` explicitly when you need core routing APIs.
   `cd bench && flutter test --tags behavior`
 - Performance baseline (scheduled/manual benchmark workflow):
   `cd bench && flutter test --tags performance`
+- Structured report JSON:
+  `cd bench && dart run tool/generate_report.dart`
 - Benchmark guide:
   `docs/router_benchmarking.md`
 

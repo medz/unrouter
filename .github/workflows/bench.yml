@@ -49,5 +49,11 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Performance baseline benchmark
-        run: flutter test --tags performance --dart-define=UNROUTER_BENCH_ROUNDS=96
+      - name: Structured performance report
+        run: dart run tool/generate_report.dart --rounds=96 --long-lived-rounds=80
+
+      - name: Upload benchmark report
+        uses: actions/upload-artifact@v4
+        with:
+          name: router-benchmark-report
+          path: bench/results/*.json
