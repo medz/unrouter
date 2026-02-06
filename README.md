@@ -65,12 +65,14 @@ Import `unrouter.dart` explicitly when you need core routing APIs.
 ## Router benchmarks
 
 - Bench project location: `bench/`
-- Behavior parity (CI default in benchmark workflow):
+- Behavior parity:
   `cd bench && flutter test --tags behavior`
-- Performance baseline (scheduled/manual benchmark workflow):
-  `cd bench && flutter test --tags performance`
+- Performance baseline (multi-sample with P50/P95 summary):
+  `cd bench && flutter test --tags performance --dart-define=UNROUTER_BENCH_SAMPLES=5`
 - Structured report JSON:
   `cd bench && dart run tool/generate_report.dart`
+- Local regression check against a baseline report (+15% default threshold, alert-only):
+  `cd bench && dart run tool/generate_report.dart --baseline=results/baseline.json`
 - Benchmark guide:
   `docs/router_benchmarking.md`
 

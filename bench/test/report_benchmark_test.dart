@@ -13,6 +13,10 @@ const int _performanceRounds = int.fromEnvironment(
   'UNROUTER_BENCH_ROUNDS',
   defaultValue: 24,
 );
+const int _performanceSamples = int.fromEnvironment(
+  'UNROUTER_BENCH_SAMPLES',
+  defaultValue: 5,
+);
 const int _longLivedRounds = int.fromEnvironment(
   'UNROUTER_BENCH_LONG_LIVED_ROUNDS',
   defaultValue: 40,
@@ -41,6 +45,16 @@ const String _gitBranch = String.fromEnvironment(
   'UNROUTER_BENCH_GIT_BRANCH',
   defaultValue: 'unknown',
 );
+const String _baselineReportPath = String.fromEnvironment(
+  'UNROUTER_BENCH_BASELINE_REPORT_PATH',
+  defaultValue: '',
+);
+const String _regressionThresholdPercentRaw = String.fromEnvironment(
+  'UNROUTER_BENCH_REGRESSION_THRESHOLD_PERCENT',
+  defaultValue: '15',
+);
+final double _regressionThresholdPercent =
+    double.tryParse(_regressionThresholdPercentRaw) ?? 15;
 
 List<BehaviorSnapshot>? _sharedSnapshots;
 List<(String routerName, String location)>? _redirectLocations;
@@ -48,7 +62,7 @@ List<(String routerName, String location)>? _guardLocations;
 List<BehaviorSnapshot>? _nestedSnapshots;
 List<BehaviorSnapshot>? _backForwardSnapshots;
 List<LongLivedSnapshot>? _longLivedSnapshots;
-List<PerformanceMetric>? _performanceMetrics;
+List<PerformanceSeries>? _performanceSeries;
 
 void main() {
   group('Structured benchmark report', () {
@@ -95,9 +109,10 @@ void main() {
     });
 
     testWidgets('collect performance metrics', (tester) async {
-      _performanceMetrics = await _runPerformanceMetrics(
+      _performanceSeries = await _runPerformanceSeriesList(
         tester,
         rounds: _performanceRounds,
+        samples: _performanceSamples,
       );
     });
 
@@ -108,7 +123,7 @@ void main() {
       final nestedSnapshots = _nestedSnapshots;
       final backForwardSnapshots = _backForwardSnapshots;
       final longLivedSnapshots = _longLivedSnapshots;
-      final performanceMetrics = _performanceMetrics;
+      final performanceSeries = _performanceSeries;
 
       expect(sharedSnapshots, isNotNull);
       expect(redirectLocations, isNotNull);
@@ -116,7 +131,9 @@ void main() {
       expect(nestedSnapshots, isNotNull);
       expect(backForwardSnapshots, isNotNull);
       expect(longLivedSnapshots, isNotNull);
-      expect(performanceMetrics, isNotNull);
+      expect(performanceSeries, isNotNull);
+
+      final resolvedPerformanceSeries = performanceSeries!;
 
       final report = <String, Object?>{
         'schemaVersion': 1,
@@ -142,6 +159,7 @@ void main() {
         },
         'config': <String, Object?>{
           'performanceRounds': _performanceRounds,
+          'performanceSamples': _performanceSamples,
           'longLivedRounds': _longLivedRounds,
         },
         'behavior': <String, Object?>{
@@ -194,21 +212,20 @@ void main() {
         },
         'performance': <String, Object?>{
           'rounds': _performanceRounds,
+          'samples': _performanceSamples,
           'checksumMeaning':
               'Semantic checksum from stable go/pop/result/final-location checkpoints.',
-          'metrics': performanceMetrics!
-              .map(
-                (metric) => <String, Object?>{
-                  'router': metric.routerName,
-                  'elapsedMs': metric.elapsed.inMilliseconds,
-                  'averageMicrosPerRound': metric.averageMicrosPerRound,
-                  'checksum': metric.checksum,
-                },
-              )
+          'routers': resolvedPerformanceSeries
+              .map(_buildPerformanceSeriesReport)
               .toList(growable: false),
-          'parity': _hasPerformanceParity(performanceMetrics),
+          'checksumParity': _hasPerformanceParity(resolvedPerformanceSeries),
         },
       };
+
+      final regression = await _buildRegressionReport(resolvedPerformanceSeries);
+      if (regression != null) {
+        report['regression'] = regression;
+      }
 
       final file = File(_reportPath);
       await file.parent.create(recursive: true);
@@ -340,10 +357,170 @@ Map<String, Object?> _buildLongLivedReport({
   };
 }
 
-bool _hasPerformanceParity(List<PerformanceMetric> metrics) {
-  return _hasSharedValueParity(
-    metrics.map((metric) => metric.checksum).toList(growable: false),
+Map<String, Object?> _buildPerformanceSeriesReport(PerformanceSeries series) {
+  return <String, Object?>{
+    'router': series.routerName,
+    'rounds': series.rounds,
+    'sampleCount': series.sampleCount,
+    'checksumParity': series.checksumParity,
+    'checksum': series.checksum,
+    'totalElapsedMs': series.totalElapsedMilliseconds,
+    'samples': series.metrics
+        .map(
+          (metric) => <String, Object?>{
+            'elapsedMs': metric.elapsed.inMilliseconds,
+            'averageMicrosPerRound': metric.averageMicrosPerRound,
+            'checksum': metric.checksum,
+          },
+        )
+        .toList(growable: false),
+    'summary': <String, Object?>{
+      'minAverageMicrosPerRound': series.minAverageMicrosPerRound,
+      'meanAverageMicrosPerRound': series.meanAverageMicrosPerRound,
+      'p50AverageMicrosPerRound': series.p50AverageMicrosPerRound,
+      'p95AverageMicrosPerRound': series.p95AverageMicrosPerRound,
+      'maxAverageMicrosPerRound': series.maxAverageMicrosPerRound,
+    },
+  };
+}
+
+bool _hasPerformanceParity(List<PerformanceSeries> series) {
+  if (series.isEmpty) {
+    return true;
+  }
+  if (series.any((item) => !item.checksumParity || item.checksum == null)) {
+    return false;
+  }
+  final firstChecksum = series.first.checksum;
+  return series.every((item) => item.checksum == firstChecksum);
+}
+
+Future<Map<String, Object?>?> _buildRegressionReport(
+  List<PerformanceSeries> currentSeries,
+) async {
+  if (_baselineReportPath.isEmpty) {
+    return null;
+  }
+
+  final baselineFile = File(_baselineReportPath);
+  if (!baselineFile.existsSync()) {
+    return <String, Object?>{
+      'enabled': true,
+      'baselinePath': _baselineReportPath,
+      'thresholdPercent': _regressionThresholdPercent,
+      'error': 'baseline_not_found',
+      'regressions': const <Object?>[],
+      'hasRegression': false,
+    };
+  }
+
+  final raw = await baselineFile.readAsString();
+  final decoded = jsonDecode(raw);
+  if (decoded is! Map<String, dynamic>) {
+    return <String, Object?>{
+      'enabled': true,
+      'baselinePath': _baselineReportPath,
+      'thresholdPercent': _regressionThresholdPercent,
+      'error': 'baseline_malformed',
+      'regressions': const <Object?>[],
+      'hasRegression': false,
+    };
+  }
+
+  final baselineP50 = _readRouterPerformanceMap(
+    decoded,
+    key: 'p50AverageMicrosPerRound',
   );
+  final baselineP95 = _readRouterPerformanceMap(
+    decoded,
+    key: 'p95AverageMicrosPerRound',
+  );
+
+  final regressions = <Map<String, Object?>>[];
+  for (final series in currentSeries) {
+    final router = series.routerName;
+    final baseP50 = baselineP50[router];
+    final baseP95 = baselineP95[router];
+    if (baseP50 == null || baseP95 == null || baseP50 <= 0 || baseP95 <= 0) {
+      continue;
+    }
+
+    final currentP50 = series.p50AverageMicrosPerRound;
+    final currentP95 = series.p95AverageMicrosPerRound;
+    final allowedP50 = baseP50 * (1 + _regressionThresholdPercent / 100);
+    final allowedP95 = baseP95 * (1 + _regressionThresholdPercent / 100);
+    final p50Regressed = currentP50 > allowedP50;
+    final p95Regressed = currentP95 > allowedP95;
+    if (!p50Regressed && !p95Regressed) {
+      continue;
+    }
+
+    regressions.add(<String, Object?>{
+      'router': router,
+      'baseline': <String, Object?>{
+        'p50AverageMicrosPerRound': baseP50,
+        'p95AverageMicrosPerRound': baseP95,
+      },
+      'current': <String, Object?>{
+        'p50AverageMicrosPerRound': currentP50,
+        'p95AverageMicrosPerRound': currentP95,
+      },
+      'threshold': <String, Object?>{
+        'percent': _regressionThresholdPercent,
+        'p50Limit': allowedP50,
+        'p95Limit': allowedP95,
+      },
+      'p50Regressed': p50Regressed,
+      'p95Regressed': p95Regressed,
+    });
+  }
+
+  return <String, Object?>{
+    'enabled': true,
+    'baselinePath': _baselineReportPath,
+    'thresholdPercent': _regressionThresholdPercent,
+    'regressions': regressions,
+    'hasRegression': regressions.isNotEmpty,
+  };
+}
+
+Map<String, double> _readRouterPerformanceMap(
+  Map<String, dynamic> report, {
+  required String key,
+}) {
+  final performance = report['performance'];
+  if (performance is! Map) {
+    return const <String, double>{};
+  }
+  final routers = performance['routers'];
+  if (routers is! List) {
+    return const <String, double>{};
+  }
+
+  final map = <String, double>{};
+  for (final entry in routers) {
+    if (entry is! Map) {
+      continue;
+    }
+    final router = entry['router'];
+    final summary = entry['summary'];
+    if (router is! String || summary is! Map) {
+      continue;
+    }
+    final value = summary[key];
+    final asDouble = _toDouble(value);
+    if (asDouble != null) {
+      map[router] = asDouble;
+    }
+  }
+  return map;
+}
+
+double? _toDouble(Object? value) {
+  if (value is num) {
+    return value.toDouble();
+  }
+  return null;
 }
 
 bool _hasSharedListParity<T>(List<List<T>> values) {
@@ -439,20 +616,28 @@ Future<List<LongLivedSnapshot>> _runLongLivedSnapshots(
   return snapshots;
 }
 
-Future<List<PerformanceMetric>> _runPerformanceMetrics(
+Future<List<PerformanceSeries>> _runPerformanceSeriesList(
   WidgetTester tester, {
   required int rounds,
+  required int samples,
 }) async {
-  final metrics = <PerformanceMetric>[];
+  final series = <PerformanceSeries>[];
   for (final harness in createHarnesses()) {
     await harness.attach(tester);
     try {
-      metrics.add(await runPerformanceScript(harness, tester, rounds: rounds));
+      series.add(
+        await runPerformanceSeries(
+          harness,
+          tester,
+          rounds: rounds,
+          samples: samples,
+        ),
+      );
     } finally {
       await harness.detach(tester);
     }
   }
-  return metrics;
+  return series;
 }
 
 int _sumIntegers(int value) {

@@ -13,32 +13,51 @@ void main() {
         'UNROUTER_BENCH_ROUNDS',
         defaultValue: 24,
       );
+      const samples = int.fromEnvironment(
+        'UNROUTER_BENCH_SAMPLES',
+        defaultValue: 5,
+      );
 
-      final metrics = <PerformanceMetric>[];
+      final series = <PerformanceSeries>[];
       for (final harness in createHarnesses()) {
         await harness.attach(tester);
         try {
-          metrics.add(
-            await runPerformanceScript(harness, tester, rounds: rounds),
+          series.add(
+            await runPerformanceSeries(
+              harness,
+              tester,
+              rounds: rounds,
+              samples: samples,
+            ),
           );
         } finally {
           await harness.detach(tester);
         }
       }
 
-      for (final metric in metrics) {
+      for (final item in series) {
         debugPrint(
-          '[router-benchmark] ${metric.routerName}: rounds=${metric.rounds}, '
-          'elapsedMs=${metric.elapsed.inMilliseconds}, '
-          'avgUs=${metric.averageMicrosPerRound.toStringAsFixed(1)}, '
-          'checksum=${metric.checksum}',
+          '[router-benchmark] ${item.routerName}: samples=${item.sampleCount}, '
+          'rounds=${item.rounds}, '
+          'meanUs=${item.meanAverageMicrosPerRound.toStringAsFixed(1)}, '
+          'p50Us=${item.p50AverageMicrosPerRound.toStringAsFixed(1)}, '
+          'p95Us=${item.p95AverageMicrosPerRound.toStringAsFixed(1)}, '
+          'checksumParity=${item.checksumParity}, '
+          'checksum=${item.checksum ?? -1}',
         );
       }
 
-      expect(metrics, hasLength(3));
-      for (final metric in metrics) {
-        expect(metric.rounds, rounds);
-        expect(metric.checksum, greaterThan(0));
+      expect(series, hasLength(3));
+      for (final item in series) {
+        expect(item.rounds, rounds);
+        expect(item.sampleCount, samples);
+        expect(item.checksumParity, isTrue);
+        expect(item.checksum, isNotNull);
+        expect(item.meanAverageMicrosPerRound, greaterThan(0));
+      }
+      final firstChecksum = series.first.checksum;
+      for (final item in series.skip(1)) {
+        expect(item.checksum, firstChecksum);
       }
     });
   });

@@ -83,11 +83,14 @@ cd bench
 flutter test --tags performance
 ```
 
-You can raise/lower performance rounds with a compile-time define:
+You can raise/lower performance rounds and sample size with compile-time
+defines:
 
 ```bash
 cd bench
-flutter test --tags performance --dart-define=UNROUTER_BENCH_ROUNDS=48
+flutter test --tags performance \
+  --dart-define=UNROUTER_BENCH_ROUNDS=48 \
+  --dart-define=UNROUTER_BENCH_SAMPLES=7
 ```
 
 Generate a structured benchmark report JSON:
@@ -95,6 +98,27 @@ Generate a structured benchmark report JSON:
 ```bash
 cd bench
 dart run tool/generate_report.dart
+```
+
+Generate a report with regression alerting against a baseline report (default
+threshold `+15%`, alert-only):
+
+```bash
+cd bench
+dart run tool/generate_report.dart \
+  --output=results/current.json \
+  --baseline=results/baseline.json
+```
+
+Fail-fast mode for local gates:
+
+```bash
+cd bench
+dart run tool/generate_report.dart \
+  --output=results/current.json \
+  --baseline=results/baseline.json \
+  --threshold-percent=10 \
+  --fail-on-regression
 ```
 
 ## Add a new adapter
@@ -112,11 +136,9 @@ dart run tool/generate_report.dart
 - Browser back/forward APIs are not fully portable across compared routers in
   widget tests. The benchmark uses a shared push/pop script as the parity
   baseline for browser-like round-trips.
-- CI policy:
-  `behavior` runs on push/pull requests in benchmark workflow.
-  `performance` runs on schedule/manual dispatch only.
 - Structured report output is written under `bench/results/` and includes
-  machine/environment metadata and behavior/performance summaries.
+  machine/environment metadata, multi-sample performance summaries
+  (`min/mean/p50/p95/max`), and optional regression check results.
 - This baseline favors correctness first. Performance output is informative and
   intended for trend tracking, not strict cross-package winner declarations.
 - For richer coverage, add more scripts over time (redirect/guard, nested shell,

@@ -16,10 +16,12 @@ Performance baseline:
 flutter test --tags performance
 ```
 
-Tune rounds:
+Tune rounds and sample count:
 
 ```bash
-flutter test --tags performance --dart-define=UNROUTER_BENCH_ROUNDS=48
+flutter test --tags performance \
+  --dart-define=UNROUTER_BENCH_ROUNDS=48 \
+  --dart-define=UNROUTER_BENCH_SAMPLES=7
 ```
 
 Generate a structured JSON report:
@@ -34,5 +36,24 @@ Custom report output and rounds:
 dart run tool/generate_report.dart \
   --output=results/manual_report.json \
   --rounds=48 \
+  --samples=7 \
   --long-lived-rounds=64
+```
+
+Regression alert against a baseline report (`+15%` default threshold):
+
+```bash
+dart run tool/generate_report.dart \
+  --output=results/current.json \
+  --baseline=results/baseline.json
+```
+
+Tighten threshold or fail on regression:
+
+```bash
+dart run tool/generate_report.dart \
+  --output=results/current.json \
+  --baseline=results/baseline.json \
+  --threshold-percent=10 \
+  --fail-on-regression
 ```

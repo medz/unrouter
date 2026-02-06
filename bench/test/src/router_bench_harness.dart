@@ -243,6 +243,23 @@ Future<PerformanceMetric> runPerformanceScript(
   );
 }
 
+Future<PerformanceSeries> runPerformanceSeries(
+  RouterBenchHarness harness,
+  WidgetTester tester, {
+  required int rounds,
+  required int samples,
+}) async {
+  if (samples <= 0) {
+    throw ArgumentError.value(samples, 'samples', 'must be greater than zero');
+  }
+
+  final metrics = <PerformanceMetric>[];
+  for (var i = 0; i < samples; i++) {
+    metrics.add(await runPerformanceScript(harness, tester, rounds: rounds));
+  }
+  return PerformanceSeries.fromMetrics(metrics);
+}
+
 class BehaviorSnapshot {
   const BehaviorSnapshot({
     required this.routerName,
@@ -274,6 +291,111 @@ class PerformanceMetric {
     }
     return elapsed.inMicroseconds / rounds;
   }
+}
+
+class PerformanceSeries {
+  const PerformanceSeries._({
+    required this.routerName,
+    required this.rounds,
+    required this.metrics,
+    required this.sampleAverageMicrosPerRound,
+    required this.totalElapsedMilliseconds,
+    required this.checksumParity,
+    required this.checksum,
+    required this.minAverageMicrosPerRound,
+    required this.maxAverageMicrosPerRound,
+    required this.meanAverageMicrosPerRound,
+    required this.p50AverageMicrosPerRound,
+    required this.p95AverageMicrosPerRound,
+  });
+
+  factory PerformanceSeries.fromMetrics(List<PerformanceMetric> metrics) {
+    if (metrics.isEmpty) {
+      throw ArgumentError.value(metrics, 'metrics', 'must not be empty');
+    }
+
+    final first = metrics.first;
+    for (final metric in metrics.skip(1)) {
+      if (metric.routerName != first.routerName) {
+        throw ArgumentError(
+          'all metrics in a series must share the same routerName',
+        );
+      }
+      if (metric.rounds != first.rounds) {
+        throw ArgumentError(
+          'all metrics in a series must share the same rounds',
+        );
+      }
+    }
+
+    final averages = metrics
+        .map((metric) => metric.averageMicrosPerRound)
+        .toList(growable: false);
+    final sortedAverages = List<double>.from(averages)..sort();
+    final totalElapsed = metrics.fold<int>(
+      0,
+      (sum, metric) => sum + metric.elapsed.inMilliseconds,
+    );
+
+    final firstChecksum = metrics.first.checksum;
+    final checksumParity = metrics.every(
+      (metric) => metric.checksum == firstChecksum,
+    );
+    final mean =
+        sortedAverages.fold<double>(0, (sum, value) => sum + value) /
+        sortedAverages.length;
+
+    return PerformanceSeries._(
+      routerName: first.routerName,
+      rounds: first.rounds,
+      metrics: List<PerformanceMetric>.unmodifiable(metrics),
+      sampleAverageMicrosPerRound: List<double>.unmodifiable(averages),
+      totalElapsedMilliseconds: totalElapsed,
+      checksumParity: checksumParity,
+      checksum: checksumParity ? firstChecksum : null,
+      minAverageMicrosPerRound: sortedAverages.first,
+      maxAverageMicrosPerRound: sortedAverages.last,
+      meanAverageMicrosPerRound: mean,
+      p50AverageMicrosPerRound: _percentile(sortedAverages, 0.50),
+      p95AverageMicrosPerRound: _percentile(sortedAverages, 0.95),
+    );
+  }
+
+  final String routerName;
+  final int rounds;
+  final List<PerformanceMetric> metrics;
+  final List<double> sampleAverageMicrosPerRound;
+  final int totalElapsedMilliseconds;
+  final bool checksumParity;
+  final int? checksum;
+  final double minAverageMicrosPerRound;
+  final double maxAverageMicrosPerRound;
+  final double meanAverageMicrosPerRound;
+  final double p50AverageMicrosPerRound;
+  final double p95AverageMicrosPerRound;
+
+  int get sampleCount => metrics.length;
+}
+
+double _percentile(List<double> sortedValues, double fraction) {
+  if (sortedValues.isEmpty) {
+    return 0;
+  }
+  if (sortedValues.length == 1) {
+    return sortedValues.first;
+  }
+
+  final rank = fraction * (sortedValues.length - 1);
+  final lowerIndex = rank.floor();
+  final upperIndex = rank.ceil();
+  if (lowerIndex == upperIndex) {
+    return sortedValues[lowerIndex];
+  }
+
+  final lowerValue = sortedValues[lowerIndex];
+  final upperValue = sortedValues[upperIndex];
+  final weight = rank - lowerIndex;
+  return lowerValue + (upperValue - lowerValue) * weight;
 }
 
 class LongLivedSnapshot {
