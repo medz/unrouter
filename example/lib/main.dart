@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:unrouter/devtools.dart';
+import 'package:unrouter/machine.dart';
+import 'package:unrouter/unrouter.dart';
 
 void main() {
   runApp(const UnrouterExampleApp());

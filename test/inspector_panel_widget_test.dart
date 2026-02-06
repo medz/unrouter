@@ -4,6 +4,8 @@ import 'dart:convert';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:unrouter/devtools.dart';
+import 'package:unrouter/machine.dart';
+import 'package:unrouter/unrouter.dart';
 
 void main() {
   testWidgets('renders entries and supports selection controls', (

@@ -10,7 +10,6 @@ ceiling for advanced teams
 Entry points are audience-oriented:
 
 - `package:unrouter/unrouter.dart`: default core import
-- `package:unrouter/core.dart`: explicit core-only alias
 - `package:unrouter/machine.dart`: advanced machine command/action/event APIs
 - `package:unrouter/devtools.dart`: inspector/bridge/panel/replay tooling
 
@@ -26,7 +25,7 @@ Advanced capabilities are opt-in through dedicated imports.
 
 ## Layer responsibilities
 
-### Core (`unrouter.dart` / `core.dart`)
+### Core (`unrouter.dart`)
 
 - typed route graph (`route`, `routeWithLoader`, `shell`, `branch`)
 - router runtime (`Unrouter`)
@@ -55,7 +54,6 @@ Advanced capabilities are opt-in through dedicated imports.
 | Core routing only | `unrouter.dart` |
 | Core + machine dispatch | `unrouter.dart` + `machine.dart` |
 | Core + inspector/replay tooling | `unrouter.dart` + `devtools.dart` |
-| Explicit core style preference | `core.dart` (+ optional machine/devtools) |
 
 ## Rollout checkpoints
 

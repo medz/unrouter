@@ -1,4 +1,3 @@
-export 'core.dart';
 export 'src/runtime/machine_kernel.dart'
     show
         UnrouterMachineSource,

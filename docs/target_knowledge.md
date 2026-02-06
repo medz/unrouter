@@ -37,7 +37,6 @@ Implemented:
 - Generic typed router core: `Unrouter<R extends RouteData>`
 - Layered public entrypoints for progressive disclosure:
   `package:unrouter/unrouter.dart` (default core entrypoint),
-  `package:unrouter/core.dart`,
   `package:unrouter/machine.dart`,
   `package:unrouter/devtools.dart`
 - Internal source layout grouped by domain under `lib/src/`:

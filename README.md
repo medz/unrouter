@@ -56,9 +56,11 @@ flutter pub add unrouter
 ## API entrypoints
 
 - `package:unrouter/unrouter.dart`: default core routing API for most apps.
-- `package:unrouter/core.dart`: explicit core-only import (same surface as `unrouter.dart`).
 - `package:unrouter/machine.dart`: advanced machine command/action API.
 - `package:unrouter/devtools.dart`: inspector, panel, and replay tooling.
+
+`machine.dart` and `devtools.dart` do not re-export core symbols.
+Import `unrouter.dart` explicitly when you need core routing APIs.
 
 ## Example
 
@@ -130,7 +132,7 @@ final class UserRoute extends AppRoute {
 
 ## Navigate from widgets
 
-For core navigation APIs, import `package:unrouter/unrouter.dart` (or `core.dart`).  
+For core navigation APIs, import `package:unrouter/unrouter.dart`.  
 For machine APIs in this section, also import `package:unrouter/machine.dart`.
 
 ```dart

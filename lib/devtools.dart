@@ -1,5 +1,3 @@
-export 'core.dart';
-export 'machine.dart';
 export 'src/runtime/navigation.dart' show UnrouterInspector;
 export 'src/devtools/inspector_bridge.dart';
 export 'src/devtools/inspector_panel_adapter.dart';

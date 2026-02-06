@@ -82,6 +82,8 @@
 - Migrate `example/` and replay-persistence docs to layered imports (`core.dart`/`machine.dart`/`devtools.dart`) instead of the umbrella import.
 - Add `docs/api_surface_review.md` with layered API inventory and low-floor/high-ceiling DX scorecard; update layering strategy status to Phase 2.
 - Switch `package:unrouter/unrouter.dart` to core-only default entrypoint and require explicit `machine.dart` / `devtools.dart` imports for advanced APIs.
+- Remove `package:unrouter/core.dart` alias and make `package:unrouter/unrouter.dart` the single core entrypoint.
+- Stop re-exporting core/machine layers from `machine.dart` and `devtools.dart`; layered consumers now import each required entrypoint explicitly.
 - Split `lib/src/navigation.dart` into dedicated part files (`navigation_machine.dart`, `navigation_inspector.dart`, `navigation_state.dart`) to reduce monolithic runtime complexity.
 - Reorganize `lib/src/` into domain folders (`core/`, `runtime/`, `devtools/`, `platform/`) to improve internal boundaries and maintainability.
 - Further decompose `lib/src/runtime/navigation` machine internals into focused part modules (`navigation_machine_commands_actions.dart`, `navigation_machine_envelope.dart`, `navigation_machine_api.dart`, `navigation_machine_runtime.dart`).

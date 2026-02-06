@@ -12,7 +12,6 @@ This document audits the current public API through four lenses:
 | Entrypoint | Audience | Role |
 | --- | --- | --- |
 | `package:unrouter/unrouter.dart` | default app developers | core routing entrypoint |
-| `package:unrouter/core.dart` | default app developers | typed route graph + runtime navigation |
 | `package:unrouter/machine.dart` | advanced orchestration users | command/action/event machine surface |
 | `package:unrouter/devtools.dart` | diagnostics tooling users | inspector, bridge, panel, replay |
 
@@ -27,7 +26,7 @@ Current internal source grouping under `lib/src/`:
 
 ## API inventory (layered)
 
-### Core (`core.dart`)
+### Core (`unrouter.dart`)
 
 Main symbols and families:
 
@@ -101,7 +100,7 @@ Main symbols and families:
 1. Split README usage into three focused sections:
    `Core quick actions`, `Machine orchestration`, `Devtools and replay`.
 2. Keep examples layered:
-   basic paths should import only `core.dart`; debug and replay samples should
+   basic paths should import only `unrouter.dart`; debug and replay samples should
    opt into `machine.dart` and `devtools.dart`.
 3. Track success with DX metrics:
    first-route setup time, first typed `push<T>()` success rate, and whether

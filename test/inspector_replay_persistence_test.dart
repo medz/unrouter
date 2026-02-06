@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:unrouter/devtools.dart';
+import 'package:unrouter/unrouter.dart';
 
 void main() {
   group('UnrouterInspectorReplayPersistence', () {
