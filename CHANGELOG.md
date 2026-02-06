@@ -1,5 +1,7 @@
 ## Unreleased
 
+## 0.9.0
+
 ### Changed
 
 - Removed `package:unrouter/devtools.dart` and all built-in inspector/replay
