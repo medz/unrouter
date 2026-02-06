@@ -1,5 +1,7 @@
 ## Unreleased
 
+## 0.8.0
+
 ### Added
 
 - Core typed router API with `Unrouter<R extends RouteData>`, `route<T>()`,
