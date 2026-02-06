@@ -31,6 +31,9 @@ dart run main.dart \
   --samples=7
 ```
 
+Performance output now uses a compact metric-by-router matrix with friendly
+time units (`us`/`ms`/`s`) to keep common terminal widths readable.
+
 Run only behavior parity:
 
 ```bash

@@ -139,6 +139,8 @@ dart run main.dart --verbose
   directly, without writing JSON report files.
 - For performance stability, use warmup (`--warmup-rounds`, `--warmup-samples`)
   and repeated-run median aggregation (`--performance-runs`).
+- Performance summary is rendered as a compact metric-by-router matrix with
+  friendly units (`us`/`ms`/`s`) for terminal readability.
 - This baseline favors correctness first. Performance output is informative and
   intended for trend tracking, not strict cross-package winner declarations.
 - For richer coverage, add more scripts over time (redirect/guard, nested shell,

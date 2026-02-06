@@ -541,7 +541,7 @@ String _renderSummary({
     'warmupRounds=${config.warmupRounds}, warmupSamples=${config.warmupSamples}, '
     'performanceRuns=${config.performanceRuns}, longLivedRounds=${config.longLivedRounds}',
   );
-  buffer.writeln('Elapsed: ${elapsed.inMilliseconds} ms');
+  buffer.writeln('Elapsed: ${_formatDurationFriendly(elapsed)}');
 
   if (config.runBehavior) {
     buffer.writeln();
@@ -585,45 +585,7 @@ String _renderSummary({
     if (performance.routers.isEmpty) {
       buffer.writeln('No performance markers captured.');
     } else {
-      final bestMean = performance.bestMeanUs;
-      buffer.writeln(
-        _renderTable(
-          headers: const <String>[
-            'Router',
-            'Runs',
-            'Samples',
-            'Rounds',
-            'Mean(us)',
-            'P50(us)',
-            'P95(us)',
-            'MeanCV%',
-            'Delta',
-            'ChecksumParity',
-            'Checksum',
-          ],
-          rows: performance.routers
-              .map(
-                (router) => <String>[
-                  router.router,
-                  '${router.capturedRuns}/${router.totalRuns}',
-                  router.samples.toString(),
-                  router.rounds.toString(),
-                  router.meanUs.toStringAsFixed(1),
-                  router.p50Us.toStringAsFixed(1),
-                  router.p95Us.toStringAsFixed(1),
-                  router.meanCvPercent.toStringAsFixed(1),
-                  _deltaPercentText(
-                    router.meanUs,
-                    bestMean,
-                    fallback: router.hasCompleteRuns ? '0.0%' : '-',
-                  ),
-                  router.checksumParity ? 'OK' : 'FAIL',
-                  router.checksum.toString(),
-                ],
-              )
-              .toList(growable: false),
-        ),
-      );
+      buffer.writeln(_renderPerformanceMatrix(performance));
       buffer.writeln(
         'Cross-router checksum alignment: '
         '${performance.checksumAligned ? 'OK' : 'FAIL'}',
@@ -650,12 +612,13 @@ String _renderTable({
 }) {
   final widths = List<int>.generate(
     headers.length,
-    (index) => headers[index].length,
+    (index) => _visibleLength(headers[index]),
   );
   for (final row in rows) {
     for (var i = 0; i < headers.length && i < row.length; i++) {
-      if (row[i].length > widths[i]) {
-        widths[i] = row[i].length;
+      final visible = _visibleLength(row[i]);
+      if (visible > widths[i]) {
+        widths[i] = visible;
       }
     }
   }
@@ -673,7 +636,7 @@ String _tableRow(List<String> values, List<int> widths) {
   final cells = <String>[];
   for (var i = 0; i < widths.length; i++) {
     final value = i < values.length ? values[i] : '';
-    cells.add(value.padRight(widths[i]));
+    cells.add(_padVisible(value, widths[i]));
   }
   return '| ${cells.join(' | ')} |';
 }
@@ -682,16 +645,233 @@ String _tableRule(List<int> widths) {
   return '|-${widths.map((width) => ''.padRight(width, '-')).join('-|-')}-|';
 }
 
+String _renderPerformanceMatrix(_PerformanceRunResult performance) {
+  final routers = performance.routers;
+  final bestMean = performance.bestMeanUs;
+  final bestMeanRouter = _bestRouterBy(routers, (router) => router.meanUs);
+  final bestP50Router = _bestRouterBy(routers, (router) => router.p50Us);
+  final bestP95Router = _bestRouterBy(routers, (router) => router.p95Us);
+
+  final headers = <String>[
+    'Metric',
+    ...routers.map(
+      (router) => router.router == bestMeanRouter?.router
+          ? _style(router.router, const <TextStyle>[
+              TextStyle.bold,
+              TextStyle.green,
+            ])
+          : router.router,
+    ),
+  ];
+
+  final rows = <List<String>>[
+    <String>[
+      'Runs',
+      ...routers.map((router) {
+        final text = '${router.capturedRuns}/${router.totalRuns}';
+        if (router.hasCompleteRuns) {
+          return _style(text, const <TextStyle>[TextStyle.green]);
+        }
+        return _style(text, const <TextStyle>[TextStyle.bold, TextStyle.red]);
+      }),
+    ],
+    <String>[
+      'Samples x rounds',
+      ...routers.map((router) => '${router.samples}x${router.rounds}'),
+    ],
+    <String>[
+      'Mean / round',
+      ...routers.map((router) {
+        final text = _formatMicrosFriendly(router.meanUs);
+        return _styleMeanLikeMetric(
+          text: text,
+          value: router.meanUs,
+          best: bestMean,
+          isBest: router.router == bestMeanRouter?.router,
+        );
+      }),
+    ],
+    <String>[
+      'P50 / round',
+      ...routers.map((router) {
+        final bestP50 = bestP50Router?.p50Us;
+        final text = _formatMicrosFriendly(router.p50Us);
+        return _styleMeanLikeMetric(
+          text: text,
+          value: router.p50Us,
+          best: bestP50,
+          isBest: router.router == bestP50Router?.router,
+        );
+      }),
+    ],
+    <String>[
+      'P95 / round',
+      ...routers.map((router) {
+        final bestP95 = bestP95Router?.p95Us;
+        final text = _formatMicrosFriendly(router.p95Us);
+        return _styleMeanLikeMetric(
+          text: text,
+          value: router.p95Us,
+          best: bestP95,
+          isBest: router.router == bestP95Router?.router,
+        );
+      }),
+    ],
+    <String>[
+      'Delta vs best',
+      ...routers.map((router) {
+        final text = _deltaPercentText(
+          router.meanUs,
+          bestMean,
+          fallback: router.hasCompleteRuns ? '+0.0%' : '-',
+        );
+        if (!router.hasCompleteRuns) {
+          return _style(text, const <TextStyle>[TextStyle.bold, TextStyle.red]);
+        }
+        final delta = _deltaPercent(router.meanUs, bestMean);
+        if (delta == null || delta <= 0.0001) {
+          return _style(text, const <TextStyle>[
+            TextStyle.bold,
+            TextStyle.green,
+          ]);
+        }
+        if (delta >= 20) {
+          return _style(text, const <TextStyle>[TextStyle.bold, TextStyle.red]);
+        }
+        if (delta >= 10) {
+          return _style(text, const <TextStyle>[TextStyle.yellow]);
+        }
+        return text;
+      }),
+    ],
+    <String>[
+      'Mean CV',
+      ...routers.map((router) {
+        final text = '${router.meanCvPercent.toStringAsFixed(1)}%';
+        if (router.meanCvPercent >= 15) {
+          return _style(text, const <TextStyle>[TextStyle.bold, TextStyle.red]);
+        }
+        if (router.meanCvPercent >= 8) {
+          return _style(text, const <TextStyle>[TextStyle.yellow]);
+        }
+        return _style(text, const <TextStyle>[TextStyle.green]);
+      }),
+    ],
+    <String>[
+      'Checksum',
+      ...routers.map(
+        (router) => router.checksumParity
+            ? _style(router.checksum.toString(), const <TextStyle>[
+                TextStyle.green,
+              ])
+            : _style('FAIL', const <TextStyle>[TextStyle.bold, TextStyle.red]),
+      ),
+    ],
+  ];
+
+  return '${_renderTable(headers: headers, rows: rows)}\n'
+      '${_style('Legend:', const <TextStyle>[TextStyle.bold])} '
+      '${_style('best', const <TextStyle>[TextStyle.bold, TextStyle.green])} '
+      '| ${_style('warning', const <TextStyle>[TextStyle.yellow])} '
+      '| ${_style('anomaly', const <TextStyle>[TextStyle.bold, TextStyle.red])}';
+}
+
+String _styleMeanLikeMetric({
+  required String text,
+  required double value,
+  required double? best,
+  required bool isBest,
+}) {
+  if (isBest) {
+    return _style(text, const <TextStyle>[TextStyle.bold, TextStyle.green]);
+  }
+  final delta = _deltaPercent(value, best);
+  if (delta == null) {
+    return text;
+  }
+  if (delta >= 20) {
+    return _style(text, const <TextStyle>[TextStyle.bold, TextStyle.red]);
+  }
+  if (delta >= 10) {
+    return _style(text, const <TextStyle>[TextStyle.yellow]);
+  }
+  return text;
+}
+
+_PerformanceRouterResult? _bestRouterBy(
+  List<_PerformanceRouterResult> routers,
+  double Function(_PerformanceRouterResult router) selector,
+) {
+  _PerformanceRouterResult? best;
+  for (final router in routers) {
+    if (!router.hasCompleteRuns) {
+      continue;
+    }
+    if (best == null || selector(router) < selector(best)) {
+      best = router;
+    }
+  }
+  return best;
+}
+
+String _style(String text, List<TextStyle> styles) {
+  return styleText(text, styles);
+}
+
+int _visibleLength(String text) {
+  return _stripAnsi(text).length;
+}
+
+String _padVisible(String value, int width) {
+  final visible = _visibleLength(value);
+  if (visible >= width) {
+    return value;
+  }
+  return '$value${''.padRight(width - visible)}';
+}
+
+String _formatMicrosFriendly(double micros) {
+  if (micros >= 1000000) {
+    return '${(micros / 1000000).toStringAsFixed(2)}s';
+  }
+  if (micros >= 1000) {
+    return '${(micros / 1000).toStringAsFixed(2)}ms';
+  }
+  return '${micros.toStringAsFixed(1)}us';
+}
+
+String _formatDurationFriendly(Duration duration) {
+  final micros = duration.inMicroseconds.toDouble();
+  if (micros >= 1000000) {
+    return '${(micros / 1000000).toStringAsFixed(2)}s';
+  }
+  if (micros >= 1000) {
+    return '${(micros / 1000).toStringAsFixed(1)}ms';
+  }
+  return '${micros.toStringAsFixed(0)}us';
+}
+
 String _deltaPercentText(
   double value,
   double? baseline, {
   String fallback = '-',
 }) {
-  if (baseline == null || baseline <= 0) {
+  final delta = _deltaPercent(value, baseline);
+  if (delta == null) {
     return fallback;
   }
-  final delta = ((value - baseline) / baseline) * 100;
-  return '${delta.toStringAsFixed(1)}%';
+  final text = '${delta.toStringAsFixed(1)}%';
+  if (delta > 0) {
+    return '+$text';
+  }
+  return text;
+}
+
+double? _deltaPercent(double value, double? baseline) {
+  if (baseline == null || baseline <= 0) {
+    return null;
+  }
+  return ((value - baseline) / baseline) * 100;
 }
 
 String _behaviorTitle(String script) {
