@@ -1,5 +1,5 @@
 name: unrouter
-description: "A fresh redesign of Unrouter."
+description: "A URL-first typed router for Flutter with shell navigation and diagnostics."
 version: 0.0.1
 repository: https://github.com/medz/unrouter
 topics:
