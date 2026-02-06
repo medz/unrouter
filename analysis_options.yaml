@@ -1,6 +1,9 @@
 include: package:flutter_lints/flutter.yaml
+
 analyzer:
-  errors:
-    avoid_print: ignore
   exclude:
-    - playground/**
+    - bench/**
+
+linter:
+  rules:
+    prefer_single_quotes: true

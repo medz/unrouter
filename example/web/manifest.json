@@ -1,6 +1,6 @@
 {
-    "name": "example",
-    "short_name": "example",
+    "name": "unrouter_example",
+    "short_name": "unrouter_example",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

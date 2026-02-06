@@ -1,0 +1,71 @@
+{
+  "version": 1,
+  "exportedAt": "2026-02-06T16:10:00.000Z",
+  "entryCount": 1,
+  "emittedCount": 1,
+  "droppedCount": 0,
+  "entries": [
+    {
+      "sequence": 1,
+      "reason": "manual",
+      "recordedAt": "2026-02-06T16:10:00.000Z",
+      "report": {
+        "uri": "/",
+        "routePath": "/",
+        "resolution": "matched",
+        "machineTimelineTail": [
+          {
+            "sequence": 1,
+            "source": "controller",
+            "event": "initialized",
+            "eventGroup": "lifecycle",
+            "payload": {
+              "historyIndex": 0
+            }
+          },
+          {
+            "sequence": 2,
+            "source": "controller",
+            "event": "controllerRouteMachineConfigured",
+            "eventGroup": "lifecycle",
+            "payload": {
+              "hadRouteMachine": false,
+              "maxRedirectHops": 8,
+              "redirectLoopPolicy": "error",
+              "redirectDiagnosticsEnabled": false
+            }
+          },
+          {
+            "sequence": 3,
+            "source": "controller",
+            "event": "controllerHistoryStateComposerChanged",
+            "eventGroup": "lifecycle",
+            "payload": {
+              "enabled": true
+            }
+          },
+          {
+            "sequence": 4,
+            "source": "controller",
+            "event": "controllerShellResolversChanged",
+            "eventGroup": "lifecycle",
+            "payload": {
+              "enabled": true
+            }
+          },
+          {
+            "sequence": 5,
+            "source": "controller",
+            "event": "controllerDisposed",
+            "eventGroup": "lifecycle",
+            "payload": {
+              "hadRouteMachine": true,
+              "hadHistoryStateComposer": true,
+              "hadCustomShellResolvers": true
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,20 +1,20 @@
-export 'src/router/guard.dart';
-export 'src/router/inlet.dart';
-export 'src/router/blocker.dart'
-    show
-        RouteBlocker,
-        RouteBlockerContext,
-        RouteBlockerCallback,
-        RouteBlockedCallback;
-export 'src/router/extensions.dart';
-export 'src/router/navigation.dart';
-export 'src/router/route_location.dart';
-export 'src/router/route_meta.dart';
-export 'src/router/route_state.dart';
-export 'src/router/route_matcher.dart' show MatchedRoute;
-export 'src/router/router.dart';
-export 'src/router/url_strategy.dart';
+/// Core `unrouter` API.
+///
+/// Import this entrypoint for typed route definitions, router configuration,
+/// and widget-level navigation access.
+library;
 
-export 'src/router/widgets/link.dart';
-export 'src/router/widgets/outlet.dart';
-export 'src/router/widgets/routes.dart';
+export 'src/core/route_data.dart';
+export 'src/core/route_definition.dart';
+export 'src/runtime/unrouter.dart';
+export 'src/runtime/navigation.dart'
+    show
+        UnrouterResolutionState,
+        UnrouterStateSnapshot,
+        UnrouterStateTimelineEntry,
+        UnrouterHistoryStateRequest,
+        UnrouterHistoryStateComposer,
+        UnrouterController,
+        UnrouterControllerLifecycleMethods,
+        UnrouterScope,
+        UnrouterBuildContextExtension;
