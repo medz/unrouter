@@ -1,10 +1,12 @@
 part of 'navigation.dart';
 
+/// Debug and export facade for route/machine state timelines.
 class UnrouterInspector<R extends RouteData> {
   const UnrouterInspector(this._source);
 
   final UnrouterInspectorSource<R> _source;
 
+  /// Current route state snapshot.
   UnrouterStateSnapshot<R> get state => _source.state;
 
   ValueListenable<UnrouterStateSnapshot<R>> get stateListenable {
@@ -15,14 +17,17 @@ class UnrouterInspector<R extends RouteData> {
     return _source.stateTimeline;
   }
 
+  /// Returns current state as JSON-like map.
   Map<String, Object?> debugState() {
     return _serializeSnapshot(_source.state);
   }
 
+  /// Returns current machine state as JSON-like map.
   Map<String, Object?> debugMachineState() {
     return _source.machineState.toJson();
   }
 
+  /// Returns filtered route timeline entries.
   List<Map<String, Object?>> debugTimeline({
     int? tail,
     String? query,
@@ -48,6 +53,7 @@ class UnrouterInspector<R extends RouteData> {
     return entries.map(_serializeTimelineEntry).toList();
   }
 
+  /// Returns filtered raw machine timeline entries.
   List<Map<String, Object?>> debugMachineTimeline({
     int? tail,
     String? query,
@@ -75,6 +81,7 @@ class UnrouterInspector<R extends RouteData> {
     return entries.map((entry) => entry.toJson()).toList(growable: false);
   }
 
+  /// Returns filtered typed machine timeline entries.
   List<Map<String, Object?>> debugTypedMachineTimeline({
     int? tail,
     String? query,
@@ -102,6 +109,7 @@ class UnrouterInspector<R extends RouteData> {
     return entries.map((entry) => entry.typed.toJson()).toList(growable: false);
   }
 
+  /// Returns filtered redirect diagnostics entries.
   List<Map<String, Object?>> debugRedirectDiagnostics(
     List<RedirectDiagnostics> diagnostics, {
     int? tail,
@@ -124,6 +132,7 @@ class UnrouterInspector<R extends RouteData> {
     return entries.map(_serializeRedirectDiagnostics).toList();
   }
 
+  /// Returns a combined debug report for route state, redirects, and machine.
   Map<String, Object?> debugReport({
     int timelineTail = 10,
     List<RedirectDiagnostics> redirectDiagnostics =
@@ -193,6 +202,7 @@ class UnrouterInspector<R extends RouteData> {
     };
   }
 
+  /// Exports [debugReport] as JSON string.
   String exportDebugReportJson({
     int timelineTail = 10,
     List<RedirectDiagnostics> redirectDiagnostics =

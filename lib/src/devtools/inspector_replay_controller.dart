@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 
 import 'inspector_replay_store.dart';
 
+/// Replay speed presets used by [UnrouterInspectorReplayController].
 enum UnrouterInspectorReplaySpeedPreset {
   x025(0.25),
   x05(0.5),
@@ -31,8 +32,10 @@ enum UnrouterInspectorReplaySpeedPreset {
   }
 }
 
+/// Current replay lifecycle phase.
 enum UnrouterInspectorReplayPhase { idle, playing, paused }
 
+/// Bookmark on replay sequence timeline.
 class UnrouterInspectorReplayBookmark {
   const UnrouterInspectorReplayBookmark({
     required this.id,
@@ -49,6 +52,7 @@ class UnrouterInspectorReplayBookmark {
   final DateTime createdAt;
 }
 
+/// Configuration for [UnrouterInspectorReplayController].
 class UnrouterInspectorReplayControllerConfig {
   const UnrouterInspectorReplayControllerConfig({
     this.step = const Duration(milliseconds: 120),
@@ -61,6 +65,7 @@ class UnrouterInspectorReplayControllerConfig {
   final UnrouterInspectorReplaySpeedPreset initialSpeed;
 }
 
+/// Immutable controller state for replay operations.
 class UnrouterInspectorReplayControllerState {
   const UnrouterInspectorReplayControllerState({
     required this.phase,
@@ -102,6 +107,7 @@ class UnrouterInspectorReplayControllerState {
   final int replayedCount;
   final List<UnrouterInspectorReplayBookmark> bookmarks;
 
+  /// Bookmarks grouped by bookmark group.
   Map<String, List<UnrouterInspectorReplayBookmark>> get bookmarksByGroup {
     final map = <String, List<UnrouterInspectorReplayBookmark>>{};
     for (final bookmark in bookmarks) {
@@ -121,12 +127,16 @@ class UnrouterInspectorReplayControllerState {
     );
   }
 
+  /// Whether controller is idle.
   bool get isIdle => phase == UnrouterInspectorReplayPhase.idle;
 
+  /// Whether replay is currently running.
   bool get isPlaying => phase == UnrouterInspectorReplayPhase.playing;
 
+  /// Whether replay is currently paused.
   bool get isPaused => phase == UnrouterInspectorReplayPhase.paused;
 
+  /// Returns a new state with selected fields replaced.
   UnrouterInspectorReplayControllerState copyWith({
     UnrouterInspectorReplayPhase? phase,
     UnrouterInspectorReplaySpeedPreset? speed,
@@ -154,6 +164,7 @@ class UnrouterInspectorReplayControllerState {
   }
 }
 
+/// Playback controller for [UnrouterInspectorReplayStore].
 class UnrouterInspectorReplayController
     implements ValueListenable<UnrouterInspectorReplayControllerState> {
   UnrouterInspectorReplayController({
@@ -181,6 +192,7 @@ class UnrouterInspectorReplayController
   Completer<void>? _pauseCompleter;
   bool _isDisposed = false;
 
+  /// Listenable state view.
   ValueListenable<UnrouterInspectorReplayControllerState> get listenable =>
       this;
 
@@ -197,6 +209,7 @@ class UnrouterInspectorReplayController
     _state.removeListener(listener);
   }
 
+  /// Sets replay range boundaries.
   void setRange({int? fromSequence, int? toSequence}) {
     if (_isDisposed) {
       return;
@@ -218,6 +231,7 @@ class UnrouterInspectorReplayController
     _normalizeCursorToEntries(store.value.entries);
   }
 
+  /// Clears replay range boundaries.
   void clearRange() {
     if (_isDisposed) {
       return;
@@ -230,6 +244,7 @@ class UnrouterInspectorReplayController
     _normalizeCursorToEntries(store.value.entries);
   }
 
+  /// Moves replay cursor to [sequence].
   bool scrubTo(int sequence, {bool selectNearest = true}) {
     if (_isDisposed) {
       return false;
@@ -256,6 +271,7 @@ class UnrouterInspectorReplayController
     return true;
   }
 
+  /// Sets replay speed preset.
   void setSpeedPreset(UnrouterInspectorReplaySpeedPreset preset) {
     if (_isDisposed) {
       return;
@@ -263,6 +279,7 @@ class UnrouterInspectorReplayController
     _state.value = value.copyWith(speed: preset);
   }
 
+  /// Cycles replay speed preset and returns the new value.
   UnrouterInspectorReplaySpeedPreset cycleSpeedPreset() {
     if (_isDisposed) {
       return value.speed;
@@ -274,6 +291,7 @@ class UnrouterInspectorReplayController
     return next;
   }
 
+  /// Adds a replay bookmark.
   UnrouterInspectorReplayBookmark addBookmark({
     int? sequence,
     String? label,
@@ -304,6 +322,7 @@ class UnrouterInspectorReplayController
     return bookmark;
   }
 
+  /// Removes bookmark by id.
   bool removeBookmark(String id) {
     if (_isDisposed) {
       return false;
@@ -321,6 +340,7 @@ class UnrouterInspectorReplayController
     return true;
   }
 
+  /// Clears all bookmarks.
   void clearBookmarks() {
     if (_isDisposed || value.bookmarks.isEmpty) {
       return;
@@ -330,6 +350,7 @@ class UnrouterInspectorReplayController
     );
   }
 
+  /// Jumps cursor to bookmark by id.
   bool jumpToBookmark(String id) {
     if (_isDisposed) {
       return false;
@@ -342,6 +363,7 @@ class UnrouterInspectorReplayController
     return false;
   }
 
+  /// Starts replay and returns replayed entry count.
   Future<int> play({
     bool restart = false,
     ValueChanged<UnrouterInspectorReplayEntry>? onStep,
@@ -419,6 +441,7 @@ class UnrouterInspectorReplayController
     return delivered;
   }
 
+  /// Pauses replay.
   bool pause() {
     if (_isDisposed || !value.isPlaying) {
       return false;
@@ -428,6 +451,7 @@ class UnrouterInspectorReplayController
     return true;
   }
 
+  /// Resumes replay if paused.
   bool resume() {
     if (_isDisposed || !value.isPaused) {
       return false;
@@ -439,6 +463,7 @@ class UnrouterInspectorReplayController
     return true;
   }
 
+  /// Stops replay and resets phase to idle.
   void stop() {
     if (_isDisposed) {
       return;
@@ -452,6 +477,7 @@ class UnrouterInspectorReplayController
     }
   }
 
+  /// Disposes controller listeners.
   void dispose() {
     if (_isDisposed) {
       return;

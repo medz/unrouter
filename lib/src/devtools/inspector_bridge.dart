@@ -8,6 +8,7 @@ import '../runtime/navigation.dart';
 import '../core/redirect_diagnostics.dart';
 import '../core/route_data.dart';
 
+/// Trigger reason for one inspector bridge emission.
 enum UnrouterInspectorEmissionReason {
   initial,
   stateChanged,
@@ -15,6 +16,7 @@ enum UnrouterInspectorEmissionReason {
   manual,
 }
 
+/// One emitted diagnostics payload from inspector bridge.
 class UnrouterInspectorEmission {
   const UnrouterInspectorEmission({
     required this.reason,
@@ -26,6 +28,7 @@ class UnrouterInspectorEmission {
   final DateTime recordedAt;
   final Map<String, Object?> report;
 
+  /// Serializes emission to JSON-like map.
   Map<String, Object?> toJson() {
     return <String, Object?>{
       'reason': reason.name,
@@ -35,10 +38,12 @@ class UnrouterInspectorEmission {
   }
 }
 
+/// Sink contract consumed by [UnrouterInspectorBridge].
 abstract interface class UnrouterInspectorSink {
   void add(UnrouterInspectorEmission emission);
 }
 
+/// Sink that forwards structured emissions to callback.
 class UnrouterInspectorCallbackSink implements UnrouterInspectorSink {
   const UnrouterInspectorCallbackSink(this._callback);
 
@@ -50,6 +55,7 @@ class UnrouterInspectorCallbackSink implements UnrouterInspectorSink {
   }
 }
 
+/// Sink that forwards JSON-encoded emissions to callback.
 class UnrouterInspectorJsonSink implements UnrouterInspectorSink {
   const UnrouterInspectorJsonSink(this._callback);
 
@@ -61,6 +67,7 @@ class UnrouterInspectorJsonSink implements UnrouterInspectorSink {
   }
 }
 
+/// Filtering and sizing options for bridge emissions.
 class UnrouterInspectorBridgeConfig {
   const UnrouterInspectorBridgeConfig({
     this.timelineTail = 10,
@@ -107,6 +114,9 @@ class UnrouterInspectorBridgeConfig {
 
   static const Object _unset = Object();
 
+  /// Returns a new config with updated fields.
+  ///
+  /// Nullable filters can be cleared by explicitly passing `null`.
   UnrouterInspectorBridgeConfig copyWith({
     int? timelineTail,
     int? redirectTrailTail,
@@ -160,6 +170,7 @@ class UnrouterInspectorBridgeConfig {
   }
 }
 
+/// Connects [UnrouterInspector] to stream/sink based diagnostics pipelines.
 class UnrouterInspectorBridge<R extends RouteData> {
   UnrouterInspectorBridge({
     required UnrouterInspector<R> inspector,
@@ -185,8 +196,10 @@ class UnrouterInspectorBridge<R extends RouteData> {
   UnrouterInspectorBridgeConfig config;
   bool _isDisposed = false;
 
+  /// Broadcast stream of bridge emissions.
   Stream<UnrouterInspectorEmission> get stream => _controller.stream;
 
+  /// Adds a sink target.
   void addSink(UnrouterInspectorSink sink) {
     if (_isDisposed) {
       return;
@@ -194,6 +207,7 @@ class UnrouterInspectorBridge<R extends RouteData> {
     _sinks.add(sink);
   }
 
+  /// Removes a sink target.
   bool removeSink(UnrouterInspectorSink sink) {
     if (_isDisposed) {
       return false;
@@ -201,6 +215,7 @@ class UnrouterInspectorBridge<R extends RouteData> {
     return _sinks.remove(sink);
   }
 
+  /// Replaces bridge config and optionally emits immediately.
   void updateConfig(
     UnrouterInspectorBridgeConfig next, {
     bool emitAfterUpdate = true,
@@ -214,6 +229,7 @@ class UnrouterInspectorBridge<R extends RouteData> {
     }
   }
 
+  /// Convenience helper for updating machine event-group filter.
   void updateMachineEventGroups(
     Set<UnrouterMachineEventGroup>? machineEventGroups, {
     bool emitAfterUpdate = true,
@@ -224,6 +240,7 @@ class UnrouterInspectorBridge<R extends RouteData> {
     );
   }
 
+  /// Convenience helper for updating machine payload-kind filter.
   void updateMachinePayloadKinds(
     Set<UnrouterMachineTypedPayloadKind>? machinePayloadKinds, {
     bool emitAfterUpdate = true,
@@ -234,6 +251,7 @@ class UnrouterInspectorBridge<R extends RouteData> {
     );
   }
 
+  /// Emits one report using current [config].
   void emit({
     UnrouterInspectorEmissionReason reason =
         UnrouterInspectorEmissionReason.manual,
@@ -279,6 +297,7 @@ class UnrouterInspectorBridge<R extends RouteData> {
     emit(reason: UnrouterInspectorEmissionReason.redirectChanged);
   }
 
+  /// Disposes listeners and stream resources.
   void dispose() {
     if (_isDisposed) {
       return;

@@ -1,18 +1,33 @@
 part of 'route_definition.dart';
 
+/// Parses a matched [RouteParserState] into a typed route object.
 typedef RouteParser<T extends RouteData> = T Function(RouteParserState state);
+
+/// Builds a route widget without loader data.
 typedef RouteWidgetBuilder<T extends RouteData> =
     Widget Function(BuildContext context, T route);
+
+/// Builds a route widget with resolved loader data.
 typedef RouteLoadedWidgetBuilder<T extends RouteData, L> =
     Widget Function(BuildContext context, T route, L data);
+
+/// Route guard that can allow, block, or redirect navigation.
 typedef RouteGuard<T extends RouteData> =
     FutureOr<RouteGuardResult> Function(RouteHookContext<T> context);
+
+/// Route-level redirect resolver.
 typedef RouteRedirect<T extends RouteData> =
     FutureOr<Uri?> Function(RouteHookContext<T> context);
+
+/// Asynchronous loader executed before route build.
 typedef RouteLoader<T extends RouteData, L> =
     FutureOr<L> Function(RouteHookContext<T> context);
+
+/// Shell frame builder used by [shell].
 typedef ShellBuilder<R extends RouteData> =
     Widget Function(BuildContext context, ShellState<R> shell, Widget child);
+
+/// Custom transition builder used by route pages.
 typedef RouteTransitionBuilder =
     Widget Function(
       BuildContext context,
@@ -20,8 +35,11 @@ typedef RouteTransitionBuilder =
       Animation<double> secondaryAnimation,
       Widget child,
     );
+
+/// Custom page builder used to wrap route children into [Page] instances.
 typedef RoutePageBuilder = Page<void> Function(RoutePageBuilderState state);
 
+/// Input payload for [RoutePageBuilder].
 class RoutePageBuilderState {
   const RoutePageBuilderState({
     required this.key,
@@ -56,6 +74,7 @@ abstract interface class RouteRecord<T extends RouteData> {
   });
 }
 
+/// Route definition without asynchronous loader data.
 class RouteDefinition<T extends RouteData> implements RouteRecord<T> {
   RouteDefinition({
     required this.path,
@@ -134,6 +153,7 @@ class RouteDefinition<T extends RouteData> implements RouteRecord<T> {
   }
 }
 
+/// Route definition that resolves typed loader data before build.
 class LoadedRouteDefinition<T extends RouteData, L> implements RouteRecord<T> {
   LoadedRouteDefinition({
     required this.path,
@@ -231,6 +251,7 @@ class LoadedRouteDefinition<T extends RouteData, L> implements RouteRecord<T> {
   }
 }
 
+/// Creates a [RouteDefinition].
 RouteDefinition<T> route<T extends RouteData>({
   required String path,
   required RouteParser<T> parse,
@@ -257,6 +278,7 @@ RouteDefinition<T> route<T extends RouteData>({
   );
 }
 
+/// Creates a [LoadedRouteDefinition].
 LoadedRouteDefinition<T, L> routeWithLoader<T extends RouteData, L>({
   required String path,
   required RouteParser<T> parse,

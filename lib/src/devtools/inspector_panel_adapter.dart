@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'inspector_bridge.dart';
 import '../core/route_data.dart';
 
+/// Configuration for [UnrouterInspectorPanelAdapter].
 class UnrouterInspectorPanelAdapterConfig {
   const UnrouterInspectorPanelAdapterConfig({
     this.maxEntries = 200,
@@ -18,6 +19,7 @@ class UnrouterInspectorPanelAdapterConfig {
   final bool autoSelectLatest;
 }
 
+/// One panel entry derived from an inspector emission.
 class UnrouterInspectorPanelEntry {
   const UnrouterInspectorPanelEntry({
     required this.sequence,
@@ -39,11 +41,13 @@ class UnrouterInspectorPanelEntry {
 
   String? get resolution => report['resolution'] as String?;
 
+  /// Serializes panel entry to JSON-like map.
   Map<String, Object?> toJson() {
     return <String, Object?>{'sequence': sequence, ...emission.toJson()};
   }
 }
 
+/// Immutable panel view state.
 class UnrouterInspectorPanelState {
   const UnrouterInspectorPanelState({
     required this.entries,
@@ -98,6 +102,7 @@ class UnrouterInspectorPanelState {
     return null;
   }
 
+  /// Returns a new state with selected fields replaced.
   UnrouterInspectorPanelState copyWith({
     List<UnrouterInspectorPanelEntry>? entries,
     Object? selectedSequence = _unset,
@@ -119,6 +124,7 @@ class UnrouterInspectorPanelState {
   }
 }
 
+/// Stream-to-state adapter used by DevTools-like panel widgets.
 class UnrouterInspectorPanelAdapter
     implements ValueListenable<UnrouterInspectorPanelState> {
   UnrouterInspectorPanelAdapter({
@@ -135,6 +141,7 @@ class UnrouterInspectorPanelAdapter
   StreamSubscription<UnrouterInspectorEmission>? _subscription;
   bool _isDisposed = false;
 
+  /// Creates adapter from a bridge stream.
   static UnrouterInspectorPanelAdapter fromBridge<R extends RouteData>({
     required UnrouterInspectorBridge<R> bridge,
     UnrouterInspectorPanelAdapterConfig config =
@@ -143,6 +150,7 @@ class UnrouterInspectorPanelAdapter
     return UnrouterInspectorPanelAdapter(stream: bridge.stream, config: config);
   }
 
+  /// Listenable state view.
   ValueListenable<UnrouterInspectorPanelState> get listenable => this;
 
   @override
@@ -158,6 +166,7 @@ class UnrouterInspectorPanelAdapter
     _state.removeListener(listener);
   }
 
+  /// Selects entry by sequence.
   bool select(int sequence) {
     if (_isDisposed) {
       return false;
@@ -168,6 +177,7 @@ class UnrouterInspectorPanelAdapter
     return _setSelectedSequence(sequence);
   }
 
+  /// Selects latest available entry.
   bool selectLatest() {
     if (_isDisposed || value.entries.isEmpty) {
       return false;
@@ -175,6 +185,7 @@ class UnrouterInspectorPanelAdapter
     return _setSelectedSequence(value.entries.last.sequence);
   }
 
+  /// Selects previous entry relative to current selection.
   bool selectPrevious() {
     if (_isDisposed) {
       return false;
@@ -194,6 +205,7 @@ class UnrouterInspectorPanelAdapter
     return _setSelectedSequence(entries[index - 1].sequence);
   }
 
+  /// Selects next entry relative to current selection.
   bool selectNext() {
     if (_isDisposed) {
       return false;
@@ -213,6 +225,7 @@ class UnrouterInspectorPanelAdapter
     return _setSelectedSequence(entries[index + 1].sequence);
   }
 
+  /// Clears buffered entries.
   void clear({bool resetCounters = false}) {
     if (_isDisposed) {
       return;
@@ -297,6 +310,7 @@ class UnrouterInspectorPanelAdapter
     return -1;
   }
 
+  /// Disposes stream subscription and local state notifier.
   void dispose() {
     if (_isDisposed) {
       return;

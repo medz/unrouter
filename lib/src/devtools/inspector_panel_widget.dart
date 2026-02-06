@@ -12,6 +12,7 @@ import '../runtime/navigation.dart';
 
 part 'inspector_panel_widget_state_methods.dart';
 
+/// Rich diagnostics panel widget for inspector bridge emissions and replay data.
 class UnrouterInspectorPanelWidget extends StatefulWidget {
   UnrouterInspectorPanelWidget({
     super.key,

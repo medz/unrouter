@@ -1,5 +1,6 @@
 part of 'route_definition.dart';
 
+/// A branch in a shell route tree.
 class ShellBranch<R extends RouteData> {
   ShellBranch({
     required List<RouteRecord<R>> routes,
@@ -17,6 +18,7 @@ class ShellBranch<R extends RouteData> {
   final String? name;
 }
 
+/// Creates a [ShellBranch].
 ShellBranch<R> branch<R extends RouteData>({
   required List<RouteRecord<R>> routes,
   required Uri initialLocation,
@@ -29,6 +31,7 @@ ShellBranch<R> branch<R extends RouteData>({
   );
 }
 
+/// Contract implemented by shell-aware route records.
 abstract interface class ShellRouteRecordHost<R extends RouteData> {
   Uri resolveBranchTarget(int index, {bool initialLocation = false});
 
@@ -37,6 +40,7 @@ abstract interface class ShellRouteRecordHost<R extends RouteData> {
   Uri? popBranch({Object? result});
 }
 
+/// Runtime state passed to shell builders.
 class ShellState<R extends RouteData> {
   const ShellState._({
     required this.activeBranchIndex,
@@ -79,6 +83,10 @@ class ShellState<R extends RouteData> {
 
   bool get canPopBranch => _canPopBranch();
 
+  /// Switches active branch.
+  ///
+  /// Set [initialLocation] to reset the target branch stack, and optionally
+  /// complete an active push result with [completePendingResult]/[result].
   void goBranch(
     int index, {
     bool initialLocation = false,
@@ -93,11 +101,13 @@ class ShellState<R extends RouteData> {
     );
   }
 
+  /// Pops the active branch stack and optionally completes push result.
   bool popBranch<T extends Object?>([T? result]) {
     return _onPopBranch(result);
   }
 }
 
+/// Wraps branch routes into a shared shell.
 List<RouteRecord<R>> shell<R extends RouteData>({
   required ShellBuilder<R> builder,
   required List<ShellBranch<R>> branches,

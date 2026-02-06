@@ -1,10 +1,14 @@
+/// Receives redirect diagnostics emitted by the route resolver.
 typedef RedirectDiagnosticsCallback =
     void Function(RedirectDiagnostics diagnostics);
 
+/// Behavior when redirect loops are detected.
 enum RedirectLoopPolicy { error, ignore }
 
+/// Reason for a redirect diagnostic emission.
 enum RedirectDiagnosticsReason { loopDetected, maxHopsExceeded }
 
+/// Redirect safety metadata captured during route resolution.
 class RedirectDiagnostics {
   const RedirectDiagnostics({
     required this.reason,

@@ -7,6 +7,7 @@ import 'inspector_bridge.dart';
 import '../runtime/navigation.dart';
 import '../core/route_data.dart';
 
+/// Configuration for [UnrouterInspectorReplayStore].
 class UnrouterInspectorReplayStoreConfig {
   const UnrouterInspectorReplayStoreConfig({this.maxEntries = 5000})
     : assert(
@@ -17,8 +18,10 @@ class UnrouterInspectorReplayStoreConfig {
   final int maxEntries;
 }
 
+/// Severity level for replay compatibility issues.
 enum UnrouterInspectorReplayValidationSeverity { warning, error }
 
+/// Compatibility issue code returned by replay validation.
 enum UnrouterInspectorReplayValidationIssueCode {
   machineTimelineMalformed,
   actionEnvelopeSchemaIncompatible,
@@ -27,6 +30,7 @@ enum UnrouterInspectorReplayValidationIssueCode {
   controllerLifecycleCoverageMissing,
 }
 
+/// One replay compatibility validation issue.
 class UnrouterInspectorReplayValidationIssue {
   const UnrouterInspectorReplayValidationIssue({
     required this.sequence,
@@ -48,6 +52,7 @@ class UnrouterInspectorReplayValidationIssue {
   final int? eventVersion;
   final UnrouterMachineEvent? machineEvent;
 
+  /// Serializes issue metadata to JSON-like map.
   Map<String, Object?> toJson() {
     return <String, Object?>{
       'sequence': sequence,
@@ -62,6 +67,7 @@ class UnrouterInspectorReplayValidationIssue {
   }
 }
 
+/// Aggregated replay compatibility validation result.
 class UnrouterInspectorReplayValidationResult {
   const UnrouterInspectorReplayValidationResult({
     required this.entryCount,
@@ -71,8 +77,10 @@ class UnrouterInspectorReplayValidationResult {
   final int entryCount;
   final List<UnrouterInspectorReplayValidationIssue> issues;
 
+  /// Whether any compatibility issue exists.
   bool get hasIssues => issues.isNotEmpty;
 
+  /// Count of error-level issues.
   int get errorCount {
     return issues
         .where(
@@ -82,6 +90,7 @@ class UnrouterInspectorReplayValidationResult {
         .length;
   }
 
+  /// Count of warning-level issues.
   int get warningCount {
     return issues
         .where(
@@ -92,6 +101,7 @@ class UnrouterInspectorReplayValidationResult {
         .length;
   }
 
+  /// Serializes validation result to JSON-like map.
   Map<String, Object?> toJson() {
     return <String, Object?>{
       'entryCount': entryCount,
@@ -103,6 +113,7 @@ class UnrouterInspectorReplayValidationResult {
   }
 }
 
+/// One replay timeline entry.
 class UnrouterInspectorReplayEntry {
   const UnrouterInspectorReplayEntry({
     required this.sequence,
@@ -112,11 +123,13 @@ class UnrouterInspectorReplayEntry {
   final int sequence;
   final UnrouterInspectorEmission emission;
 
+  /// Serializes replay entry to JSON-like map.
   Map<String, Object?> toJson() {
     return <String, Object?>{'sequence': sequence, ...emission.toJson()};
   }
 }
 
+/// Immutable replay store state.
 class UnrouterInspectorReplayState {
   const UnrouterInspectorReplayState({
     required this.entries,
@@ -158,6 +171,7 @@ class UnrouterInspectorReplayState {
     return entries.last;
   }
 
+  /// Returns a new state with selected fields replaced.
   UnrouterInspectorReplayState copyWith({
     List<UnrouterInspectorReplayEntry>? entries,
     int? emittedCount,
@@ -179,6 +193,7 @@ class UnrouterInspectorReplayState {
   }
 }
 
+/// Bounded replay store for inspector emissions.
 class UnrouterInspectorReplayStore
     implements ValueListenable<UnrouterInspectorReplayState> {
   UnrouterInspectorReplayStore({
@@ -192,6 +207,7 @@ class UnrouterInspectorReplayStore
     }
   }
 
+  /// Current exported replay JSON schema version.
   static const int schemaVersion = 1;
 
   final UnrouterInspectorReplayStoreConfig config;
@@ -202,6 +218,7 @@ class UnrouterInspectorReplayStore
   int _replayToken = 0;
   bool _isDisposed = false;
 
+  /// Creates replay store from bridge stream.
   static UnrouterInspectorReplayStore fromBridge<R extends RouteData>({
     required UnrouterInspectorBridge<R> bridge,
     UnrouterInspectorReplayStoreConfig config =
@@ -210,11 +227,13 @@ class UnrouterInspectorReplayStore
     return UnrouterInspectorReplayStore(stream: bridge.stream, config: config);
   }
 
+  /// Listenable state view.
   ValueListenable<UnrouterInspectorReplayState> get listenable => this;
 
   @override
   UnrouterInspectorReplayState get value => _state.value;
 
+  /// Replay output stream emitted by [replay].
   Stream<UnrouterInspectorEmission> get replayStream =>
       _replayController.stream;
 
@@ -228,6 +247,7 @@ class UnrouterInspectorReplayStore
     _state.removeListener(listener);
   }
 
+  /// Appends one emission to replay store.
   void add(UnrouterInspectorEmission emission) {
     if (_isDisposed) {
       return;
@@ -253,12 +273,14 @@ class UnrouterInspectorReplayStore
     );
   }
 
+  /// Appends all emissions to replay store.
   void addAll(Iterable<UnrouterInspectorEmission> emissions) {
     for (final emission in emissions) {
       add(emission);
     }
   }
 
+  /// Clears stored entries.
   void clear({bool resetCounters = false}) {
     if (_isDisposed) {
       return;
@@ -275,6 +297,7 @@ class UnrouterInspectorReplayStore
     );
   }
 
+  /// Exports replay store as JSON.
   String exportJson({int? tail, bool pretty = false}) {
     if (tail != null) {
       assert(
@@ -307,6 +330,7 @@ class UnrouterInspectorReplayStore
     return jsonEncode(payload);
   }
 
+  /// Imports replay entries from JSON payload.
   void importJson(String payload, {bool clearExisting = true}) {
     if (_isDisposed) {
       return;
@@ -336,6 +360,7 @@ class UnrouterInspectorReplayStore
     addAll(parsed.map((entry) => entry.emission));
   }
 
+  /// Validates compatibility for machine/action-envelope timeline payloads.
   UnrouterInspectorReplayValidationResult validateCompatibility({
     Iterable<UnrouterInspectorReplayEntry>? entries,
     bool requireFailureForRejected = true,
@@ -505,6 +530,7 @@ class UnrouterInspectorReplayStore
     );
   }
 
+  /// Alias for [validateCompatibility].
   UnrouterInspectorReplayValidationResult validateActionEnvelopeCompatibility({
     Iterable<UnrouterInspectorReplayEntry>? entries,
     bool requireFailureForRejected = true,
@@ -519,6 +545,7 @@ class UnrouterInspectorReplayStore
     );
   }
 
+  /// Replays stored entries to [replayStream].
   Future<int> replay({
     Duration step = Duration.zero,
     bool useRecordedIntervals = false,
@@ -603,6 +630,7 @@ class UnrouterInspectorReplayStore
     }
   }
 
+  /// Disposes replay stream and listeners.
   void dispose() {
     if (_isDisposed) {
       return;

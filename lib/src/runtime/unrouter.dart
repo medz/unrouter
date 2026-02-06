@@ -11,10 +11,14 @@ import '../platform/route_information_provider.dart';
 
 export '../core/redirect_diagnostics.dart';
 
+/// Builds a fallback widget for unmatched locations.
 typedef UnknownRouteBuilder = Widget Function(BuildContext context, Uri uri);
+
+/// Builds a fallback widget for route parsing/guard/loader errors.
 typedef RouteErrorBuilder =
     Widget Function(BuildContext context, Object error, StackTrace stackTrace);
 
+/// Router configuration entrypoint for typed URL-first navigation.
 class Unrouter<R extends RouteData> extends StatelessWidget
     implements RouterConfig<HistoryLocation> {
   Unrouter({
@@ -51,18 +55,35 @@ class Unrouter<R extends RouteData> extends StatelessWidget
          history ?? createHistory(base: base, strategy: strategy),
        );
 
+  /// Immutable route table consumed by the matcher.
   final List<RouteRecord<R>> routes;
   final RouterContext<RouteRecord<R>> _matcher;
 
+  /// Optional builder for unknown locations.
   final UnknownRouteBuilder? unknown;
+
+  /// Optional builder for route resolution errors.
   final RouteErrorBuilder? onError;
+
+  /// Optional global loading widget shown before first successful resolution.
   final WidgetBuilder? loading;
+
+  /// Max number of state timeline entries retained in controller state.
   final int stateTimelineLimit;
+
+  /// Max number of machine transitions retained in controller state.
   final int machineTimelineLimit;
+
+  /// Redirect hop limit used to prevent infinite redirect chains.
   final int maxRedirectHops;
+
+  /// Policy used when redirect loops are detected.
   final RedirectLoopPolicy redirectLoopPolicy;
+
+  /// Callback invoked when redirect safety checks emit diagnostics.
   final RedirectDiagnosticsCallback? onRedirectDiagnostics;
 
+  /// Optional restoration scope id passed to `Router.withConfig`.
   final String? restorationScopeId;
 
   @override
@@ -79,6 +100,7 @@ class Unrouter<R extends RouteData> extends StatelessWidget
     return const UnrouterRouteInformationParser();
   }
 
+  /// Resolves [uri] to a typed route, redirect, block, or error result.
   Future<RouteResolution<R>> resolve(
     Uri uri, {
     required RouteExecutionSignal signal,
@@ -207,6 +229,7 @@ class Unrouter<R extends RouteData> extends StatelessWidget
   }
 }
 
+/// Route resolution lifecycle state.
 enum RouteResolutionType {
   pending,
   matched,
@@ -216,6 +239,7 @@ enum RouteResolutionType {
   error,
 }
 
+/// Result returned by [Unrouter.resolve].
 class RouteResolution<R extends RouteData> {
   const RouteResolution._({
     required this.type,
@@ -288,15 +312,21 @@ class RouteResolution<R extends RouteData> {
   final Object? error;
   final StackTrace? stackTrace;
 
+  /// Whether resolution is still pending.
   bool get isPending => type == RouteResolutionType.pending;
 
+  /// Whether a route record matched and parsed successfully.
   bool get isMatched => type == RouteResolutionType.matched;
 
+  /// Whether no route matched the target URI.
   bool get isUnmatched => type == RouteResolutionType.unmatched;
 
+  /// Whether resolution requested a redirect.
   bool get isRedirect => type == RouteResolutionType.redirect;
 
+  /// Whether resolution was blocked by guards.
   bool get isBlocked => type == RouteResolutionType.blocked;
 
+  /// Whether resolution ended with an exception.
   bool get hasError => type == RouteResolutionType.error;
 }

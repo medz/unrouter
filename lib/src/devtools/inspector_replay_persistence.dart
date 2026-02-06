@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'inspector_replay_store.dart';
 
+/// Storage abstraction for replay persistence.
 abstract interface class UnrouterInspectorReplayStorageAdapter {
   Future<void> write(String key, String payload);
 
@@ -10,6 +11,7 @@ abstract interface class UnrouterInspectorReplayStorageAdapter {
   Future<void> delete(String key);
 }
 
+/// In-memory storage adapter for replay persistence.
 class UnrouterInspectorReplayMemoryStorageAdapter
     implements UnrouterInspectorReplayStorageAdapter {
   final Map<String, String> _storage = <String, String>{};
@@ -30,6 +32,7 @@ class UnrouterInspectorReplayMemoryStorageAdapter
   }
 }
 
+/// Callback-based storage adapter for replay persistence.
 class UnrouterInspectorReplayCallbackStorageAdapter
     implements UnrouterInspectorReplayStorageAdapter {
   const UnrouterInspectorReplayCallbackStorageAdapter({
@@ -60,6 +63,7 @@ class UnrouterInspectorReplayCallbackStorageAdapter
   }
 }
 
+/// One payload migration step between schema versions.
 class UnrouterInspectorReplayMigration {
   const UnrouterInspectorReplayMigration({
     required this.fromVersion,
@@ -75,6 +79,7 @@ class UnrouterInspectorReplayMigration {
   final Map<String, Object?> Function(Map<String, Object?> source) migrate;
 }
 
+/// Configuration for [UnrouterInspectorReplayPersistence].
 class UnrouterInspectorReplayPersistenceConfig {
   const UnrouterInspectorReplayPersistenceConfig({
     this.storageKey = 'unrouter.inspector.replay',
@@ -92,6 +97,7 @@ class UnrouterInspectorReplayPersistenceConfig {
   final List<UnrouterInspectorReplayMigration> migrations;
 }
 
+/// Save/restore utility for replay store snapshots.
 class UnrouterInspectorReplayPersistence {
   const UnrouterInspectorReplayPersistence({
     required this.adapter,
@@ -101,11 +107,13 @@ class UnrouterInspectorReplayPersistence {
   final UnrouterInspectorReplayStorageAdapter adapter;
   final UnrouterInspectorReplayPersistenceConfig config;
 
+  /// Saves replay store snapshot using configured adapter.
   Future<void> save(UnrouterInspectorReplayStore store, {int? tail}) async {
     final payload = store.exportJson(tail: tail, pretty: config.pretty);
     await adapter.write(config.storageKey, payload);
   }
 
+  /// Restores replay store snapshot from configured adapter.
   Future<bool> restore(
     UnrouterInspectorReplayStore store, {
     bool clearExisting = true,
@@ -119,10 +127,12 @@ class UnrouterInspectorReplayPersistence {
     return true;
   }
 
+  /// Clears persisted replay payload.
   Future<void> clear() {
     return adapter.delete(config.storageKey);
   }
 
+  /// Applies built-in and custom migrations to persisted payload.
   Map<String, Object?> migratePayload(String payload) {
     final decoded = jsonDecode(payload);
     final normalized = _normalizePayload(decoded);

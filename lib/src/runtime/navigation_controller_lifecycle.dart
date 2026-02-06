@@ -1,7 +1,9 @@
 part of 'navigation.dart';
 
+/// Lifecycle/configuration methods exposed on [UnrouterController].
 extension UnrouterControllerLifecycleMethods<R extends RouteData>
     on UnrouterController<R> {
+  /// Sets or clears custom history state composer.
   void setHistoryStateComposer(UnrouterHistoryStateComposer? composer) {
     _historyStateComposer = composer;
     _recordControllerLifecycleTransition(
@@ -10,6 +12,7 @@ extension UnrouterControllerLifecycleMethods<R extends RouteData>
     );
   }
 
+  /// Configures internal route machine driver used by delegate resolution.
   void configureRouteMachine<Resolution, ResolutionType extends Enum>({
     required Future<Resolution?> Function(
       Uri uri, {
@@ -65,6 +68,7 @@ extension UnrouterControllerLifecycleMethods<R extends RouteData>
     );
   }
 
+  /// Registers shell branch URI resolvers.
   void setShellBranchResolvers({
     required Uri? Function(int index, {required bool initialLocation})
     resolveTarget,
@@ -78,6 +82,7 @@ extension UnrouterControllerLifecycleMethods<R extends RouteData>
     );
   }
 
+  /// Clears custom shell branch URI resolvers.
   void clearShellBranchResolvers() {
     final hadCustomResolvers = _hasCustomShellBranchResolvers;
     _shellBranchTargetResolver =
@@ -92,22 +97,27 @@ extension UnrouterControllerLifecycleMethods<R extends RouteData>
     );
   }
 
+  /// Clears custom history state composer.
   void clearHistoryStateComposer() {
     setHistoryStateComposer(null);
   }
 
+  /// Forces current state publication to listeners.
   void publishState() {
     _stateStore.refresh();
   }
 
+  /// Clears bounded state timeline.
   void clearStateTimeline() {
     _stateStore.clearTimeline();
   }
 
+  /// Clears bounded machine timeline.
   void clearMachineTimeline() {
     _machineStore.clear();
   }
 
+  /// Disposes controller runtime resources.
   void dispose() {
     if (_isDisposed) {
       return;

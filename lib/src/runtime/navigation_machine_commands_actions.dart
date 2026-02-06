@@ -1,8 +1,12 @@
 part of 'machine_kernel.dart';
 
+/// Strongly typed machine command API.
+///
+/// Commands execute directly against [UnrouterMachineCommandRuntime].
 sealed class UnrouterMachineCommand<T> {
   const UnrouterMachineCommand();
 
+  /// Dispatches a route-resolution request.
   static UnrouterMachineCommand<Future<void>> routeRequest(
     Uri uri, {
     Object? state,
@@ -10,6 +14,7 @@ sealed class UnrouterMachineCommand<T> {
     return _UnrouterMachineRouteRequestCommand(uri, state: state);
   }
 
+  /// Navigates to [uri] using push-like semantics.
   static UnrouterMachineCommand<void> goUri(
     Uri uri, {
     Object? state,
@@ -24,6 +29,7 @@ sealed class UnrouterMachineCommand<T> {
     );
   }
 
+  /// Replaces current entry with [uri].
   static UnrouterMachineCommand<void> replaceUri(
     Uri uri, {
     Object? state,
@@ -38,6 +44,7 @@ sealed class UnrouterMachineCommand<T> {
     );
   }
 
+  /// Pushes [uri] and resolves typed result on pop.
   static UnrouterMachineCommand<Future<T?>> pushUri<T extends Object?>(
     Uri uri, {
     Object? state,
@@ -45,10 +52,12 @@ sealed class UnrouterMachineCommand<T> {
     return _UnrouterMachinePushUriCommand<T>(uri, state: state);
   }
 
+  /// Pops current entry and optionally passes [result].
   static UnrouterMachineCommand<bool> pop([Object? result]) {
     return _UnrouterMachinePopCommand(result);
   }
 
+  /// Pops history until [uri] is reached.
   static UnrouterMachineCommand<void> popToUri(
     Uri uri, {
     Object? state,
@@ -57,18 +66,22 @@ sealed class UnrouterMachineCommand<T> {
     return _UnrouterMachinePopToUriCommand(uri, state: state, result: result);
   }
 
+  /// Goes back one history entry.
   static UnrouterMachineCommand<bool> back() {
     return const _UnrouterMachineBackCommand();
   }
 
+  /// Goes forward one history entry.
   static UnrouterMachineCommand<void> forward() {
     return const _UnrouterMachineForwardCommand();
   }
 
+  /// Moves history cursor by [delta].
   static UnrouterMachineCommand<void> goDelta(int delta) {
     return _UnrouterMachineGoDeltaCommand(delta);
   }
 
+  /// Switches active shell branch.
   static UnrouterMachineCommand<bool> switchBranch(
     int index, {
     bool initialLocation = false,
@@ -83,12 +96,15 @@ sealed class UnrouterMachineCommand<T> {
     );
   }
 
+  /// Pops active shell branch stack.
   static UnrouterMachineCommand<bool> popBranch([Object? result]) {
     return _UnrouterMachinePopBranchCommand(result);
   }
 
+  /// Event represented by this command.
   UnrouterMachineEvent get event;
 
+  /// Executes command against runtime.
   T execute(UnrouterMachineCommandRuntime runtime);
 }
 
@@ -293,11 +309,14 @@ final class _UnrouterMachinePopBranchCommand
   }
 }
 
+/// Navigation mode used by `navigate*` actions.
 enum UnrouterMachineNavigateMode { go, replace }
 
+/// Declarative machine action API mapped onto typed commands.
 sealed class UnrouterMachineAction<T> {
   const UnrouterMachineAction();
 
+  /// Dispatches a route-resolution request.
   static UnrouterMachineAction<Future<void>> routeRequest(
     Uri uri, {
     Object? state,
@@ -305,6 +324,7 @@ sealed class UnrouterMachineAction<T> {
     return _UnrouterMachineRouteRequestAction(uri, state: state);
   }
 
+  /// Alias for [navigateUri].
   static UnrouterMachineAction<void> navigateToUri(
     Uri uri, {
     Object? state,
@@ -319,6 +339,7 @@ sealed class UnrouterMachineAction<T> {
     );
   }
 
+  /// Navigates to [uri] using [mode].
   static UnrouterMachineAction<void> navigateUri(
     Uri uri, {
     Object? state,
@@ -335,6 +356,7 @@ sealed class UnrouterMachineAction<T> {
     );
   }
 
+  /// Alias for [navigateRoute].
   static UnrouterMachineAction<void> navigateToRoute<R extends RouteData>(
     R route, {
     Object? state,
@@ -349,6 +371,7 @@ sealed class UnrouterMachineAction<T> {
     );
   }
 
+  /// Navigates to typed [route] using [mode].
   static UnrouterMachineAction<void> navigateRoute<R extends RouteData>(
     R route, {
     Object? state,
@@ -365,6 +388,7 @@ sealed class UnrouterMachineAction<T> {
     );
   }
 
+  /// Pushes [uri] and resolves typed result on pop.
   static UnrouterMachineAction<Future<T?>> pushUri<T extends Object?>(
     Uri uri, {
     Object? state,
@@ -372,11 +396,13 @@ sealed class UnrouterMachineAction<T> {
     return _UnrouterMachinePushUriAction<T>(uri, state: state);
   }
 
+  /// Pushes typed [route] and resolves typed result on pop.
   static UnrouterMachineAction<Future<T?>>
   pushRoute<R extends RouteData, T extends Object?>(R route, {Object? state}) {
     return _UnrouterMachinePushRouteAction<R, T>(route, state: state);
   }
 
+  /// Replaces current entry with [uri].
   static UnrouterMachineAction<void> replaceUri(
     Uri uri, {
     Object? state,
@@ -392,6 +418,7 @@ sealed class UnrouterMachineAction<T> {
     );
   }
 
+  /// Replaces current entry with typed [route].
   static UnrouterMachineAction<void> replaceRoute<R extends RouteData>(
     R route, {
     Object? state,
@@ -407,10 +434,12 @@ sealed class UnrouterMachineAction<T> {
     );
   }
 
+  /// Pops current entry and optionally passes [result].
   static UnrouterMachineAction<bool> pop([Object? result]) {
     return _UnrouterMachinePopAction(result);
   }
 
+  /// Pops history until [uri] is reached.
   static UnrouterMachineAction<void> popToUri(
     Uri uri, {
     Object? state,
@@ -419,18 +448,22 @@ sealed class UnrouterMachineAction<T> {
     return _UnrouterMachinePopToUriAction(uri, state: state, result: result);
   }
 
+  /// Goes back one history entry.
   static UnrouterMachineAction<bool> back() {
     return const _UnrouterMachineBackAction();
   }
 
+  /// Goes forward one history entry.
   static UnrouterMachineAction<void> forward() {
     return const _UnrouterMachineForwardAction();
   }
 
+  /// Moves history cursor by [delta].
   static UnrouterMachineAction<void> goDelta(int delta) {
     return _UnrouterMachineGoDeltaAction(delta);
   }
 
+  /// Switches active shell branch.
   static UnrouterMachineAction<bool> switchBranch(
     int index, {
     bool initialLocation = false,
@@ -445,12 +478,15 @@ sealed class UnrouterMachineAction<T> {
     );
   }
 
+  /// Pops active shell branch stack.
   static UnrouterMachineAction<bool> popBranch([Object? result]) {
     return _UnrouterMachinePopBranchAction(result);
   }
 
+  /// Event represented by this action.
   UnrouterMachineEvent get event;
 
+  /// Converts declarative action to executable command.
   UnrouterMachineCommand<T> toCommand();
 }
 

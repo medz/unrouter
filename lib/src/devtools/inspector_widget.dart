@@ -6,10 +6,12 @@ import '../runtime/navigation.dart';
 import '../core/redirect_diagnostics.dart';
 import '../core/route_data.dart';
 
+/// In-memory store for redirect diagnostics used by inspector widgets.
 class UnrouterRedirectDiagnosticsStore
     extends ValueNotifier<List<RedirectDiagnostics>> {
   UnrouterRedirectDiagnosticsStore() : super(const <RedirectDiagnostics>[]);
 
+  /// Appends one diagnostics record.
   void add(RedirectDiagnostics diagnostics) {
     value = List<RedirectDiagnostics>.unmodifiable(<RedirectDiagnostics>[
       ...value,
@@ -17,10 +19,12 @@ class UnrouterRedirectDiagnosticsStore
     ]);
   }
 
+  /// Convenience callback compatible with `onRedirectDiagnostics`.
   void onDiagnostics(RedirectDiagnostics diagnostics) {
     add(diagnostics);
   }
 
+  /// Clears all recorded diagnostics.
   void clear() {
     if (value.isEmpty) {
       return;
@@ -29,6 +33,7 @@ class UnrouterRedirectDiagnosticsStore
   }
 }
 
+/// Compact on-screen diagnostics widget for route + machine state.
 class UnrouterInspectorWidget<R extends RouteData> extends StatefulWidget {
   const UnrouterInspectorWidget({
     super.key,

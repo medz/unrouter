@@ -1,3 +1,9 @@
+/// Devtools API for runtime inspector, bridge, panel, and replay workflows.
+///
+/// Import together with `package:unrouter/unrouter.dart` and optionally
+/// `package:unrouter/machine.dart` for full diagnostics.
+library;
+
 export 'src/runtime/navigation.dart' show UnrouterInspector;
 export 'src/devtools/inspector_bridge.dart';
 export 'src/devtools/inspector_panel_adapter.dart';

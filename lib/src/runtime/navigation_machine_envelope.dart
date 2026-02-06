@@ -1,5 +1,6 @@
 part of 'machine_kernel.dart';
 
+/// Action envelope lifecycle state.
 enum UnrouterMachineActionEnvelopeState {
   accepted,
   rejected,
@@ -7,6 +8,7 @@ enum UnrouterMachineActionEnvelopeState {
   completed,
 }
 
+/// Machine action rejection code.
 enum UnrouterMachineActionRejectCode {
   unknown,
   noBackHistory,
@@ -16,6 +18,7 @@ enum UnrouterMachineActionRejectCode {
   deferredError,
 }
 
+/// High-level failure category for rejected actions.
 enum UnrouterMachineActionFailureCategory {
   unknown,
   history,
@@ -23,6 +26,7 @@ enum UnrouterMachineActionFailureCategory {
   asynchronous,
 }
 
+/// Structured failure metadata for rejected machine actions.
 class UnrouterMachineActionFailure {
   const UnrouterMachineActionFailure({
     required this.code,
@@ -38,6 +42,7 @@ class UnrouterMachineActionFailure {
   final bool retryable;
   final Map<String, Object?> metadata;
 
+  /// Parses failure object from decoded JSON-like payload.
   static UnrouterMachineActionFailure? tryParse(Object? value) {
     if (value is! Map<Object?, Object?>) {
       return null;
@@ -62,6 +67,7 @@ class UnrouterMachineActionFailure {
     );
   }
 
+  /// Parses [UnrouterMachineActionRejectCode] by enum name.
   static UnrouterMachineActionRejectCode? tryParseCode(String? value) {
     if (value == null || value.isEmpty) {
       return null;
@@ -74,6 +80,7 @@ class UnrouterMachineActionFailure {
     return null;
   }
 
+  /// Parses [UnrouterMachineActionFailureCategory] by enum name.
   static UnrouterMachineActionFailureCategory? tryParseCategory(String? value) {
     if (value == null || value.isEmpty) {
       return null;
@@ -86,6 +93,7 @@ class UnrouterMachineActionFailure {
     return null;
   }
 
+  /// Serializes failure metadata to JSON-like map.
   Map<String, Object?> toJson() {
     return <String, Object?>{
       'code': code.name,
@@ -157,6 +165,7 @@ class UnrouterMachineActionFailure {
   }
 }
 
+/// Structured result envelope returned by `dispatchActionEnvelope(...)`.
 class UnrouterMachineActionEnvelope<T> {
   static const int schemaVersion = 2;
   static const int minimumCompatibleSchemaVersion = 1;
@@ -164,11 +173,13 @@ class UnrouterMachineActionEnvelope<T> {
   static const int minimumCompatibleEventVersion = 1;
   static const String producer = 'unrouter.machine';
 
+  /// Returns `true` when [version] can be parsed by current runtime.
   static bool isSchemaVersionCompatible(int version) {
     return version >= minimumCompatibleSchemaVersion &&
         version <= schemaVersion;
   }
 
+  /// Returns `true` when [version] event semantics are supported.
   static bool isEventVersionCompatible(int version) {
     return version >= minimumCompatibleEventVersion && version <= eventVersion;
   }
@@ -245,18 +256,23 @@ class UnrouterMachineActionEnvelope<T> {
   final String? rejectReason;
   final UnrouterMachineActionFailure? failure;
 
+  /// Whether action is accepted (including deferred/completed).
   bool get isAccepted {
     return state == UnrouterMachineActionEnvelopeState.accepted ||
         state == UnrouterMachineActionEnvelopeState.deferred ||
         state == UnrouterMachineActionEnvelopeState.completed;
   }
 
+  /// Whether action is rejected.
   bool get isRejected => state == UnrouterMachineActionEnvelopeState.rejected;
 
+  /// Whether action result is deferred (`Future`).
   bool get isDeferred => state == UnrouterMachineActionEnvelopeState.deferred;
 
+  /// Whether action has a non-deferred completed result.
   bool get isCompleted => state == UnrouterMachineActionEnvelopeState.completed;
 
+  /// Serializes envelope to JSON-like map.
   Map<String, Object?> toJson() {
     final value = this.value;
     return <String, Object?>{

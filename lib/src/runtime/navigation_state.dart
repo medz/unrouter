@@ -276,6 +276,7 @@ class UnrouterScope extends InheritedWidget {
 
   final UnrouterController<RouteData> controller;
 
+  /// Reads untyped controller from widget tree.
   static UnrouterController<RouteData> of(BuildContext context) {
     final scope = context.dependOnInheritedWidgetOfExactType<UnrouterScope>();
     if (scope != null) {
@@ -290,6 +291,7 @@ class UnrouterScope extends InheritedWidget {
     ]);
   }
 
+  /// Reads typed controller from widget tree.
   static UnrouterController<R> ofAs<R extends RouteData>(BuildContext context) {
     return of(context).cast<R>();
   }
@@ -300,17 +302,23 @@ class UnrouterScope extends InheritedWidget {
   }
 }
 
+/// `BuildContext` helpers for core router access.
 extension UnrouterBuildContextExtension on BuildContext {
+  /// Returns the untyped router controller.
   UnrouterController<RouteData> get unrouter => UnrouterScope.of(this);
 
+  /// Returns a typed router controller.
   UnrouterController<R> unrouterAs<R extends RouteData>() {
     return UnrouterScope.ofAs<R>(this);
   }
 }
 
+/// `BuildContext` helpers for machine dispatch access.
 extension UnrouterMachineBuildContextExtension on BuildContext {
+  /// Returns untyped machine facade.
   UnrouterMachine<RouteData> get unrouterMachine => unrouter.machine;
 
+  /// Returns typed machine facade.
   UnrouterMachine<R> unrouterMachineAs<R extends RouteData>() {
     return unrouterAs<R>().machine;
   }

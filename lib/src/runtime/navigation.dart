@@ -18,6 +18,7 @@ part 'navigation_controller_lifecycle.dart';
 part 'navigation_inspector.dart';
 part 'navigation_state.dart';
 
+/// Input payload for [UnrouterHistoryStateComposer].
 class UnrouterHistoryStateRequest {
   const UnrouterHistoryStateRequest({
     required this.uri,
@@ -32,9 +33,11 @@ class UnrouterHistoryStateRequest {
   final Object? currentState;
 }
 
+/// Composes custom `history.state` payload before navigation writes.
 typedef UnrouterHistoryStateComposer =
     Object? Function(UnrouterHistoryStateRequest request);
 
+/// Minimal data source consumed by [UnrouterInspector].
 abstract interface class UnrouterInspectorSource<R extends RouteData> {
   UnrouterStateSnapshot<R> get state;
 
@@ -165,6 +168,7 @@ class _UnrouterControllerMachineHost<R extends RouteData>
   }
 }
 
+/// Runtime controller backing `BuildContext.unrouter`.
 class UnrouterController<R extends RouteData>
     implements UnrouterInspectorSource<R> {
   UnrouterController({
@@ -305,6 +309,7 @@ class UnrouterController<R extends RouteData>
     return null;
   }
 
+  /// Current typed route object.
   R? get route {
     final value = _routeGetter();
     if (value == null) {
@@ -313,21 +318,28 @@ class UnrouterController<R extends RouteData>
     return value as R;
   }
 
+  /// Current location URI.
   Uri get uri => _uriGetter();
 
+  /// Whether browser history can go back.
   bool get canGoBack => _routeInformationProvider.canGoBack;
 
+  /// Last history action applied by route information provider.
   HistoryAction get lastAction => _routeInformationProvider.lastAction;
 
+  /// Last history delta used for `go(delta)` style operations.
   int? get lastDelta => _routeInformationProvider.lastDelta;
 
+  /// Current history index when available from provider.
   int? get historyIndex => _routeInformationProvider.historyIndex;
 
+  /// Raw `history.state` payload of current location.
   Object? get historyState => _routeInformationProvider.value.state;
 
   @override
   UnrouterStateSnapshot<R> get state => _stateStore.current.cast<R>();
 
+  /// Inspector facade for state, timeline, and export helpers.
   UnrouterInspector<R> get inspector => UnrouterInspector<R>(this);
 
   @override
@@ -350,8 +362,10 @@ class UnrouterController<R extends RouteData>
   @override
   UnrouterMachineState get machineState => _captureMachineState();
 
+  /// Machine facade for typed command/action dispatch.
   UnrouterMachine<R> get machine => UnrouterMachine<R>.host(_machineHost);
 
+  /// Records a machine transition into the bounded timeline.
   void recordMachineTransition({
     required UnrouterMachineSource source,
     required UnrouterMachineEvent event,
@@ -376,6 +390,7 @@ class UnrouterController<R extends RouteData>
     );
   }
 
+  /// Records a machine action envelope emission.
   void recordActionEnvelope<T>(
     UnrouterMachineActionEnvelope<T> envelope, {
     String phase = 'dispatch',
@@ -407,18 +422,22 @@ class UnrouterController<R extends RouteData>
     );
   }
 
+  /// Dispatches a typed machine command.
   T dispatchMachineCommand<T>(UnrouterMachineCommand<T> command) {
     return command.execute(_machineHost);
   }
 
+  /// Generates href for a typed route.
   String href(R route) {
     return _routeInformationProvider.history.createHref(route.toUri());
   }
 
+  /// Generates href for a URI.
   String hrefUri(Uri uri) {
     return _routeInformationProvider.history.createHref(uri);
   }
 
+  /// Navigates to [route] using history push-like semantics.
   void go(
     R route, {
     Object? state,
@@ -433,6 +452,7 @@ class UnrouterController<R extends RouteData>
     );
   }
 
+  /// Navigates to [uri] using history push-like semantics.
   void goUri(
     Uri uri, {
     Object? state,
@@ -449,6 +469,7 @@ class UnrouterController<R extends RouteData>
     );
   }
 
+  /// Replaces current entry with [route].
   void replace(
     R route, {
     Object? state,
@@ -463,6 +484,7 @@ class UnrouterController<R extends RouteData>
     );
   }
 
+  /// Replaces current entry with [uri].
   void replaceUri(
     Uri uri, {
     Object? state,
@@ -479,38 +501,46 @@ class UnrouterController<R extends RouteData>
     );
   }
 
+  /// Pushes [route] and resolves typed result on pop.
   Future<T?> push<T extends Object?>(R route, {Object? state}) {
     return pushUri<T>(route.toUri(), state: state);
   }
 
+  /// Pushes [uri] and resolves typed result on pop.
   Future<T?> pushUri<T extends Object?>(Uri uri, {Object? state}) {
     return dispatchMachineCommand<Future<T?>>(
       UnrouterMachineCommand.pushUri<T>(uri, state: state),
     );
   }
 
+  /// Pops current entry and optionally completes pending push result.
   bool pop<T extends Object?>([T? result]) {
     return dispatchMachineCommand<bool>(UnrouterMachineCommand.pop(result));
   }
 
+  /// Pops history until [uri] is reached.
   void popToUri(Uri uri, {Object? state, Object? result}) {
     dispatchMachineCommand<void>(
       UnrouterMachineCommand.popToUri(uri, state: state, result: result),
     );
   }
 
+  /// Goes back one history entry.
   bool back() {
     return dispatchMachineCommand<bool>(UnrouterMachineCommand.back());
   }
 
+  /// Goes forward one history entry.
   void forward() {
     dispatchMachineCommand<void>(UnrouterMachineCommand.forward());
   }
 
+  /// Moves history cursor by [delta].
   void goDelta(int delta) {
     dispatchMachineCommand<void>(UnrouterMachineCommand.goDelta(delta));
   }
 
+  /// Switches active shell branch.
   bool switchBranch(
     int index, {
     bool initialLocation = false,
@@ -527,12 +557,14 @@ class UnrouterController<R extends RouteData>
     );
   }
 
+  /// Pops active shell branch stack.
   bool popBranch([Object? result]) {
     return dispatchMachineCommand<bool>(
       UnrouterMachineCommand.popBranch(result),
     );
   }
 
+  /// Casts controller to another typed route view over the same runtime.
   UnrouterController<S> cast<S extends RouteData>() {
     return UnrouterController<S>._(
       routeInformationProvider: _routeInformationProvider,

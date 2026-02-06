@@ -9,6 +9,7 @@ part 'navigation_machine_commands_actions.dart';
 part 'navigation_machine_envelope.dart';
 part 'navigation_machine_api.dart';
 
+/// Normalized route resolution state shared by runtime and machine timelines.
 enum UnrouterResolutionState {
   unknown,
   pending,
@@ -19,6 +20,7 @@ enum UnrouterResolutionState {
   error,
 }
 
+/// Immutable snapshot of current router state.
 class UnrouterStateSnapshot<R extends RouteData> {
   const UnrouterStateSnapshot({
     required this.uri,
@@ -44,6 +46,7 @@ class UnrouterStateSnapshot<R extends RouteData> {
   final int? lastDelta;
   final int? historyIndex;
 
+  /// Whether current resolution is pending.
   bool get isPending => resolution == UnrouterResolutionState.pending;
 
   bool get isMatched => resolution == UnrouterResolutionState.matched;
@@ -54,6 +57,7 @@ class UnrouterStateSnapshot<R extends RouteData> {
 
   bool get hasError => resolution == UnrouterResolutionState.error;
 
+  /// Casts snapshot route type while preserving captured values.
   UnrouterStateSnapshot<S> cast<S extends RouteData>() {
     return UnrouterStateSnapshot<S>(
       uri: uri,
@@ -70,6 +74,7 @@ class UnrouterStateSnapshot<R extends RouteData> {
   }
 }
 
+/// Timeline entry wrapper for [UnrouterStateSnapshot].
 class UnrouterStateTimelineEntry<R extends RouteData> {
   const UnrouterStateTimelineEntry({
     required this.sequence,
@@ -81,6 +86,7 @@ class UnrouterStateTimelineEntry<R extends RouteData> {
   final DateTime recordedAt;
   final UnrouterStateSnapshot<R> snapshot;
 
+  /// Casts timeline route type.
   UnrouterStateTimelineEntry<S> cast<S extends RouteData>() {
     return UnrouterStateTimelineEntry<S>(
       sequence: sequence,
@@ -90,10 +96,13 @@ class UnrouterStateTimelineEntry<R extends RouteData> {
   }
 }
 
+/// Source that produced a machine transition.
 enum UnrouterMachineSource { controller, navigation, route }
 
+/// Semantic group for machine event filtering.
 enum UnrouterMachineEventGroup { lifecycle, navigation, shell, routeResolution }
 
+/// Event name recorded in machine timeline entries.
 enum UnrouterMachineEvent {
   initialized,
   controllerRouteMachineConfigured,
@@ -128,6 +137,7 @@ enum UnrouterMachineEvent {
   redirectChainCleared,
 }
 
+/// Maps machine events to semantic [UnrouterMachineEventGroup] values.
 extension UnrouterMachineEventGrouping on UnrouterMachineEvent {
   UnrouterMachineEventGroup get group {
     switch (this) {
@@ -170,6 +180,7 @@ extension UnrouterMachineEventGrouping on UnrouterMachineEvent {
   }
 }
 
+/// Canonical machine state captured in each transition.
 class UnrouterMachineState {
   const UnrouterMachineState({
     required this.uri,
@@ -193,6 +204,7 @@ class UnrouterMachineState {
   final int? historyIndex;
   final bool canGoBack;
 
+  /// Returns a copy with selected fields replaced.
   UnrouterMachineState copyWith({
     Uri? uri,
     UnrouterResolutionState? resolution,
@@ -219,6 +231,7 @@ class UnrouterMachineState {
     );
   }
 
+  /// Serializes state to JSON-like map.
   Map<String, Object?> toJson() {
     return <String, Object?>{
       'uri': uri.toString(),
@@ -233,6 +246,7 @@ class UnrouterMachineState {
   }
 }
 
+/// Raw machine transition entry.
 class UnrouterMachineTransitionEntry {
   const UnrouterMachineTransitionEntry({
     required this.sequence,
@@ -252,10 +266,12 @@ class UnrouterMachineTransitionEntry {
   final UnrouterMachineState to;
   final Map<String, Object?> payload;
 
+  /// Typed projection of this transition entry.
   UnrouterMachineTypedTransition get typed {
     return UnrouterMachineTypedTransition.fromEntry(this);
   }
 
+  /// Serializes transition entry to JSON-like map.
   Map<String, Object?> toJson() {
     return <String, Object?>{
       'sequence': sequence,
@@ -273,6 +289,7 @@ class UnrouterMachineTransitionEntry {
   }
 }
 
+/// Discriminator for typed machine payload models.
 enum UnrouterMachineTypedPayloadKind {
   generic,
   actionEnvelope,
@@ -281,6 +298,7 @@ enum UnrouterMachineTypedPayloadKind {
   controller,
 }
 
+/// Base type for typed machine payload projections.
 sealed class UnrouterMachineTypedPayload {
   const UnrouterMachineTypedPayload();
 
@@ -289,6 +307,7 @@ sealed class UnrouterMachineTypedPayload {
   Map<String, Object?> toJson();
 }
 
+/// Fallback payload model when no specialized parser applies.
 class UnrouterMachineGenericTypedPayload extends UnrouterMachineTypedPayload {
   const UnrouterMachineGenericTypedPayload(this.raw);
 
@@ -305,6 +324,7 @@ class UnrouterMachineGenericTypedPayload extends UnrouterMachineTypedPayload {
   }
 }
 
+/// Typed payload parser for `actionEnvelope` transitions.
 class UnrouterMachineActionEnvelopeTypedPayload
     extends UnrouterMachineTypedPayload {
   const UnrouterMachineActionEnvelopeTypedPayload({
@@ -398,6 +418,7 @@ class UnrouterMachineActionEnvelopeTypedPayload
     return UnrouterMachineTypedPayloadKind.actionEnvelope;
   }
 
+  /// Whether envelope schema version is compatible with current runtime.
   bool get isSchemaCompatible {
     final version = schemaVersion;
     if (version == null) {
@@ -406,6 +427,7 @@ class UnrouterMachineActionEnvelopeTypedPayload
     return UnrouterMachineActionEnvelope.isSchemaVersionCompatible(version);
   }
 
+  /// Whether envelope event version is compatible with current runtime.
   bool get isEventCompatible {
     final version = eventVersion;
     if (version == null) {
@@ -485,6 +507,7 @@ class UnrouterMachineActionEnvelopeTypedPayload
   }
 }
 
+/// Typed payload parser for navigation transitions.
 class UnrouterMachineNavigationTypedPayload
     extends UnrouterMachineTypedPayload {
   const UnrouterMachineNavigationTypedPayload({
@@ -603,6 +626,7 @@ class UnrouterMachineNavigationTypedPayload
   }
 }
 
+/// Typed payload parser for route-resolution transitions.
 class UnrouterMachineRouteTypedPayload extends UnrouterMachineTypedPayload {
   const UnrouterMachineRouteTypedPayload({
     required this.raw,
@@ -682,6 +706,7 @@ class UnrouterMachineRouteTypedPayload extends UnrouterMachineTypedPayload {
   }
 }
 
+/// Typed payload parser for controller lifecycle transitions.
 class UnrouterMachineControllerTypedPayload
     extends UnrouterMachineTypedPayload {
   const UnrouterMachineControllerTypedPayload({
@@ -825,6 +850,7 @@ class UnrouterMachineControllerTypedPayload
   }
 }
 
+/// Typed projection of [UnrouterMachineTransitionEntry].
 class UnrouterMachineTypedTransition {
   const UnrouterMachineTypedTransition({
     required this.sequence,
@@ -873,6 +899,7 @@ class UnrouterMachineTypedTransition {
   final UnrouterMachineState to;
   final UnrouterMachineTypedPayload payload;
 
+  /// Serializes typed transition to JSON-like map.
   Map<String, Object?> toJson() {
     return <String, Object?>{
       'sequence': sequence,
@@ -889,6 +916,7 @@ class UnrouterMachineTypedTransition {
   }
 }
 
+/// Runtime contract required by machine commands.
 abstract interface class UnrouterMachineCommandRuntime {
   Future<void> dispatchRouteRequest(Uri uri, {Object? state});
 
@@ -928,6 +956,7 @@ abstract interface class UnrouterMachineCommandRuntime {
   bool popBranch([Object? result]);
 }
 
+/// Host contract required by [UnrouterMachine].
 abstract interface class UnrouterMachineHost<R extends RouteData>
     implements UnrouterMachineCommandRuntime {
   UnrouterMachineState get machineState;

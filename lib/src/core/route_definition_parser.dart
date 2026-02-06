@@ -1,5 +1,6 @@
 part of 'route_definition.dart';
 
+/// Strongly typed parser helpers built from a matched URI.
 class RouteParserState {
   RouteParserState({
     required this.uri,
@@ -17,6 +18,7 @@ class RouteParserState {
     return UnmodifiableMapView(uri.queryParameters);
   }
 
+  /// Returns required path parameter by [key].
   String path(String key) {
     final value = _pathParameters[key];
     if (value != null) {
@@ -28,10 +30,12 @@ class RouteParserState {
     );
   }
 
+  /// Returns nullable path parameter by [key].
   String? pathOrNull(String key) {
     return _pathParameters[key];
   }
 
+  /// Parses required path parameter as `int`.
   int pathInt(String key) {
     final raw = path(key);
     final parsed = int.tryParse(raw);
@@ -44,6 +48,7 @@ class RouteParserState {
     );
   }
 
+  /// Returns required query parameter by [key], or [fallback] when provided.
   String query(String key, {String? fallback}) {
     final value = uri.queryParameters[key];
     if (value != null) {
@@ -59,10 +64,12 @@ class RouteParserState {
     );
   }
 
+  /// Returns nullable query parameter by [key].
   String? queryOrNull(String key) {
     return uri.queryParameters[key];
   }
 
+  /// Parses required query parameter as `int`.
   int queryInt(String key, {int? fallback}) {
     final value = queryOrNull(key);
     if (value == null) {
@@ -85,6 +92,7 @@ class RouteParserState {
     );
   }
 
+  /// Parses nullable query parameter as `int`.
   int? queryIntOrNull(String key) {
     final value = queryOrNull(key);
     if (value == null) {
@@ -101,6 +109,7 @@ class RouteParserState {
     );
   }
 
+  /// Parses query parameter as enum value by matching `Enum.name`.
   T queryEnum<T extends Enum>(String key, List<T> values, {T? fallback}) {
     final value = queryOrNull(key);
     if (value == null) {

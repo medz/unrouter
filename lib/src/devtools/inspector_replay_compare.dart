@@ -1,7 +1,9 @@
 import 'inspector_replay_store.dart';
 
+/// Replay diff strategy.
 enum UnrouterInspectorReplayCompareMode { sequence, path }
 
+/// Replay diff entry type.
 enum UnrouterInspectorReplayDiffType {
   unchanged,
   changed,
@@ -9,6 +11,7 @@ enum UnrouterInspectorReplayDiffType {
   missingCurrent,
 }
 
+/// One replay diff row comparing baseline and current sessions.
 class UnrouterInspectorReplayDiffEntry {
   const UnrouterInspectorReplayDiffEntry({
     required this.mode,
@@ -30,6 +33,7 @@ class UnrouterInspectorReplayDiffEntry {
   final bool pathChanged;
   final bool uriChanged;
 
+  /// Whether this row represents a difference.
   bool get isChanged => type != UnrouterInspectorReplayDiffType.unchanged;
 
   int? get baselineSequence => baselineEntry?.sequence;
@@ -48,6 +52,7 @@ class UnrouterInspectorReplayDiffEntry {
 
   String? get currentReason => currentEntry?.emission.reason.name;
 
+  /// Serializes diff entry to JSON-like map.
   Map<String, Object?> toJson() {
     return <String, Object?>{
       'mode': mode.name,
@@ -68,6 +73,7 @@ class UnrouterInspectorReplayDiffEntry {
   }
 }
 
+/// Aggregated replay session diff result.
 class UnrouterInspectorReplaySessionDiff {
   const UnrouterInspectorReplaySessionDiff({
     required this.mode,
@@ -85,13 +91,16 @@ class UnrouterInspectorReplaySessionDiff {
   final int missingBaselineCount;
   final int missingCurrentCount;
 
+  /// Whether any differences were detected.
   bool get hasDifferences =>
       changedCount > 0 || missingBaselineCount > 0 || missingCurrentCount > 0;
 
+  /// Returns only changed or missing rows.
   List<UnrouterInspectorReplayDiffEntry> get changedEntries {
     return entries.where((entry) => entry.isChanged).toList(growable: false);
   }
 
+  /// Serializes session diff to JSON-like map.
   Map<String, Object?> toJson() {
     return <String, Object?>{
       'mode': mode.name,
@@ -104,9 +113,11 @@ class UnrouterInspectorReplaySessionDiff {
   }
 }
 
+/// Utility for comparing replay sessions.
 class UnrouterInspectorReplayComparator {
   const UnrouterInspectorReplayComparator._();
 
+  /// Compares baseline/current replay entries with selected [mode].
   static UnrouterInspectorReplaySessionDiff compare({
     required Iterable<UnrouterInspectorReplayEntry> baseline,
     required Iterable<UnrouterInspectorReplayEntry> current,
@@ -299,8 +310,10 @@ class UnrouterInspectorReplayComparator {
   }
 }
 
+/// Convenience compare helpers on replay store.
 extension UnrouterInspectorReplayStoreCompareExtension
     on UnrouterInspectorReplayStore {
+  /// Compares this store with [baseline].
   UnrouterInspectorReplaySessionDiff compareWith(
     UnrouterInspectorReplayStore baseline, {
     UnrouterInspectorReplayCompareMode mode =
