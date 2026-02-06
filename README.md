@@ -2,10 +2,7 @@
 
 A URL-first Flutter router with typed route objects.
 
-Project target knowledge lives in `docs/target_knowledge.md`.
-Declarative state-machine draft lives in `docs/state_machine_draft.md`.
-Machine action-envelope schema contract lives in
-`docs/machine_action_envelope_schema.md`.
+Documentation index: `docs/README.md`.
 
 ## Features
 
@@ -34,14 +31,14 @@ Machine action-envelope schema contract lives in
 - Inspector/bridge/replay reports include machine transition timeline
 - Machine timeline uses typed `source/event` schema with unified `from/to` state snapshots
 - Public machine dispatch API (`UnrouterMachineCommand` + typed `dispatchTyped<T>()`)
-- Declarative machine action draft API (`UnrouterMachineAction` + `dispatchAction<T>()`)
+- Declarative machine action API (`UnrouterMachineAction` + `dispatchAction<T>()`)
 - Unified declarative navigate actions via `navigateUri` / `navigateRoute` with `mode` (`go` or `replace`)
 - Machine action envelope API (`dispatchActionEnvelope<T>()`) with `accepted/rejected/deferred/completed` states and structured failure metadata
 - Typed machine transition event view (`UnrouterMachineTypedTransition`) via `entry.typed` / `machine.typedTimeline` with typed payloads for controller/actionEnvelope, navigation, and route sources
 - Machine timeline semantic event grouping (`UnrouterMachineEventGroup`) with inspector filtering support
 - Replay compatibility validation covers action-envelope schema/event and controller lifecycle coverage
 - Performance budget regression tests for machine transition projection and replay compatibility validation
-- Declarative state-machine evolution draft and compatibility mapping
+- Typed machine state/transition model with compatibility-safe replay validation
 - Parser helpers for strongly typed path/query values
 - Async route hooks: `guards`, `redirect`, and `routeWithLoader`
 - Cooperative cancellation for async hooks via `RouteExecutionSignal`
