@@ -1,12 +1,1 @@
-export 'src/inspector_bridge.dart';
-export 'src/inspector_panel_adapter.dart';
-export 'src/inspector_panel_widget.dart';
-export 'src/inspector_replay_compare.dart';
-export 'src/inspector_replay_controller.dart';
-export 'src/inspector_replay_persistence.dart';
-export 'src/inspector_replay_store.dart';
-export 'src/inspector_widget.dart';
-export 'src/navigation.dart';
-export 'src/route_data.dart';
-export 'src/route_definition.dart';
-export 'src/unrouter.dart';
+export 'core.dart';

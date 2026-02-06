@@ -4,8 +4,8 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 
 import 'inspector_bridge.dart';
-import 'navigation.dart';
-import 'route_data.dart';
+import '../runtime/navigation.dart';
+import '../core/route_data.dart';
 
 class UnrouterInspectorReplayStoreConfig {
   const UnrouterInspectorReplayStoreConfig({this.maxEntries = 5000})

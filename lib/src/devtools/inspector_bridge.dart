@@ -4,9 +4,9 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:unstory/unstory.dart';
 
-import 'navigation.dart';
-import 'redirect_diagnostics.dart';
-import 'route_data.dart';
+import '../runtime/navigation.dart';
+import '../core/redirect_diagnostics.dart';
+import '../core/route_data.dart';
 
 enum UnrouterInspectorEmissionReason {
   initial,

@@ -76,3 +76,15 @@
 - Rebuild `example/` into a production-style reference app covering typed routing, shell branches, guard/redirect/loader flows, push-result handling, and a `/debug` entry wired to inspector/bridge/panel/replay tooling.
 - Add tests for route resolution, parser/guard/redirect behavior, cancellation handling, and widget navigation/back behavior.
 - Add `docs/target_knowledge.md` to capture routing north-star principles and phased roadmap.
+- Add `docs/api_layering_strategy.md` with a staged plan for progressive `core`/`machine`/`devtools` API entrypoints and compatibility migration.
+- Add layered public entrypoints: `package:unrouter/unrouter.dart` (core default), `package:unrouter/core.dart`, `package:unrouter/machine.dart`, and `package:unrouter/devtools.dart`.
+- Split `BuildContext` machine access into `UnrouterMachineBuildContextExtension` and narrow layered entrypoints with explicit symbol exports so core/machine/devtools usage is progressively disclosed.
+- Migrate `example/` and replay-persistence docs to layered imports (`core.dart`/`machine.dart`/`devtools.dart`) instead of the umbrella import.
+- Add `docs/api_surface_review.md` with layered API inventory and low-floor/high-ceiling DX scorecard; update layering strategy status to Phase 2.
+- Switch `package:unrouter/unrouter.dart` to core-only default entrypoint and require explicit `machine.dart` / `devtools.dart` imports for advanced APIs.
+- Split `lib/src/navigation.dart` into dedicated part files (`navigation_machine.dart`, `navigation_inspector.dart`, `navigation_state.dart`) to reduce monolithic runtime complexity.
+- Reorganize `lib/src/` into domain folders (`core/`, `runtime/`, `devtools/`, `platform/`) to improve internal boundaries and maintainability.
+- Further decompose `lib/src/runtime/navigation` machine internals into focused part modules (`navigation_machine_commands_actions.dart`, `navigation_machine_envelope.dart`, `navigation_machine_api.dart`, `navigation_machine_runtime.dart`).
+- Further decompose `lib/src/core/route_definition.dart` into focused part modules (`route_definition_records.dart`, `route_definition_shell.dart`, `route_definition_guards.dart`, `route_definition_parser.dart`).
+- Further decompose `lib/src/devtools/inspector_panel_widget.dart` by moving state helper methods into `inspector_panel_widget_state_methods.dart`.
+- Decouple machine command/runtime internals from `UnrouterController` concrete type via internal runtime-host interfaces, further thinning controller responsibilities and reducing cross-module coupling.

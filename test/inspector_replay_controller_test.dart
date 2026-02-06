@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:unrouter/unrouter.dart';
+import 'package:unrouter/devtools.dart';
 
 void main() {
   group('UnrouterInspectorReplayController', () {

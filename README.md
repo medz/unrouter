@@ -53,6 +53,13 @@ Machine action-envelope schema contract lives in
 flutter pub add unrouter
 ```
 
+## API entrypoints
+
+- `package:unrouter/unrouter.dart`: default core routing API for most apps.
+- `package:unrouter/core.dart`: explicit core-only import (same surface as `unrouter.dart`).
+- `package:unrouter/machine.dart`: advanced machine command/action API.
+- `package:unrouter/devtools.dart`: inspector, panel, and replay tooling.
+
 ## Example
 
 ```bash
@@ -122,6 +129,9 @@ final class UserRoute extends AppRoute {
 ```
 
 ## Navigate from widgets
+
+For core navigation APIs, import `package:unrouter/unrouter.dart` (or `core.dart`).  
+For machine APIs in this section, also import `package:unrouter/machine.dart`.
 
 ```dart
 context.unrouter.go(const HomeRoute());
@@ -294,6 +304,8 @@ debugPrint('export json: $exportedJson');
 ```
 
 ## Inspector widget
+
+Import `package:unrouter/devtools.dart` for inspector/replay tooling.
 
 ```dart
 final redirectStore = UnrouterRedirectDiagnosticsStore();

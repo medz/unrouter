@@ -1,15 +1,15 @@
 import 'package:flutter/widgets.dart';
 import 'package:roux/roux.dart';
-import 'package:unrouter/src/router_delegate.dart';
+import 'router_delegate.dart';
 import 'package:unstory/unstory.dart';
 
-import 'route_data.dart';
-import 'redirect_diagnostics.dart';
-import 'route_definition.dart';
-import 'route_information_parser.dart';
-import 'route_information_provider.dart';
+import '../core/route_data.dart';
+import '../core/redirect_diagnostics.dart';
+import '../core/route_definition.dart';
+import '../platform/route_information_parser.dart';
+import '../platform/route_information_provider.dart';
 
-export 'redirect_diagnostics.dart';
+export '../core/redirect_diagnostics.dart';
 
 typedef UnknownRouteBuilder = Widget Function(BuildContext context, Uri uri);
 typedef RouteErrorBuilder =

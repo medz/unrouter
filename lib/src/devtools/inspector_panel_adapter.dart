@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 
 import 'inspector_bridge.dart';
-import 'route_data.dart';
+import '../core/route_data.dart';
 
 class UnrouterInspectorPanelAdapterConfig {
   const UnrouterInspectorPanelAdapterConfig({

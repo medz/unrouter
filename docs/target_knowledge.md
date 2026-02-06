@@ -35,6 +35,13 @@ In one line:
 Implemented:
 
 - Generic typed router core: `Unrouter<R extends RouteData>`
+- Layered public entrypoints for progressive disclosure:
+  `package:unrouter/unrouter.dart` (default core entrypoint),
+  `package:unrouter/core.dart`,
+  `package:unrouter/machine.dart`,
+  `package:unrouter/devtools.dart`
+- Internal source layout grouped by domain under `lib/src/`:
+  `core/`, `runtime/`, `devtools/`, `platform/`
 - Typed navigation controller access: `context.unrouterAs<R>()`
 - Typed navigation result channel: `push<T>() -> Future<T?>` + `pop(result)`
 - Optional replace/go result-completion policy via `completePendingResult`
@@ -135,11 +142,16 @@ Implemented:
   completion on branch pop
 - Shell branch-stack restoration snapshots persisted in `history.state`
 - State envelope spec documented in `docs/state_envelope.md`
+- API surface inventory and DX scorecard documented in
+  `docs/api_surface_review.md`
 
 In progress / next:
 
 - Continue converging command/events surface toward fully declarative
   state-machine event types
+- Continue API layering rollout with `unrouter.dart` as core-by-default plus
+  explicit opt-in machine/devtools imports; see
+  `docs/api_layering_strategy.md`
 
 ## Iteration Roadmap
 

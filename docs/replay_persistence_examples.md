@@ -6,7 +6,7 @@ This document shows adapter wiring examples for `UnrouterInspectorReplayPersiste
 
 ```dart
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:unrouter/unrouter.dart';
+import 'package:unrouter/devtools.dart';
 
 Future<UnrouterInspectorReplayPersistence> createReplayPersistence() async {
   final prefs = await SharedPreferences.getInstance();
@@ -28,7 +28,7 @@ Future<UnrouterInspectorReplayPersistence> createReplayPersistence() async {
 ```dart
 import 'dart:io';
 
-import 'package:unrouter/unrouter.dart';
+import 'package:unrouter/devtools.dart';
 
 UnrouterInspectorReplayPersistence createFileReplayPersistence({
   required File file,
