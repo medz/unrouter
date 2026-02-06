@@ -1,110 +1,38 @@
 ## Unreleased
 
-- Introduce a typed-route MVP API with generic `Unrouter<R extends RouteData>`, `route<T>()`, and `RouteParserState` helpers.
-- Implement a working `Unrouter` RouterConfig with URL matching, unknown/error handling, and browser-style history integration.
-- Add `BuildContext` navigation access via `context.unrouter` supporting `go`, `push`, `replace`, `back`, `forward`, and `href`.
-- Add async route hooks with `guards`, `redirect`, and `routeWithLoader`, plus cooperative cancellation via `RouteExecutionSignal`.
-- Add `shell()` / `branch()` API for nested shell routing with per-branch route stacks, branch-local pop support, and optional initial-location reset.
-- Add typed `BuildContext` access via `context.unrouterAs<R>()` while keeping `context.unrouter` as untyped fallback.
-- Add typed push result futures via `push<T>() -> Future<T?>` and `pop(result)` delivery on back navigation, including shell branch-local pop flows, plus optional `completePendingResult` policy for replace/go and shell `goBranch`.
-- Add route-level page customization (`pageBuilder`) and transition customization (`transitionBuilder`, transition durations).
-- Add redirect safety controls with `maxRedirectHops` and `redirectLoopPolicy`, including loop and hop-limit error handling and `onRedirectDiagnostics` reporting.
-- Add route-state introspection via `context.unrouter.state`, `stateListenable`, and `stateTimeline`, with timeline reset support.
-- Add `context.unrouter.inspector` for devtools-friendly debug reports and timeline-tail snapshots.
-- Add `UnrouterInspectorWidget` and `UnrouterRedirectDiagnosticsStore` for on-screen route-state/timeline/redirect diagnostics visualization.
-- Add inspector filtering/search/export capabilities via timeline/redirect query filters and `exportDebugReportJson`.
-- Add `UnrouterInspectorBridge` with stream/sink output (`UnrouterInspectorJsonSink`, callback sink) for external diagnostics pipelines.
-- Add `UnrouterInspectorPanelAdapter` + panel state model for buffered bridge-stream consumption in DevTools-like panels.
-- Add `UnrouterInspectorPanelWidget` for DevTools-style entry list/details with query/reason filtering and selected-emission export.
-- Add `UnrouterInspectorReplayStore` with bounded capture, JSON export/import, and controllable emission replay.
-- Add `UnrouterInspectorReplayController` with replay speed presets, scrub range/cursor, bookmarks, and pause/resume/stop lifecycle.
-- Add replay persistence layer (`UnrouterInspectorReplayPersistence`) with pluggable storage adapters and version migration hooks.
-- Connect replay controls into `UnrouterInspectorPanelWidget` via timeline markers and play/pause/speed/bookmark actions.
-- Add replay session diff utilities (`UnrouterInspectorReplayComparator`) with sequence/path comparison modes and structured diff summaries.
-- Add timeline zoom controls and replay-diff highlighting in `UnrouterInspectorPanelWidget`, plus grouped bookmark rendering by bookmark group and side-by-side compare rows.
-- Add panel compare folding and diff-only timeline marker filter controls in `UnrouterInspectorPanelWidget`.
-- Add panel diff-cluster grouping by continuous sequence segments, with per-cluster collapse/expand controls in `UnrouterInspectorPanelWidget`.
-- Add panel compare cluster risk summary and one-click high-risk controls (`risk-only` filter + next high-risk jump) in `UnrouterInspectorPanelWidget`.
-- Add replay persistence adapter templates for `shared_preferences` and file callbacks in `docs/replay_persistence_examples.md`.
-- Add nested shell branch-stack restoration snapshots persisted in `history.state`, so branch stacks survive router recreation from saved history locations.
-- Add restoration edge-case tests for mixed shell/non-shell transitions, repeated router recreation, browser-style forward jumps, and long-lived mixed-history checkpoint replay.
-- Add `docs/state_machine_draft.md` to capture the declarative event-driven state-machine evolution target and compatibility mapping.
-- Route `UnrouterController` navigation APIs through an internal dispatch adapter backed by an event-driven navigation machine scaffold.
-- Add an internal route machine in `UnrouterDelegate` to run resolve/redirect/blocked/commit lifecycle with transition event recording.
-- Add machine transition timeline tails to inspector debug reports so bridge/replay payloads carry unified route + navigation machine traces.
-- Add machine timeline filtering (`query`, `sources`, `events`) to inspector APIs and bridge config.
-- Promote machine transition schema to typed source/event enums and include unified `from`/`to` `UnrouterMachineState` snapshots in inspector/bridge/replay payloads.
-- Route and navigation machine transition writes now converge through a shared reducer pipeline (`_UnrouterMachineReducer`).
-- Add public machine dispatch API via `UnrouterMachine`, `UnrouterMachineCommand`, and `BuildContext` accessors (`unrouterMachine` / `unrouterMachineAs`).
-- Add deterministic replay parity test for machine command streams to guard state/transition determinism.
-- Route delegate now submits route requests through machine command ingress (`UnrouterMachineCommand.routeRequest`) before resolve execution.
-- Add typed machine dispatch helper `dispatchTyped<T>()` to avoid untyped `Object?` handling at call sites.
-- Add shell/branch deterministic machine-command parity test coverage.
-- Move route-machine execution ownership into `UnrouterController` runtime and wire delegate resolution through controller configuration hooks.
-- Make `UnrouterMachineCommand` strongly typed (command return type is encoded in the command) and remove dispatch-time result casting.
-- Add shell semantic machine commands (`switchBranch`, `popBranch`) and cover them in deterministic shell command-stream tests.
-- Add semantic command-matrix coverage for shell machine commands, including `switchBranch` `initialLocation` and `completePendingResult` combinations.
-- Add public declarative machine action draft API (`UnrouterMachineAction` + `dispatchAction<T>()`) mapped onto typed machine commands.
-- Add machine action dispatch envelopes (`dispatchActionEnvelope<T>()`) with explicit `accepted`/`rejected`/`deferred`/`completed` result states.
-- Add typed rejection metadata for machine action envelopes (`rejectCode`/`rejectReason`) to improve action failure diagnostics.
-- Add declarative action parity helpers `replaceUri` and `replaceRoute` to align with replace command surface.
-- Add unified declarative navigation helpers `navigateUri` / `navigateRoute` with explicit `mode` (`go`/`replace`).
-- Emit controller-level machine transitions (`event=actionEnvelope`) carrying envelope state payloads for inspector/bridge/replay tracing.
-- Add envelope payload schema version metadata for machine timeline consumers (`actionEnvelopeSchemaVersion` + envelope `schemaVersion`).
-- Add envelope `eventVersion`/`producer` metadata and payload mirrors (`actionEnvelopeEventVersion`, `actionEnvelopeProducer`) for tooling compatibility.
-- Add deferred envelope settlement transitions (`actionEnvelopePhase=settled`) so async action completion is visible in machine timelines.
-- Add semantic machine event grouping (`UnrouterMachineEventGroup`) to transition payloads and inspector/bridge filtering (`machineEventGroups`).
-- Add machine event-group quick filter controls to `UnrouterInspectorPanelWidget` (`all` + per-group toggles) for entry visibility filtering.
-- Add long-seed regression coverage asserting command/action machine stream equivalence.
-- Add shell action-envelope rejection coverage for typed reject codes (`branchUnavailable`, `branchEmpty`).
-- Add panel machine-group change callback (`onMachineEventGroupsChanged`) and bridge helper (`updateMachineEventGroups`) to sync UI filter state back into bridge config.
-- Allow `UnrouterInspectorBridgeConfig.copyWith(...)` to explicitly clear nullable filters (for example `machineEventGroups: null`).
-- Add `docs/state_envelope.md` documenting `history.state` envelope schema, versioning, and user-state merge behavior.
-- Add structured machine action failure model (`UnrouterMachineActionFailure`) to envelope rejections with category/retryable/metadata fields while preserving legacy reject mirrors.
-- Bump machine action-envelope schema/event versions to `2`, add explicit compatibility helpers, and document the contract in `docs/machine_action_envelope_schema.md`.
-- Add replay compatibility validation API (`validateActionEnvelopeCompatibility`) with issue reporting for malformed/incompatible action-envelope machine timeline entries.
-- Add typed machine transition event projection (`entry.typed`, `machine.typedTimeline`, `debugTypedMachineTimeline`) with typed action-envelope payload parsing.
-- Expand typed machine transition projection to include navigation-source and route-source payload models.
-- Add controller-source typed payload projection for lifecycle transitions (`initialized`) via `UnrouterMachineControllerTypedPayload`.
-- Add explicit controller lifecycle machine events (`controllerRouteMachineConfigured`, `controllerHistoryStateComposerChanged`, `controllerShellResolversChanged`, `controllerDisposed`) with typed payload metadata.
-- Add panel replay compatibility summary (`issues/errors/warnings`) and next-issue jump action for action-envelope diagnostics.
-- Add performance budget regression tests covering typed machine transition projection and replay action-envelope compatibility validation throughput.
-- Add machine payload-kind quick filter controls to `UnrouterInspectorPanelWidget` with `initialMachinePayloadKinds` / `onMachinePayloadKindsChanged`.
-- Add replay compatibility lifecycle coverage validation for controller lifecycle events and expose `validateCompatibility()` as the primary replay validator (`validateActionEnvelopeCompatibility()` remains as alias).
-- Add controller lifecycle replay fixture coverage for machine timeline compatibility validation.
-- Promote redesigned `unrouter` package from `pub/unrouter` to repository root and retire legacy top-level CLI/history/router surface.
-- Rebuild `example/` into a production-style reference app covering typed routing, shell branches, guard/redirect/loader flows, push-result handling, and a `/debug` entry wired to inspector/bridge/panel/replay tooling.
-- Add tests for route resolution, parser/guard/redirect behavior, cancellation handling, and widget navigation/back behavior.
-- Add `docs/target_knowledge.md` to capture routing north-star principles and phased roadmap.
-- Add `docs/api_layering_strategy.md` with a staged plan for progressive `core`/`machine`/`devtools` API entrypoints and compatibility migration.
-- Add layered public entrypoints: `package:unrouter/unrouter.dart` (core default), `package:unrouter/core.dart`, `package:unrouter/machine.dart`, and `package:unrouter/devtools.dart`.
-- Split `BuildContext` machine access into `UnrouterMachineBuildContextExtension` and narrow layered entrypoints with explicit symbol exports so core/machine/devtools usage is progressively disclosed.
-- Migrate `example/` and replay-persistence docs to layered imports (`core.dart`/`machine.dart`/`devtools.dart`) instead of the umbrella import.
-- Add `docs/api_surface_review.md` with layered API inventory and low-floor/high-ceiling DX scorecard; update layering strategy status to Phase 2.
-- Switch `package:unrouter/unrouter.dart` to core-only default entrypoint and require explicit `machine.dart` / `devtools.dart` imports for advanced APIs.
-- Remove `package:unrouter/core.dart` alias and make `package:unrouter/unrouter.dart` the single core entrypoint.
-- Stop re-exporting core/machine layers from `machine.dart` and `devtools.dart`; layered consumers now import each required entrypoint explicitly.
-- Add cross-router differential benchmark coverage (`unrouter`, `go_router`, `zenrouter`) for shared navigation behavior parity and baseline script performance reporting.
-- Add benchmark guide `docs/router_benchmarking.md` with adapter onboarding workflow and run commands.
-- Move benchmark suite into dedicated `bench/` project to isolate benchmark runs from package test CI.
-- Split benchmark execution into tagged behavior/performance suites (`--tags behavior` and `--tags performance`) for independent CI policies.
-- Expand behavior differential coverage with redirect (`/legacy/:id -> /users/:id`) and guard redirect (`/protected -> /login`) parity scripts.
-- Add nested navigation, browser-like back-forward, and long-lived restoration parity scripts to the differential benchmark behavior suite.
-- Stabilize benchmark performance checksum to use semantic checkpoints instead of push-timing-sensitive location lengths.
-- Add multi-sample performance aggregation with percentile summaries (`p50`/`p95`) for benchmark tests.
-- Remove benchmark GitHub Actions workflow integration and keep benchmark execution as explicit local/manual workflows.
-- Add `bench/main.dart` as a single benchmark entrypoint that runs behavior + performance suites and prints a visual terminal summary.
-- Remove JSON benchmark report generation/readback flow and retire the dedicated `report` benchmark tag/tool scripts.
-- Add machine-readable behavior/performance benchmark markers for CLI summary parsing.
-- Add benchmark stability controls (`--warmup-rounds`, `--warmup-samples`, `--performance-runs`) and median aggregation across repeated performance runs with per-router variation (`MeanCV%`) visibility, plus compact metric-by-router CLI output with friendly time units.
-- Make benchmark defaults environment-aware by auto-scaling rounds/samples/warmup/repeated-runs from local CPU count while preserving explicit CLI override support.
-- Add `--aggressive` benchmark mode to apply higher environment-aware auto defaults for maximum local stress testing.
-- Move benchmark `flutter_test` and `flutter_lints` entries into `bench` `dependencies` for unified dependency management.
-- Split `lib/src/navigation.dart` into dedicated part files (`navigation_machine.dart`, `navigation_inspector.dart`, `navigation_state.dart`) to reduce monolithic runtime complexity.
-- Reorganize `lib/src/` into domain folders (`core/`, `runtime/`, `devtools/`, `platform/`) to improve internal boundaries and maintainability.
-- Further decompose `lib/src/runtime/navigation` machine internals into focused part modules (`navigation_machine_commands_actions.dart`, `navigation_machine_envelope.dart`, `navigation_machine_api.dart`, `navigation_machine_runtime.dart`).
-- Further decompose `lib/src/core/route_definition.dart` into focused part modules (`route_definition_records.dart`, `route_definition_shell.dart`, `route_definition_guards.dart`, `route_definition_parser.dart`).
-- Further decompose `lib/src/devtools/inspector_panel_widget.dart` by moving state helper methods into `inspector_panel_widget_state_methods.dart`.
-- Decouple machine command/runtime internals from `UnrouterController` concrete type via internal runtime-host interfaces, further thinning controller responsibilities and reducing cross-module coupling.
-- Extract machine core types/envelopes/commands/actions into `lib/src/runtime/machine_kernel.dart` as a Flutter-free runtime kernel module, with controller-side host/runtime adapters kept in `navigation.dart`.
-- Split `UnrouterController` lifecycle/configuration APIs into `lib/src/runtime/navigation_controller_lifecycle.dart` to reduce `navigation.dart` surface complexity while preserving behavior.
+### Added
+
+- Core typed router API with `Unrouter<R extends RouteData>`, `route<T>()`,
+  and `RouteParserState`.
+- Async routing hooks: `guards`, `redirect`, `routeWithLoader`, and cooperative
+  cancellation with `RouteExecutionSignal`.
+- Shell routing primitives (`shell()` / `branch()`) with branch-local stacks and
+  browser-history restoration.
+- Typed navigation results via `push<T>()` + `pop(result)`, including
+  `completePendingResult` options for replace/branch-switch flows.
+- Public machine API (`package:unrouter/machine.dart`) with typed commands,
+  actions, and action envelopes.
+- Public devtools API (`package:unrouter/devtools.dart`) with inspector,
+  bridge, panel adapter/widget, replay, persistence, and replay diff tooling.
+- Differential benchmark project under `bench/`, including
+  `unrouter`/`go_router`/`zenrouter` parity checks and performance comparison.
+
+### Changed
+
+- `package:unrouter/unrouter.dart` is the core default entrypoint.
+- Advanced APIs now require explicit imports:
+  `package:unrouter/machine.dart` and `package:unrouter/devtools.dart`.
+- Package moved to repository root and example app rebuilt around real
+  typed-routing, shell, redirect/guard/loader, and `/debug` workflows.
+- Benchmark workflow consolidated into `bench/main.dart` with environment-aware
+  defaults, warmup controls, repeated performance runs, and terminal summary.
+- Internal source layout reorganized into domain folders:
+  `lib/src/core`, `lib/src/runtime`, `lib/src/devtools`, `lib/src/platform`.
+
+### Fixed
+
+- Redirect loop / max-hop diagnostics and safety handling.
+- Shell branch-stack restoration correctness across router recreation and
+  back/forward traversal.
+- Deterministic machine/replay parity coverage for command/action streams and
+  compatibility validation.
