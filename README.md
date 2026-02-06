@@ -67,6 +67,7 @@ Import `unrouter.dart` explicitly when you need core routing APIs.
 - Bench project location: `bench/`
 - Single-command benchmark run with visual terminal summary:
   `cd bench && dart run main.dart`
+- Default benchmark parameters are auto-scaled from local CPU count; flags override them.
 - Tuned run (rounds/samples/long-lived rounds):
   `cd bench && dart run main.dart --rounds=48 --samples=7 --long-lived-rounds=64`
 - Stability-focused performance comparison (warmup + repeated run aggregation):

@@ -10,6 +10,9 @@ Run the full benchmark (behavior + performance) and print a terminal summary:
 dart run main.dart
 ```
 
+Defaults are auto-scaled from local CPU count (rounds/samples/warmup/runs).
+Use flags to override any value.
+
 Tune rounds, samples, and long-lived behavior rounds:
 
 ```bash

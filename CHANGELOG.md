@@ -97,6 +97,7 @@
 - Remove JSON benchmark report generation/readback flow and retire the dedicated `report` benchmark tag/tool scripts.
 - Add machine-readable behavior/performance benchmark markers for CLI summary parsing.
 - Add benchmark stability controls (`--warmup-rounds`, `--warmup-samples`, `--performance-runs`) and median aggregation across repeated performance runs with per-router variation (`MeanCV%`) visibility, plus compact metric-by-router CLI output with friendly time units.
+- Make benchmark defaults environment-aware by auto-scaling rounds/samples/warmup/repeated-runs from local CPU count while preserving explicit CLI override support.
 - Move benchmark `flutter_test` and `flutter_lints` entries into `bench` `dependencies` for unified dependency management.
 - Split `lib/src/navigation.dart` into dedicated part files (`navigation_machine.dart`, `navigation_inspector.dart`, `navigation_state.dart`) to reduce monolithic runtime complexity.
 - Reorganize `lib/src/` into domain folders (`core/`, `runtime/`, `devtools/`, `platform/`) to improve internal boundaries and maintainability.

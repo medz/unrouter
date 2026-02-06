@@ -76,6 +76,9 @@ cd bench
 dart run main.dart
 ```
 
+By default, benchmark parameters are auto-scaled from local CPU count. You can
+override any value explicitly via CLI flags.
+
 Tune rounds/sample size/long-lived rounds:
 
 ```bash

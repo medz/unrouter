@@ -24,15 +24,16 @@ const List<String> _behaviorScriptOrder = <String>[
 ];
 
 Future<void> main(List<String> rawArgs) async {
+  final defaultProfile = _deriveDefaultProfile();
   final parsed = Args.parse(
     rawArgs,
     defaults: <String, Object?>{
-      'rounds': '24',
-      'samples': '5',
-      'warmup-rounds': '12',
-      'warmup-samples': '1',
-      'performance-runs': '3',
-      'long-lived-rounds': '40',
+      'rounds': defaultProfile.rounds.toString(),
+      'samples': defaultProfile.samples.toString(),
+      'warmup-rounds': defaultProfile.warmupRounds.toString(),
+      'warmup-samples': defaultProfile.warmupSamples.toString(),
+      'performance-runs': defaultProfile.performanceRuns.toString(),
+      'long-lived-rounds': defaultProfile.longLivedRounds.toString(),
       'behavior-only': false,
       'performance-only': false,
       'verbose': false,
@@ -67,13 +68,13 @@ Future<void> main(List<String> rawArgs) async {
   );
 
   if (_readBool(parsed, 'help')) {
-    stdout.writeln(_usage());
+    stdout.writeln(_usage(defaultProfile));
     return;
   }
 
-  final config = _parseConfig(parsed);
+  final config = _parseConfig(parsed, defaultProfile);
   if (config == null) {
-    stderr.writeln(_usage());
+    stderr.writeln(_usage(defaultProfile));
     exit(64);
   }
 
@@ -81,7 +82,8 @@ Future<void> main(List<String> rawArgs) async {
     '[router-benchmark] rounds=${config.rounds}, samples=${config.samples}, '
     'warmupRounds=${config.warmupRounds}, warmupSamples=${config.warmupSamples}, '
     'performanceRuns=${config.performanceRuns}, longLivedRounds=${config.longLivedRounds}, '
-    'behavior=${config.runBehavior}, performance=${config.runPerformance}',
+    'behavior=${config.runBehavior}, performance=${config.runPerformance}, '
+    'profile=${config.defaultProfile.name}, cpu=${config.defaultProfile.cpuCount}',
   );
 
   final stopwatch = Stopwatch()..start();
@@ -116,7 +118,7 @@ Future<void> main(List<String> rawArgs) async {
   }
 }
 
-_BenchConfig? _parseConfig(Args args) {
+_BenchConfig? _parseConfig(Args args, _BenchDefaultProfile defaults) {
   final behaviorOnly = _readBool(args, 'behavior-only');
   final performanceOnly = _readBool(args, 'performance-only');
   final verbose = _readBool(args, 'verbose');
@@ -127,25 +129,28 @@ _BenchConfig? _parseConfig(Args args) {
     return null;
   }
 
-  final rounds = _parsePositiveInt(_readString(args, 'rounds', '24'), 'rounds');
+  final rounds = _parsePositiveInt(
+    _readString(args, 'rounds', defaults.rounds.toString()),
+    'rounds',
+  );
   final samples = _parsePositiveInt(
-    _readString(args, 'samples', '5'),
+    _readString(args, 'samples', defaults.samples.toString()),
     'samples',
   );
   final warmupRounds = _parseNonNegativeInt(
-    _readString(args, 'warmup-rounds', '12'),
+    _readString(args, 'warmup-rounds', defaults.warmupRounds.toString()),
     'warmup-rounds',
   );
   final warmupSamples = _parseNonNegativeInt(
-    _readString(args, 'warmup-samples', '1'),
+    _readString(args, 'warmup-samples', defaults.warmupSamples.toString()),
     'warmup-samples',
   );
   final performanceRuns = _parsePositiveInt(
-    _readString(args, 'performance-runs', '3'),
+    _readString(args, 'performance-runs', defaults.performanceRuns.toString()),
     'performance-runs',
   );
   final longLivedRounds = _parsePositiveInt(
-    _readString(args, 'long-lived-rounds', '40'),
+    _readString(args, 'long-lived-rounds', defaults.longLivedRounds.toString()),
     'long-lived-rounds',
   );
   if (rounds == null ||
@@ -164,6 +169,7 @@ _BenchConfig? _parseConfig(Args args) {
     warmupSamples: warmupSamples,
     performanceRuns: performanceRuns,
     longLivedRounds: longLivedRounds,
+    defaultProfile: defaults,
     runBehavior: !performanceOnly,
     runPerformance: !behaviorOnly,
     verbose: verbose,
@@ -196,6 +202,48 @@ int? _parseNonNegativeInt(String raw, String option) {
   if (value == null || value < 0) {
     stderr.writeln('[router-benchmark] invalid --$option: $raw');
     return null;
+  }
+  return value;
+}
+
+_BenchDefaultProfile _deriveDefaultProfile() {
+  final cpuCount = Platform.numberOfProcessors <= 0
+      ? 1
+      : Platform.numberOfProcessors;
+
+  final rounds = _clampInt(cpuCount * 12, min: 48, max: 240);
+  final samples = _clampInt(((cpuCount / 2).round()) + 4, min: 6, max: 16);
+  final warmupRounds = _clampInt(rounds ~/ 2, min: 16, max: 120);
+  final warmupSamples = _clampInt((cpuCount / 8).ceil(), min: 1, max: 4);
+  final performanceRuns = _clampInt((cpuCount / 4).ceil(), min: 3, max: 6);
+  final longLivedRounds = _clampInt(rounds, min: 48, max: 160);
+
+  final tier = switch (cpuCount) {
+    >= 16 => 'ultra',
+    >= 12 => 'high',
+    >= 8 => 'balanced',
+    >= 4 => 'entry',
+    _ => 'compact',
+  };
+
+  return _BenchDefaultProfile(
+    name: '$tier-auto',
+    cpuCount: cpuCount,
+    rounds: rounds,
+    samples: samples,
+    warmupRounds: warmupRounds,
+    warmupSamples: warmupSamples,
+    performanceRuns: performanceRuns,
+    longLivedRounds: longLivedRounds,
+  );
+}
+
+int _clampInt(int value, {required int min, required int max}) {
+  if (value < min) {
+    return min;
+  }
+  if (value > max) {
+    return max;
   }
   return value;
 }
@@ -540,6 +588,9 @@ String _renderSummary({
     'Config: rounds=${config.rounds}, samples=${config.samples}, '
     'warmupRounds=${config.warmupRounds}, warmupSamples=${config.warmupSamples}, '
     'performanceRuns=${config.performanceRuns}, longLivedRounds=${config.longLivedRounds}',
+  );
+  buffer.writeln(
+    'Profile: ${config.defaultProfile.name} (cpu=${config.defaultProfile.cpuCount})',
   );
   buffer.writeln('Elapsed: ${_formatDurationFriendly(elapsed)}');
 
@@ -897,17 +948,23 @@ String _stripAnsi(String text) {
   return text.replaceAll(_ansiEscapePattern, '');
 }
 
-String _usage() {
+String _usage(_BenchDefaultProfile defaults) {
   return '''
 Usage: dart run main.dart [options]
 
+Auto defaults on this machine:
+  profile=${defaults.name}, cpu=${defaults.cpuCount}
+  rounds=${defaults.rounds}, samples=${defaults.samples}, warmup-rounds=${defaults.warmupRounds},
+  warmup-samples=${defaults.warmupSamples}, performance-runs=${defaults.performanceRuns},
+  long-lived-rounds=${defaults.longLivedRounds}
+
 Options:
-  -r, --rounds=<n>             Performance rounds per sample (default: 24)
-  -s, --samples=<n>            Performance sample count (default: 5)
-  -w, --warmup-rounds=<n>      Warmup rounds per warmup sample (default: 12)
-  -x, --warmup-samples=<n>     Warmup sample count (default: 1)
-  -n, --performance-runs=<n>   Repeat performance suite N times and aggregate median (default: 3)
-  -l, --long-lived-rounds=<n>  Long-lived behavior rounds (default: 40)
+  -r, --rounds=<n>             Performance rounds per sample (default: auto)
+  -s, --samples=<n>            Performance sample count (default: auto)
+  -w, --warmup-rounds=<n>      Warmup rounds per warmup sample (default: auto)
+  -x, --warmup-samples=<n>     Warmup sample count (default: auto)
+  -n, --performance-runs=<n>   Repeat performance suite N times and aggregate median (default: auto)
+  -l, --long-lived-rounds=<n>  Long-lived behavior rounds (default: auto)
   -b, --behavior-only          Run only behavior suite
   -p, --performance-only       Run only performance suite
   -v, --verbose                Stream raw flutter test output
@@ -923,6 +980,7 @@ class _BenchConfig {
     required this.warmupSamples,
     required this.performanceRuns,
     required this.longLivedRounds,
+    required this.defaultProfile,
     required this.runBehavior,
     required this.runPerformance,
     required this.verbose,
@@ -934,6 +992,7 @@ class _BenchConfig {
   final int warmupSamples;
   final int performanceRuns;
   final int longLivedRounds;
+  final _BenchDefaultProfile defaultProfile;
   final bool runBehavior;
   final bool runPerformance;
   final bool verbose;
@@ -942,6 +1001,28 @@ class _BenchConfig {
     final scriptFile = File.fromUri(Platform.script);
     return scriptFile.parent.path;
   }
+}
+
+class _BenchDefaultProfile {
+  const _BenchDefaultProfile({
+    required this.name,
+    required this.cpuCount,
+    required this.rounds,
+    required this.samples,
+    required this.warmupRounds,
+    required this.warmupSamples,
+    required this.performanceRuns,
+    required this.longLivedRounds,
+  });
+
+  final String name;
+  final int cpuCount;
+  final int rounds;
+  final int samples;
+  final int warmupRounds;
+  final int warmupSamples;
+  final int performanceRuns;
+  final int longLivedRounds;
 }
 
 class _CommandResult {
