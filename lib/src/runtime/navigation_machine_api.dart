@@ -1,6 +1,6 @@
 part of 'machine_kernel.dart';
 
-/// Public machine facade for typed command dispatch and timeline access.
+/// Public machine facade for command dispatch and timeline access.
 class UnrouterMachine<R extends RouteData> {
   const UnrouterMachine.host(this._host);
 
@@ -14,20 +14,8 @@ class UnrouterMachine<R extends RouteData> {
     return _host.machineTimeline;
   }
 
-  /// Typed machine transition timeline.
-  List<UnrouterMachineTypedTransition> get typedTimeline {
-    return _host.machineTimeline
-        .map((entry) => entry.typed)
-        .toList(growable: false);
-  }
-
-  /// Dispatches a typed command.
-  T dispatchTyped<T>(UnrouterMachineCommand<T> command) {
-    return _host.dispatchMachineCommand<T>(command);
-  }
-
-  /// Dispatches an untyped command.
-  Object? dispatch(UnrouterMachineCommand<dynamic> command) {
-    return _host.dispatchMachineCommand(command);
+  /// Dispatches a command.
+  T dispatch<T extends Object?>(UnrouterMachineCommand<T> command) {
+    return command.execute(_host);
   }
 }

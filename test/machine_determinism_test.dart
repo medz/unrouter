@@ -75,37 +75,37 @@ Future<_MachineScenarioSnapshot> _runScenario(WidgetTester tester) async {
   final steps = <void Function()>[
     () {
       pendingPushResults.add(
-        machine!.dispatchTyped<Future<Object?>>(
+        machine!.dispatch<Future<Object?>>(
           UnrouterMachineCommand.pushUri(Uri(path: '/users/1')),
         ),
       );
     },
     () {
       pendingPushResults.add(
-        machine!.dispatchTyped<Future<Object?>>(
+        machine!.dispatch<Future<Object?>>(
           UnrouterMachineCommand.pushUri(Uri(path: '/users/2')),
         ),
       );
     },
     () {
-      machine!.dispatchTyped<bool>(UnrouterMachineCommand.back());
+      machine!.dispatch<bool>(UnrouterMachineCommand.back());
     },
     () {
-      machine!.dispatchTyped<bool>(UnrouterMachineCommand.back());
+      machine!.dispatch<bool>(UnrouterMachineCommand.back());
     },
     () {
-      machine!.dispatchTyped<void>(UnrouterMachineCommand.forward());
+      machine!.dispatch<void>(UnrouterMachineCommand.forward());
     },
     () {
-      machine!.dispatchTyped<void>(UnrouterMachineCommand.goDelta(1));
+      machine!.dispatch<void>(UnrouterMachineCommand.goDelta(1));
     },
     () {
-      machine!.dispatchTyped<void>(
+      machine!.dispatch<void>(
         UnrouterMachineCommand.replaceUri(Uri(path: '/users/9')),
       );
     },
     () {
-      machine!.dispatchTyped<void>(UnrouterMachineCommand.goDelta(-2));
+      machine!.dispatch<void>(UnrouterMachineCommand.goDelta(-2));
     },
   ];
 
@@ -316,33 +316,29 @@ void _dispatchScriptOp(
 }) {
   switch (operation.kind) {
     case _MachineScriptOpKind.go:
-      machine.dispatchTyped<void>(UnrouterMachineCommand.goUri(operation.uri!));
+      machine.dispatch<void>(UnrouterMachineCommand.goUri(operation.uri!));
       break;
     case _MachineScriptOpKind.replace:
-      machine.dispatchTyped<void>(
-        UnrouterMachineCommand.replaceUri(operation.uri!),
-      );
+      machine.dispatch<void>(UnrouterMachineCommand.replaceUri(operation.uri!));
       break;
     case _MachineScriptOpKind.push:
       pendingPushResults.add(
-        machine.dispatchTyped<Future<Object?>>(
+        machine.dispatch<Future<Object?>>(
           UnrouterMachineCommand.pushUri(operation.uri!),
         ),
       );
       break;
     case _MachineScriptOpKind.pop:
-      machine.dispatchTyped<bool>(UnrouterMachineCommand.pop(operation.result));
+      machine.dispatch<bool>(UnrouterMachineCommand.pop(operation.result));
       break;
     case _MachineScriptOpKind.back:
-      machine.dispatchTyped<bool>(UnrouterMachineCommand.back());
+      machine.dispatch<bool>(UnrouterMachineCommand.back());
       break;
     case _MachineScriptOpKind.forward:
-      machine.dispatchTyped<void>(UnrouterMachineCommand.forward());
+      machine.dispatch<void>(UnrouterMachineCommand.forward());
       break;
     case _MachineScriptOpKind.delta:
-      machine.dispatchTyped<void>(
-        UnrouterMachineCommand.goDelta(operation.delta!),
-      );
+      machine.dispatch<void>(UnrouterMachineCommand.goDelta(operation.delta!));
       break;
   }
 }

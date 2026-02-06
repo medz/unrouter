@@ -3,16 +3,8 @@ part of 'machine_kernel.dart';
 /// Strongly typed machine command API.
 ///
 /// Commands execute directly against [UnrouterMachineCommandRuntime].
-sealed class UnrouterMachineCommand<T> {
+sealed class UnrouterMachineCommand<T extends Object?> {
   const UnrouterMachineCommand();
-
-  /// Dispatches a route-resolution request.
-  static UnrouterMachineCommand<Future<void>> routeRequest(
-    Uri uri, {
-    Object? state,
-  }) {
-    return _UnrouterMachineRouteRequestCommand(uri, state: state);
-  }
 
   /// Navigates to [uri] using push-like semantics.
   static UnrouterMachineCommand<void> goUri(
@@ -106,22 +98,6 @@ sealed class UnrouterMachineCommand<T> {
 
   /// Executes command against runtime.
   T execute(UnrouterMachineCommandRuntime runtime);
-}
-
-final class _UnrouterMachineRouteRequestCommand
-    extends UnrouterMachineCommand<Future<void>> {
-  const _UnrouterMachineRouteRequestCommand(this.uri, {this.state});
-
-  final Uri uri;
-  final Object? state;
-
-  @override
-  UnrouterMachineEvent get event => UnrouterMachineEvent.request;
-
-  @override
-  Future<void> execute(UnrouterMachineCommandRuntime runtime) {
-    return runtime.dispatchRouteRequest(uri, state: state);
-  }
 }
 
 final class _UnrouterMachineGoUriCommand extends UnrouterMachineCommand<void> {

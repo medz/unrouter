@@ -720,8 +720,6 @@ class UnrouterMachineTypedTransition {
 
 /// Runtime contract required by machine commands.
 abstract interface class UnrouterMachineCommandRuntime {
-  Future<void> dispatchRouteRequest(Uri uri, {Object? state});
-
   void goUri(
     Uri uri, {
     Object? state,
@@ -764,6 +762,4 @@ abstract interface class UnrouterMachineHost<R extends RouteData>
   UnrouterMachineState get machineState;
 
   List<UnrouterMachineTransitionEntry> get machineTimeline;
-
-  T dispatchMachineCommand<T>(UnrouterMachineCommand<T> command);
 }

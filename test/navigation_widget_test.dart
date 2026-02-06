@@ -123,15 +123,13 @@ void main() {
     expect(machine, isNotNull);
     expect(machine!.state.uri.toString(), '/');
 
-    final pushResult = machine!.dispatchTyped<Future<Object?>>(
+    final pushResult = machine!.dispatch<Future<Object?>>(
       UnrouterMachineCommand.pushUri(Uri(path: '/users/21')),
     );
     await tester.pumpAndSettle();
     expect(find.text('user:21'), findsOneWidget);
 
-    final wentBack = machine!.dispatchTyped<bool>(
-      UnrouterMachineCommand.back(),
-    );
+    final wentBack = machine!.dispatch<bool>(UnrouterMachineCommand.back());
     expect(wentBack, isTrue);
     await tester.pumpAndSettle();
     expect(find.text('home'), findsOneWidget);
@@ -177,25 +175,25 @@ void main() {
     await tester.pumpAndSettle();
     expect(machine, isNotNull);
 
-    machine!.dispatchTyped<void>(
+    machine!.dispatch<void>(
       UnrouterMachineCommand.goUri(Uri(path: '/users/21')),
     );
     await tester.pumpAndSettle();
     expect(find.text('user:21'), findsOneWidget);
 
-    machine!.dispatchTyped<void>(
+    machine!.dispatch<void>(
       UnrouterMachineCommand.replaceUri(Uri(path: '/users/23')),
     );
     await tester.pumpAndSettle();
     expect(find.text('user:23'), findsOneWidget);
 
-    final pushResult = machine!.dispatchTyped<Future<int?>>(
+    final pushResult = machine!.dispatch<Future<int?>>(
       UnrouterMachineCommand.pushUri<int>(Uri(path: '/users/22')),
     );
     await tester.pumpAndSettle();
     expect(find.text('user:22'), findsOneWidget);
 
-    final popped = machine!.dispatchTyped<bool>(UnrouterMachineCommand.pop(9));
+    final popped = machine!.dispatch<bool>(UnrouterMachineCommand.pop(9));
     expect(popped, isTrue);
     await tester.pumpAndSettle();
     expect(find.text('user:23'), findsOneWidget);
@@ -253,33 +251,31 @@ void main() {
     await tester.pumpAndSettle();
     expect(machine, isNotNull);
 
-    final cannotBack = machine!.dispatchTyped<bool>(
-      UnrouterMachineCommand.back(),
-    );
+    final cannotBack = machine!.dispatch<bool>(UnrouterMachineCommand.back());
     expect(cannotBack, isFalse);
 
-    machine!.dispatchTyped<void>(
+    machine!.dispatch<void>(
       UnrouterMachineCommand.goUri(Uri(path: '/users/31')),
     );
     await tester.pumpAndSettle();
     expect(find.text('user:31'), findsOneWidget);
 
-    final deferred = machine!.dispatchTyped<Future<int?>>(
+    final deferred = machine!.dispatch<Future<int?>>(
       UnrouterMachineCommand.pushUri<int>(Uri(path: '/users/32')),
     );
     await tester.pumpAndSettle();
     expect(find.text('user:32'), findsOneWidget);
 
-    final completed = machine!.dispatchTyped<bool>(
-      UnrouterMachineCommand.pop(11),
-    );
+    final completed = machine!.dispatch<bool>(UnrouterMachineCommand.pop(11));
     expect(completed, isTrue);
     await tester.pumpAndSettle();
     expect(find.text('user:31'), findsOneWidget);
 
     await expectLater(deferred, completion(11));
 
-    final typedTimeline = machine!.typedTimeline;
+    final typedTimeline = machine!.timeline
+        .map((entry) => entry.typed)
+        .toList(growable: false);
     expect(typedTimeline, hasLength(machine!.timeline.length));
     expect(typedTimeline, isNotEmpty);
     expect(
@@ -365,10 +361,9 @@ void main() {
     expect(typedControllerPayload.historyAction, machine!.state.historyAction);
   });
 
-  testWidgets('emits typed controller lifecycle transitions for updates', (
+  testWidgets('records controller lifecycle transitions during setup', (
     tester,
   ) async {
-    UnrouterController<AppRoute>? controller;
     UnrouterMachine<AppRoute>? machine;
 
     final router = Unrouter<AppRoute>(
@@ -378,7 +373,6 @@ void main() {
           path: '/',
           parse: (_) => const HomeRoute(),
           builder: (context, _) {
-            controller ??= context.unrouterAs<AppRoute>();
             machine ??= context.unrouterMachineAs<AppRoute>();
             return const Text('home');
           },
@@ -389,60 +383,26 @@ void main() {
     await tester.pumpWidget(MaterialApp.router(routerConfig: router));
     await tester.pumpAndSettle();
 
-    controller!.setHistoryStateComposer((request) => request.state);
-    controller!.clearHistoryStateComposer();
-    controller!.setShellBranchResolvers(
-      resolveTarget: (index, {required initialLocation}) =>
-          Uri(path: '/users/${index + 1}'),
-      popTarget: () => Uri(path: '/'),
-    );
-    controller!.clearShellBranchResolvers();
-
-    final typedTimeline = machine!.typedTimeline;
-    final historyComposerEntries = typedTimeline
-        .where(
-          (entry) =>
-              entry.event ==
-              UnrouterMachineEvent.controllerHistoryStateComposerChanged,
-        )
+    final typedTimeline = machine!.timeline
+        .map((entry) => entry.typed)
         .toList(growable: false);
-    expect(historyComposerEntries, isNotEmpty);
-    expect(
-      historyComposerEntries
-          .map(
-            (entry) => (entry.payload as UnrouterMachineControllerTypedPayload)
-                .enabled,
-          )
-          .toList(growable: false),
-      containsAll(<bool?>[true, false]),
-    );
 
-    final shellResolverEntries = typedTimeline
-        .where(
-          (entry) =>
-              entry.event ==
-              UnrouterMachineEvent.controllerShellResolversChanged,
-        )
-        .toList(growable: false);
-    expect(shellResolverEntries, isNotEmpty);
-    expect(
-      shellResolverEntries
-          .map(
-            (entry) => (entry.payload as UnrouterMachineControllerTypedPayload)
-                .enabled,
-          )
-          .toList(growable: false),
-      containsAll(<bool?>[true, false]),
+    final configuredEntry = typedTimeline.firstWhere(
+      (entry) =>
+          entry.event == UnrouterMachineEvent.controllerRouteMachineConfigured,
     );
-    expect(
-      shellResolverEntries
-          .map(
-            (entry) => (entry.payload as UnrouterMachineControllerTypedPayload)
-                .hadCustomShellResolvers,
-          )
-          .contains(true),
-      isTrue,
+    final configuredPayload =
+        configuredEntry.payload as UnrouterMachineControllerTypedPayload;
+    expect(configuredPayload.maxRedirectHops, router.maxRedirectHops);
+    expect(configuredPayload.redirectLoopPolicy, router.redirectLoopPolicy);
+
+    final shellResolversEntry = typedTimeline.firstWhere(
+      (entry) =>
+          entry.event == UnrouterMachineEvent.controllerShellResolversChanged,
     );
+    final shellResolversPayload =
+        shellResolversEntry.payload as UnrouterMachineControllerTypedPayload;
+    expect(shellResolversPayload.enabled, isTrue);
   });
 
   testWidgets('exposes route-state snapshot for matched routes', (
@@ -589,11 +549,6 @@ void main() {
     expect(timeline.length, greaterThanOrEqualTo(2));
     expect(timeline.last.snapshot.routePath, '/users/:id');
     expect(timeline.last.snapshot.historyIndex, 1);
-
-    controller!.clearStateTimeline();
-    final resetTimeline = controller!.stateTimeline;
-    expect(resetTimeline, hasLength(1));
-    expect(resetTimeline.single.snapshot.routePath, '/users/:id');
 
     unsubscribe();
   });

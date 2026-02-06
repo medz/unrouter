@@ -200,14 +200,14 @@ class HomeScreen extends StatelessWidget {
                 OutlinedButton(
                   key: const Key('home-machine-back'),
                   onPressed: () {
-                    final accepted = machine.dispatchTyped<bool>(
+                    final accepted = machine.dispatch<bool>(
                       UnrouterMachineCommand.back(),
                     );
                     _machineBackStatus.value = accepted
                         ? 'accepted'
                         : 'rejected';
                   },
-                  child: const Text('machine.dispatchTyped(back)'),
+                  child: const Text('machine.dispatch(back)'),
                 ),
               ],
             ),

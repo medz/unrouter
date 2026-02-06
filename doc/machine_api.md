@@ -13,14 +13,14 @@ import 'package:unrouter/unrouter.dart';
 final machine = context.unrouterMachineAs<AppRoute>();
 ```
 
-## Dispatch typed commands
+## Dispatch commands
 
 ```dart
-machine.dispatchTyped<void>(UnrouterMachineCommand.goUri(Uri(path: '/')));
-final pushed = machine.dispatchTyped<Future<Object?>>(
+machine.dispatch<void>(UnrouterMachineCommand.goUri(Uri(path: '/')));
+final pushed = machine.dispatch<Future<Object?>>(
   UnrouterMachineCommand.pushUri(Uri(path: '/users/42')),
 );
-final canBack = machine.dispatchTyped<bool>(UnrouterMachineCommand.back());
+final canBack = machine.dispatch<bool>(UnrouterMachineCommand.back());
 ```
 
 ## Inspect machine state and transitions
@@ -28,7 +28,9 @@ final canBack = machine.dispatchTyped<bool>(UnrouterMachineCommand.back());
 ```dart
 final machineState = machine.state;
 final rawTimeline = machine.timeline;
-final typedTimeline = machine.typedTimeline;
+final typedTimeline = machine.timeline
+    .map((entry) => entry.typed)
+    .toList(growable: false);
 ```
 
 Typed transitions classify payload shape by kind:

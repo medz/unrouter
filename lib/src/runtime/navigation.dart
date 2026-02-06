@@ -42,21 +42,11 @@ class _UnrouterControllerMachineHost<R extends RouteData>
   final UnrouterController<R> _controller;
 
   @override
-  UnrouterMachineState get machineState => _controller.machineState;
+  UnrouterMachineState get machineState => _controller._machineState;
 
   @override
   List<UnrouterMachineTransitionEntry> get machineTimeline {
-    return _controller.machineTimeline;
-  }
-
-  @override
-  T dispatchMachineCommand<T>(UnrouterMachineCommand<T> command) {
-    return _controller.dispatchMachineCommand(command);
-  }
-
-  @override
-  Future<void> dispatchRouteRequest(Uri uri, {Object? state}) {
-    return _controller._dispatchRouteRequest(uri, state: state);
+    return _controller._machineTimeline;
   }
 
   @override
@@ -236,7 +226,7 @@ class UnrouterController<R extends RouteData> {
     );
     if (_machineStore.entries.isEmpty) {
       final current = _captureMachineState();
-      recordMachineTransition(
+      _recordMachineTransition(
         source: UnrouterMachineSource.controller,
         event: UnrouterMachineEvent.initialized,
         from: current,
@@ -319,17 +309,17 @@ class UnrouterController<R extends RouteData> {
     );
   }
 
-  List<UnrouterMachineTransitionEntry> get machineTimeline {
+  List<UnrouterMachineTransitionEntry> get _machineTimeline {
     return _machineStore.entries;
   }
 
-  UnrouterMachineState get machineState => _captureMachineState();
+  UnrouterMachineState get _machineState => _captureMachineState();
 
-  /// Machine facade for typed command/action dispatch.
+  /// Machine facade for command dispatch.
   UnrouterMachine<R> get machine => UnrouterMachine<R>.host(_machineHost);
 
   /// Records a machine transition into the bounded timeline.
-  void recordMachineTransition({
+  void _recordMachineTransition({
     required UnrouterMachineSource source,
     required UnrouterMachineEvent event,
     UnrouterMachineState? from,
@@ -353,8 +343,10 @@ class UnrouterController<R extends RouteData> {
     );
   }
 
-  /// Dispatches a typed machine command.
-  T dispatchMachineCommand<T>(UnrouterMachineCommand<T> command) {
+  /// Dispatches a machine command.
+  T _dispatchMachineCommand<T extends Object?>(
+    UnrouterMachineCommand<T> command,
+  ) {
     return command.execute(_machineHost);
   }
 
@@ -390,7 +382,7 @@ class UnrouterController<R extends RouteData> {
     bool completePendingResult = false,
     Object? result,
   }) {
-    dispatchMachineCommand<void>(
+    _dispatchMachineCommand<void>(
       UnrouterMachineCommand.goUri(
         uri,
         state: state,
@@ -422,7 +414,7 @@ class UnrouterController<R extends RouteData> {
     bool completePendingResult = false,
     Object? result,
   }) {
-    dispatchMachineCommand<void>(
+    _dispatchMachineCommand<void>(
       UnrouterMachineCommand.replaceUri(
         uri,
         state: state,
@@ -439,36 +431,36 @@ class UnrouterController<R extends RouteData> {
 
   /// Pushes [uri] and resolves typed result on pop.
   Future<T?> pushUri<T extends Object?>(Uri uri, {Object? state}) {
-    return dispatchMachineCommand<Future<T?>>(
+    return _dispatchMachineCommand<Future<T?>>(
       UnrouterMachineCommand.pushUri<T>(uri, state: state),
     );
   }
 
   /// Pops current entry and optionally completes pending push result.
   bool pop<T extends Object?>([T? result]) {
-    return dispatchMachineCommand<bool>(UnrouterMachineCommand.pop(result));
+    return _dispatchMachineCommand<bool>(UnrouterMachineCommand.pop(result));
   }
 
   /// Pops history until [uri] is reached.
   void popToUri(Uri uri, {Object? state, Object? result}) {
-    dispatchMachineCommand<void>(
+    _dispatchMachineCommand<void>(
       UnrouterMachineCommand.popToUri(uri, state: state, result: result),
     );
   }
 
   /// Goes back one history entry.
   bool back() {
-    return dispatchMachineCommand<bool>(UnrouterMachineCommand.back());
+    return _dispatchMachineCommand<bool>(UnrouterMachineCommand.back());
   }
 
   /// Goes forward one history entry.
   void forward() {
-    dispatchMachineCommand<void>(UnrouterMachineCommand.forward());
+    _dispatchMachineCommand<void>(UnrouterMachineCommand.forward());
   }
 
   /// Moves history cursor by [delta].
   void goDelta(int delta) {
-    dispatchMachineCommand<void>(UnrouterMachineCommand.goDelta(delta));
+    _dispatchMachineCommand<void>(UnrouterMachineCommand.goDelta(delta));
   }
 
   /// Switches active shell branch.
@@ -478,7 +470,7 @@ class UnrouterController<R extends RouteData> {
     bool completePendingResult = false,
     Object? result,
   }) {
-    return dispatchMachineCommand<bool>(
+    return _dispatchMachineCommand<bool>(
       UnrouterMachineCommand.switchBranch(
         index,
         initialLocation: initialLocation,
@@ -490,7 +482,7 @@ class UnrouterController<R extends RouteData> {
 
   /// Pops active shell branch stack.
   bool popBranch([Object? result]) {
-    return dispatchMachineCommand<bool>(
+    return _dispatchMachineCommand<bool>(
       UnrouterMachineCommand.popBranch(result),
     );
   }
@@ -625,7 +617,7 @@ class UnrouterController<R extends RouteData> {
     Map<String, Object?> payload = const <String, Object?>{},
   }) {
     final current = _captureMachineState();
-    recordMachineTransition(
+    _recordMachineTransition(
       source: UnrouterMachineSource.controller,
       event: event,
       from: current,
@@ -637,7 +629,7 @@ class UnrouterController<R extends RouteData> {
   void _recordRouteMachineTransition(
     _UnrouterRouteMachineTransition transition,
   ) {
-    recordMachineTransition(
+    _recordMachineTransition(
       source: UnrouterMachineSource.route,
       event: transition.event,
       fromUri: transition.requestUri,
@@ -654,7 +646,7 @@ class UnrouterController<R extends RouteData> {
     _UnrouterNavigationMachineTransition transition,
   ) {
     final routeSnapshot = _stateStore.current;
-    recordMachineTransition(
+    _recordMachineTransition(
       source: UnrouterMachineSource.navigation,
       event: transition.event,
       from: _machineStateFromNavigation(

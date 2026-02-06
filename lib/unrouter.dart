@@ -12,9 +12,6 @@ export 'src/runtime/navigation.dart'
         UnrouterResolutionState,
         UnrouterStateSnapshot,
         UnrouterStateTimelineEntry,
-        UnrouterHistoryStateRequest,
-        UnrouterHistoryStateComposer,
         UnrouterController,
-        UnrouterControllerLifecycleMethods,
         UnrouterScope,
         UnrouterBuildContextExtension;
