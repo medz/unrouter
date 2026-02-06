@@ -75,4 +75,4 @@ Typed transitions classify payload shape by kind:
 - `controller`
 - `generic`
 
-See `docs/machine_action_envelope_schema.md` for schema compatibility details.
+See `doc/machine_action_envelope_schema.md` for schema compatibility details.

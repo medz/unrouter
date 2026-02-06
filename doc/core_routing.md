@@ -112,4 +112,4 @@ final timeline = context.unrouterAs<AppRoute>().stateTimeline;
 final listenable = context.unrouterAs<AppRoute>().stateListenable;
 ```
 
-See `docs/state_envelope.md` for `history.state` serialization and versioning.
+See `doc/state_envelope.md` for `history.state` serialization and versioning.

@@ -97,15 +97,15 @@ Open `/debug` (or tap the bug icon) to access inspector/panel/replay diagnostics
 
 ## Documentation
 
-- Index: `docs/README.md`
-- Getting started: `docs/getting_started.md`
-- Core routing: `docs/core_routing.md`
-- Machine API: `docs/machine_api.md`
-- Devtools: `docs/devtools.md`
-- State envelope contract: `docs/state_envelope.md`
-- Action envelope schema: `docs/machine_action_envelope_schema.md`
-- Replay persistence templates: `docs/replay_persistence_examples.md`
-- Benchmark guide: `docs/router_benchmarking.md`
+- Index: `doc/README.md`
+- Getting started: `doc/getting_started.md`
+- Core routing: `doc/core_routing.md`
+- Machine API: `doc/machine_api.md`
+- Devtools: `doc/devtools.md`
+- State envelope contract: `doc/state_envelope.md`
+- Action envelope schema: `doc/machine_action_envelope_schema.md`
+- Replay persistence templates: `doc/replay_persistence_examples.md`
+- Benchmark guide: `doc/router_benchmarking.md`
 
 ## Benchmarks
 

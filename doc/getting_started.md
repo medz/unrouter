@@ -78,6 +78,6 @@ context.unrouter.pop(7);
 
 ## Next reads
 
-- Core behavior and advanced route features: `docs/core_routing.md`
-- Debug and diagnostics tooling: `docs/devtools.md`
-- Command/action machine API: `docs/machine_api.md`
+- Core behavior and advanced route features: `doc/core_routing.md`
+- Debug and diagnostics tooling: `doc/devtools.md`
+- Command/action machine API: `doc/machine_api.md`

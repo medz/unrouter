@@ -65,7 +65,7 @@ await persistence.restore(replay);
 
 More storage adapter patterns:
 
-- `docs/replay_persistence_examples.md`
+- `doc/replay_persistence_examples.md`
 
 ## Compatibility checks
 
