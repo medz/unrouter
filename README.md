@@ -18,7 +18,7 @@ flutter pub add unrouter
 ## Entrypoints
 
 - `package:unrouter/unrouter.dart`: core routing API
-- `package:unrouter/machine.dart`: machine commands/actions
+- `package:unrouter/machine.dart`: machine commands
 
 Import `unrouter.dart` explicitly. Other entrypoints do not re-export core APIs.
 
@@ -90,5 +90,5 @@ flutter run -d chrome
 - Getting started: `doc/getting_started.md`
 - Core routing: `doc/core_routing.md`
 - Machine API: `doc/machine_api.md`
-- Contracts: `doc/state_envelope.md`, `doc/machine_action_envelope_schema.md`
+- Contracts: `doc/state_envelope.md`
 - Benchmark guide: `doc/router_benchmarking.md`

@@ -23,4 +23,4 @@ flutter run -d chrome
 - `context.unrouter` navigation: `go`, `push`, `back`, `pop`
 - Typed push result delivery (`push<T>()` + `pop(result)`)
 - Guard + redirect flow with sign-in continuation
-- Machine envelope state via `dispatchActionEnvelope(...)`
+- Machine command dispatch via `dispatchTyped(...)`

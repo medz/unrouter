@@ -151,7 +151,7 @@ void main() {
     );
   });
 
-  testWidgets('supports public machine action API draft layer', (tester) async {
+  testWidgets('supports additional machine command operations', (tester) async {
     UnrouterMachine<AppRoute>? machine;
 
     final router = Unrouter<AppRoute>(
@@ -177,37 +177,28 @@ void main() {
     await tester.pumpAndSettle();
     expect(machine, isNotNull);
 
-    machine!.dispatchAction<void>(
-      UnrouterMachineAction.navigateToRoute(const UserRoute(id: 21)),
+    machine!.dispatchTyped<void>(
+      UnrouterMachineCommand.goUri(Uri(path: '/users/21')),
     );
     await tester.pumpAndSettle();
     expect(find.text('user:21'), findsOneWidget);
 
-    machine!.dispatchAction<void>(
-      UnrouterMachineAction.replaceRoute(const UserRoute(id: 23)),
+    machine!.dispatchTyped<void>(
+      UnrouterMachineCommand.replaceUri(Uri(path: '/users/23')),
     );
     await tester.pumpAndSettle();
     expect(find.text('user:23'), findsOneWidget);
 
-    machine!.dispatchAction<void>(
-      UnrouterMachineAction.navigateRoute(
-        const UserRoute(id: 24),
-        mode: UnrouterMachineNavigateMode.replace,
-      ),
-    );
-    await tester.pumpAndSettle();
-    expect(find.text('user:24'), findsOneWidget);
-
-    final pushResult = machine!.dispatchAction<Future<int?>>(
-      UnrouterMachineAction.pushRoute<UserRoute, int>(const UserRoute(id: 22)),
+    final pushResult = machine!.dispatchTyped<Future<int?>>(
+      UnrouterMachineCommand.pushUri<int>(Uri(path: '/users/22')),
     );
     await tester.pumpAndSettle();
     expect(find.text('user:22'), findsOneWidget);
 
-    final popped = machine!.dispatchAction<bool>(UnrouterMachineAction.pop(9));
+    final popped = machine!.dispatchTyped<bool>(UnrouterMachineCommand.pop(9));
     expect(popped, isTrue);
     await tester.pumpAndSettle();
-    expect(find.text('user:24'), findsOneWidget);
+    expect(find.text('user:23'), findsOneWidget);
 
     await expectLater(pushResult, completion(9));
     expect(
@@ -234,7 +225,7 @@ void main() {
     );
   });
 
-  testWidgets('classifies machine action envelopes by dispatch outcome', (
+  testWidgets('projects typed payloads for command transitions', (
     tester,
   ) async {
     UnrouterMachine<AppRoute>? machine;
@@ -262,133 +253,35 @@ void main() {
     await tester.pumpAndSettle();
     expect(machine, isNotNull);
 
-    final rejected = machine!.dispatchActionEnvelope<bool>(
-      UnrouterMachineAction.back(),
+    final cannotBack = machine!.dispatchTyped<bool>(
+      UnrouterMachineCommand.back(),
     );
-    expect(rejected.state, UnrouterMachineActionEnvelopeState.rejected);
-    expect(rejected.isAccepted, isFalse);
-    expect(rejected.value, isFalse);
-    expect(rejected.rejectCode, UnrouterMachineActionRejectCode.noBackHistory);
-    expect(rejected.rejectReason, isNotEmpty);
-    expect(rejected.failure, isNotNull);
-    expect(
-      rejected.failure?.category,
-      UnrouterMachineActionFailureCategory.history,
-    );
-    expect(rejected.failure?.retryable, isTrue);
-    final rejectedJson = rejected.toJson();
-    final rejectedFailure = rejectedJson['failure'] as Map<String, Object?>?;
-    expect(
-      rejectedFailure?['code'],
-      UnrouterMachineActionRejectCode.noBackHistory.name,
-    );
-    expect(
-      rejectedFailure?['category'],
-      UnrouterMachineActionFailureCategory.history.name,
-    );
-    expect(
-      UnrouterMachineActionEnvelope.isSchemaVersionCompatible(
-        rejectedJson['schemaVersion']! as int,
-      ),
-      isTrue,
-    );
-    expect(
-      UnrouterMachineActionEnvelope.isEventVersionCompatible(
-        rejectedJson['eventVersion']! as int,
-      ),
-      isTrue,
-    );
-    expect(
-      rejectedJson['schemaVersion'],
-      UnrouterMachineActionEnvelope.schemaVersion,
-    );
-    expect(
-      rejectedJson['eventVersion'],
-      UnrouterMachineActionEnvelope.eventVersion,
-    );
-    expect(rejectedJson['producer'], UnrouterMachineActionEnvelope.producer);
+    expect(cannotBack, isFalse);
 
-    final accepted = machine!.dispatchActionEnvelope<void>(
-      UnrouterMachineAction.navigateToRoute(const UserRoute(id: 31)),
+    machine!.dispatchTyped<void>(
+      UnrouterMachineCommand.goUri(Uri(path: '/users/31')),
     );
-    expect(accepted.state, UnrouterMachineActionEnvelopeState.accepted);
     await tester.pumpAndSettle();
     expect(find.text('user:31'), findsOneWidget);
 
-    final deferred = machine!.dispatchActionEnvelope<Future<int?>>(
-      UnrouterMachineAction.pushRoute<UserRoute, int>(const UserRoute(id: 32)),
+    final deferred = machine!.dispatchTyped<Future<int?>>(
+      UnrouterMachineCommand.pushUri<int>(Uri(path: '/users/32')),
     );
-    expect(deferred.state, UnrouterMachineActionEnvelopeState.deferred);
     await tester.pumpAndSettle();
     expect(find.text('user:32'), findsOneWidget);
 
-    final completed = machine!.dispatchActionEnvelope<bool>(
-      UnrouterMachineAction.pop(11),
+    final completed = machine!.dispatchTyped<bool>(
+      UnrouterMachineCommand.pop(11),
     );
-    expect(completed.state, UnrouterMachineActionEnvelopeState.completed);
-    expect(completed.value, isTrue);
+    expect(completed, isTrue);
     await tester.pumpAndSettle();
     expect(find.text('user:31'), findsOneWidget);
 
-    await expectLater(deferred.value, completion(11));
-    final envelopeTransitions = machine!.timeline
-        .where((entry) => entry.event == UnrouterMachineEvent.actionEnvelope)
-        .toList(growable: false);
-    expect(envelopeTransitions, hasLength(5));
-    expect(
-      envelopeTransitions
-          .map((entry) => entry.payload['actionState'])
-          .toList(growable: false),
-      containsAll(<String>['rejected', 'accepted', 'deferred', 'completed']),
-    );
-    expect(
-      envelopeTransitions
-          .map((entry) => entry.payload['actionEnvelope'])
-          .every((value) => value is Map<String, Object?>),
-      isTrue,
-    );
-    expect(
-      envelopeTransitions
-          .map((entry) => entry.payload['actionEnvelopeSchemaVersion'])
-          .toSet(),
-      {UnrouterMachineActionEnvelope.schemaVersion},
-    );
-    expect(
-      envelopeTransitions
-          .map((entry) => entry.payload['actionEnvelopeEventVersion'])
-          .toSet(),
-      {UnrouterMachineActionEnvelope.eventVersion},
-    );
-    expect(
-      envelopeTransitions
-          .map((entry) => entry.payload['actionEnvelopeProducer'])
-          .toSet(),
-      {UnrouterMachineActionEnvelope.producer},
-    );
-    expect(
-      envelopeTransitions
-          .map((entry) => entry.payload['actionEnvelopePhase'])
-          .toList(growable: false),
-      containsAll(<String>['dispatch', 'settled']),
-    );
-    expect(
-      envelopeTransitions.any(
-        (entry) => entry.payload['actionFailure'] is Map<String, Object?>,
-      ),
-      isTrue,
-    );
+    await expectLater(deferred, completion(11));
 
     final typedTimeline = machine!.typedTimeline;
     expect(typedTimeline, hasLength(machine!.timeline.length));
     expect(typedTimeline, isNotEmpty);
-    expect(
-      typedTimeline.any(
-        (entry) =>
-            entry.payload.kind ==
-            UnrouterMachineTypedPayloadKind.actionEnvelope,
-      ),
-      isTrue,
-    );
     expect(
       typedTimeline.any(
         (entry) =>
@@ -434,26 +327,6 @@ void main() {
       typedControllerConfiguredPayload.redirectDiagnosticsEnabled,
       isFalse,
     );
-    final typedRejected = envelopeTransitions
-        .firstWhere((entry) => entry.payload['actionState'] == 'rejected')
-        .typed;
-    expect(
-      typedRejected.payload.kind,
-      UnrouterMachineTypedPayloadKind.actionEnvelope,
-    );
-    final typedRejectedPayload =
-        typedRejected.payload as UnrouterMachineActionEnvelopeTypedPayload;
-    expect(
-      typedRejectedPayload.actionState,
-      UnrouterMachineActionEnvelopeState.rejected,
-    );
-    expect(typedRejectedPayload.actionEvent, UnrouterMachineEvent.back);
-    expect(
-      typedRejectedPayload.failure?.category,
-      UnrouterMachineActionFailureCategory.history,
-    );
-    expect(typedRejectedPayload.isSchemaCompatible, isTrue);
-    expect(typedRejectedPayload.isEventCompatible, isTrue);
 
     final typedRoute = typedTimeline.firstWhere(
       (entry) => entry.payload.kind == UnrouterMachineTypedPayloadKind.route,

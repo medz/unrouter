@@ -55,19 +55,6 @@ class _UnrouterControllerMachineHost<R extends RouteData>
   }
 
   @override
-  void recordActionEnvelope<T>(
-    UnrouterMachineActionEnvelope<T> envelope, {
-    String phase = 'dispatch',
-    Map<String, Object?> metadata = const <String, Object?>{},
-  }) {
-    _controller.recordActionEnvelope(
-      envelope,
-      phase: phase,
-      metadata: metadata,
-    );
-  }
-
-  @override
   Future<void> dispatchRouteRequest(Uri uri, {Object? state}) {
     return _controller._dispatchRouteRequest(uri, state: state);
   }
@@ -363,38 +350,6 @@ class UnrouterController<R extends RouteData> {
       fromResolution: fromResolution,
       toResolution: toResolution,
       payload: payload,
-    );
-  }
-
-  /// Records a machine action envelope emission.
-  void recordActionEnvelope<T>(
-    UnrouterMachineActionEnvelope<T> envelope, {
-    String phase = 'dispatch',
-    Map<String, Object?> metadata = const <String, Object?>{},
-  }) {
-    final current = _captureMachineState();
-    recordMachineTransition(
-      source: UnrouterMachineSource.controller,
-      event: UnrouterMachineEvent.actionEnvelope,
-      from: current,
-      to: current,
-      payload: <String, Object?>{
-        'actionEnvelopeSchemaVersion':
-            UnrouterMachineActionEnvelope.schemaVersion,
-        'actionEnvelopeEventVersion':
-            UnrouterMachineActionEnvelope.eventVersion,
-        'actionEnvelopeProducer': UnrouterMachineActionEnvelope.producer,
-        'actionEnvelopePhase': phase,
-        'actionEnvelope': envelope.toJson(),
-        'actionEvent': envelope.event.name,
-        'actionState': envelope.state.name,
-        'actionFailure': envelope.failure?.toJson(),
-        'actionFailureCategory': envelope.failure?.category.name,
-        'actionFailureRetryable': envelope.failure?.retryable,
-        'actionRejectCode': envelope.rejectCode?.name,
-        'actionRejectReason': envelope.rejectReason,
-        ...metadata,
-      },
     );
   }
 

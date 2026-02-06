@@ -692,7 +692,7 @@ void main() {
     },
   );
 
-  testWidgets('machine action envelope classifies shell rejection codes', (
+  testWidgets('machine command returns false for invalid shell transitions', (
     tester,
   ) async {
     UnrouterMachine<AppRoute>? machine;
@@ -706,43 +706,27 @@ void main() {
     await tester.pumpAndSettle();
     expect(machine, isNotNull);
 
-    final unavailable = machine!.dispatchActionEnvelope<bool>(
-      UnrouterMachineAction.switchBranch(99),
+    final unavailable = machine!.dispatchTyped<bool>(
+      UnrouterMachineCommand.switchBranch(99),
     );
-    expect(unavailable.state, UnrouterMachineActionEnvelopeState.rejected);
-    expect(
-      unavailable.rejectCode,
-      UnrouterMachineActionRejectCode.branchUnavailable,
-    );
-    expect(unavailable.rejectReason, isNotEmpty);
-    expect(
-      unavailable.failure?.category,
-      UnrouterMachineActionFailureCategory.shell,
-    );
-    expect(unavailable.failure?.retryable, isFalse);
+    expect(unavailable, isFalse);
 
-    final empty = machine!.dispatchActionEnvelope<bool>(
-      UnrouterMachineAction.popBranch(),
+    final empty = machine!.dispatchTyped<bool>(
+      UnrouterMachineCommand.popBranch(),
     );
-    expect(empty.state, UnrouterMachineActionEnvelopeState.rejected);
-    expect(empty.rejectCode, UnrouterMachineActionRejectCode.branchEmpty);
-    expect(empty.rejectReason, isNotEmpty);
-    expect(empty.failure?.category, UnrouterMachineActionFailureCategory.shell);
-    expect(empty.failure?.retryable, isTrue);
+    expect(empty, isFalse);
 
-    final envelopeTail = machine!.timeline
-        .where((entry) => entry.event == UnrouterMachineEvent.actionEnvelope)
-        .toList(growable: false);
-    expect(envelopeTail, hasLength(2));
     expect(
-      envelopeTail.map((entry) => entry.payload['actionRejectCode']).toList(),
-      <Object?>['branchUnavailable', 'branchEmpty'],
+      machine!.timeline.any(
+        (entry) => entry.event == UnrouterMachineEvent.switchBranch,
+      ),
+      isTrue,
     );
     expect(
-      envelopeTail
-          .map((entry) => entry.payload['actionFailureCategory'])
-          .toList(),
-      <Object?>['shell', 'shell'],
+      machine!.timeline.any(
+        (entry) => entry.event == UnrouterMachineEvent.popBranch,
+      ),
+      isTrue,
     );
   });
 

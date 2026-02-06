@@ -17,29 +17,27 @@ void main() {
   );
 
   testWidgets(
-    'machine command and action streams stay equivalent for long seeded scripts',
+    'machine command streams stay deterministic for long seeded scripts',
     (tester) async {
       const seeds = <int>[7, 19];
       for (final seed in seeds) {
         final operations = _buildSeededOperations(seed: seed, length: 40);
-        final commandSnapshot = await _runScenarioWithOperations(
+        final firstSnapshot = await _runScenarioWithOperations(
           tester,
           operations,
-          mode: _MachineDispatchMode.command,
         );
-        final actionSnapshot = await _runScenarioWithOperations(
+        final secondSnapshot = await _runScenarioWithOperations(
           tester,
           operations,
-          mode: _MachineDispatchMode.action,
         );
         expect(
-          actionSnapshot.transitions,
-          commandSnapshot.transitions,
+          secondSnapshot.transitions,
+          firstSnapshot.transitions,
           reason: 'transition mismatch for seed=$seed',
         );
         expect(
-          actionSnapshot.finalState,
-          commandSnapshot.finalState,
+          secondSnapshot.finalState,
+          firstSnapshot.finalState,
           reason: 'state mismatch for seed=$seed',
         );
       }
@@ -154,8 +152,6 @@ class _MachineScenarioSnapshot {
   final Map<String, Object?> finalState;
 }
 
-enum _MachineDispatchMode { command, action }
-
 enum _MachineScriptOpKind { go, replace, push, pop, back, forward, delta }
 
 class _MachineScriptOp {
@@ -242,9 +238,8 @@ List<_MachineScriptOp> _buildSeededOperations({
 
 Future<_MachineScenarioSnapshot> _runScenarioWithOperations(
   WidgetTester tester,
-  List<_MachineScriptOp> operations, {
-  required _MachineDispatchMode mode,
-}) async {
+  List<_MachineScriptOp> operations,
+) async {
   UnrouterMachine<_AppRoute>? machine;
   final pendingPushResults = <Future<Object?>>[];
 
@@ -275,7 +270,6 @@ Future<_MachineScenarioSnapshot> _runScenarioWithOperations(
     _dispatchScriptOp(
       machine!,
       operation,
-      mode: mode,
       pendingPushResults: pendingPushResults,
     );
     await tester.pump();
@@ -318,83 +312,37 @@ Future<_MachineScenarioSnapshot> _runScenarioWithOperations(
 void _dispatchScriptOp(
   UnrouterMachine<_AppRoute> machine,
   _MachineScriptOp operation, {
-  required _MachineDispatchMode mode,
   required List<Future<Object?>> pendingPushResults,
 }) {
-  switch (mode) {
-    case _MachineDispatchMode.command:
-      switch (operation.kind) {
-        case _MachineScriptOpKind.go:
-          machine.dispatchTyped<void>(
-            UnrouterMachineCommand.goUri(operation.uri!),
-          );
-          break;
-        case _MachineScriptOpKind.replace:
-          machine.dispatchTyped<void>(
-            UnrouterMachineCommand.replaceUri(operation.uri!),
-          );
-          break;
-        case _MachineScriptOpKind.push:
-          pendingPushResults.add(
-            machine.dispatchTyped<Future<Object?>>(
-              UnrouterMachineCommand.pushUri(operation.uri!),
-            ),
-          );
-          break;
-        case _MachineScriptOpKind.pop:
-          machine.dispatchTyped<bool>(
-            UnrouterMachineCommand.pop(operation.result),
-          );
-          break;
-        case _MachineScriptOpKind.back:
-          machine.dispatchTyped<bool>(UnrouterMachineCommand.back());
-          break;
-        case _MachineScriptOpKind.forward:
-          machine.dispatchTyped<void>(UnrouterMachineCommand.forward());
-          break;
-        case _MachineScriptOpKind.delta:
-          machine.dispatchTyped<void>(
-            UnrouterMachineCommand.goDelta(operation.delta!),
-          );
-          break;
-      }
+  switch (operation.kind) {
+    case _MachineScriptOpKind.go:
+      machine.dispatchTyped<void>(UnrouterMachineCommand.goUri(operation.uri!));
       break;
-    case _MachineDispatchMode.action:
-      switch (operation.kind) {
-        case _MachineScriptOpKind.go:
-          machine.dispatchAction<void>(
-            UnrouterMachineAction.navigateToUri(operation.uri!),
-          );
-          break;
-        case _MachineScriptOpKind.replace:
-          machine.dispatchAction<void>(
-            UnrouterMachineAction.replaceUri(operation.uri!),
-          );
-          break;
-        case _MachineScriptOpKind.push:
-          pendingPushResults.add(
-            machine.dispatchAction<Future<Object?>>(
-              UnrouterMachineAction.pushUri(operation.uri!),
-            ),
-          );
-          break;
-        case _MachineScriptOpKind.pop:
-          machine.dispatchAction<bool>(
-            UnrouterMachineAction.pop(operation.result),
-          );
-          break;
-        case _MachineScriptOpKind.back:
-          machine.dispatchAction<bool>(UnrouterMachineAction.back());
-          break;
-        case _MachineScriptOpKind.forward:
-          machine.dispatchAction<void>(UnrouterMachineAction.forward());
-          break;
-        case _MachineScriptOpKind.delta:
-          machine.dispatchAction<void>(
-            UnrouterMachineAction.goDelta(operation.delta!),
-          );
-          break;
-      }
+    case _MachineScriptOpKind.replace:
+      machine.dispatchTyped<void>(
+        UnrouterMachineCommand.replaceUri(operation.uri!),
+      );
+      break;
+    case _MachineScriptOpKind.push:
+      pendingPushResults.add(
+        machine.dispatchTyped<Future<Object?>>(
+          UnrouterMachineCommand.pushUri(operation.uri!),
+        ),
+      );
+      break;
+    case _MachineScriptOpKind.pop:
+      machine.dispatchTyped<bool>(UnrouterMachineCommand.pop(operation.result));
+      break;
+    case _MachineScriptOpKind.back:
+      machine.dispatchTyped<bool>(UnrouterMachineCommand.back());
+      break;
+    case _MachineScriptOpKind.forward:
+      machine.dispatchTyped<void>(UnrouterMachineCommand.forward());
+      break;
+    case _MachineScriptOpKind.delta:
+      machine.dispatchTyped<void>(
+        UnrouterMachineCommand.goDelta(operation.delta!),
+      );
       break;
   }
 }

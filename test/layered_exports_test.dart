@@ -7,7 +7,7 @@ void main() {
     expect(unrouter.RouteGuardResult.allow().isAllowed, isTrue);
     expect(unrouter.RedirectLoopPolicy.values, isNotEmpty);
 
-    expect(machine.UnrouterMachineActionEnvelopeState.values, isNotEmpty);
     expect(machine.UnrouterMachineCommand.back(), isNotNull);
+    expect(machine.UnrouterMachineTypedPayloadKind.values, isNotEmpty);
   });
 }

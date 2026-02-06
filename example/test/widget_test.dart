@@ -36,7 +36,7 @@ void main() {
     expect(find.byKey(const Key('secure-title')), findsOneWidget);
   });
 
-  testWidgets('machine envelope state is shown on home', (tester) async {
+  testWidgets('machine command status is shown on home', (tester) async {
     await tester.pumpWidget(UnrouterExampleApp());
     await tester.pumpAndSettle();
 

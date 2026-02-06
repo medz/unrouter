@@ -8,13 +8,11 @@ This folder contains user-facing guides and reference notes for `unrouter`.
   and wire `MaterialApp.router`.
 - [Core routing guide](core_routing.md): route definitions, guards, redirects,
   loaders, and shell branches.
-- [Machine API guide](machine_api.md): typed command/action dispatch and action
-  envelope flows.
+- [Machine API guide](machine_api.md): typed command dispatch and machine
+  timeline usage.
 - [Router benchmarking](router_benchmarking.md): behavior parity and performance
   comparison workflow.
 
 ## Reference contracts
 
 - [State envelope](state_envelope.md): `history.state` format and compatibility.
-- [Machine action envelope schema](machine_action_envelope_schema.md): schema
-  and event version contract for machine action envelopes.
