@@ -53,6 +53,17 @@ Machine action-envelope schema contract lives in
 flutter pub add unrouter
 ```
 
+## Example
+
+```bash
+cd example
+flutter pub get
+flutter run -d chrome
+```
+
+After launch, open `/debug` (or tap the bug icon in app bar) to access the
+inspector/bridge/panel/replay diagnostics entry.
+
 ## Quick start
 
 ```dart

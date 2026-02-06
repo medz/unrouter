@@ -73,5 +73,6 @@
 - Add replay compatibility lifecycle coverage validation for controller lifecycle events and expose `validateCompatibility()` as the primary replay validator (`validateActionEnvelopeCompatibility()` remains as alias).
 - Add controller lifecycle replay fixture coverage for machine timeline compatibility validation.
 - Promote redesigned `unrouter` package from `pub/unrouter` to repository root and retire legacy top-level CLI/history/router surface.
+- Rebuild `example/` into a production-style reference app covering typed routing, shell branches, guard/redirect/loader flows, push-result handling, and a `/debug` entry wired to inspector/bridge/panel/replay tooling.
 - Add tests for route resolution, parser/guard/redirect behavior, cancellation handling, and widget navigation/back behavior.
 - Add `docs/target_knowledge.md` to capture routing north-star principles and phased roadmap.
