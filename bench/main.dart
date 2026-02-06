@@ -24,7 +24,12 @@ const List<String> _behaviorScriptOrder = <String>[
 ];
 
 Future<void> main(List<String> rawArgs) async {
-  final defaultProfile = _deriveDefaultProfile();
+  final aggressiveRequested = _readRawFlag(
+    rawArgs,
+    longName: 'aggressive',
+    alias: 'g',
+  );
+  final defaultProfile = _deriveDefaultProfile(aggressive: aggressiveRequested);
   final parsed = Args.parse(
     rawArgs,
     defaults: <String, Object?>{
@@ -34,6 +39,7 @@ Future<void> main(List<String> rawArgs) async {
       'warmup-samples': defaultProfile.warmupSamples.toString(),
       'performance-runs': defaultProfile.performanceRuns.toString(),
       'long-lived-rounds': defaultProfile.longLivedRounds.toString(),
+      'aggressive': aggressiveRequested,
       'behavior-only': false,
       'performance-only': false,
       'verbose': false,
@@ -45,6 +51,7 @@ Future<void> main(List<String> rawArgs) async {
       'w': 'warmup-rounds',
       'x': 'warmup-samples',
       'n': 'performance-runs',
+      'g': 'aggressive',
       'l': 'long-lived-rounds',
       'b': 'behavior-only',
       'p': 'performance-only',
@@ -52,6 +59,7 @@ Future<void> main(List<String> rawArgs) async {
       'h': 'help',
     },
     bool: const <String>[
+      'aggressive',
       'behavior-only',
       'performance-only',
       'verbose',
@@ -82,6 +90,7 @@ Future<void> main(List<String> rawArgs) async {
     '[router-benchmark] rounds=${config.rounds}, samples=${config.samples}, '
     'warmupRounds=${config.warmupRounds}, warmupSamples=${config.warmupSamples}, '
     'performanceRuns=${config.performanceRuns}, longLivedRounds=${config.longLivedRounds}, '
+    'aggressive=${config.defaultProfile.aggressive}, '
     'behavior=${config.runBehavior}, performance=${config.runPerformance}, '
     'profile=${config.defaultProfile.name}, cpu=${config.defaultProfile.cpuCount}',
   );
@@ -188,6 +197,61 @@ bool _readBool(Args args, String key) {
   return args[key]?.safeAs<bool>() ?? false;
 }
 
+bool _readRawFlag(
+  List<String> args, {
+  required String longName,
+  String? alias,
+}) {
+  var value = false;
+  for (final arg in args) {
+    if (arg == '--$longName') {
+      value = true;
+      continue;
+    }
+    if (arg == '--no-$longName') {
+      value = false;
+      continue;
+    }
+    if (alias != null && arg == '-$alias') {
+      value = true;
+      continue;
+    }
+    if (arg.startsWith('--$longName=')) {
+      final parsed = _parseBoolText(arg.substring(longName.length + 3));
+      if (parsed != null) {
+        value = parsed;
+      }
+      continue;
+    }
+    if (alias != null && arg.startsWith('-$alias=')) {
+      final parsed = _parseBoolText(arg.substring(alias.length + 2));
+      if (parsed != null) {
+        value = parsed;
+      }
+      continue;
+    }
+  }
+  return value;
+}
+
+bool? _parseBoolText(String raw) {
+  final value = raw.trim().toLowerCase();
+  switch (value) {
+    case '1':
+    case 'true':
+    case 'yes':
+    case 'on':
+      return true;
+    case '0':
+    case 'false':
+    case 'no':
+    case 'off':
+      return false;
+    default:
+      return null;
+  }
+}
+
 int? _parsePositiveInt(String raw, String option) {
   final value = int.tryParse(raw);
   if (value == null || value <= 0) {
@@ -206,17 +270,29 @@ int? _parseNonNegativeInt(String raw, String option) {
   return value;
 }
 
-_BenchDefaultProfile _deriveDefaultProfile() {
+_BenchDefaultProfile _deriveDefaultProfile({required bool aggressive}) {
   final cpuCount = Platform.numberOfProcessors <= 0
       ? 1
       : Platform.numberOfProcessors;
 
-  final rounds = _clampInt(cpuCount * 12, min: 48, max: 240);
-  final samples = _clampInt(((cpuCount / 2).round()) + 4, min: 6, max: 16);
-  final warmupRounds = _clampInt(rounds ~/ 2, min: 16, max: 120);
-  final warmupSamples = _clampInt((cpuCount / 8).ceil(), min: 1, max: 4);
-  final performanceRuns = _clampInt((cpuCount / 4).ceil(), min: 3, max: 6);
-  final longLivedRounds = _clampInt(rounds, min: 48, max: 160);
+  final rounds = aggressive
+      ? _clampInt(cpuCount * 20, min: 96, max: 480)
+      : _clampInt(cpuCount * 12, min: 48, max: 240);
+  final samples = aggressive
+      ? _clampInt(cpuCount + 8, min: 10, max: 24)
+      : _clampInt(((cpuCount / 2).round()) + 4, min: 6, max: 16);
+  final warmupRounds = aggressive
+      ? _clampInt((rounds * 2) ~/ 3, min: 32, max: 240)
+      : _clampInt(rounds ~/ 2, min: 16, max: 120);
+  final warmupSamples = aggressive
+      ? _clampInt((cpuCount / 4).ceil() + 1, min: 2, max: 8)
+      : _clampInt((cpuCount / 8).ceil(), min: 1, max: 4);
+  final performanceRuns = aggressive
+      ? _clampInt((cpuCount / 3).ceil() + 1, min: 4, max: 10)
+      : _clampInt((cpuCount / 4).ceil(), min: 3, max: 6);
+  final longLivedRounds = aggressive
+      ? _clampInt(rounds, min: 96, max: 320)
+      : _clampInt(rounds, min: 48, max: 160);
 
   final tier = switch (cpuCount) {
     >= 16 => 'ultra',
@@ -227,7 +303,8 @@ _BenchDefaultProfile _deriveDefaultProfile() {
   };
 
   return _BenchDefaultProfile(
-    name: '$tier-auto',
+    name: aggressive ? '$tier-aggressive' : '$tier-auto',
+    aggressive: aggressive,
     cpuCount: cpuCount,
     rounds: rounds,
     samples: samples,
@@ -964,6 +1041,7 @@ Options:
   -w, --warmup-rounds=<n>      Warmup rounds per warmup sample (default: auto)
   -x, --warmup-samples=<n>     Warmup sample count (default: auto)
   -n, --performance-runs=<n>   Repeat performance suite N times and aggregate median (default: auto)
+  -g, --aggressive             Use aggressive auto profile defaults for this machine
   -l, --long-lived-rounds=<n>  Long-lived behavior rounds (default: auto)
   -b, --behavior-only          Run only behavior suite
   -p, --performance-only       Run only performance suite
@@ -1006,6 +1084,7 @@ class _BenchConfig {
 class _BenchDefaultProfile {
   const _BenchDefaultProfile({
     required this.name,
+    required this.aggressive,
     required this.cpuCount,
     required this.rounds,
     required this.samples,
@@ -1016,6 +1095,7 @@ class _BenchDefaultProfile {
   });
 
   final String name;
+  final bool aggressive;
   final int cpuCount;
   final int rounds;
   final int samples;

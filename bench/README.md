@@ -13,6 +13,12 @@ dart run main.dart
 Defaults are auto-scaled from local CPU count (rounds/samples/warmup/runs).
 Use flags to override any value.
 
+Use aggressive auto defaults for maximum local stress:
+
+```bash
+dart run main.dart --aggressive
+```
+
 Tune rounds, samples, and long-lived behavior rounds:
 
 ```bash

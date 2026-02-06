@@ -79,6 +79,9 @@ dart run main.dart
 By default, benchmark parameters are auto-scaled from local CPU count. You can
 override any value explicitly via CLI flags.
 
+Use `--aggressive` to switch to a higher auto-profile tuned for maximum local
+stress on capable machines.
+
 Tune rounds/sample size/long-lived rounds:
 
 ```bash
