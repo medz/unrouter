@@ -1,40 +1,53 @@
-<p align="center">
-  <img src="assets/brand.svg" width="120" alt="unrouter" />
-  <h1 align="center">Unrouter</h1>
-  <p align="center">
-    <strong>The flexible Flutter router that adapts to your architecture</strong>
-  </p>
-</p>
+# unrouter
 
-<p align="center">
-  <a href="https://pub.dev/packages/unrouter"><img src="https://img.shields.io/pub/v/unrouter.svg" alt="pub"></a>
-  <a href="https://github.com/medz/unrouter/actions/workflows/tests.yml"><img src="https://github.com/medz/unrouter/actions/workflows/tests.yml/badge.svg" alt="tests"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="license"></a>
-</p>
+A URL-first Flutter router with typed route objects.
 
----
+Project target knowledge lives in `docs/target_knowledge.md`.
+Declarative state-machine draft lives in `docs/state_machine_draft.md`.
+Machine action-envelope schema contract lives in
+`docs/machine_action_envelope_schema.md`.
 
-## Overview
+## Features
 
-Unrouter is a production-ready Flutter router that supports declarative,
-widget-scoped, and hybrid routing. It provides browser-style history,
-async guards, route blockers, and Navigator 1.0 compatibility while keeping
-route definitions flexible and readable.
-
-Highlights:
-- Declarative routes with `Inlet`, widget-scoped routes with `Routes`, or both
-- Browser-style navigation (push/replace/back/forward/go)
-- Async guards and route blockers (allow/cancel/redirect)
-- Nested layouts with `Outlet` and infinite depth
-- Named routes with URI generation
-- Optional file-based routing CLI (`init/scan/generate/watch`)
-- Web URL strategies (browser/hash) and history state
-
-https://github.com/user-attachments/assets/e4f2d9d1-3fe2-4050-8b5b-1e1171027ba2
+- Typed route objects via `RouteData`
+- Path matching powered by `roux`
+- Browser-style history powered by `unstory`
+- Context navigation API: `go`, `push`, `replace`, `back`, `forward`, `href`
+- Typed push results via `push<T>()` and `pop(result)`
+- Route-level `Page` and transition customization
+- Redirect loop/hop safety controls
+- Route-state introspection snapshot/subscription API
+- Devtools-friendly inspector helpers
+- Built-in inspector widget for debug overlays
+- DevTools panel adapter model fed by bridge stream
+- Built-in inspector panel widget for DevTools-like diagnostics UI
+- Replay store for emission export/import/playback workflows
+- Replay controller for speed/scrub/bookmark/pause-resume controls
+- Replay persistence adapters with schema migration hooks
+- Replay session diff tooling for sequence/path comparison
+- Side-by-side replay compare view in panel widget
+- Replay panel compare folding and diff-only timeline filter
+- Replay panel diff clustering by continuous sequence segments
+- Replay panel cluster risk summary and high-risk quick actions
+- Replay panel machine event-group quick filter controls
+- Replay panel machine payload-kind quick filter controls
+- Inspector/bridge/replay reports include machine transition timeline
+- Machine timeline uses typed `source/event` schema with unified `from/to` state snapshots
+- Public machine dispatch API (`UnrouterMachineCommand` + typed `dispatchTyped<T>()`)
+- Declarative machine action draft API (`UnrouterMachineAction` + `dispatchAction<T>()`)
+- Unified declarative navigate actions via `navigateUri` / `navigateRoute` with `mode` (`go` or `replace`)
+- Machine action envelope API (`dispatchActionEnvelope<T>()`) with `accepted/rejected/deferred/completed` states and structured failure metadata
+- Typed machine transition event view (`UnrouterMachineTypedTransition`) via `entry.typed` / `machine.typedTimeline` with typed payloads for controller/actionEnvelope, navigation, and route sources
+- Machine timeline semantic event grouping (`UnrouterMachineEventGroup`) with inspector filtering support
+- Replay compatibility validation covers action-envelope schema/event and controller lifecycle coverage
+- Performance budget regression tests for machine transition projection and replay compatibility validation
+- Declarative state-machine evolution draft and compatibility mapping
+- Parser helpers for strongly typed path/query values
+- Async route hooks: `guards`, `redirect`, and `routeWithLoader`
+- Cooperative cancellation for async hooks via `RouteExecutionSignal`
+- Shell + branch routing with per-branch stacks
 
 ## Installation
-
-Run this command:
 
 ```bash
 flutter pub add unrouter
@@ -42,490 +55,619 @@ flutter pub add unrouter
 
 ## Quick start
 
-### Minimal setup
-
 ```dart
 import 'package:flutter/material.dart';
 import 'package:unrouter/unrouter.dart';
 
-void main() => runApp(
-  Unrouter(
-    routes: RouteIndex.fromRoutes(const [
-      Inlet(name: 'home', factory: HomePage.new),
-      Inlet(name: 'about', path: 'about', factory: AboutPage.new),
-    ]),
+void main() {
+  final router = Unrouter<AppRoute>(
+    machineTimelineLimit: 512,
+    routes: [
+      route<HomeRoute>(
+        path: '/',
+        parse: (_) => const HomeRoute(),
+        builder: (context, route) => const HomePage(),
+      ),
+      route<UserRoute>(
+        path: '/users/:id',
+        parse: (state) => UserRoute(
+          id: state.pathInt('id'),
+          tab: state.queryEnum('tab', UserTab.values, fallback: UserTab.posts),
+        ),
+        builder: (context, route) => UserPage(route: route),
+      ),
+    ],
+    unknown: (context, uri) => NotFoundPage(uri: uri),
+  );
+
+  runApp(MaterialApp.router(routerConfig: router));
+}
+
+enum UserTab { posts, likes }
+
+sealed class AppRoute implements RouteData {
+  const AppRoute();
+}
+
+final class HomeRoute extends AppRoute {
+  const HomeRoute();
+
+  @override
+  Uri toUri() => Uri(path: '/');
+}
+
+final class UserRoute extends AppRoute {
+  const UserRoute({required this.id, this.tab = UserTab.posts});
+
+  final int id;
+  final UserTab tab;
+
+  @override
+  Uri toUri() => Uri(
+        path: '/users/$id',
+        queryParameters: {'tab': tab.name},
+      );
+}
+```
+
+## Navigate from widgets
+
+```dart
+context.unrouter.go(const HomeRoute());
+context.unrouter.push(const UserRoute(id: 42));
+context.unrouter.replace(const UserRoute(id: 7));
+context.unrouter.back();
+
+final int? picked = await context.unrouter.push<int>(const UserRoute(id: 42));
+context.unrouter.pop(7);
+context.unrouter.replace(
+  const UserRoute(id: 7),
+  completePendingResult: true,
+  result: 7,
+);
+
+final href = context.unrouter.href(const UserRoute(id: 42));
+final currentUri = context.unrouter.uri;
+final currentRoute = context.unrouter.route;
+
+final typed = context.unrouterAs<AppRoute>();
+typed.push(const UserRoute(id: 42));
+final AppRoute? currentTypedRoute = typed.route;
+
+final machine = context.unrouterMachineAs<AppRoute>();
+final pushResult = machine.dispatchTyped<Future<Object?>>(
+  UnrouterMachineCommand.pushUri(Uri(path: '/users/42')),
+);
+final popped = machine.dispatchTyped<bool>(UnrouterMachineCommand.back());
+final switched = machine.dispatchTyped<bool>(
+  UnrouterMachineCommand.switchBranch(1),
+);
+final poppedBranch = machine.dispatchTyped<bool>(
+  UnrouterMachineCommand.popBranch(),
+);
+debugPrint('machine popped=$popped pushResult=$pushResult');
+final machineState = machine.state;
+final machineTimeline = machine.timeline;
+final typedMachineTimeline = machine.typedTimeline;
+
+final latestTypedEnvelope = typedMachineTimeline
+    .where((entry) => entry.event == UnrouterMachineEvent.actionEnvelope)
+    .last;
+if (latestTypedEnvelope.payload is UnrouterMachineActionEnvelopeTypedPayload) {
+  final payload =
+      latestTypedEnvelope.payload as UnrouterMachineActionEnvelopeTypedPayload;
+  debugPrint(
+    'typed envelope state=${payload.actionState?.name} '
+    'schemaOk=${payload.isSchemaCompatible} '
+    'eventOk=${payload.isEventCompatible}',
+  );
+}
+
+final typedNavigation = typedMachineTimeline.firstWhere(
+  (entry) => entry.payload.kind == UnrouterMachineTypedPayloadKind.navigation,
+);
+debugPrint('typed navigation payload=${typedNavigation.payload.toJson()}');
+
+final typedRoute = typedMachineTimeline.firstWhere(
+  (entry) => entry.payload.kind == UnrouterMachineTypedPayloadKind.route,
+);
+debugPrint('typed route payload=${typedRoute.payload.toJson()}');
+
+final typedController = typedMachineTimeline.firstWhere(
+  (entry) => entry.payload.kind == UnrouterMachineTypedPayloadKind.controller,
+);
+debugPrint('typed controller payload=${typedController.payload.toJson()}');
+if (typedController.payload is UnrouterMachineControllerTypedPayload) {
+  final payload =
+      typedController.payload as UnrouterMachineControllerTypedPayload;
+  debugPrint(
+    'controller event=${typedController.event.name} '
+    'enabled=${payload.enabled} '
+    'maxRedirectHops=${payload.maxRedirectHops}',
+  );
+}
+
+final actionPush = machine.dispatchAction<Future<int?>>(
+  UnrouterMachineAction.pushRoute<UserRoute, int>(const UserRoute(id: 7)),
+);
+final actionSwitched = machine.dispatchAction<bool>(
+  UnrouterMachineAction.switchBranch(1),
+);
+machine.dispatchAction<void>(
+  UnrouterMachineAction.replaceRoute(const UserRoute(id: 9)),
+);
+machine.dispatchAction<void>(
+  UnrouterMachineAction.navigateRoute(
+    const UserRoute(id: 10),
+    mode: UnrouterMachineNavigateMode.replace,
   ),
 );
-```
+final actionPopped = machine.dispatchAction<bool>(
+  UnrouterMachineAction.pop(7),
+);
+debugPrint('$actionPush $actionSwitched $actionPopped');
 
-### With MaterialApp
+final actionEnvelope = machine.dispatchActionEnvelope<Future<int?>>(
+  UnrouterMachineAction.pushRoute<UserRoute, int>(const UserRoute(id: 8)),
+);
+if (actionEnvelope.isDeferred) {
+  final value = await actionEnvelope.value;
+  debugPrint('action deferred result=$value');
+}
+if (actionEnvelope.isRejected) {
+  final failure = actionEnvelope.failure;
+  debugPrint(
+    'action rejected code=${failure?.code.name} '
+    'category=${failure?.category.name} '
+    'reason=${failure?.message}',
+  );
+}
 
-```dart
-final router = Unrouter(
-  strategy: .browser,
-  routes: RouteIndex.fromRoutes(const [
-    Inlet(factory: HomePage.new),
-    Inlet(path: 'about', factory: AboutPage.new),
-    Inlet(
-      path: 'users',
-      factory: UsersLayout.new,
-      children: [
-        Inlet(factory: UsersIndexPage.new),
-        Inlet(path: ':id', factory: UserDetailPage.new),
-      ],
-    ),
-    Inlet(path: '**', factory: NotFoundPage.new),
-  ]),
+final snapshot = context.unrouterAs<AppRoute>().state;
+debugPrint(
+  'resolution=${snapshot.resolution.name} '
+  'path=${snapshot.routePath} '
+  'action=${snapshot.lastAction.name} '
+  'index=${snapshot.historyIndex}',
 );
 
-void main() => runApp(MaterialApp.router(routerConfig: router));
+final listenable = context.unrouterAs<AppRoute>().stateListenable;
+listenable.addListener(() {
+  final next = listenable.value;
+  debugPrint('state changed: ${next.resolution.name} ${next.routePath}');
+});
+
+final timeline = context.unrouterAs<AppRoute>().stateTimeline;
+debugPrint('timeline entries: ${timeline.length}');
+
+final inspector = context.unrouterAs<AppRoute>().inspector;
+debugPrint('report: ${inspector.debugReport(timelineTail: 5)}');
+debugPrint('machine state: ${inspector.debugMachineState()}');
+
+final filtered = inspector.debugTimeline(
+  query: '/users/',
+  resolutions: {UnrouterResolutionState.matched},
+);
+debugPrint('filtered timeline: $filtered');
+
+final machineFiltered = inspector.debugMachineTimeline(
+  sources: {UnrouterMachineSource.route},
+  events: {UnrouterMachineEvent.commit},
+  eventGroups: {UnrouterMachineEventGroup.routeResolution},
+  query: '/users/42',
+);
+debugPrint('filtered machine timeline: $machineFiltered');
+
+final typedMachineFiltered = inspector.debugTypedMachineTimeline(
+  events: {UnrouterMachineEvent.actionEnvelope},
+  query: '/users/42',
+);
+debugPrint('typed machine timeline: $typedMachineFiltered');
+
+final exportedJson = inspector.exportDebugReportJson(
+  timelineTail: 20,
+  machineTimelineTail: 30,
+  machineSources: {
+    UnrouterMachineSource.route,
+    UnrouterMachineSource.navigation,
+  },
+  machineEvents: {
+    UnrouterMachineEvent.commit,
+    UnrouterMachineEvent.pushUri,
+  },
+  machineEventGroups: {UnrouterMachineEventGroup.routeResolution},
+  machineQuery: '/users/42',
+  query: '/users/',
+);
+debugPrint('export json: $exportedJson');
 ```
 
-### Navigate
+## Inspector widget
 
 ```dart
-context.navigate(path: '/about');
-context.navigate(name: 'userDetail', params: {'id': '123'});
-context.navigate.back();
+final redirectStore = UnrouterRedirectDiagnosticsStore();
 
-context.navigate(path: 'edit');         // /users/123/edit
-context.navigate(path: './edit');       // /users/123/edit
-context.navigate(path: '../settings');  // /users/settings
+final router = Unrouter<AppRoute>(
+  onRedirectDiagnostics: redirectStore.onDiagnostics,
+  routes: [...],
+);
+
+// Inside any route widget:
+UnrouterInspectorWidget<AppRoute>(
+  inspector: context.unrouterAs<AppRoute>().inspector,
+  redirectDiagnostics: redirectStore,
+  timelineTail: 8,
+  redirectTrailTail: 4,
+  timelineQuery: '/users/',
+  onExport: (json) => debugPrint('inspector export: $json'),
+);
 ```
 
-## Core concepts
-
-### Unrouter
-
-`Unrouter` is a `RouterConfig` you can pass to `MaterialApp.router` or use as a
-standalone widget. Provide either `routes` (a `RouteIndex`), `child`, or both.
-
-### Inlet
-
-An `Inlet` defines a route segment and optional children.
+## Inspector bridge (stream/sink)
 
 ```dart
-Inlet(
-  name: 'userDetail',
-  path: 'users/:id',
-  factory: UserDetailPage.new,
-)
+final bridge = UnrouterInspectorBridge<AppRoute>(
+  inspector: context.unrouterAs<AppRoute>().inspector,
+  redirectDiagnostics: redirectStore,
+  config: const UnrouterInspectorBridgeConfig(
+    timelineTail: 20,
+    redirectTrailTail: 10,
+    machineTimelineTail: 30,
+    machineSources: {UnrouterMachineSource.route},
+    machineEvents: {UnrouterMachineEvent.commit},
+    machineEventGroups: {UnrouterMachineEventGroup.routeResolution},
+    machineQuery: '/users/42',
+    query: '/users/',
+  ),
+  sinks: [
+    UnrouterInspectorJsonSink((payload) {
+      debugPrint('unrouter-inspector $payload');
+    }),
+  ],
+);
+
+final subscription = bridge.stream.listen((event) {
+  debugPrint('reason=${event.reason.name} report=${event.report}');
+});
 ```
 
-### Routes and Outlet
-
-`Routes` enables widget-scoped routing. `Outlet` renders matched child routes.
+## DevTools panel adapter
 
 ```dart
-class UsersLayout extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: const [
-        UsersToolbar(),
-        Expanded(child: Outlet()),
-      ],
+final panel = UnrouterInspectorPanelAdapter.fromBridge(
+  bridge: bridge,
+  config: const UnrouterInspectorPanelAdapterConfig(
+    maxEntries: 300,
+    autoSelectLatest: true,
+  ),
+);
+
+ValueListenableBuilder<UnrouterInspectorPanelState>(
+  valueListenable: panel,
+  builder: (_, state, __) {
+    final selected = state.selectedEntry;
+    return Text(
+      'entries=${state.entries.length}/${state.maxEntries} '
+      'selected=${selected?.routePath ?? '-'} '
+      'dropped=${state.droppedCount}',
     );
-  }
+  },
+);
+
+panel.selectPrevious();
+panel.selectNext();
+panel.clear();
+```
+
+## DevTools panel widget
+
+```dart
+UnrouterInspectorPanelWidget(
+  panel: panel,
+  query: '/users/',
+  reasons: {UnrouterInspectorEmissionReason.stateChanged},
+  initialMachineEventGroups: {UnrouterMachineEventGroup.routeResolution},
+  initialMachinePayloadKinds: {
+    UnrouterMachineTypedPayloadKind.route,
+    UnrouterMachineTypedPayloadKind.actionEnvelope,
+  },
+  onMachineEventGroupsChanged: (groups) {
+    bridge.updateMachineEventGroups(groups);
+  },
+  onMachinePayloadKindsChanged: (kinds) {
+    bridge.updateMachinePayloadKinds(kinds);
+  },
+  onExportSelected: (payload) {
+    debugPrint('selected emission json: $payload');
+  },
+);
+```
+
+## Replay store
+
+```dart
+final replay = UnrouterInspectorReplayStore.fromBridge(bridge: bridge);
+
+final snapshotJson = replay.exportJson(pretty: true);
+replay.clear(resetCounters: true);
+replay.importJson(snapshotJson);
+
+await replay.replay(
+  step: const Duration(milliseconds: 80),
+  fromSequence: 1,
+  onEmission: (event) {
+    debugPrint("replay ${event.reason.name} ${event.report['uri']}");
+  },
+);
+
+final compatibility = replay.validateCompatibility();
+if (compatibility.hasIssues) {
+  debugPrint('replay compatibility issues: ${compatibility.toJson()}');
 }
 ```
 
-## Routing approaches
-
-### Declarative
+## Replay controller + persistence
 
 ```dart
-Unrouter(
-  routes: RouteIndex.fromRoutes(const [
-    Inlet(path: 'admin', factory: AdminPage.new),
-  ]),
-)
+final replayController = UnrouterInspectorReplayController(
+  store: replay,
+  config: const UnrouterInspectorReplayControllerConfig(
+    step: Duration(milliseconds: 60),
+  ),
+);
+
+replayController.scrubTo(10);
+replayController.addBookmark(label: 'checkout');
+replayController.cycleSpeedPreset();
+await replayController.play();
+replayController.pause();
+replayController.resume();
+
+final storage = UnrouterInspectorReplayMemoryStorageAdapter();
+final persistence = UnrouterInspectorReplayPersistence(adapter: storage);
+await persistence.save(replay);
+await persistence.restore(replay);
 ```
 
-### Widget-scoped
+Replay session comparison (sequence/path):
 
 ```dart
-Routes(RouteIndex.fromRoutes([
-  Inlet(factory: HomePage.new),
-  Inlet(path: 'settings', factory: SettingsPage.new),
-]))
+final diffBySequence = replay.compareWith(
+  baselineReplay,
+  mode: UnrouterInspectorReplayCompareMode.sequence,
+);
+final diffByPath = replay.compareWith(
+  baselineReplay,
+  mode: UnrouterInspectorReplayCompareMode.path,
+);
 ```
 
-### Hybrid
+`shared_preferences` and file callback templates are documented in
+`docs/replay_persistence_examples.md`.
+
+Panel widget can bind replay controls directly:
 
 ```dart
-Unrouter(
-  routes: RouteIndex.fromRoutes(const [
-    Inlet(path: 'admin', factory: AdminPage.new),
-  ]),
-  child: Routes(RouteIndex.fromRoutes([
-    Inlet(factory: HomePage.new),
-  ])),
-)
+UnrouterInspectorPanelWidget(
+  panel: panel,
+  replayController: replayController,
+  replayDiff: diffBySequence,
+  compareRowLimit: 40,
+  initialCompareCollapsed: false,
+  initialCompareClustersCollapsed: false,
+  initialTimelineDiffOnly: false,
+  compareBaselineLabel: 'baseline',
+  compareCurrentLabel: 'current',
+);
 ```
 
-## Route patterns
+When `replayDiff` is provided, the panel renders a side-by-side compare table for
+baseline/current entries. Tapping a compare row selects and scrubs to that
+current session sequence when available. Compare rows can be folded, and
+timeline markers can be switched to diff-only mode. Diff rows are clustered
+by continuous sequence segments and each cluster can be collapsed independently.
+The compare header also shows high-risk cluster stats, with one-click controls
+to filter high-risk segments and jump to the next high-risk cluster.
+The panel also provides one-click machine event-group filters (`all`,
+`lifecycle`, `navigation`, `shell`, `routeResolution`) that narrow visible
+entries by `machineTimelineTail.eventGroup`. Use
+`onMachineEventGroupsChanged` + `bridge.updateMachineEventGroups(...)` to sync
+panel filter selections back to bridge-level data-source filtering.
+The panel also supports machine payload-kind quick filters (`all`,
+`actionEnvelope`, `navigation`, `route`, `controller`, `generic`) to narrow
+entries by typed payload semantics inferred from machine timeline records.
+When replay controls are bound, the panel also shows action-envelope
+compatibility summary (`issues/errors/warnings`) and a one-click
+`replay-issue-next` action to jump cursor/selection to the next issue sequence.
+Validation quick filters are available by severity (`error`/`warning`) and
+issue code, with selected-issue counts and per-code count breakdown.
+Calling `dispatchActionEnvelope(...)` also emits `actionEnvelope` transitions in
+machine timeline payloads so inspector/bridge/replay can trace action result
+states. Envelope payloads include `schemaVersion`, `eventVersion`, and
+`producer` metadata so tools can evolve parsers with backward compatibility.
+Rejected envelopes carry a structured `failure` object
+(`code`/`message`/`category`/`retryable`/`metadata`) in both envelope JSON and
+timeline payload (`actionFailure`), while legacy `rejectCode`/`rejectReason`
+remain available for compatibility.
+For deferred actions, a follow-up `actionEnvelope` transition is emitted with
+`actionEnvelopePhase=settled` when the future completes.
+Compatibility checks are available via
+`UnrouterMachineActionEnvelope.isSchemaVersionCompatible(...)`,
+`UnrouterMachineActionEnvelope.isEventVersionCompatible(...)`, and
+`UnrouterInspectorReplayStore.validateCompatibility()`
+(`validateActionEnvelopeCompatibility()` remains as a compatibility alias).
 
-Supported path tokens:
-- Static segments: `about`
-- Named params: `users/:id`
-- Embedded params: `files/:name.:ext`
-- Single-segment wildcard: `*` (params `_0`, `_1`, ...)
-- Multi-segment wildcard: `**` (params `_`) or `**:path`
+## Page and transition customization
 
 ```dart
-Inlet(path: 'users/:id', factory: UserDetailPage.new);
-Inlet(path: 'files/:name.:ext', factory: FilePage.new);
-Inlet(path: 'docs/**:path', factory: DocsPage.new);
-Inlet(path: '**', factory: NotFoundPage.new);
+route<UserRoute>(
+  path: '/users/:id',
+  parse: (state) => UserRoute(id: state.pathInt('id')),
+  transitionDuration: const Duration(milliseconds: 240),
+  transitionBuilder: (context, animation, secondary, child) {
+    return FadeTransition(opacity: animation, child: child);
+  },
+  builder: (_, route) => UserPage(route: route),
+);
+
+route<ProfileRoute>(
+  path: '/profile',
+  parse: (_) => const ProfileRoute(),
+  pageBuilder: (state) {
+    return MaterialPage<void>(
+      key: state.key,
+      name: state.name,
+      child: ProfileShell(child: state.child),
+    );
+  },
+  builder: (_, route) => const ProfilePage(),
+);
 ```
 
-Named routes let you generate URIs and navigate by name:
+## Guards and redirects
 
 ```dart
-Inlet(name: 'userDetail', path: 'users/:id', factory: UserDetailPage.new);
-```
-
-## Layouts and nested routing
-
-### Layout routes (path == '')
-
-```dart
-Inlet(
-  factory: AuthLayout.new,
-  children: [
-    Inlet(path: 'login', factory: LoginPage.new),
-    Inlet(path: 'register', factory: RegisterPage.new),
+route<PrivateRoute>(
+  path: '/private',
+  parse: (_) => const PrivateRoute(),
+  guards: [
+    (context) async {
+      final signedIn = await auth.isSignedIn();
+      if (signedIn) {
+        return RouteGuardResult.allow();
+      }
+      return RouteGuardResult.redirect(Uri(path: '/login'));
+    },
   ],
-)
-```
-
-### Nested routes (path + children)
-
-```dart
-Inlet(
-  path: 'users',
-  factory: UsersLayout.new,
-  children: [
-    Inlet(factory: UsersIndexPage.new),
-    Inlet(path: ':id', factory: UserDetailPage.new),
-  ],
-)
-```
-
-## Navigation API
-
-### Navigate by name or path
-
-```dart
-context.navigate(
-  name: 'userDetail',
-  params: {'id': '123'},
-  query: {'tab': 'posts'},
-  fragment: 'latest',
+  builder: (context, route) => const PrivatePage(),
 );
 
-context.navigate(path: '/about', replace: true);
-```
-
-### Generate a URI
-
-```dart
-final uri = context.navigate.route(
-  name: 'userDetail',
-  params: {'id': '123'},
-  query: {'tab': 'posts'},
+route<LegacyRoute>(
+  path: '/legacy',
+  parse: (_) => const LegacyRoute(),
+  redirect: (_) => Uri(path: '/new-home'),
+  builder: (context, route) => const Placeholder(),
 );
 ```
 
-### History controls
+Configure redirect safety limits on the router:
 
 ```dart
-context.navigate.back();
-context.navigate.forward();
-context.navigate.go(-2);
+final router = Unrouter<AppRoute>(
+  maxRedirectHops: 8,
+  redirectLoopPolicy: RedirectLoopPolicy.error,
+  onRedirectDiagnostics: (event) {
+    debugPrint(
+      'redirect ${event.reason.name} '
+      '${event.hop}/${event.maxHops}: '
+      '${event.trail.map((uri) => uri.toString()).join(' -> ')}',
+    );
+  },
+  routes: [...],
+);
 ```
 
-Navigation calls return `Future<Navigation>` so you can detect allow/cancel/redirect.
-
-## File-based routing (CLI)
-
-Unrouter ships a CLI to scan a pages directory and generate a routes file.
-
-### 1) Create config (optional)
-
-Create `unrouter.config.dart` in your project root (the CLI scans upward from
-current working directory). The CLI reads this file with the analyzer and does
-not execute it.
+## Async loaders
 
 ```dart
-// unrouter.config.dart
-const pagesDir = 'lib/pages';
-const output = 'lib/routes.dart';
+routeWithLoader<UserRoute, User>(
+  path: '/users/:id',
+  parse: (state) => UserRoute(id: state.pathInt('id')),
+  loader: (context) async {
+    final user = await api.fetchUser(context.route.id);
+    context.signal.throwIfCancelled();
+    return user;
+  },
+  builder: (context, route, user) => UserPage(user: user),
+);
 ```
 
-Notes:
-- Both values are optional.
-- Paths can be absolute or relative to `unrouter.config.dart`.
-- CLI flags (`--pages`, `--output`) override the config file.
-- If no config file is found, the CLI uses the nearest `pubspec.yaml` as the root.
-
-### 2) File to route conventions
-
-- `index.dart` maps to the directory root.
-- `[id].dart` maps to a named parameter (`:id`).
-- `[...path].dart` maps to a wildcard (`**:path`) and exposes `path` in params.
-- Group segments in parentheses (e.g. `(auth)`) are ignored in the URL path.
-- `(group).dart` creates a pathless layout for that group; if it is missing, the
-  group is purely organizational.
-- Folder segments map to path segments, and `index.dart` becomes the parent path.
-
-Examples:
-
-```text
-lib/pages/index.dart                  -> /
-lib/pages/about.dart                  -> /about
-lib/pages/users/index.dart            -> /users
-lib/pages/users/[id].dart             -> /users/:id
-lib/pages/docs/[...path].dart         -> /docs/**:path
-lib/pages/(auth)/login.dart           -> /login
-lib/pages/(auth).dart                 -> / (pathless layout)
-lib/pages/(marketing)/about.dart      -> /about
-```
-
-If a path segment has both a file and children, the children are generated as
-nested routes. For example:
-
-```text
-lib/pages/users/[id].dart
-lib/pages/users/[id]/settings.dart
-```
-
-Generates a nested tree equivalent to:
+Use `Unrouter.loading` to render a global loading widget before first route resolve:
 
 ```dart
-Inlet(
-  path: 'users/:id',
-  factory: UserDetailPage.new,
-  children: [
-    Inlet(path: 'settings', factory: UserSettingsPage.new),
+final router = Unrouter<AppRoute>(
+  loading: (_) => const Center(child: CircularProgressIndicator()),
+  routes: [...],
+);
+```
+
+Use `context.signal.isCancelled` or `context.signal.throwIfCancelled()` inside
+guards/loaders for cooperative cancellation.
+
+## Shell and branches
+
+```dart
+final router = Unrouter<AppRoute>(
+  routes: [
+    ...shell<AppRoute>(
+      branches: [
+        branch<AppRoute>(
+          initialLocation: Uri(path: '/feed'),
+          routes: [
+            route<FeedRoute>(
+              path: '/feed',
+              parse: (_) => const FeedRoute(),
+              builder: (_, _) => const FeedPage(),
+            ),
+            route<PostRoute>(
+              path: '/feed/posts/:id',
+              parse: (state) => PostRoute(id: state.pathInt('id')),
+              builder: (_, route) => PostPage(id: route.id),
+            ),
+          ],
+        ),
+        branch<AppRoute>(
+          initialLocation: Uri(path: '/settings'),
+          routes: [
+            route<SettingsRoute>(
+              path: '/settings',
+              parse: (_) => const SettingsRoute(),
+              builder: (_, _) => const SettingsPage(),
+            ),
+          ],
+        ),
+      ],
+      builder: (context, shell, child) {
+        return Scaffold(
+          body: child,
+          bottomNavigationBar: NavigationBar(
+            selectedIndex: shell.activeBranchIndex,
+            onDestinationSelected: (index) => shell.goBranch(index),
+            destinations: const [
+              NavigationDestination(icon: Icon(Icons.home), label: 'Feed'),
+              NavigationDestination(
+                icon: Icon(Icons.settings),
+                label: 'Settings',
+              ),
+            ],
+          ),
+        );
+      },
+    ),
   ],
 );
 ```
 
-If both `users.dart` and `users/index.dart` exist, `users.dart` becomes the
-parent route and `users/index.dart` becomes its index child (`path: ''`).
+`shell.goBranch(index)` restores the branch's current stack top.
+Use `shell.goBranch(index, initialLocation: true)` to reset the branch to its
+configured `initialLocation`.
+Use `shell.goBranch(index, completePendingResult: true, result: value)` when
+branch switching should also complete the current pending push result.
+Use `shell.canPopBranch` / `shell.popBranch()` to pop inside the active branch
+stack.
+Use `shell.popBranch(result)` to complete the active pushed route with a typed
+result.
+The same shell semantics are available from machine dispatch via
+`UnrouterMachineCommand.switchBranch(...)` and
+`UnrouterMachineCommand.popBranch(...)`.
+Shell branch stacks are also serialized into `history.state` so recreating the
+router from a saved `HistoryLocation` restores per-branch stacks.
+State envelope format and compatibility rules are documented in
+`docs/state_envelope.md`.
 
-### 3) Add metadata (optional)
+## Parser helpers
 
-You can add page-level metadata to influence generated routes:
+`RouteParserState` provides:
 
-```dart
-// lib/pages/users/[id].dart
-import 'package:flutter/widgets.dart';
-import 'package:unrouter/unrouter.dart';
-
-Future<GuardResult> authGuard(GuardContext context) async {
-  return GuardResult.allow;
-}
-
-const route = RouteMeta(
-  name: 'userDetail',
-  guards: const [authGuard],
-);
-```
-
-You can also attach metadata directly to the page widget. If any widget in a
-page file has `@RouteMeta(...)`, that widget becomes the page widget for
-generation (even if it doesn't end with `Page` or `Screen`):
-
-```dart
-// lib/pages/users/[id].dart
-import 'package:flutter/widgets.dart';
-import 'package:unrouter/unrouter.dart';
-
-Future<GuardResult> authGuard(GuardContext context) async {
-  return GuardResult.allow;
-}
-
-@RouteMeta(
-  name: 'userDetail',
-  guards: const [authGuard],
-)
-class UserDetailPage extends StatelessWidget {
-  const UserDetailPage({super.key});
-
-  @override
-  Widget build(BuildContext context) => const SizedBox();
-}
-```
-
-When using annotations, arguments must be compile-time constants: `name` must
-be a const string literal or a const identifier referencing a const, and
-`guards` must be a const list literal of const public guard function
-identifiers. If you need non-const expressions, keep using the top-level
-`route` variable.
-
-For top-level `route` variables, if `name` or `guards` are not literals, the
-generator falls back to `route.name` / `route.guards` when building `Inlet`s.
-
-### 4) Use the generated routes
-
-```dart
-import 'package:unrouter/unrouter.dart';
-import 'routes.dart';
-
-final router = Unrouter(
-  routes: routes,
-);
-```
-
-The generator picks the widget class for a page file by:
-1) Prefer a widget annotated with `@RouteMeta(...)`.
-2) Otherwise, prefer class names ending in `Page` or `Screen`.
-3) Otherwise, use the first class that extends a `Widget` type.
-
-### 5) Generate routes
-
-- `unrouter generate` (one-time build)
-- `unrouter watch` (rebuild on changes)
-
-Use `--verbose` on `generate` to print a detailed route table.
-
-### CLI options
-
-Global options (all commands):
-- `-p, --pages`  Pages directory (default: `lib/pages`)
-- `-o, --output` Generated file path (default: `lib/routes.dart`)
-- `--no-color`   Disable ANSI colors (also respects `NO_COLOR`)
-- `-h, --help`   Show usage
-
-Command options:
-- `scan`: `-q, --quiet`, `--json`
-- `init`: `-f, --force`, `-q, --quiet`
-- `generate`: `-v, --verbose`, `-q, --quiet`, `--json`
-- `watch`: `-q, --quiet`
-
-## Guards
-
-Guards run from root to leaf and can allow, cancel, or redirect navigation.
-
-```dart
-Future<GuardResult> authGuard(GuardContext context) async {
-  if (!auth.isSignedIn) {
-    return GuardResult.redirect(name: 'login');
-  }
-  return GuardResult.allow;
-}
-
-Unrouter(
-  guards: [authGuard],
-  routes: RouteIndex.fromRoutes(const [
-    Inlet(path: 'login', factory: LoginPage.new),
-    Inlet(path: 'admin', factory: AdminPage.new),
-  ]),
-)
-```
-
-## Route blockers
-
-Use `RouteBlocker` to intercept back/pop events and confirm navigation.
-
-```dart
-RouteBlocker(
-  onWillPop: (context) async => !await confirmLeave(),
-  child: Routes(RouteIndex.fromRoutes([
-    Inlet(factory: EditPage.new),
-  ])),
-)
-```
-
-## Link widget
-
-`Link` renders a tappable widget that navigates on click/tap and supports
-named routes, paths, params, query, and fragment.
-
-```dart
-Link(
-  name: 'userDetail',
-  params: const {'id': '123'},
-  child: const Text('View profile'),
-)
-```
-
-## Route animations
-
-Access per-route animation controllers:
-
-```dart
-final animation = context.routeAnimation();
-```
-
-## Navigator 1.0 compatibility
-
-Enable the embedded Navigator 1.0 for dialogs, bottom sheets, and other
-Navigator APIs:
-
-```dart
-Unrouter(
-  enableNavigator1: true,
-  routes: RouteIndex.fromRoutes(const [...]),
-)
-```
-
-## Web URL strategy
-
-```dart
-Unrouter(
-  strategy: .browser, // or .hash
-  routes: RouteIndex.fromRoutes(const [...]),
-)
-```
-
-Use hash strategy when you cannot configure server rewrites.
-
-## State restoration
-
-```dart
-MaterialApp.router(
-  routerConfig: router,
-  restorationScopeId: 'unrouter',
-)
-```
-
-## Testing
-
-```bash
-flutter test
-```
-
-## Example app
-
-```bash
-cd example
-flutter run
-```
-
-## Contributing
-
-```bash
-git clone https://github.com/medz/unrouter.git
-cd unrouter
-flutter pub get
-```
-
-```bash
-dart format .
-flutter analyze
-flutter test
-```
-
-Follow `flutter_lints` and keep changes focused.
-
-## License
-
-MIT License - see [LICENSE](LICENSE) for details.
-
-<p align="right">
-  Built with ❤️ by <a href="https://github.com/medz">Seven Du</a>
-</p>
+- `path`, `pathOrNull`, `pathInt`
+- `query`, `queryOrNull`, `queryInt`, `queryIntOrNull`, `queryEnum`

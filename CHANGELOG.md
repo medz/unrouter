@@ -1,228 +1,77 @@
 ## Unreleased
 
-### Breaking Changes
-
-- Replace route matching with roux full-path semantics; partial matching and
-  optional `?` segments are no longer supported.
-- `Unrouter` and `Routes` now take a `RouteIndex` instead of a `List<Inlet>`,
-  and the CLI generator emits `RouteIndex.fromRoutes(...)`.
-
-### Features
-
-- CLI file-based routing now supports `@RouteMeta(...)` annotations on page
-  widgets in addition to top-level `route` variables.
-
-## 0.7.1 (2026-01-24)
-
-### Fixes
-
-- File-based catch-all pages now expose named wildcard params for `[...name]`
-  patterns and `*name` route segments.
-
-## 0.7.0 (2026-01-24)
-
-### Features
-
-- File-based routing now supports group segments like `(auth)` and optional
-  `(group).dart` pathless layouts.
-- Allow layout files to coexist with index children (e.g. `users.dart` +
-  `users/index.dart`) for nested routes.
-
-### Improvements
-
-- CLI route generation now understands group layouts and layout+index nesting.
-
-### Fixes
-
-- Guard against empty city segments in the example concerts page.
-
-### Testing
-
-- Added CLI tests for group layouts and layout+index nesting.
-
-### Documentation
-
-- Document group segments and layout/index behavior; update example README.
-
-### Example
-
-- Migrate the example app to file-based routing with generated routes.
-
-## 0.6.0 (2026-01-24)
-
-### Breaking Changes
-
-- `Navigate` and `Link` now use named arguments with `name` or `path`; `query`
-  replaces `queryParameters` for navigation and URI generation.
-- Guard APIs now use `RouteLocation` in `GuardContext` and accept named route or
-  path data in `GuardResult.redirect`.
-
-### Features
-
-- **Named routes**: add `Inlet.name`, name-based navigation, and
-  `Navigate.route(...)` for URI generation from names or path patterns.
-- **Route location names**: expose the matched route name via `RouteLocation`
-  (available from `context.location`).
-- **Path patterns**: allow params, optional segments, and wildcards to be
-  substituted when navigating or generating URIs.
-- **File-based routing (CLI)**: add `unrouter init/scan/generate/watch` with a
-  `unrouter.config.dart` config file and a routes generator from a pages
-  directory.
-- **Route metadata for generators**: introduce `RouteMeta` so pages can declare
-  route `name` and `guards` for generated routes.
-
-### Improvements
-
-- Route matching now prefers more specific routes (static > params > wildcard),
-  with definition order as the tiebreaker.
-- File routing generator supports nested routes, dynamic segments, and
-  wildcards, with guard/name inference where possible.
-- CLI supports `--json`, `--quiet`, `--verbose`, short aliases, and improved
-  output formatting (including watch status panels).
-
-### Fixes
-
-- Encode dynamic path segments when building URIs and throw clear errors for
-  missing wildcard params.
-- Include route names in `RouteLocation` and `RouteState` equality/hashCode.
-- Harden CLI file parsing and escaping for generated config/routes.
-
-### Testing
-
-- Added tests for named routes and specificity-based matching.
-- Added CLI tests for init/scan/generate and file routing edge cases.
-
-### Documentation
-
-- Document file-based routing conventions, CLI usage, and RouteMeta.
-
-## 0.5.1 (2025-12-24)
-
-### Improvements
-
-- Refactor guard execution and history listener logic for clarity without
-  behavior changes.
-
-### Fixes
-
-- Export `UrlStrategy` from the public API so `package:unrouter/unrouter.dart`
-  can access it directly.
-
-## 0.5.0 (2025-12-21)
-
-### Features
-
-- **Route blockers**: add `RouteBlocker` to intercept back/pop navigation with
-  level-aware blocking and optional `onBlocked` callbacks (supports widget-scoped
-  `Routes`).
-
-## 0.4.0 (2025-12-20)
-
-### Breaking Changes
-
-- `Link.builder` constructor removed. Use `Link(builder: ...)` and provide
-  either `child` or `builder` (not both).
-- `Navigate` methods now return `Future<Navigation>`; await when you need to
-  know whether navigation succeeded, redirected, or was cancelled.
-- `UnrouterNavigationContext` extension renamed to `UnrouterBuildContext`.
-- `RouterState` renamed to `RouteState`, and `RouterStateProvider` to `RouteStateScope`.
-  Use `context.routeState` / `context.maybeRouteState` to read the state.
-- Removed `Navigate.of`, `Unrouter.of`, and `RouteStateScope.of/maybeOf`.
-  Use `context.navigate`, `context.router`, and `context.routeState` instead.
-- `createHistory` is no longer exported; pass a `History` instance explicitly.
-
-### Features
-
-- **Navigation guards**: add `guards` and `maxRedirects` to intercept navigation
-  (`allow`, `cancel`, `redirect`) across push/replace/pop and external route updates.
-- **Route-level guards**: allow `Inlet.guards` to run per-route guards from
-  root to leaf after global guards.
-- **Route animations**: add `context.routeAnimation(...)` to access per-route
-  animation controllers for push/replace/pop transitions.
-- **Granular route state accessors**: add `context.location`,
-  `context.matchedRoutes`, `context.params`, `context.routeLevel`,
-  `context.historyIndex`, and `context.historyAction` for fine-grained rebuilds.
-
-### Fixes
-
-- Preserve cached stacked-route entries when their order changes, preventing
-  unnecessary rebuilds in layout/nested routes.
-- Pop navigation without guards now resolves in the same frame.
-
-### Testing
-
-- Added guard tests for async guards, error handling, short-circuiting, setNewRoutePath,
-  pop redirects, and null-delta pop events.
-
-## 0.3.0
-
-### Features
-
-- **Navigator 1.0 compatibility**: added `enableNavigator1` (default `true`) so APIs like `showDialog`, `showModalBottomSheet`, `showMenu`, and `Navigator.push/pop` work when using `Unrouter`.
-- **Example updates**: the example app now demonstrates Navigator 1.0 APIs alongside existing routing patterns.
-
-### Improvements
-
-- `popRoute` now delegates to the embedded Navigator first (when enabled) before falling back to history navigation.
-- Relative navigation now normalizes dot segments (`.` / `..`) and clamps above-root paths.
-
-### Testing
-
-- Added comprehensive widget tests covering Navigator 1.0 overlays, push/pop/popUntil, and nested Navigator behavior.
-- Added tests for relative navigation dot-segment normalization.
-
-## 0.2.0
-
-### Breaking Changes
-
-- **Navigation API refactored**: History navigation methods (`back()`, `forward()`, `go()`) are now accessed through `navigate` property
-  - Before: `router.back()`
-  - After: `router.navigate.back()`
-- **Internal reorganization**: Removed `router_delegate.dart` file. The `Navigate` interface and router delegate logic have been consolidated into `router.dart`
-
-### Features
-
-- **Link widget**: Added declarative navigation with the new `Link` widget (#5)
-  - Simple usage: `Link(to: Uri.parse('/about'), child: Text('About'))`
-  - Advanced usage: `Link.builder` for custom gesture handling
-  - Supports `replace` and `state` parameters
-  - Automatic mouse cursor (click) and accessibility semantics (link role)
-  - Example: Build navigation links without imperative callbacks
-- **BuildContext extensions**: Added convenient extensions for navigation (#6)
-  - Use `context.navigate` to access navigation methods from any widget
-  - Use `context.router` to access the router instance
-  - Example: `context.navigate(.parse('/about'))`
-- **Better error messages**: `Navigate.of()` now throws helpful `FlutterError` with clear messages when:
-  - Called outside a Router scope
-  - Router delegate doesn't implement `Navigate`
-
-### Improvements
-
-- Changed `matchRoutes` parameter type from `List<Inlet>` to `Iterable<Inlet>` for better flexibility
-- Updated examples to demonstrate new BuildContext extension usage
-- Added comprehensive tests for context navigation features
-
-### Migration Guide
-
-Update your navigation code to use the new API:
-
-```dart
-// Before
-router.back()
-router.forward()
-router.go(-1)
-
-// After
-router.navigate.back()
-router.navigate.forward()
-router.navigate.go(-1)
-
-// Or use the new BuildContext extension
-context.navigate.back()
-```
-
-## 0.1.1
-
-- Update package description and add pub topics
-- Remove routingkit dependency and format product card
-- Format Dart code with dart format
+- Introduce a typed-route MVP API with generic `Unrouter<R extends RouteData>`, `route<T>()`, and `RouteParserState` helpers.
+- Implement a working `Unrouter` RouterConfig with URL matching, unknown/error handling, and browser-style history integration.
+- Add `BuildContext` navigation access via `context.unrouter` supporting `go`, `push`, `replace`, `back`, `forward`, and `href`.
+- Add async route hooks with `guards`, `redirect`, and `routeWithLoader`, plus cooperative cancellation via `RouteExecutionSignal`.
+- Add `shell()` / `branch()` API for nested shell routing with per-branch route stacks, branch-local pop support, and optional initial-location reset.
+- Add typed `BuildContext` access via `context.unrouterAs<R>()` while keeping `context.unrouter` as untyped fallback.
+- Add typed push result futures via `push<T>() -> Future<T?>` and `pop(result)` delivery on back navigation, including shell branch-local pop flows, plus optional `completePendingResult` policy for replace/go and shell `goBranch`.
+- Add route-level page customization (`pageBuilder`) and transition customization (`transitionBuilder`, transition durations).
+- Add redirect safety controls with `maxRedirectHops` and `redirectLoopPolicy`, including loop and hop-limit error handling and `onRedirectDiagnostics` reporting.
+- Add route-state introspection via `context.unrouter.state`, `stateListenable`, and `stateTimeline`, with timeline reset support.
+- Add `context.unrouter.inspector` for devtools-friendly debug reports and timeline-tail snapshots.
+- Add `UnrouterInspectorWidget` and `UnrouterRedirectDiagnosticsStore` for on-screen route-state/timeline/redirect diagnostics visualization.
+- Add inspector filtering/search/export capabilities via timeline/redirect query filters and `exportDebugReportJson`.
+- Add `UnrouterInspectorBridge` with stream/sink output (`UnrouterInspectorJsonSink`, callback sink) for external diagnostics pipelines.
+- Add `UnrouterInspectorPanelAdapter` + panel state model for buffered bridge-stream consumption in DevTools-like panels.
+- Add `UnrouterInspectorPanelWidget` for DevTools-style entry list/details with query/reason filtering and selected-emission export.
+- Add `UnrouterInspectorReplayStore` with bounded capture, JSON export/import, and controllable emission replay.
+- Add `UnrouterInspectorReplayController` with replay speed presets, scrub range/cursor, bookmarks, and pause/resume/stop lifecycle.
+- Add replay persistence layer (`UnrouterInspectorReplayPersistence`) with pluggable storage adapters and version migration hooks.
+- Connect replay controls into `UnrouterInspectorPanelWidget` via timeline markers and play/pause/speed/bookmark actions.
+- Add replay session diff utilities (`UnrouterInspectorReplayComparator`) with sequence/path comparison modes and structured diff summaries.
+- Add timeline zoom controls and replay-diff highlighting in `UnrouterInspectorPanelWidget`, plus grouped bookmark rendering by bookmark group and side-by-side compare rows.
+- Add panel compare folding and diff-only timeline marker filter controls in `UnrouterInspectorPanelWidget`.
+- Add panel diff-cluster grouping by continuous sequence segments, with per-cluster collapse/expand controls in `UnrouterInspectorPanelWidget`.
+- Add panel compare cluster risk summary and one-click high-risk controls (`risk-only` filter + next high-risk jump) in `UnrouterInspectorPanelWidget`.
+- Add replay persistence adapter templates for `shared_preferences` and file callbacks in `docs/replay_persistence_examples.md`.
+- Add nested shell branch-stack restoration snapshots persisted in `history.state`, so branch stacks survive router recreation from saved history locations.
+- Add restoration edge-case tests for mixed shell/non-shell transitions, repeated router recreation, browser-style forward jumps, and long-lived mixed-history checkpoint replay.
+- Add `docs/state_machine_draft.md` to capture the declarative event-driven state-machine evolution target and compatibility mapping.
+- Route `UnrouterController` navigation APIs through an internal dispatch adapter backed by an event-driven navigation machine scaffold.
+- Add an internal route machine in `UnrouterDelegate` to run resolve/redirect/blocked/commit lifecycle with transition event recording.
+- Add machine transition timeline tails to inspector debug reports so bridge/replay payloads carry unified route + navigation machine traces.
+- Add machine timeline filtering (`query`, `sources`, `events`) to inspector APIs and bridge config.
+- Promote machine transition schema to typed source/event enums and include unified `from`/`to` `UnrouterMachineState` snapshots in inspector/bridge/replay payloads.
+- Route and navigation machine transition writes now converge through a shared reducer pipeline (`_UnrouterMachineReducer`).
+- Add public machine dispatch API via `UnrouterMachine`, `UnrouterMachineCommand`, and `BuildContext` accessors (`unrouterMachine` / `unrouterMachineAs`).
+- Add deterministic replay parity test for machine command streams to guard state/transition determinism.
+- Route delegate now submits route requests through machine command ingress (`UnrouterMachineCommand.routeRequest`) before resolve execution.
+- Add typed machine dispatch helper `dispatchTyped<T>()` to avoid untyped `Object?` handling at call sites.
+- Add shell/branch deterministic machine-command parity test coverage.
+- Move route-machine execution ownership into `UnrouterController` runtime and wire delegate resolution through controller configuration hooks.
+- Make `UnrouterMachineCommand` strongly typed (command return type is encoded in the command) and remove dispatch-time result casting.
+- Add shell semantic machine commands (`switchBranch`, `popBranch`) and cover them in deterministic shell command-stream tests.
+- Add semantic command-matrix coverage for shell machine commands, including `switchBranch` `initialLocation` and `completePendingResult` combinations.
+- Add public declarative machine action draft API (`UnrouterMachineAction` + `dispatchAction<T>()`) mapped onto typed machine commands.
+- Add machine action dispatch envelopes (`dispatchActionEnvelope<T>()`) with explicit `accepted`/`rejected`/`deferred`/`completed` result states.
+- Add typed rejection metadata for machine action envelopes (`rejectCode`/`rejectReason`) to improve action failure diagnostics.
+- Add declarative action parity helpers `replaceUri` and `replaceRoute` to align with replace command surface.
+- Add unified declarative navigation helpers `navigateUri` / `navigateRoute` with explicit `mode` (`go`/`replace`).
+- Emit controller-level machine transitions (`event=actionEnvelope`) carrying envelope state payloads for inspector/bridge/replay tracing.
+- Add envelope payload schema version metadata for machine timeline consumers (`actionEnvelopeSchemaVersion` + envelope `schemaVersion`).
+- Add envelope `eventVersion`/`producer` metadata and payload mirrors (`actionEnvelopeEventVersion`, `actionEnvelopeProducer`) for tooling compatibility.
+- Add deferred envelope settlement transitions (`actionEnvelopePhase=settled`) so async action completion is visible in machine timelines.
+- Add semantic machine event grouping (`UnrouterMachineEventGroup`) to transition payloads and inspector/bridge filtering (`machineEventGroups`).
+- Add machine event-group quick filter controls to `UnrouterInspectorPanelWidget` (`all` + per-group toggles) for entry visibility filtering.
+- Add long-seed regression coverage asserting command/action machine stream equivalence.
+- Add shell action-envelope rejection coverage for typed reject codes (`branchUnavailable`, `branchEmpty`).
+- Add panel machine-group change callback (`onMachineEventGroupsChanged`) and bridge helper (`updateMachineEventGroups`) to sync UI filter state back into bridge config.
+- Allow `UnrouterInspectorBridgeConfig.copyWith(...)` to explicitly clear nullable filters (for example `machineEventGroups: null`).
+- Add `docs/state_envelope.md` documenting `history.state` envelope schema, versioning, and user-state merge behavior.
+- Add structured machine action failure model (`UnrouterMachineActionFailure`) to envelope rejections with category/retryable/metadata fields while preserving legacy reject mirrors.
+- Bump machine action-envelope schema/event versions to `2`, add explicit compatibility helpers, and document the contract in `docs/machine_action_envelope_schema.md`.
+- Add replay compatibility validation API (`validateActionEnvelopeCompatibility`) with issue reporting for malformed/incompatible action-envelope machine timeline entries.
+- Add typed machine transition event projection (`entry.typed`, `machine.typedTimeline`, `debugTypedMachineTimeline`) with typed action-envelope payload parsing.
+- Expand typed machine transition projection to include navigation-source and route-source payload models.
+- Add controller-source typed payload projection for lifecycle transitions (`initialized`) via `UnrouterMachineControllerTypedPayload`.
+- Add explicit controller lifecycle machine events (`controllerRouteMachineConfigured`, `controllerHistoryStateComposerChanged`, `controllerShellResolversChanged`, `controllerDisposed`) with typed payload metadata.
+- Add panel replay compatibility summary (`issues/errors/warnings`) and next-issue jump action for action-envelope diagnostics.
+- Add performance budget regression tests covering typed machine transition projection and replay action-envelope compatibility validation throughput.
+- Add machine payload-kind quick filter controls to `UnrouterInspectorPanelWidget` with `initialMachinePayloadKinds` / `onMachinePayloadKindsChanged`.
+- Add replay compatibility lifecycle coverage validation for controller lifecycle events and expose `validateCompatibility()` as the primary replay validator (`validateActionEnvelopeCompatibility()` remains as alias).
+- Add controller lifecycle replay fixture coverage for machine timeline compatibility validation.
+- Promote redesigned `unrouter` package from `pub/unrouter` to repository root and retire legacy top-level CLI/history/router surface.
+- Add tests for route resolution, parser/guard/redirect behavior, cancellation handling, and widget navigation/back behavior.
+- Add `docs/target_knowledge.md` to capture routing north-star principles and phased roadmap.
