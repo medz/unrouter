@@ -37,6 +37,27 @@ class ShellRestorationSnapshot {
     };
   }
 
+  static ShellRestorationSnapshot fromStacks({
+    required int activeBranchIndex,
+    required Map<int, ShellBranchStackState> stacks,
+  }) {
+    final serialized = <int, ShellBranchStackState>{};
+    stacks.forEach((branchIndex, stack) {
+      if (stack.entries.isEmpty) {
+        return;
+      }
+      final safeIndex = stack.index.clamp(0, stack.entries.length - 1);
+      serialized[branchIndex] = ShellBranchStackState(
+        entries: stack.entries,
+        index: safeIndex,
+      );
+    });
+    return ShellRestorationSnapshot(
+      activeBranchIndex: activeBranchIndex,
+      stacks: serialized,
+    );
+  }
+
   static ShellRestorationSnapshot? tryParse(Object? value) {
     if (value is! Map<Object?, Object?>) {
       return null;
