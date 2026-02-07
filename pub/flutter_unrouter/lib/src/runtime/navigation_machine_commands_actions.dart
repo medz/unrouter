@@ -98,6 +98,7 @@ sealed class UnrouterMachineCommand<T extends Object?>
   UnrouterMachineEvent get event;
 
   /// Executes command against runtime.
+  @override
   T execute(UnrouterMachineCommandRuntime runtime);
 }
 

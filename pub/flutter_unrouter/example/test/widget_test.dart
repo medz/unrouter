@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:unrouter_example/main.dart';
+import 'package:flutter_unrouter_example/main.dart';
 
 void main() {
   testWidgets('push detail returns typed result to home', (tester) async {
