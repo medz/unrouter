@@ -1,21 +1,28 @@
 import 'package:flutter/widgets.dart';
-import 'package:roux/roux.dart';
 import 'package:unrouter/unrouter.dart'
     show
-        RouteExecutionCancelledException,
-        RouteExecutionSignal,
-        RouteHookContext,
-        RouteParserState;
+        RedirectDiagnosticsCallback,
+        RedirectLoopPolicy,
+        RouteExecutionSignal;
+import 'package:unrouter/unrouter.dart' as core
+    show RouteRecord, RouteResolution, RouteResolutionType, Unrouter;
 import 'router_delegate.dart';
 import 'package:unstory/unstory.dart';
 
 import '../core/route_data.dart';
-import '../core/redirect_diagnostics.dart';
 import '../core/route_definition.dart';
 import '../platform/route_information_parser.dart';
 import '../platform/route_information_provider.dart';
 
 export '../core/redirect_diagnostics.dart';
+
+typedef _CoreRouteRecord<T extends RouteData> = core.RouteRecord<T>;
+typedef _CoreRouteResolution<R extends RouteData> = core.RouteResolution<R>;
+typedef _CoreRouteResolutionType = core.RouteResolutionType;
+typedef _CoreUnrouter<R extends RouteData> = core.Unrouter<R>;
+
+typedef RouteResolutionType = _CoreRouteResolutionType;
+typedef RouteResolution<R extends RouteData> = _CoreRouteResolution<R>;
 
 /// Builds a fallback widget for unmatched locations.
 typedef UnknownRouteBuilder = Widget Function(BuildContext context, Uri uri);
@@ -56,14 +63,19 @@ class Unrouter<R extends RouteData> extends StatelessWidget
          'Unrouter machineTimelineLimit must be greater than zero.',
        ),
        routes = List<RouteRecord<R>>.unmodifiable(routes),
-       _matcher = _createMatcher(routes),
+       _core = _CoreUnrouter<R>(
+         routes: routes.cast<_CoreRouteRecord<R>>(),
+         maxRedirectHops: maxRedirectHops,
+         redirectLoopPolicy: redirectLoopPolicy,
+         onRedirectDiagnostics: onRedirectDiagnostics,
+       ),
        routeInformationProvider = UnrouterRouteInformationProvider(
          history ?? createHistory(base: base, strategy: strategy),
        );
 
   /// Immutable route table consumed by the matcher.
   final List<RouteRecord<R>> routes;
-  final RouterContext<RouteRecord<R>> _matcher;
+  final _CoreUnrouter<R> _core;
 
   /// Optional builder for unknown locations.
   final UnknownRouteBuilder? unknown;
@@ -110,90 +122,7 @@ class Unrouter<R extends RouteData> extends StatelessWidget
   Future<RouteResolution<R>> resolve(
     Uri uri, {
     required RouteExecutionSignal signal,
-  }) async {
-    final normalizedUri = _normalizeUri(uri);
-    final lookupPath = _normalizeLookupPath(normalizedUri.path);
-    final matched = findRoute<RouteRecord<R>>(_matcher, null, lookupPath);
-    if (matched == null) {
-      return RouteResolution.unmatched(normalizedUri);
-    }
-
-    final params = matched.params ?? const <String, String>{};
-    final state = RouteParserState(uri: normalizedUri, pathParameters: params);
-
-    late final R route;
-    try {
-      route = matched.data.parse(state);
-    } catch (error, stackTrace) {
-      return RouteResolution.error(
-        uri: normalizedUri,
-        error: error,
-        stackTrace: stackTrace,
-      );
-    }
-
-    final context = RouteHookContext<RouteData>(
-      uri: normalizedUri,
-      route: route,
-      signal: signal,
-    );
-
-    try {
-      signal.throwIfCancelled();
-
-      final redirectUri = await matched.data.runRedirect(context);
-      signal.throwIfCancelled();
-      if (redirectUri != null) {
-        return RouteResolution.redirect(
-          uri: normalizedUri,
-          redirectUri: _normalizeUri(redirectUri),
-        );
-      }
-
-      final guardResult = await matched.data.runGuards(context);
-      signal.throwIfCancelled();
-      if (guardResult.isRedirect) {
-        final target = guardResult.redirectUri;
-        if (target == null) {
-          return RouteResolution.error(
-            uri: normalizedUri,
-            error: StateError(
-              'Route guard returned redirect without target uri for path '
-              '"${matched.data.path}".',
-            ),
-            stackTrace: StackTrace.current,
-          );
-        }
-
-        return RouteResolution.redirect(
-          uri: normalizedUri,
-          redirectUri: _normalizeUri(target),
-        );
-      }
-
-      if (guardResult.isBlocked) {
-        return RouteResolution.blocked(normalizedUri);
-      }
-
-      final loaderData = await matched.data.load(context);
-      signal.throwIfCancelled();
-
-      return RouteResolution.matched(
-        uri: normalizedUri,
-        route: route,
-        record: matched.data,
-        loaderData: loaderData,
-      );
-    } on RouteExecutionCancelledException {
-      rethrow;
-    } catch (error, stackTrace) {
-      return RouteResolution.error(
-        uri: normalizedUri,
-        error: error,
-        stackTrace: stackTrace,
-      );
-    }
-  }
+  }) => _core.resolve(uri, signal: signal);
 
   @override
   Widget build(BuildContext context) {
@@ -202,137 +131,4 @@ class Unrouter<R extends RouteData> extends StatelessWidget
       restorationScopeId: restorationScopeId,
     );
   }
-
-  static RouterContext<RouteRecord<R>> _createMatcher<R extends RouteData>(
-    List<RouteRecord<R>> routes,
-  ) {
-    final matcher = createRouter<RouteRecord<R>>(caseSensitive: true);
-    for (final route in routes) {
-      addRoute<RouteRecord<R>>(matcher, null, route.path, route);
-    }
-    return matcher;
-  }
-
-  static Uri _normalizeUri(Uri uri) {
-    final normalizedPath = _normalizeLookupPath(uri.path);
-    if (normalizedPath == uri.path) {
-      return uri;
-    }
-
-    return uri.replace(path: normalizedPath);
-  }
-
-  static String _normalizeLookupPath(String path) {
-    if (path.isEmpty) {
-      return '/';
-    }
-
-    if (!path.startsWith('/')) {
-      return '/$path';
-    }
-
-    return path;
-  }
-}
-
-/// Route resolution lifecycle state.
-enum RouteResolutionType {
-  pending,
-  matched,
-  unmatched,
-  redirect,
-  blocked,
-  error,
-}
-
-/// Result returned by [Unrouter.resolve].
-class RouteResolution<R extends RouteData> {
-  const RouteResolution._({
-    required this.type,
-    required this.uri,
-    this.record,
-    this.route,
-    this.loaderData,
-    this.redirectUri,
-    this.error,
-    this.stackTrace,
-  });
-
-  factory RouteResolution.pending(Uri uri) {
-    return RouteResolution._(type: RouteResolutionType.pending, uri: uri);
-  }
-
-  factory RouteResolution.matched({
-    required Uri uri,
-    required RouteRecord<R> record,
-    required R route,
-    Object? loaderData,
-  }) {
-    return RouteResolution._(
-      type: RouteResolutionType.matched,
-      uri: uri,
-      record: record,
-      route: route,
-      loaderData: loaderData,
-    );
-  }
-
-  factory RouteResolution.unmatched(Uri uri) {
-    return RouteResolution._(type: RouteResolutionType.unmatched, uri: uri);
-  }
-
-  factory RouteResolution.redirect({
-    required Uri uri,
-    required Uri redirectUri,
-  }) {
-    return RouteResolution._(
-      type: RouteResolutionType.redirect,
-      uri: uri,
-      redirectUri: redirectUri,
-    );
-  }
-
-  factory RouteResolution.blocked(Uri uri) {
-    return RouteResolution._(type: RouteResolutionType.blocked, uri: uri);
-  }
-
-  factory RouteResolution.error({
-    required Uri uri,
-    required Object error,
-    required StackTrace stackTrace,
-  }) {
-    return RouteResolution._(
-      type: RouteResolutionType.error,
-      uri: uri,
-      error: error,
-      stackTrace: stackTrace,
-    );
-  }
-
-  final RouteResolutionType type;
-  final Uri uri;
-  final RouteRecord<R>? record;
-  final R? route;
-  final Object? loaderData;
-  final Uri? redirectUri;
-  final Object? error;
-  final StackTrace? stackTrace;
-
-  /// Whether resolution is still pending.
-  bool get isPending => type == RouteResolutionType.pending;
-
-  /// Whether a route record matched and parsed successfully.
-  bool get isMatched => type == RouteResolutionType.matched;
-
-  /// Whether no route matched the target URI.
-  bool get isUnmatched => type == RouteResolutionType.unmatched;
-
-  /// Whether resolution requested a redirect.
-  bool get isRedirect => type == RouteResolutionType.redirect;
-
-  /// Whether resolution was blocked by guards.
-  bool get isBlocked => type == RouteResolutionType.blocked;
-
-  /// Whether resolution ended with an exception.
-  bool get hasError => type == RouteResolutionType.error;
 }

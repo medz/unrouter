@@ -5,21 +5,5 @@
 /// routing control or machine diagnostics.
 library;
 
-export 'src/runtime/machine_kernel.dart'
-    show
-        UnrouterMachineSource,
-        UnrouterMachineEventGroup,
-        UnrouterMachineEvent,
-        UnrouterMachineEventGrouping,
-        UnrouterMachineState,
-        UnrouterMachineTransitionEntry,
-        UnrouterMachineTypedPayloadKind,
-        UnrouterMachineTypedPayload,
-        UnrouterMachineGenericTypedPayload,
-        UnrouterMachineNavigationTypedPayload,
-        UnrouterMachineRouteTypedPayload,
-        UnrouterMachineControllerTypedPayload,
-        UnrouterMachineTypedTransition,
-        UnrouterMachineCommand,
-        UnrouterMachine;
+export 'package:unrouter/machine.dart';
 export 'src/runtime/navigation.dart' show UnrouterMachineBuildContextExtension;

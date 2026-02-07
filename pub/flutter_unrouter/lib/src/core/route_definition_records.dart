@@ -52,17 +52,24 @@ class RoutePageBuilderState {
   final Widget child;
 }
 
-abstract interface class RouteRecord<T extends RouteData> {
+abstract interface class RouteRecord<T extends RouteData>
+    implements _CoreRouteRecord<T> {
+  @override
   String get path;
 
+  @override
   String? get name;
 
+  @override
   T parse(RouteParserState state);
 
+  @override
   Future<Uri?> runRedirect(RouteHookContext<RouteData> context);
 
+  @override
   Future<RouteGuardResult> runGuards(RouteHookContext<RouteData> context);
 
+  @override
   Future<Object?> load(RouteHookContext<RouteData> context);
 
   Widget build(BuildContext context, RouteData route, Object? loaderData);

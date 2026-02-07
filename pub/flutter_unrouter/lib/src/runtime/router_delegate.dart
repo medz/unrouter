@@ -2,7 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/widgets.dart';
 import 'package:unrouter/unrouter.dart'
-    show RouteExecutionCancelledException, RouteExecutionSignal;
+    show
+        RouteExecutionCancelledException,
+        RouteExecutionSignal,
+        UnrouterResolutionState,
+        UnrouterStateSnapshot;
 import 'package:unstory/unstory.dart';
 
 import 'navigation.dart';
@@ -156,8 +160,9 @@ class UnrouterDelegate<R extends RouteData>
     }
 
     if (_resolution.isMatched) {
+      final routeRecord = _resolution.record as RouteRecord<R>;
       return Builder(
-        builder: (innerContext) => _resolution.record!.build(
+        builder: (innerContext) => routeRecord.build(
           innerContext,
           _resolution.route!,
           _resolution.loaderData,
@@ -184,7 +189,8 @@ class UnrouterDelegate<R extends RouteData>
     );
 
     if (_resolution.isMatched) {
-      return _resolution.record!.createPage(
+      final routeRecord = _resolution.record as RouteRecord<R>;
+      return routeRecord.createPage(
         key: pageKey,
         name: pageName,
         child: scopedChild,

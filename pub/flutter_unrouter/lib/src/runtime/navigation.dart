@@ -3,14 +3,19 @@ import 'dart:collection';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
+import 'package:unrouter/machine.dart';
+import 'package:unrouter/unrouter.dart'
+    show
+        UnrouterResolutionState,
+        UnrouterStateSnapshot,
+        UnrouterStateTimelineEntry;
 import 'package:unstory/unstory.dart';
 
 import '../core/redirect_diagnostics.dart';
 import '../core/route_data.dart';
 import '../platform/route_information_provider.dart';
-import 'machine_kernel.dart';
 
-export 'machine_kernel.dart';
+export 'package:unrouter/machine.dart';
 
 part 'navigation_machine_runtime.dart';
 part 'navigation_controller_lifecycle.dart';
