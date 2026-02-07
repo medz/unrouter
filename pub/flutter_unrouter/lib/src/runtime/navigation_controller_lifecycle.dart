@@ -78,11 +78,6 @@ extension UnrouterControllerLifecycleMethods<R extends RouteData>
     _stateStore.refresh();
   }
 
-  /// Clears bounded state timeline.
-  void clearStateTimeline() {
-    _stateStore.clearTimeline();
-  }
-
   /// Disposes controller runtime resources.
   void dispose() {
     if (_isDisposed) {

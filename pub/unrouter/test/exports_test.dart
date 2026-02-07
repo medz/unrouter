@@ -6,7 +6,6 @@ void main() {
     expect(unrouter.RouteGuardResult.allow().isAllowed, isTrue);
     expect(unrouter.RedirectLoopPolicy.values, isNotEmpty);
     expect(unrouter.UnrouterResolutionState.values, isNotEmpty);
-    expect(unrouter.UnrouterStateTimelineEntry, isNotNull);
     expect(unrouter.UnrouterController, isNotNull);
   });
 }

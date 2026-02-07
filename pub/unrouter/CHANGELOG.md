@@ -5,7 +5,9 @@
 - Split repository into `pub workspace` packages.
 - `unrouter` is now platform-agnostic and depends only on Dart SDK.
 - Added pure Dart `UnrouterController` runtime with `go/replace/push/pop/back`
-  APIs, redirect handling, and state timeline support.
+  APIs and redirect handling.
+- Removed timeline-related runtime APIs (`UnrouterStateTimelineEntry`,
+  `stateTimeline`, `clearStateTimeline`, `stateTimelineLimit`).
 - Removed Flutter-only runtime APIs from `unrouter`; those APIs moved to
   `flutter_unrouter`.
 - Removed legacy state-machine internals and kept only platform-agnostic route

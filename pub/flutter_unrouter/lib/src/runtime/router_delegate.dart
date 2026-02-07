@@ -26,7 +26,6 @@ class UnrouterDelegate<R extends RouteData>
       routeInformationProvider: _routeInformationProvider,
       routeGetter: () => _resolution.route,
       uriGetter: () => _resolution.uri,
-      stateTimelineLimit: config.stateTimelineLimit,
       stateGetter: () => UnrouterStateSnapshot<RouteData>(
         uri: _resolution.uri,
         route: _resolution.route,

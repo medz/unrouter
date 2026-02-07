@@ -66,25 +66,3 @@ class UnrouterStateSnapshot<R extends RouteData> {
     );
   }
 }
-
-/// Timeline entry wrapper for [UnrouterStateSnapshot].
-class UnrouterStateTimelineEntry<R extends RouteData> {
-  const UnrouterStateTimelineEntry({
-    required this.sequence,
-    required this.recordedAt,
-    required this.snapshot,
-  });
-
-  final int sequence;
-  final DateTime recordedAt;
-  final UnrouterStateSnapshot<R> snapshot;
-
-  /// Casts timeline route type.
-  UnrouterStateTimelineEntry<S> cast<S extends RouteData>() {
-    return UnrouterStateTimelineEntry<S>(
-      sequence: sequence,
-      recordedAt: recordedAt,
-      snapshot: snapshot.cast<S>(),
-    );
-  }
-}

@@ -4,10 +4,7 @@ import 'dart:collection';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:unrouter/unrouter.dart'
-    show
-        UnrouterResolutionState,
-        UnrouterStateSnapshot,
-        UnrouterStateTimelineEntry;
+    show UnrouterResolutionState, UnrouterStateSnapshot;
 import 'package:unstory/unstory.dart';
 
 import '../core/redirect_diagnostics.dart';
@@ -44,7 +41,6 @@ class UnrouterController<R extends RouteData> {
     required R? Function() routeGetter,
     required Uri Function() uriGetter,
     UnrouterStateSnapshot<RouteData> Function()? stateGetter,
-    int stateTimelineLimit = 64,
   }) : this._(
          routeInformationProvider: routeInformationProvider,
          routeGetter: () => routeGetter(),
@@ -78,7 +74,6 @@ class UnrouterController<R extends RouteData> {
                  lastDelta: routeInformationProvider.lastDelta,
                  historyIndex: routeInformationProvider.historyIndex,
                ),
-           timelineLimit: stateTimelineLimit,
          ),
          navigationState: _UnrouterNavigationState(routeInformationProvider),
        );
@@ -177,12 +172,6 @@ class UnrouterController<R extends RouteData> {
 
   ValueListenable<UnrouterStateSnapshot<R>> get stateListenable {
     return _stateListenable;
-  }
-
-  List<UnrouterStateTimelineEntry<R>> get stateTimeline {
-    return List<UnrouterStateTimelineEntry<R>>.unmodifiable(
-      _stateStore.timeline.map((entry) => entry.cast<R>()),
-    );
   }
 
   /// Generates href for a typed route.

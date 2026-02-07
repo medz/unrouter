@@ -265,13 +265,11 @@ class UnrouterController<R extends RouteData> {
   UnrouterController({
     required Unrouter<R> router,
     History? history,
-    int stateTimelineLimit = 64,
     bool resolveInitialRoute = true,
     bool disposeHistory = true,
   }) : this._(
          router: router,
          history: history ?? MemoryHistory(),
-         stateTimelineLimit: stateTimelineLimit,
          resolveInitialRoute: resolveInitialRoute,
          disposeHistory: disposeHistory,
        );
@@ -279,16 +277,10 @@ class UnrouterController<R extends RouteData> {
   UnrouterController._({
     required Unrouter<R> router,
     required History history,
-    required int stateTimelineLimit,
     required bool resolveInitialRoute,
     required bool disposeHistory,
-  }) : assert(
-         stateTimelineLimit > 0,
-         'Unrouter stateTimelineLimit must be greater than zero.',
-       ),
-       _router = router,
+  }) : _router = router,
        _history = history,
-       _stateTimelineLimit = stateTimelineLimit,
        _disposeHistory = disposeHistory,
        _lastAction = history.action,
        _trackedHistoryIndex = history.index ?? 0,
@@ -305,7 +297,6 @@ class UnrouterController<R extends RouteData> {
          historyIndex: history.index,
        ) {
     _unlisten = _history.listen(_onHistoryChanged);
-    _appendTimeline(_state);
     if (resolveInitialRoute) {
       _scheduleResolve(_history.location.uri, state: _history.location.state);
     }
@@ -313,20 +304,16 @@ class UnrouterController<R extends RouteData> {
 
   final Unrouter<R> _router;
   final History _history;
-  final int _stateTimelineLimit;
   final bool _disposeHistory;
 
   late final void Function() _unlisten;
 
   final StreamController<UnrouterStateSnapshot<R>> _stateController =
       StreamController<UnrouterStateSnapshot<R>>.broadcast();
-  final List<UnrouterStateTimelineEntry<R>> _stateTimeline =
-      <UnrouterStateTimelineEntry<R>>[];
   final List<Completer<Object?>> _pendingPushResults = <Completer<Object?>>[];
   final ListQueue<Object?> _popResultQueue = ListQueue<Object?>();
 
   UnrouterStateSnapshot<R> _state;
-  int _sequence = 0;
   int _trackedHistoryIndex;
   HistoryAction _lastAction;
   int? _lastDelta;
@@ -363,11 +350,6 @@ class UnrouterController<R extends RouteData> {
 
   /// Current runtime snapshot.
   UnrouterStateSnapshot<R> get state => _state;
-
-  /// Bounded runtime timeline.
-  List<UnrouterStateTimelineEntry<R>> get stateTimeline {
-    return List<UnrouterStateTimelineEntry<R>>.unmodifiable(_stateTimeline);
-  }
 
   /// Broadcast stream of state updates.
   Stream<UnrouterStateSnapshot<R>> get states => _stateController.stream;
@@ -552,22 +534,6 @@ class UnrouterController<R extends RouteData> {
     _emitState(_state);
   }
 
-  /// Clears the bounded state timeline and keeps current state as first entry.
-  void clearStateTimeline() {
-    if (_isDisposed) {
-      return;
-    }
-    _stateTimeline
-      ..clear()
-      ..add(
-        UnrouterStateTimelineEntry<R>(
-          sequence: _sequence++,
-          recordedAt: DateTime.now(),
-          snapshot: _state,
-        ),
-      );
-  }
-
   /// Disposes controller resources.
   void dispose() {
     if (_isDisposed) {
@@ -585,7 +551,6 @@ class UnrouterController<R extends RouteData> {
     }
     _pendingPushResults.clear();
     _popResultQueue.clear();
-    _stateTimeline.clear();
     _stateController.close();
     _redirectChain = null;
     _resolvingUri = null;
@@ -758,7 +723,6 @@ class UnrouterController<R extends RouteData> {
       return;
     }
     _state = next;
-    _appendTimeline(next);
     _emitState(next);
   }
 
@@ -767,20 +731,6 @@ class UnrouterController<R extends RouteData> {
       return;
     }
     _stateController.add(snapshot);
-  }
-
-  void _appendTimeline(UnrouterStateSnapshot<R> snapshot) {
-    _stateTimeline.add(
-      UnrouterStateTimelineEntry<R>(
-        sequence: _sequence++,
-        recordedAt: DateTime.now(),
-        snapshot: snapshot,
-      ),
-    );
-    if (_stateTimeline.length > _stateTimelineLimit) {
-      final removeCount = _stateTimeline.length - _stateTimelineLimit;
-      _stateTimeline.removeRange(0, removeCount);
-    }
   }
 
   bool _isSameSnapshot(UnrouterStateSnapshot<R> a, UnrouterStateSnapshot<R> b) {

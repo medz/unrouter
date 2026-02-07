@@ -8,3 +8,5 @@
 - Added package-local Flutter example and widget test suite.
 - Removed state-machine-oriented public API surface and kept controller API
   focused on runtime navigation/state.
+- Removed timeline-related runtime APIs (`stateTimeline`,
+  `clearStateTimeline`, `stateTimelineLimit`).

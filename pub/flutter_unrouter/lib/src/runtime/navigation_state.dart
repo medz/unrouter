@@ -23,32 +23,18 @@ class _UnrouterTypedStateListenable<R extends RouteData>
 class _UnrouterStateStore {
   _UnrouterStateStore({
     required UnrouterStateSnapshot<RouteData> Function() stateGetter,
-    required int timelineLimit,
-  }) : assert(
-         timelineLimit > 0,
-         'Unrouter stateTimelineLimit must be greater than zero.',
-       ),
-       _stateGetter = stateGetter,
-       _timelineLimit = timelineLimit,
+  }) : _stateGetter = stateGetter,
        _current = ValueNotifier<UnrouterStateSnapshot<RouteData>>(
          stateGetter(),
-       ) {
-    _appendTimeline(_current.value);
-  }
+       );
 
   final UnrouterStateSnapshot<RouteData> Function() _stateGetter;
-  final int _timelineLimit;
   final ValueNotifier<UnrouterStateSnapshot<RouteData>> _current;
-  final List<UnrouterStateTimelineEntry<RouteData>> _timeline =
-      <UnrouterStateTimelineEntry<RouteData>>[];
-  int _sequence = 0;
   bool _isDisposed = false;
 
   ValueListenable<UnrouterStateSnapshot<RouteData>> get listenable => _current;
 
   UnrouterStateSnapshot<RouteData> get current => _current.value;
-
-  List<UnrouterStateTimelineEntry<RouteData>> get timeline => _timeline;
 
   void refresh() {
     if (_isDisposed) {
@@ -61,36 +47,6 @@ class _UnrouterStateStore {
     }
 
     _current.value = next;
-    _appendTimeline(next);
-  }
-
-  void clearTimeline() {
-    if (_isDisposed) {
-      return;
-    }
-    _timeline
-      ..clear()
-      ..add(
-        UnrouterStateTimelineEntry<RouteData>(
-          sequence: _sequence++,
-          recordedAt: DateTime.now(),
-          snapshot: _current.value,
-        ),
-      );
-  }
-
-  void _appendTimeline(UnrouterStateSnapshot<RouteData> snapshot) {
-    _timeline.add(
-      UnrouterStateTimelineEntry<RouteData>(
-        sequence: _sequence++,
-        recordedAt: DateTime.now(),
-        snapshot: snapshot,
-      ),
-    );
-    if (_timeline.length > _timelineLimit) {
-      final removeCount = _timeline.length - _timelineLimit;
-      _timeline.removeRange(0, removeCount);
-    }
   }
 
   bool _isSameSnapshot(
@@ -121,7 +77,6 @@ class _UnrouterStateStore {
       return;
     }
     _isDisposed = true;
-    _timeline.clear();
     _current.dispose();
   }
 }

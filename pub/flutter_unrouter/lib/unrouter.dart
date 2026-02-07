@@ -11,7 +11,6 @@ export 'package:unrouter/unrouter.dart'
     show
         UnrouterResolutionState,
         UnrouterStateSnapshot,
-        UnrouterStateTimelineEntry,
         RouteExecutionCancelledException,
         RouteExecutionSignal,
         RouteGuardResult,
