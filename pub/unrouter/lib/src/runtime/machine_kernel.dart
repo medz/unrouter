@@ -1,4 +1,5 @@
 import 'package:unstory/unstory.dart';
+import 'package:unrouter_machine/unrouter_machine.dart';
 
 import '../core/redirect_diagnostics.dart';
 import '../core/route_data.dart';
@@ -719,7 +720,8 @@ class UnrouterMachineTypedTransition {
 }
 
 /// Runtime contract required by machine commands.
-abstract interface class UnrouterMachineCommandRuntime {
+abstract interface class UnrouterMachineCommandRuntime
+    implements MachineCommandRuntime {
   void goUri(
     Uri uri, {
     Object? state,

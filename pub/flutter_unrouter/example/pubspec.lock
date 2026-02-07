@@ -67,6 +67,13 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_unrouter:
+    dependency: "direct main"
+    description:
+      path: ".."
+      relative: true
+    source: path
+    version: "0.1.0"
   leak_tracker:
     dependency: transitive
     description:
@@ -193,19 +200,13 @@ packages:
     source: hosted
     version: "0.7.7"
   unrouter:
-    dependency: "direct main"
+    dependency: transitive
     description:
-      path: ".."
-      relative: true
-    source: path
+      name: unrouter
+      sha256: "0de051f1403675cdad3e27a4309b750e498401fab03578a81c9e53a6d88efa90"
+      url: "https://pub.dev"
+    source: hosted
     version: "0.9.0"
-  unrouter_machine:
-    dependency: "direct overridden"
-    description:
-      path: "../../unrouter_machine"
-      relative: true
-    source: path
-    version: "0.1.0"
   unstory:
     dependency: transitive
     description:

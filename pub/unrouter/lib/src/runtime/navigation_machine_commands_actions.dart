@@ -3,7 +3,8 @@ part of 'machine_kernel.dart';
 /// Strongly typed machine command API.
 ///
 /// Commands execute directly against [UnrouterMachineCommandRuntime].
-sealed class UnrouterMachineCommand<T extends Object?> {
+sealed class UnrouterMachineCommand<T extends Object?>
+    extends MachineCommand<T, UnrouterMachineCommandRuntime> {
   const UnrouterMachineCommand();
 
   /// Navigates to [uri] using push-like semantics.

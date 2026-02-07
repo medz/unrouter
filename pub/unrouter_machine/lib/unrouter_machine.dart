@@ -1,3 +1,4 @@
 library;
 
-// Machine kernel public API will be implemented in subsequent commits.
+export 'src/command.dart';
+export 'src/transition.dart';

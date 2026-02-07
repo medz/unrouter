@@ -9,7 +9,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  flutter_unrouter: ^0.1.0
+  flutter_unrouter:
+    path: ..
 
 dev_dependencies:
   flutter_test:
