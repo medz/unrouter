@@ -45,6 +45,28 @@ void main() async {
 }
 ```
 
+## Runtime controller (pure Dart)
+
+```dart
+import 'package:unrouter/unrouter.dart';
+import 'package:unstory/unstory.dart';
+
+final router = Unrouter<AppRoute>(
+  routes: [
+    route<HomeRoute>(path: '/', parse: (_) => const HomeRoute()),
+  ],
+);
+
+final controller = UnrouterController<AppRoute>(
+  router: router,
+  history: MemoryHistory(),
+);
+
+await controller.idle;
+print(controller.state.resolution); // matched
+controller.dispose();
+```
+
 ## Flutter usage
 
 For Flutter apps, use `flutter_unrouter` instead:
