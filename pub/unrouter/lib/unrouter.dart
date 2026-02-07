@@ -7,5 +7,6 @@ library;
 export 'src/core/route_data.dart';
 export 'src/core/route_definition.dart';
 export 'src/runtime/unrouter.dart';
+export 'src/shell/shell.dart';
 export 'src/runtime/runtime_state.dart'
     show UnrouterResolutionState, UnrouterStateSnapshot;
