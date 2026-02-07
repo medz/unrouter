@@ -1,6 +1,6 @@
 # Bench
 
-Differential router benchmark suite for `unrouter`, `go_router`, and `zenrouter`.
+Differential router benchmark suite for `flutter_unrouter`, `go_router`, and `zenrouter`.
 
 ## Run
 

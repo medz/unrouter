@@ -20,6 +20,8 @@ dev_dependencies:
 dependency_overrides:
   unrouter_machine:
     path: ../../unrouter_machine
+  unrouter:
+    path: ../../unrouter
 
 flutter:
   uses-material-design: true

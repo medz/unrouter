@@ -199,6 +199,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.7.7"
+  unrouter:
+    dependency: "direct overridden"
+    description:
+      path: "../../unrouter"
+      relative: true
+    source: path
+    version: "0.10.0"
   unrouter_machine:
     dependency: "direct overridden"
     description:
