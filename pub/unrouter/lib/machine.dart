@@ -2,7 +2,7 @@
 /// inspection.
 ///
 /// Import together with `package:unrouter/unrouter.dart` when you need low-level
-/// routing control or machine diagnostics.
+/// routing diagnostics.
 library;
 
 export 'src/runtime/machine_kernel.dart'
@@ -21,5 +21,6 @@ export 'src/runtime/machine_kernel.dart'
         UnrouterMachineControllerTypedPayload,
         UnrouterMachineTypedTransition,
         UnrouterMachineCommand,
-        UnrouterMachine;
-export 'src/runtime/navigation.dart' show UnrouterMachineBuildContextExtension;
+        UnrouterMachine,
+        UnrouterMachineCommandRuntime,
+        UnrouterMachineHost;
