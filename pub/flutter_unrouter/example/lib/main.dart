@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_unrouter/machine.dart';
 import 'package:flutter_unrouter/flutter_unrouter.dart';
 
 void main() {
@@ -8,7 +7,6 @@ void main() {
 
 final DemoSession _session = DemoSession();
 final ValueNotifier<int?> _lastUserResult = ValueNotifier<int?>(null);
-final ValueNotifier<String> _machineBackStatus = ValueNotifier<String>('idle');
 
 Unrouter<AppRoute> _createRouter() {
   return Unrouter<AppRoute>(
@@ -57,7 +55,6 @@ class UnrouterExampleApp extends StatelessWidget {
   UnrouterExampleApp({super.key}) : _router = _createRouter() {
     _session.signOut();
     _lastUserResult.value = null;
-    _machineBackStatus.value = 'idle';
   }
 
   final Unrouter<AppRoute> _router;
@@ -129,7 +126,6 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = context.unrouterAs<AppRoute>();
-    final machine = context.unrouterMachineAs<AppRoute>();
     final state = controller.state;
 
     return AnimatedBuilder(
@@ -162,13 +158,6 @@ class HomeScreen extends StatelessWidget {
                     return Text('lastUserResult: ${value ?? '-'}');
                   },
                 ),
-                const SizedBox(height: 8),
-                ValueListenableBuilder<String>(
-                  valueListenable: _machineBackStatus,
-                  builder: (context, value, _) {
-                    return Text('machineBack: $value');
-                  },
-                ),
                 const SizedBox(height: 20),
                 FilledButton(
                   key: const Key('home-go-user'),
@@ -198,16 +187,11 @@ class HomeScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 OutlinedButton(
-                  key: const Key('home-machine-back'),
+                  key: const Key('home-back'),
                   onPressed: () {
-                    final accepted = machine.dispatch<bool>(
-                      UnrouterMachineCommand.back(),
-                    );
-                    _machineBackStatus.value = accepted
-                        ? 'accepted'
-                        : 'rejected';
+                    controller.back();
                   },
-                  child: const Text('machine.dispatch(back)'),
+                  child: const Text('Back'),
                 ),
               ],
             ),

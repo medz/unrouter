@@ -11,7 +11,6 @@ dart pub add unrouter
 ## Entrypoints
 
 - `package:unrouter/unrouter.dart`: core routing API
-- `package:unrouter/machine.dart`: machine diagnostics API
 
 ## Quick start
 

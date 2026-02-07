@@ -40,7 +40,6 @@ class Unrouter<R extends RouteData> extends StatelessWidget
     this.onError,
     this.loading,
     this.stateTimelineLimit = 64,
-    this.machineTimelineLimit = 256,
     this.maxRedirectHops = 8,
     this.redirectLoopPolicy = RedirectLoopPolicy.error,
     this.onRedirectDiagnostics,
@@ -55,10 +54,6 @@ class Unrouter<R extends RouteData> extends StatelessWidget
        assert(
          stateTimelineLimit > 0,
          'Unrouter stateTimelineLimit must be greater than zero.',
-       ),
-       assert(
-         machineTimelineLimit > 0,
-         'Unrouter machineTimelineLimit must be greater than zero.',
        ),
        routes = List<RouteRecord<R>>.unmodifiable(routes),
        _recordsByCore = Map<_CoreRouteRecord<R>, RouteRecord<R>>.unmodifiable(
@@ -94,9 +89,6 @@ class Unrouter<R extends RouteData> extends StatelessWidget
 
   /// Max number of state timeline entries retained in controller state.
   final int stateTimelineLimit;
-
-  /// Max number of machine transitions retained in controller state.
-  final int machineTimelineLimit;
 
   /// Redirect hop limit used to prevent infinite redirect chains.
   final int maxRedirectHops;

@@ -2,7 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/widgets.dart';
 import 'package:unrouter/unrouter.dart'
-    show RouteExecutionCancelledException, RouteExecutionSignal;
+    show
+        RouteExecutionCancelledException,
+        RouteExecutionSignal,
+        UnrouterResolutionState,
+        UnrouterStateSnapshot;
 import 'package:unstory/unstory.dart';
 
 import 'navigation.dart';
@@ -23,7 +27,6 @@ class UnrouterDelegate<R extends RouteData>
       routeGetter: () => _resolution.route,
       uriGetter: () => _resolution.uri,
       stateTimelineLimit: config.stateTimelineLimit,
-      machineTimelineLimit: config.machineTimelineLimit,
       stateGetter: () => UnrouterStateSnapshot<RouteData>(
         uri: _resolution.uri,
         route: _resolution.route,
@@ -37,7 +40,7 @@ class UnrouterDelegate<R extends RouteData>
         historyIndex: _routeInformationProvider.historyIndex,
       ),
     );
-    _controller.configureRouteMachine<RouteResolution<R>, RouteResolutionType>(
+    _controller.configureRouteRuntime<RouteResolution<R>, RouteResolutionType>(
       resolver: (uri, {required bool Function() isCancelled}) async {
         final signal = _DelegateRouteExecutionSignal(isCancelled: isCancelled);
         try {
@@ -46,17 +49,14 @@ class UnrouterDelegate<R extends RouteData>
           return null;
         }
       },
-      currentResolutionType: () => _resolution.type,
       currentResolutionUri: () => _resolution.uri,
       resolutionTypeOf: (resolution) => resolution.type,
-      resolutionUriOf: (resolution) => resolution.uri,
       redirectUriOf: (resolution) => resolution.redirectUri,
       isRedirect: (type) => type == RouteResolutionType.redirect,
       isBlocked: (type) => type == RouteResolutionType.blocked,
       buildUnmatchedResolution: RouteResolution.unmatched,
       buildErrorResolution: (uri, error, stackTrace) =>
           RouteResolution.error(uri: uri, error: error, stackTrace: stackTrace),
-      mapResolutionType: _mapResolutionState,
       onCommit: _commit,
       maxRedirectHops: config.maxRedirectHops,
       redirectLoopPolicy: config.redirectLoopPolicy,
@@ -105,13 +105,11 @@ class UnrouterDelegate<R extends RouteData>
 
   @override
   Future<bool> popRoute() async {
-    if (_controller.machine.dispatch<bool>(
-      UnrouterMachineCommand.popBranch(),
-    )) {
+    if (_controller.popBranch()) {
       return true;
     }
 
-    return _controller.machine.dispatch<bool>(UnrouterMachineCommand.back());
+    return _controller.back();
   }
 
   @override

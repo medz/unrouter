@@ -11,7 +11,6 @@ flutter pub add flutter_unrouter
 ## Entrypoints
 
 - `package:flutter_unrouter/flutter_unrouter.dart`: Flutter routing API
-- `package:flutter_unrouter/machine.dart`: machine commands and timeline APIs
 
 ## Quick start
 

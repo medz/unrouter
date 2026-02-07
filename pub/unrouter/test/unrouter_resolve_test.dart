@@ -112,35 +112,38 @@ void main() {
       expect(result.loaderData, 'profile:7');
     });
 
-    test('throws cancellation when signal becomes cancelled during loader', () async {
-      final loaderGate = Completer<String>();
-      final router = Unrouter<AppRoute>(
-        routes: [
-          routeWithLoader<SlowRoute, String>(
-            path: '/slow',
-            parse: (_) => const SlowRoute(),
-            loader: (context) async {
-              final value = await loaderGate.future;
-              context.signal.throwIfCancelled();
-              return value;
-            },
-          ),
-        ],
-      );
+    test(
+      'throws cancellation when signal becomes cancelled during loader',
+      () async {
+        final loaderGate = Completer<String>();
+        final router = Unrouter<AppRoute>(
+          routes: [
+            routeWithLoader<SlowRoute, String>(
+              path: '/slow',
+              parse: (_) => const SlowRoute(),
+              loader: (context) async {
+                final value = await loaderGate.future;
+                context.signal.throwIfCancelled();
+                return value;
+              },
+            ),
+          ],
+        );
 
-      var cancelled = false;
-      final signal = _MutableSignal(() => cancelled);
+        var cancelled = false;
+        final signal = _MutableSignal(() => cancelled);
 
-      final future = router.resolve(Uri(path: '/slow'), signal: signal);
+        final future = router.resolve(Uri(path: '/slow'), signal: signal);
 
-      cancelled = true;
-      loaderGate.complete('done');
+        cancelled = true;
+        loaderGate.complete('done');
 
-      await expectLater(
-        future,
-        throwsA(isA<RouteExecutionCancelledException>()),
-      );
-    });
+        await expectLater(
+          future,
+          throwsA(isA<RouteExecutionCancelledException>()),
+        );
+      },
+    );
   });
 }
 

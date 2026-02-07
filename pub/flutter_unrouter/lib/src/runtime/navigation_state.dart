@@ -312,14 +312,3 @@ extension UnrouterBuildContextExtension on BuildContext {
     return UnrouterScope.ofAs<R>(this);
   }
 }
-
-/// `BuildContext` helpers for machine dispatch access.
-extension UnrouterMachineBuildContextExtension on BuildContext {
-  /// Returns untyped machine facade.
-  UnrouterMachine<RouteData> get unrouterMachine => unrouter.machine;
-
-  /// Returns typed machine facade.
-  UnrouterMachine<R> unrouterMachineAs<R extends RouteData>() {
-    return unrouterAs<R>().machine;
-  }
-}

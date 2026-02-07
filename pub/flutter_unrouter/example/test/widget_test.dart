@@ -36,13 +36,14 @@ void main() {
     expect(find.byKey(const Key('secure-title')), findsOneWidget);
   });
 
-  testWidgets('machine command status is shown on home', (tester) async {
+  testWidgets('back button is safe on initial home route', (tester) async {
     await tester.pumpWidget(UnrouterExampleApp());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const Key('home-machine-back')));
+    await tester.tap(find.byKey(const Key('home-back')));
     await tester.pumpAndSettle();
 
-    expect(find.text('machineBack: rejected'), findsOneWidget);
+    expect(find.byKey(const Key('home-state-line')), findsOneWidget);
+    expect(find.textContaining('state: matched'), findsOneWidget);
   });
 }

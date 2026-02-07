@@ -4,7 +4,10 @@ import 'package:unrouter/unrouter.dart';
 void main() {
   test('RouteParserState exposes path and query helpers', () {
     final state = RouteParserState(
-      uri: Uri(path: '/users/42', queryParameters: {'tab': 'likes', 'page': '2'}),
+      uri: Uri(
+        path: '/users/42',
+        queryParameters: {'tab': 'likes', 'page': '2'},
+      ),
       pathParameters: const {'id': '42'},
     );
 

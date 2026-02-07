@@ -7,13 +7,11 @@ library;
 export 'src/core/route_data.dart';
 export 'src/core/route_definition.dart';
 export 'src/runtime/unrouter.dart';
-export 'package:unrouter/machine.dart'
+export 'package:unrouter/unrouter.dart'
     show
         UnrouterResolutionState,
         UnrouterStateSnapshot,
-        UnrouterStateTimelineEntry;
-export 'package:unrouter/unrouter.dart'
-    show
+        UnrouterStateTimelineEntry,
         RouteExecutionCancelledException,
         RouteExecutionSignal,
         RouteGuardResult,
