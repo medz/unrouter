@@ -14,3 +14,5 @@
   so route resolution/navigation behavior is shared instead of duplicated.
 - Reworked shell restoration/branch stack runtime to use `unrouter` core
   `ShellCoordinator`, removing duplicated envelope/stack algorithms.
+- Added shell runtime widget tests for branch switching/restoration and
+  `popBranch` pending-result completion.
