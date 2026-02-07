@@ -7,3 +7,4 @@ environment:
 workspace:
   - pub/unrouter
   - pub/flutter_unrouter
+  - pub/jaspr_unrouter

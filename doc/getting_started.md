@@ -4,6 +4,8 @@
 
 - Pure Dart runtime or custom runtime integration: use `unrouter`.
 - Flutter app: use `flutter_unrouter` only (it already depends on `unrouter`).
+- Jaspr app: use `jaspr_unrouter` (adapter skeleton, runtime binding in
+  progress).
 
 ## Install
 
@@ -19,6 +21,12 @@ Flutter:
 flutter pub add flutter_unrouter
 ```
 
+Jaspr:
+
+```bash
+dart pub add jaspr_unrouter
+```
+
 ## Core imports
 
 Pure Dart:
@@ -31,6 +39,12 @@ Flutter:
 
 ```dart
 import 'package:flutter_unrouter/flutter_unrouter.dart';
+```
+
+Jaspr:
+
+```dart
+import 'package:jaspr_unrouter/jaspr_unrouter.dart';
 ```
 
 ## Minimal typed router (pure Dart)
