@@ -1,6 +1,6 @@
 name: flutter_unrouter_example
-description: Example app for flutter_unrouter.
-publish_to: none
+description: Example app for flutter_unrouter adapter.
+publish_to: 'none'
 version: 1.0.0+1
 
 environment:
@@ -16,6 +16,10 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+
+dependency_overrides:
+  unrouter_machine:
+    path: ../../unrouter_machine
 
 flutter:
   uses-material-design: true
