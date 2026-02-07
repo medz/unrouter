@@ -1,7 +1,7 @@
 part of 'route_definition.dart';
 
 /// Parses a matched [RouteParserState] into a typed route object.
-typedef RouteParser<T extends RouteData> = T Function(RouteParserState state);
+typedef RouteParser<T extends RouteData> = _CoreRouteParser<T>;
 
 /// Builds a route widget without loader data.
 typedef RouteWidgetBuilder<T extends RouteData> =
@@ -12,16 +12,13 @@ typedef RouteLoadedWidgetBuilder<T extends RouteData, L> =
     Widget Function(BuildContext context, T route, L data);
 
 /// Route guard that can allow, block, or redirect navigation.
-typedef RouteGuard<T extends RouteData> =
-    FutureOr<RouteGuardResult> Function(RouteHookContext<T> context);
+typedef RouteGuard<T extends RouteData> = _CoreRouteGuard<T>;
 
 /// Route-level redirect resolver.
-typedef RouteRedirect<T extends RouteData> =
-    FutureOr<Uri?> Function(RouteHookContext<T> context);
+typedef RouteRedirect<T extends RouteData> = _CoreRouteRedirect<T>;
 
 /// Asynchronous loader executed before route build.
-typedef RouteLoader<T extends RouteData, L> =
-    FutureOr<L> Function(RouteHookContext<T> context);
+typedef RouteLoader<T extends RouteData, L> = _CoreRouteLoader<T, L>;
 
 /// Shell frame builder used by [shell].
 typedef ShellBuilder<R extends RouteData> =
@@ -52,25 +49,12 @@ class RoutePageBuilderState {
   final Widget child;
 }
 
-abstract interface class RouteRecord<T extends RouteData>
-    implements _CoreRouteRecord<T> {
-  @override
+abstract interface class RouteRecord<T extends RouteData> {
   String get path;
 
-  @override
   String? get name;
 
-  @override
-  T parse(RouteParserState state);
-
-  @override
-  Future<Uri?> runRedirect(RouteHookContext<RouteData> context);
-
-  @override
-  Future<RouteGuardResult> runGuards(RouteHookContext<RouteData> context);
-
-  @override
-  Future<Object?> load(RouteHookContext<RouteData> context);
+  CoreRouteRecord<T> get core;
 
   Widget build(BuildContext context, RouteData route, Object? loaderData);
 
@@ -89,14 +73,19 @@ class RouteDefinition<T extends RouteData> implements RouteRecord<T> {
     required RouteWidgetBuilder<T> builder,
     this.name,
     List<RouteGuard<T>> guards = const [],
-    this.redirect,
+    RouteRedirect<T>? redirect,
     this.pageBuilder,
     this.transitionBuilder,
     this.transitionDuration = Duration.zero,
     this.reverseTransitionDuration = Duration.zero,
-  }) : _parse = parse,
-       _builder = builder,
-       _guards = List<RouteGuard<T>>.unmodifiable(guards);
+  }) : _coreRecord = _CoreRouteDefinition<T>(
+         path: path,
+         parse: parse,
+         name: name,
+         guards: guards,
+         redirect: redirect,
+       ),
+       _builder = builder;
 
   @override
   final String path;
@@ -104,38 +93,15 @@ class RouteDefinition<T extends RouteData> implements RouteRecord<T> {
   @override
   final String? name;
 
-  final RouteParser<T> _parse;
+  final _CoreRouteDefinition<T> _coreRecord;
   final RouteWidgetBuilder<T> _builder;
-  final List<RouteGuard<T>> _guards;
-  final RouteRedirect<T>? redirect;
   final RoutePageBuilder? pageBuilder;
   final RouteTransitionBuilder? transitionBuilder;
   final Duration transitionDuration;
   final Duration reverseTransitionDuration;
 
   @override
-  T parse(RouteParserState state) => _parse(state);
-
-  @override
-  Future<Uri?> runRedirect(RouteHookContext<RouteData> context) async {
-    final resolver = redirect;
-    if (resolver == null) {
-      return null;
-    }
-
-    context.signal.throwIfCancelled();
-    final uri = await resolver(context.cast<T>());
-    context.signal.throwIfCancelled();
-    return uri;
-  }
-
-  @override
-  Future<RouteGuardResult> runGuards(RouteHookContext<RouteData> context) {
-    return runRouteGuards(_guards, context.cast<T>());
-  }
-
-  @override
-  Future<Object?> load(RouteHookContext<RouteData> context) async => null;
+  CoreRouteRecord<T> get core => _coreRecord;
 
   @override
   Widget build(BuildContext context, RouteData route, Object? loaderData) {
@@ -169,15 +135,20 @@ class LoadedRouteDefinition<T extends RouteData, L> implements RouteRecord<T> {
     required RouteLoadedWidgetBuilder<T, L> builder,
     this.name,
     List<RouteGuard<T>> guards = const [],
-    this.redirect,
+    RouteRedirect<T>? redirect,
     this.pageBuilder,
     this.transitionBuilder,
     this.transitionDuration = Duration.zero,
     this.reverseTransitionDuration = Duration.zero,
-  }) : _parse = parse,
-       _loader = loader,
-       _builder = builder,
-       _guards = List<RouteGuard<T>>.unmodifiable(guards);
+  }) : _coreRecord = _CoreLoadedRouteDefinition<T, L>(
+         path: path,
+         parse: parse,
+         loader: loader,
+         name: name,
+         guards: guards,
+         redirect: redirect,
+       ),
+       _builder = builder;
 
   @override
   final String path;
@@ -185,45 +156,15 @@ class LoadedRouteDefinition<T extends RouteData, L> implements RouteRecord<T> {
   @override
   final String? name;
 
-  final RouteParser<T> _parse;
-  final RouteLoader<T, L> _loader;
+  final _CoreLoadedRouteDefinition<T, L> _coreRecord;
   final RouteLoadedWidgetBuilder<T, L> _builder;
-  final List<RouteGuard<T>> _guards;
-  final RouteRedirect<T>? redirect;
   final RoutePageBuilder? pageBuilder;
   final RouteTransitionBuilder? transitionBuilder;
   final Duration transitionDuration;
   final Duration reverseTransitionDuration;
 
   @override
-  T parse(RouteParserState state) => _parse(state);
-
-  @override
-  Future<Uri?> runRedirect(RouteHookContext<RouteData> context) async {
-    final resolver = redirect;
-    if (resolver == null) {
-      return null;
-    }
-
-    context.signal.throwIfCancelled();
-    final uri = await resolver(context.cast<T>());
-    context.signal.throwIfCancelled();
-    return uri;
-  }
-
-  @override
-  Future<RouteGuardResult> runGuards(RouteHookContext<RouteData> context) {
-    return runRouteGuards(_guards, context.cast<T>());
-  }
-
-  @override
-  Future<Object?> load(RouteHookContext<RouteData> context) async {
-    final typedContext = context.cast<T>();
-    context.signal.throwIfCancelled();
-    final data = await _loader(typedContext);
-    context.signal.throwIfCancelled();
-    return data;
-  }
+  CoreRouteRecord<T> get core => _coreRecord;
 
   @override
   Widget build(BuildContext context, RouteData route, Object? loaderData) {

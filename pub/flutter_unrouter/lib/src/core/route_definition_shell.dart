@@ -136,7 +136,7 @@ List<RouteRecord<R>> shell<R extends RouteData>({
 
 class _ShellRouteRecord<R extends RouteData>
     implements RouteRecord<R>, ShellRouteRecordHost<R> {
-  const _ShellRouteRecord({
+  _ShellRouteRecord({
     required RouteRecord<R> record,
     required _ShellRuntime<R> runtime,
     required ShellBuilder<R> shellBuilder,
@@ -146,13 +146,15 @@ class _ShellRouteRecord<R extends RouteData>
        _runtime = runtime,
        _shellBuilder = shellBuilder,
        _branchIndex = branchIndex,
-       _shellName = shellName;
+       _shellName = shellName,
+       _coreRecord = _DelegatingCoreRouteRecord<R>(record.core);
 
   final RouteRecord<R> _record;
   final _ShellRuntime<R> _runtime;
   final ShellBuilder<R> _shellBuilder;
   final int _branchIndex;
   final String? _shellName;
+  final _CoreRouteRecord<R> _coreRecord;
 
   @override
   String get path => _record.path;
@@ -170,22 +172,7 @@ class _ShellRouteRecord<R extends RouteData>
   }
 
   @override
-  R parse(RouteParserState state) => _record.parse(state);
-
-  @override
-  Future<Uri?> runRedirect(RouteHookContext<RouteData> context) {
-    return _record.runRedirect(context);
-  }
-
-  @override
-  Future<RouteGuardResult> runGuards(RouteHookContext<RouteData> context) {
-    return _record.runGuards(context);
-  }
-
-  @override
-  Future<Object?> load(RouteHookContext<RouteData> context) {
-    return _record.load(context);
-  }
+  _CoreRouteRecord<R> get core => _coreRecord;
 
   @override
   Uri resolveBranchTarget(int index, {bool initialLocation = false}) {
@@ -255,6 +242,39 @@ class _ShellRouteRecord<R extends RouteData>
     required Widget child,
   }) {
     return _record.createPage(key: key, name: name, child: child);
+  }
+}
+
+class _DelegatingCoreRouteRecord<T extends RouteData>
+    implements _CoreRouteRecord<T> {
+  const _DelegatingCoreRouteRecord(this._delegate);
+
+  final _CoreRouteRecord<T> _delegate;
+
+  @override
+  String get path => _delegate.path;
+
+  @override
+  String? get name => _delegate.name;
+
+  @override
+  T parse(_CoreRouteParserState state) => _delegate.parse(state);
+
+  @override
+  Future<Uri?> runRedirect(_CoreRouteHookContext<RouteData> context) {
+    return _delegate.runRedirect(context);
+  }
+
+  @override
+  Future<_CoreRouteGuardResult> runGuards(
+    _CoreRouteHookContext<RouteData> context,
+  ) {
+    return _delegate.runGuards(context);
+  }
+
+  @override
+  Future<Object?> load(_CoreRouteHookContext<RouteData> context) {
+    return _delegate.load(context);
   }
 }
 

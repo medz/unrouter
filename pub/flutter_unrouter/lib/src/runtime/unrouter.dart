@@ -1,10 +1,8 @@
 import 'package:flutter/widgets.dart';
 import 'package:unrouter/unrouter.dart'
-    show
-        RedirectDiagnosticsCallback,
-        RedirectLoopPolicy,
-        RouteExecutionSignal;
-import 'package:unrouter/unrouter.dart' as core
+    show RedirectDiagnosticsCallback, RedirectLoopPolicy, RouteExecutionSignal;
+import 'package:unrouter/unrouter.dart'
+    as core
     show RouteRecord, RouteResolution, RouteResolutionType, Unrouter;
 import 'router_delegate.dart';
 import 'package:unstory/unstory.dart';
@@ -63,8 +61,15 @@ class Unrouter<R extends RouteData> extends StatelessWidget
          'Unrouter machineTimelineLimit must be greater than zero.',
        ),
        routes = List<RouteRecord<R>>.unmodifiable(routes),
+       _recordsByCore = Map<_CoreRouteRecord<R>, RouteRecord<R>>.unmodifiable(
+         <_CoreRouteRecord<R>, RouteRecord<R>>{
+           for (final record in routes) record.core: record,
+         },
+       ),
        _core = _CoreUnrouter<R>(
-         routes: routes.cast<_CoreRouteRecord<R>>(),
+         routes: routes
+             .map<_CoreRouteRecord<R>>((record) => record.core)
+             .toList(growable: false),
          maxRedirectHops: maxRedirectHops,
          redirectLoopPolicy: redirectLoopPolicy,
          onRedirectDiagnostics: onRedirectDiagnostics,
@@ -75,6 +80,7 @@ class Unrouter<R extends RouteData> extends StatelessWidget
 
   /// Immutable route table consumed by the matcher.
   final List<RouteRecord<R>> routes;
+  final Map<_CoreRouteRecord<R>, RouteRecord<R>> _recordsByCore;
   final _CoreUnrouter<R> _core;
 
   /// Optional builder for unknown locations.
@@ -123,6 +129,13 @@ class Unrouter<R extends RouteData> extends StatelessWidget
     Uri uri, {
     required RouteExecutionSignal signal,
   }) => _core.resolve(uri, signal: signal);
+
+  RouteRecord<R>? routeRecordOf(core.RouteRecord<R>? record) {
+    if (record == null) {
+      return null;
+    }
+    return _recordsByCore[record];
+  }
 
   @override
   Widget build(BuildContext context) {

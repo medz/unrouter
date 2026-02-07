@@ -32,8 +32,8 @@ class UnrouterDelegate<R extends RouteData>
         uri: _resolution.uri,
         route: _resolution.route,
         resolution: _mapResolutionState(_resolution.type),
-        routePath: _resolution.record?.path,
-        routeName: _resolution.record?.name,
+        routePath: _activeRouteRecord?.path ?? _resolution.record?.path,
+        routeName: _activeRouteRecord?.name ?? _resolution.record?.name,
         error: _resolution.error,
         stackTrace: _resolution.stackTrace,
         lastAction: _routeInformationProvider.lastAction,
@@ -160,7 +160,7 @@ class UnrouterDelegate<R extends RouteData>
     }
 
     if (_resolution.isMatched) {
-      final routeRecord = _resolution.record as RouteRecord<R>;
+      final routeRecord = _requireRouteRecord();
       return Builder(
         builder: (innerContext) => routeRecord.build(
           innerContext,
@@ -189,7 +189,7 @@ class UnrouterDelegate<R extends RouteData>
     );
 
     if (_resolution.isMatched) {
-      final routeRecord = _resolution.record as RouteRecord<R>;
+      final routeRecord = _requireRouteRecord();
       return routeRecord.createPage(
         key: pageKey,
         name: pageName,
@@ -202,7 +202,8 @@ class UnrouterDelegate<R extends RouteData>
 
   void _commit(RouteResolution<R> resolution) {
     _resolution = resolution;
-    if (resolution.record is! ShellRouteRecordHost<R>) {
+    final routeRecord = config.routeRecordOf(resolution.record);
+    if (routeRecord is! ShellRouteRecordHost<R>) {
       _controller.clearHistoryStateComposer();
     }
     _pageRevision += 1;
@@ -217,7 +218,7 @@ class UnrouterDelegate<R extends RouteData>
   }
 
   Uri? _resolveShellBranchTarget(int index, {required bool initialLocation}) {
-    final activeRecord = _resolution.record;
+    final activeRecord = _activeRouteRecord;
     if (activeRecord case ShellRouteRecordHost<R> shellHost) {
       return shellHost.resolveBranchTarget(
         index,
@@ -228,11 +229,25 @@ class UnrouterDelegate<R extends RouteData>
   }
 
   Uri? _popShellBranchTarget() {
-    final activeRecord = _resolution.record;
+    final activeRecord = _activeRouteRecord;
     if (activeRecord case ShellRouteRecordHost<R> shellHost) {
       return shellHost.popBranch();
     }
     return null;
+  }
+
+  RouteRecord<R>? get _activeRouteRecord {
+    return config.routeRecordOf(_resolution.record);
+  }
+
+  RouteRecord<R> _requireRouteRecord() {
+    final routeRecord = _activeRouteRecord;
+    if (routeRecord != null) {
+      return routeRecord;
+    }
+    throw StateError(
+      'Matched route record is missing from flutter adapter registry.',
+    );
   }
 
   UnrouterResolutionState _mapResolutionState(RouteResolutionType type) {
