@@ -10,3 +10,5 @@
   focused on runtime navigation/state.
 - Removed timeline-related runtime APIs (`stateTimeline`,
   `clearStateTimeline`, `stateTimelineLimit`).
+- Reworked `UnrouterController` to wrap the `unrouter` core runtime controller
+  so route resolution/navigation behavior is shared instead of duplicated.

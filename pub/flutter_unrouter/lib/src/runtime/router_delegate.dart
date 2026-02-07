@@ -1,12 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/widgets.dart';
-import 'package:unrouter/unrouter.dart'
-    show
-        RouteExecutionCancelledException,
-        RouteExecutionSignal,
-        UnrouterResolutionState,
-        UnrouterStateSnapshot;
 import 'package:unstory/unstory.dart';
 
 import 'navigation.dart';
@@ -21,50 +15,27 @@ class UnrouterDelegate<R extends RouteData>
   UnrouterDelegate(this.config)
     : _routeInformationProvider = config.routeInformationProvider {
     final initial = _routeInformationProvider.value;
-    _resolution = RouteResolution.pending(initial.uri);
     _controller = UnrouterController(
+      coreRouter: config.coreRouter,
       routeInformationProvider: _routeInformationProvider,
-      routeGetter: () => _resolution.route,
-      uriGetter: () => _resolution.uri,
-      stateGetter: () => UnrouterStateSnapshot<RouteData>(
-        uri: _resolution.uri,
-        route: _resolution.route,
-        resolution: _mapResolutionState(_resolution.type),
-        routePath: _activeRouteRecord?.path ?? _resolution.record?.path,
-        routeName: _activeRouteRecord?.name ?? _resolution.record?.name,
-        error: _resolution.error,
-        stackTrace: _resolution.stackTrace,
-        lastAction: _routeInformationProvider.lastAction,
-        lastDelta: _routeInformationProvider.lastDelta,
-        historyIndex: _routeInformationProvider.historyIndex,
-      ),
+      resolveInitialRoute: false,
     );
-    _controller.configureRouteRuntime<RouteResolution<R>, RouteResolutionType>(
-      resolver: (uri, {required bool Function() isCancelled}) async {
-        final signal = _DelegateRouteExecutionSignal(isCancelled: isCancelled);
-        try {
-          return await config.resolve(uri, signal: signal);
-        } on RouteExecutionCancelledException {
-          return null;
-        }
-      },
-      currentResolutionUri: () => _resolution.uri,
-      resolutionTypeOf: (resolution) => resolution.type,
-      redirectUriOf: (resolution) => resolution.redirectUri,
-      isRedirect: (type) => type == RouteResolutionType.redirect,
-      isBlocked: (type) => type == RouteResolutionType.blocked,
-      buildUnmatchedResolution: RouteResolution.unmatched,
-      buildErrorResolution: (uri, error, stackTrace) =>
-          RouteResolution.error(uri: uri, error: error, stackTrace: stackTrace),
-      onCommit: _commit,
-      maxRedirectHops: config.maxRedirectHops,
-      redirectLoopPolicy: config.redirectLoopPolicy,
-      onRedirectDiagnostics: config.onRedirectDiagnostics,
-    );
+    _typedController = _controller.cast<R>();
+    _resolution = _typedController.resolution;
     _controller.setShellBranchResolvers(
       resolveTarget: _resolveShellBranchTarget,
       popTarget: _popShellBranchTarget,
     );
+    _stateListener = () {
+      _resolution = _typedController.resolution;
+      final routeRecord = config.routeRecordOf(_resolution.record);
+      if (routeRecord is! ShellRouteRecordHost<R>) {
+        _controller.clearHistoryStateComposer();
+      }
+      _pageRevision += 1;
+      notifyListeners();
+    };
+    _controller.stateListenable.addListener(_stateListener);
 
     unawaited(
       _controller.dispatchRouteRequest(initial.uri, state: initial.state),
@@ -76,6 +47,8 @@ class UnrouterDelegate<R extends RouteData>
 
   late RouteResolution<R> _resolution;
   late final UnrouterController<RouteData> _controller;
+  late final UnrouterController<R> _typedController;
+  late final VoidCallback _stateListener;
 
   int _pageRevision = 0;
 
@@ -121,6 +94,7 @@ class UnrouterDelegate<R extends RouteData>
 
   @override
   void dispose() {
+    _controller.stateListenable.removeListener(_stateListener);
     _controller.dispose();
     super.dispose();
   }
@@ -193,17 +167,6 @@ class UnrouterDelegate<R extends RouteData>
     return _UnrouterPage(key: pageKey, name: pageName, child: scopedChild);
   }
 
-  void _commit(RouteResolution<R> resolution) {
-    _resolution = resolution;
-    final routeRecord = config.routeRecordOf(resolution.record);
-    if (routeRecord is! ShellRouteRecordHost<R>) {
-      _controller.clearHistoryStateComposer();
-    }
-    _pageRevision += 1;
-    _controller.publishState();
-    notifyListeners();
-  }
-
   void _onDidRemovePage(Page<Object?> page) {
     if (_routeInformationProvider.canGoBack) {
       _routeInformationProvider.back();
@@ -241,40 +204,6 @@ class UnrouterDelegate<R extends RouteData>
     throw StateError(
       'Matched route record is missing from flutter adapter registry.',
     );
-  }
-
-  UnrouterResolutionState _mapResolutionState(RouteResolutionType type) {
-    switch (type) {
-      case RouteResolutionType.pending:
-        return UnrouterResolutionState.pending;
-      case RouteResolutionType.matched:
-        return UnrouterResolutionState.matched;
-      case RouteResolutionType.unmatched:
-        return UnrouterResolutionState.unmatched;
-      case RouteResolutionType.redirect:
-        return UnrouterResolutionState.redirect;
-      case RouteResolutionType.blocked:
-        return UnrouterResolutionState.blocked;
-      case RouteResolutionType.error:
-        return UnrouterResolutionState.error;
-    }
-  }
-}
-
-class _DelegateRouteExecutionSignal implements RouteExecutionSignal {
-  const _DelegateRouteExecutionSignal({required bool Function() isCancelled})
-    : _isCancelled = isCancelled;
-
-  final bool Function() _isCancelled;
-
-  @override
-  bool get isCancelled => _isCancelled();
-
-  @override
-  void throwIfCancelled() {
-    if (isCancelled) {
-      throw const RouteExecutionCancelledException();
-    }
   }
 }
 

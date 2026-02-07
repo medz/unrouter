@@ -284,6 +284,7 @@ class UnrouterController<R extends RouteData> {
        _disposeHistory = disposeHistory,
        _lastAction = history.action,
        _trackedHistoryIndex = history.index ?? 0,
+       _resolution = RouteResolution<R>.pending(history.location.uri),
        _state = UnrouterStateSnapshot<R>(
          uri: history.location.uri,
          route: null,
@@ -313,6 +314,7 @@ class UnrouterController<R extends RouteData> {
   final List<Completer<Object?>> _pendingPushResults = <Completer<Object?>>[];
   final ListQueue<Object?> _popResultQueue = ListQueue<Object?>();
 
+  RouteResolution<R> _resolution;
   UnrouterStateSnapshot<R> _state;
   int _trackedHistoryIndex;
   HistoryAction _lastAction;
@@ -350,6 +352,9 @@ class UnrouterController<R extends RouteData> {
 
   /// Current runtime snapshot.
   UnrouterStateSnapshot<R> get state => _state;
+
+  /// Current route resolution.
+  RouteResolution<R> get resolution => _resolution;
 
   /// Broadcast stream of state updates.
   Stream<UnrouterStateSnapshot<R>> get states => _stateController.stream;
@@ -559,6 +564,7 @@ class UnrouterController<R extends RouteData> {
 
   Future<void> _resolve(Uri uri, {Object? state}) async {
     final generation = ++_generation;
+    final previousResolution = _resolution;
     final previousSnapshot = _state;
     final previousUri = _state.uri;
     _prepareRedirectChain(uri);
@@ -646,6 +652,7 @@ class UnrouterController<R extends RouteData> {
               historyIndex: _history.index,
             ),
           );
+          _resolution = previousResolution;
           return;
         }
 
@@ -686,6 +693,7 @@ class UnrouterController<R extends RouteData> {
   }
 
   void _setPending(Uri uri) {
+    _resolution = RouteResolution<R>.pending(uri);
     final pending = UnrouterStateSnapshot<R>(
       uri: uri,
       route: null,
@@ -702,6 +710,7 @@ class UnrouterController<R extends RouteData> {
   }
 
   void _commitResolution(RouteResolution<R> resolution) {
+    _resolution = resolution;
     _hasCommittedResolution = true;
     final snapshot = UnrouterStateSnapshot<R>(
       uri: resolution.uri,

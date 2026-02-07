@@ -1,10 +1,10 @@
 # Unrouter History State Envelope
 
-This document defines the `history.state` envelope used by `unrouter` shell restoration.
+This document defines the `history.state` envelope used by shell restoration in adapter packages (currently `flutter_unrouter`).
 
 ## Scope
 
-- This envelope is written when shell routing is active and navigation happens through `UnrouterController` APIs.
+- This envelope is written when shell routing is active and navigation happens through adapter `UnrouterController` APIs.
 - It stores shell branch-stack restoration metadata while preserving user-provided `state`.
 
 ## Encoded Shape
@@ -73,7 +73,7 @@ When composing new history state:
 
 ## Restoration Rules
 
-1. On shell route build, `unrouter` attempts to parse this envelope from `history.state`.
+1. On shell route build, the adapter attempts to parse this envelope from `history.state`.
 2. If parse succeeds and `v` is supported, shell stacks are restored.
 3. Branch indices outside current shell bounds are ignored.
 4. Invalid or malformed stack entries are ignored.

@@ -114,6 +114,10 @@ class Unrouter<R extends RouteData> extends StatelessWidget
     required RouteExecutionSignal signal,
   }) => _core.resolve(uri, signal: signal);
 
+  core.Unrouter<RouteData> get coreRouter {
+    return _core as core.Unrouter<RouteData>;
+  }
+
   RouteRecord<R>? routeRecordOf(core.RouteRecord<R>? record) {
     if (record == null) {
       return null;

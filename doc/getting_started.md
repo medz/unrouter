@@ -1,25 +1,41 @@
 # Getting started
 
+## Choose package
+
+- Pure Dart runtime or custom runtime integration: use `unrouter`.
+- Flutter app: use `flutter_unrouter` only (it already depends on `unrouter`).
+
 ## Install
 
+Pure Dart:
+
 ```bash
-flutter pub add unrouter
+dart pub add unrouter
+```
+
+Flutter:
+
+```bash
+flutter pub add flutter_unrouter
 ```
 
 ## Core imports
+
+Pure Dart:
 
 ```dart
 import 'package:unrouter/unrouter.dart';
 ```
 
-Use additional entrypoints only when needed:
-
-- `package:unrouter/machine.dart`: machine command APIs.
-
-## Minimal typed router
+Flutter:
 
 ```dart
-import 'package:flutter/material.dart';
+import 'package:flutter_unrouter/flutter_unrouter.dart';
+```
+
+## Minimal typed router (pure Dart)
+
+```dart
 import 'package:unrouter/unrouter.dart';
 
 sealed class AppRoute implements RouteData {
@@ -33,13 +49,36 @@ final class HomeRoute extends AppRoute {
   Uri toUri() => Uri(path: '/');
 }
 
-final class UserRoute extends AppRoute {
-  const UserRoute({required this.id});
+void main() async {
+  final router = Unrouter<AppRoute>(
+    routes: [
+      route<HomeRoute>(
+        path: '/',
+        parse: (_) => const HomeRoute(),
+      ),
+    ],
+  );
 
-  final int id;
+  final resolution = await router.resolve(Uri(path: '/'));
+  print(resolution.isMatched); // true
+}
+```
+
+## Minimal Flutter integration
+
+```dart
+import 'package:flutter/material.dart';
+import 'package:flutter_unrouter/flutter_unrouter.dart';
+
+sealed class AppRoute implements RouteData {
+  const AppRoute();
+}
+
+final class HomeRoute extends AppRoute {
+  const HomeRoute();
 
   @override
-  Uri toUri() => Uri(path: '/users/$id');
+  Uri toUri() => Uri(path: '/');
 }
 
 void main() {
@@ -48,34 +87,29 @@ void main() {
       route<HomeRoute>(
         path: '/',
         parse: (_) => const HomeRoute(),
-        builder: (_, __) => const HomePage(),
-      ),
-      route<UserRoute>(
-        path: '/users/:id',
-        parse: (state) => UserRoute(id: state.pathInt('id')),
-        builder: (_, route) => UserPage(id: route.id),
+        builder: (_, __) => const Text('Home'),
       ),
     ],
-    unknown: (_, uri) => NotFoundPage(uri: uri),
   );
 
   runApp(MaterialApp.router(routerConfig: router));
 }
 ```
 
-## Navigate from widgets
+## Runtime navigation API consistency
 
-```dart
-context.unrouter.go(const HomeRoute());
-context.unrouter.push(const UserRoute(id: 42));
-context.unrouter.replace(const UserRoute(id: 7));
-context.unrouter.back();
+`unrouter` and `flutter_unrouter` expose the same primary controller methods:
 
-final int? value = await context.unrouter.push<int>(const UserRoute(id: 42));
-context.unrouter.pop(7);
-```
+- `go/goUri`
+- `replace/replaceUri`
+- `push/pushUri`
+- `pop/popToUri/back/forward/goDelta`
+- `state`, `resolution`, `stateListenable`
+
+Flutter adds shell-only helpers (`switchBranch`, `popBranch`) on top.
 
 ## Next reads
 
-- Core behavior and advanced route features: `doc/core_routing.md`
-- Command machine API: `doc/machine_api.md`
+- Core route semantics: `doc/core_routing.md`
+- Runtime controller details: `doc/runtime_controller.md`
+- Shell state envelope: `doc/state_envelope.md`

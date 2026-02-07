@@ -1,25 +1,25 @@
 # Core routing guide
 
+This guide focuses on `package:unrouter/unrouter.dart` only.
+
 ## Route definitions
 
-Use `route<T>()` for regular routes:
+Create typed routes with `route<T>()`:
 
 ```dart
 route<UserRoute>(
   path: '/users/:id',
   parse: (state) => UserRoute(id: state.pathInt('id')),
-  builder: (_, route) => UserPage(id: route.id),
 )
 ```
 
-Use `routeWithLoader<T, L>()` when data loading should happen before building:
+Create routes with async preload data using `routeWithLoader<T, L>()`:
 
 ```dart
 routeWithLoader<UserRoute, User>(
   path: '/users/:id',
   parse: (state) => UserRoute(id: state.pathInt('id')),
   loader: (context) async => api.fetchUser(context.route.id),
-  builder: (_, __, user) => UserPage(user: user),
 )
 ```
 
@@ -46,28 +46,29 @@ guards: [
 ]
 ```
 
-Route-level redirects are also supported:
+Route-level redirect:
 
 ```dart
 redirect: (_) => Uri(path: '/new-home')
 ```
 
-Router-level redirect safety controls:
+Router-level redirect safety:
 
 ```dart
 Unrouter<AppRoute>(
   maxRedirectHops: 8,
   redirectLoopPolicy: RedirectLoopPolicy.error,
   onRedirectDiagnostics: (event) {
-    debugPrint('${event.reason.name} ${event.hop}/${event.maxHops}');
+    print('${event.reason.name} ${event.hop}/${event.maxHops}');
   },
   routes: [...],
 )
 ```
 
-## Shell branches
+## Branch metadata for adapters
 
-Use `shell()` and `branch()` for bottom-tab or multi-stack navigation:
+`unrouter` itself is runtime/UI agnostic. Use `shell()` and `branch()` to define
+branch metadata that adapter packages can consume:
 
 ```dart
 ...shell<AppRoute>(
@@ -81,35 +82,34 @@ Use `shell()` and `branch()` for bottom-tab or multi-stack navigation:
       routes: [...],
     ),
   ],
-  builder: (context, shell, child) => Scaffold(
-    body: child,
-    bottomNavigationBar: NavigationBar(
-      selectedIndex: shell.activeBranchIndex,
-      onDestinationSelected: (index) => shell.goBranch(index),
-      destinations: const [
-        NavigationDestination(icon: Icon(Icons.home), label: 'Feed'),
-        NavigationDestination(icon: Icon(Icons.settings), label: 'Settings'),
-      ],
-    ),
-  ),
 ),
 ```
 
-Useful shell operations:
+In core package, `shell()` flattens branch records and preserves branch info for
+adapter-specific behaviors (for example `flutter_unrouter` shell navigation).
 
-- `shell.goBranch(index)` restores current top of target branch stack.
-- `shell.goBranch(index, initialLocation: true)` resets target branch stack.
-- `shell.popBranch()` pops in active branch stack.
-- `shell.popBranch(result)` pops and completes pending push result.
+## Resolution and runtime state
 
-## State and timeline introspection
-
-Core state APIs are available through `BuildContext`:
+Use `Unrouter.resolve` for one-off resolution:
 
 ```dart
-final snapshot = context.unrouterAs<AppRoute>().state;
-final timeline = context.unrouterAs<AppRoute>().stateTimeline;
-final listenable = context.unrouterAs<AppRoute>().stateListenable;
+final result = await router.resolve(Uri(path: '/users/1'));
+if (result.isMatched) {
+  print(result.route);
+}
 ```
 
-See `doc/state_envelope.md` for `history.state` serialization and versioning.
+Use `UnrouterController` for runtime navigation/state flow:
+
+```dart
+final controller = UnrouterController<AppRoute>(
+  router: router,
+  history: MemoryHistory(),
+);
+
+await controller.idle;
+print(controller.state.uri);
+print(controller.resolution.type);
+```
+
+See `doc/runtime_controller.md` for the full controller API and adapter parity.

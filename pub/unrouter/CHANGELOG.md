@@ -6,6 +6,8 @@
 - `unrouter` is now platform-agnostic and depends only on Dart SDK.
 - Added pure Dart `UnrouterController` runtime with `go/replace/push/pop/back`
   APIs and redirect handling.
+- Added `UnrouterController.resolution` to expose the current typed
+  `RouteResolution`.
 - Removed timeline-related runtime APIs (`UnrouterStateTimelineEntry`,
   `stateTimeline`, `clearStateTimeline`, `stateTimelineLimit`).
 - Removed Flutter-only runtime APIs from `unrouter`; those APIs moved to
