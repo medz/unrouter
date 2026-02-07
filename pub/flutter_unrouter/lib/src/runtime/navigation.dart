@@ -4,11 +4,6 @@ import 'dart:collection';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:unrouter/machine.dart';
-import 'package:unrouter/unrouter.dart'
-    show
-        UnrouterResolutionState,
-        UnrouterStateSnapshot,
-        UnrouterStateTimelineEntry;
 import 'package:unstory/unstory.dart';
 
 import '../core/redirect_diagnostics.dart';

@@ -7,6 +7,9 @@ library;
 
 export 'src/runtime/machine_kernel.dart'
     show
+        UnrouterResolutionState,
+        UnrouterStateSnapshot,
+        UnrouterStateTimelineEntry,
         UnrouterMachineSource,
         UnrouterMachineEventGroup,
         UnrouterMachineEvent,
