@@ -67,6 +67,34 @@ print(controller.state.resolution); // matched
 controller.dispose();
 ```
 
+## Shell coordinator (platform-agnostic)
+
+Use `ShellCoordinator` when building adapter packages or custom runtimes. It
+provides branch stack tracking and `history.state` envelope composition without
+depending on Flutter/Jaspr/Nocterm APIs.
+
+```dart
+final coordinator = ShellCoordinator(
+  branches: [
+    ShellBranchDescriptor(
+      index: 0,
+      initialLocation: Uri(path: '/feed'),
+      routePatterns: ['/feed', '/feed/:id'],
+    ),
+  ],
+);
+
+coordinator.recordNavigation(
+  branchIndex: 0,
+  event: ShellNavigationEvent(
+    uri: Uri(path: '/feed'),
+    action: HistoryAction.replace,
+    delta: null,
+    historyIndex: 0,
+  ),
+);
+```
+
 ## Flutter usage
 
 For Flutter apps, use `flutter_unrouter` instead:

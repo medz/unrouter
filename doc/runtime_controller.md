@@ -71,3 +71,10 @@ The Flutter adapter adds shell-specific methods:
 
 These are intentionally adapter-local because they depend on Flutter shell
 navigation lifecycle.
+
+## Shell coordination boundary
+
+- Shell stack algorithms, restoration snapshot, and `history.state` envelope
+  codec are core concerns and live in `unrouter` (`ShellCoordinator`).
+- `flutter_unrouter` only maps Flutter shell UI events to that core
+  coordinator.

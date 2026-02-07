@@ -12,6 +12,16 @@ flutter pub add flutter_unrouter
 
 - `package:flutter_unrouter/flutter_unrouter.dart`: Flutter routing API
 
+## Layering
+
+`flutter_unrouter` is an adapter package:
+
+- Route resolution and runtime navigation semantics come from `unrouter`.
+- Shell branch restoration/stack coordination also comes from
+  `unrouter` (`ShellCoordinator`).
+- This package only adds Flutter bindings (RouterDelegate/Scope/BuildContext
+  extensions/Page & transition builders).
+
 ## Quick start
 
 ```dart
