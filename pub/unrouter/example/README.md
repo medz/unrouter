@@ -1,26 +1,7 @@
-# unrouter_example
+# unrouter core example
 
-Runnable reference app for the slimmed `unrouter` API.
-
-## Run
+Run:
 
 ```bash
-flutter pub get
-flutter run -d chrome
+dart run bin/main.dart
 ```
-
-## Route map
-
-- `/`: home page
-- `/users/:id`: typed push result demo
-- `/settings`: basic navigation demo
-- `/secure`: guard-protected route
-- `/login?from=...`: redirect target for secure guard
-
-## Core capabilities covered
-
-- Typed routes via `RouteData` + `route<T>()`
-- `context.unrouter` navigation: `go`, `push`, `back`, `pop`
-- Typed push result delivery (`push<T>()` + `pop(result)`)
-- Guard + redirect flow with sign-in continuation
-- Machine command dispatch via `dispatch(...)`

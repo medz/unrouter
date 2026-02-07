@@ -1,20 +1,15 @@
 import 'dart:async';
 
-import 'package:flutter/widgets.dart';
-import 'package:flutter_test/flutter_test.dart';
+import 'package:test/test.dart';
 import 'package:unrouter/unrouter.dart';
-import 'package:unstory/unstory.dart';
 
 void main() {
   group('Unrouter.resolve', () {
-    const neverSignal = RouteNeverCancelledSignal();
-
     test('matches path and decodes typed params/query', () async {
       final router = _buildBasicRouter();
 
       final result = await router.resolve(
         Uri(path: '/users/42', queryParameters: {'tab': 'likes'}),
-        signal: neverSignal,
       );
 
       expect(result.isMatched, isTrue);
@@ -29,10 +24,7 @@ void main() {
     test('returns unmatched when no route matches', () async {
       final router = _buildBasicRouter();
 
-      final result = await router.resolve(
-        Uri(path: '/missing'),
-        signal: neverSignal,
-      );
+      final result = await router.resolve(Uri(path: '/missing'));
 
       expect(result.isUnmatched, isTrue);
       expect(result.hasError, isFalse);
@@ -44,7 +36,6 @@ void main() {
 
       final result = await router.resolve(
         Uri(path: '/users/1', queryParameters: {'tab': 'unknown'}),
-        signal: neverSignal,
       );
 
       expect(result.hasError, isTrue);
@@ -53,31 +44,18 @@ void main() {
 
     test('returns redirect result from route redirect callback', () async {
       final router = Unrouter<AppRoute>(
-        history: MemoryHistory(),
         routes: [
-          route<HomeRoute>(
-            path: '/',
-            parse: (_) => const HomeRoute(),
-            builder: (_, _) => const SizedBox.shrink(),
-          ),
+          route<HomeRoute>(path: '/', parse: (_) => const HomeRoute()),
           route<PrivateRoute>(
             path: '/private',
             parse: (_) => const PrivateRoute(),
             redirect: (_) => Uri(path: '/login'),
-            builder: (_, _) => const SizedBox.shrink(),
           ),
-          route<LoginRoute>(
-            path: '/login',
-            parse: (_) => const LoginRoute(),
-            builder: (_, _) => const SizedBox.shrink(),
-          ),
+          route<LoginRoute>(path: '/login', parse: (_) => const LoginRoute()),
         ],
       );
 
-      final result = await router.resolve(
-        Uri(path: '/private'),
-        signal: neverSignal,
-      );
+      final result = await router.resolve(Uri(path: '/private'));
 
       expect(result.isRedirect, isTrue);
       expect(result.redirectUri, Uri(path: '/login'));
@@ -85,47 +63,33 @@ void main() {
 
     test('returns blocked result when guard blocks route', () async {
       final router = Unrouter<AppRoute>(
-        history: MemoryHistory(),
         routes: [
           route<AdminRoute>(
             path: '/admin',
             parse: (_) => const AdminRoute(),
             guards: [(_) => RouteGuardResult.block()],
-            builder: (_, _) => const SizedBox.shrink(),
           ),
         ],
       );
 
-      final result = await router.resolve(
-        Uri(path: '/admin'),
-        signal: neverSignal,
-      );
+      final result = await router.resolve(Uri(path: '/admin'));
 
       expect(result.isBlocked, isTrue);
     });
 
     test('returns redirect result when guard redirects route', () async {
       final router = Unrouter<AppRoute>(
-        history: MemoryHistory(),
         routes: [
           route<PrivateRoute>(
             path: '/private',
             parse: (_) => const PrivateRoute(),
             guards: [(_) => RouteGuardResult.redirect(Uri(path: '/login'))],
-            builder: (_, _) => const SizedBox.shrink(),
           ),
-          route<LoginRoute>(
-            path: '/login',
-            parse: (_) => const LoginRoute(),
-            builder: (_, _) => const SizedBox.shrink(),
-          ),
+          route<LoginRoute>(path: '/login', parse: (_) => const LoginRoute()),
         ],
       );
 
-      final result = await router.resolve(
-        Uri(path: '/private'),
-        signal: neverSignal,
-      );
+      final result = await router.resolve(Uri(path: '/private'));
 
       expect(result.isRedirect, isTrue);
       expect(result.redirectUri, Uri(path: '/login'));
@@ -133,79 +97,63 @@ void main() {
 
     test('returns loader data for loaded routes', () async {
       final router = Unrouter<AppRoute>(
-        history: MemoryHistory(),
         routes: [
           routeWithLoader<ProfileRoute, String>(
             path: '/profiles/:id',
             parse: (state) => ProfileRoute(id: state.pathInt('id')),
             loader: (context) => 'profile:${context.route.id}',
-            builder: (_, _, data) => Text(data),
           ),
         ],
       );
 
-      final result = await router.resolve(
-        Uri(path: '/profiles/7'),
-        signal: neverSignal,
-      );
+      final result = await router.resolve(Uri(path: '/profiles/7'));
 
       expect(result.isMatched, isTrue);
       expect(result.loaderData, 'profile:7');
     });
 
-    test(
-      'throws cancellation when signal becomes cancelled during loader',
-      () async {
-        final loaderGate = Completer<String>();
-        final router = Unrouter<AppRoute>(
-          history: MemoryHistory(),
-          routes: [
-            routeWithLoader<SlowRoute, String>(
-              path: '/slow',
-              parse: (_) => const SlowRoute(),
-              loader: (context) async {
-                final value = await loaderGate.future;
-                context.signal.throwIfCancelled();
-                return value;
-              },
-              builder: (_, _, data) => Text(data),
-            ),
-          ],
-        );
+    test('throws cancellation when signal becomes cancelled during loader', () async {
+      final loaderGate = Completer<String>();
+      final router = Unrouter<AppRoute>(
+        routes: [
+          routeWithLoader<SlowRoute, String>(
+            path: '/slow',
+            parse: (_) => const SlowRoute(),
+            loader: (context) async {
+              final value = await loaderGate.future;
+              context.signal.throwIfCancelled();
+              return value;
+            },
+          ),
+        ],
+      );
 
-        var cancelled = false;
-        final signal = _MutableSignal(() => cancelled);
+      var cancelled = false;
+      final signal = _MutableSignal(() => cancelled);
 
-        final future = router.resolve(Uri(path: '/slow'), signal: signal);
+      final future = router.resolve(Uri(path: '/slow'), signal: signal);
 
-        cancelled = true;
-        loaderGate.complete('done');
+      cancelled = true;
+      loaderGate.complete('done');
 
-        await expectLater(
-          future,
-          throwsA(isA<RouteExecutionCancelledException>()),
-        );
-      },
-    );
+      await expectLater(
+        future,
+        throwsA(isA<RouteExecutionCancelledException>()),
+      );
+    });
   });
 }
 
 Unrouter<AppRoute> _buildBasicRouter() {
   return Unrouter<AppRoute>(
-    history: MemoryHistory(),
     routes: [
-      route<HomeRoute>(
-        path: '/',
-        parse: (_) => const HomeRoute(),
-        builder: (_, _) => const SizedBox.shrink(),
-      ),
+      route<HomeRoute>(path: '/', parse: (_) => const HomeRoute()),
       route<UserRoute>(
         path: '/users/:id',
         parse: (state) => UserRoute(
           id: state.pathInt('id'),
           tab: state.queryEnum('tab', UserTab.values, fallback: UserTab.posts),
         ),
-        builder: (_, _) => const SizedBox.shrink(),
       ),
     ],
   );
@@ -231,6 +179,8 @@ sealed class AppRoute implements RouteData {
   const AppRoute();
 }
 
+enum UserTab { posts, likes }
+
 final class HomeRoute extends AppRoute {
   const HomeRoute();
 
@@ -248,18 +198,18 @@ final class UserRoute extends AppRoute {
   Uri toUri() => Uri(path: '/users/$id', queryParameters: {'tab': tab.name});
 }
 
-final class LoginRoute extends AppRoute {
-  const LoginRoute();
-
-  @override
-  Uri toUri() => Uri(path: '/login');
-}
-
 final class PrivateRoute extends AppRoute {
   const PrivateRoute();
 
   @override
   Uri toUri() => Uri(path: '/private');
+}
+
+final class LoginRoute extends AppRoute {
+  const LoginRoute();
+
+  @override
+  Uri toUri() => Uri(path: '/login');
 }
 
 final class AdminRoute extends AppRoute {
@@ -284,5 +234,3 @@ final class SlowRoute extends AppRoute {
   @override
   Uri toUri() => Uri(path: '/slow');
 }
-
-enum UserTab { posts, likes }

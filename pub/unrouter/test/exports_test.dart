@@ -1,4 +1,4 @@
-import 'package:flutter_test/flutter_test.dart';
+import 'package:test/test.dart';
 import 'package:unrouter/machine.dart' as machine;
 import 'package:unrouter/unrouter.dart' as unrouter;
 
