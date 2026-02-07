@@ -1,3 +1,25 @@
+/// Advanced machine API for command dispatch and typed machine timeline
+/// inspection.
+///
+/// Import together with `package:unrouter/unrouter.dart` when you need low-level
+/// routing control or machine diagnostics.
 library;
 
-// Core machine facade exports will be migrated in subsequent commits.
+export 'src/runtime/machine_kernel.dart'
+    show
+        UnrouterMachineSource,
+        UnrouterMachineEventGroup,
+        UnrouterMachineEvent,
+        UnrouterMachineEventGrouping,
+        UnrouterMachineState,
+        UnrouterMachineTransitionEntry,
+        UnrouterMachineTypedPayloadKind,
+        UnrouterMachineTypedPayload,
+        UnrouterMachineGenericTypedPayload,
+        UnrouterMachineNavigationTypedPayload,
+        UnrouterMachineRouteTypedPayload,
+        UnrouterMachineControllerTypedPayload,
+        UnrouterMachineTypedTransition,
+        UnrouterMachineCommand,
+        UnrouterMachine;
+export 'src/runtime/navigation.dart' show UnrouterMachineBuildContextExtension;
