@@ -1,0 +1,20 @@
+name: flutter_unrouter
+description: Flutter adapter package for unrouter.
+version: 0.1.0
+repository: https://github.com/medz/unrouter
+resolution: workspace
+
+environment:
+  sdk: ^3.10.0
+  flutter: '>=1.17.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  unrouter: ^0.10.0
+  unstory: ^0.1.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0

@@ -1,25 +1,10 @@
-name: unrouter
-description: "A URL-first typed router for Flutter with shell navigation and diagnostics."
-version: 0.9.0
-repository: https://github.com/medz/unrouter
-topics:
-  - flutter
-  - router
-  - navigation
-  - routing
-  - web
+name: unrouter_workspace
+publish_to: none
 
 environment:
   sdk: ^3.10.0
-  flutter: ">=1.17.0"
 
-dependencies:
-  flutter:
-    sdk: flutter
-  roux: ^0.1.1
-  unstory: ^0.1.1
-
-dev_dependencies:
-  flutter_test:
-    sdk: flutter
-  flutter_lints: ^6.0.0
+workspace:
+  - pub/unrouter_machine
+  - pub/unrouter
+  - pub/flutter_unrouter
