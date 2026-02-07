@@ -206,13 +206,6 @@ packages:
       relative: true
     source: path
     version: "0.9.0"
-  unrouter_machine:
-    dependency: "direct overridden"
-    description:
-      path: "../../unrouter_machine"
-      relative: true
-    source: path
-    version: "0.1.0"
   unstory:
     dependency: transitive
     description:

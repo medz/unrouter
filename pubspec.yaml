@@ -5,6 +5,5 @@ environment:
   sdk: ^3.10.0
 
 workspace:
-  - pub/unrouter_machine
   - pub/unrouter
   - pub/flutter_unrouter

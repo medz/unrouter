@@ -7,31 +7,6 @@ on:
     branches: [main]
 
 jobs:
-  test-unrouter-machine:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2.21.0
-        with:
-          channel: stable
-
-      - name: Install workspace dependencies
-        run: dart pub get
-
-      - name: Analyze unrouter_machine
-        run: |
-          cd pub/unrouter_machine
-          dart pub get
-          dart analyze
-
-      - name: Test unrouter_machine
-        run: |
-          cd pub/unrouter_machine
-          dart test
-
   test-unrouter-core:
     runs-on: ubuntu-latest
     steps:

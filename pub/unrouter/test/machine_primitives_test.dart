@@ -1,5 +1,5 @@
 import 'package:test/test.dart';
-import 'package:unrouter_machine/unrouter_machine.dart';
+import 'package:unrouter/src/runtime/machine_primitives.dart';
 
 void main() {
   group('MachineCommandDispatcher', () {

@@ -1,8 +1,8 @@
 import 'package:unstory/unstory.dart';
-import 'package:unrouter_machine/unrouter_machine.dart';
 
 import '../core/redirect_diagnostics.dart';
 import '../core/route_data.dart';
+import 'machine_primitives.dart';
 
 part 'navigation_machine_commands_actions.dart';
 part 'navigation_machine_api.dart';

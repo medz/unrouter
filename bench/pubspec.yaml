@@ -21,7 +21,5 @@ dependencies:
   flutter_lints: ^6.0.0
 
 dependency_overrides:
-  unrouter_machine:
-    path: ../pub/unrouter_machine
   unrouter:
     path: ../pub/unrouter

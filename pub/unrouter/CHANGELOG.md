@@ -6,7 +6,8 @@
 - `unrouter` is now platform-agnostic and depends only on Dart SDK.
 - Removed Flutter-only runtime APIs from `unrouter`; those APIs moved to
   `flutter_unrouter`.
-- Added `unrouter_machine` dependency for machine-kernel abstractions.
+- Inlined machine-kernel primitives into `unrouter` and removed
+  `unrouter_machine` dependency.
 - Replaced Flutter example and tests with pure Dart equivalents.
 
 ## 0.9.0

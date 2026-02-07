@@ -9,7 +9,3 @@ environment:
 dependencies:
   unrouter:
     path: ..
-
-dependency_overrides:
-  unrouter_machine:
-    path: ../../unrouter_machine
