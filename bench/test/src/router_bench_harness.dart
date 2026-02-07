@@ -7,12 +7,25 @@ import 'package:unrouter/unrouter.dart';
 import 'package:unstory/unstory.dart';
 import 'package:zenrouter/zenrouter.dart';
 
-List<RouterBenchHarness> createHarnesses() {
-  return <RouterBenchHarness>[
-    UnrouterBenchHarness(),
-    GoRouterBenchHarness(),
-    ZenRouterBenchHarness(),
+typedef _RouterHarnessFactory = RouterBenchHarness Function();
+
+final List<_RouterHarnessFactory> _harnessFactories = <_RouterHarnessFactory>[
+  UnrouterBenchHarness.new,
+  GoRouterBenchHarness.new,
+  ZenRouterBenchHarness.new,
+];
+
+List<RouterBenchHarness> createHarnesses({int rotateBy = 0}) {
+  if (_harnessFactories.isEmpty) {
+    return const <RouterBenchHarness>[];
+  }
+  final count = _harnessFactories.length;
+  final normalizedOffset = ((rotateBy % count) + count) % count;
+  final orderedFactories = <_RouterHarnessFactory>[
+    ..._harnessFactories.skip(normalizedOffset),
+    ..._harnessFactories.take(normalizedOffset),
   ];
+  return orderedFactories.map((factory) => factory()).toList(growable: false);
 }
 
 Future<BehaviorSnapshot> runSharedNavigationScript(

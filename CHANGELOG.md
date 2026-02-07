@@ -1,5 +1,12 @@
 ## Unreleased
 
+### Changed
+
+- Benchmark performance suite now rotates router execution order across repeated
+  runs to reduce fixed-order bias (`offset = runIndex - 1`).
+- Benchmark performance summary now prints run-indexed mean series per router
+  to make cross-run variance diagnostics explicit.
+
 ## 0.9.0
 
 ### Changed

@@ -394,6 +394,7 @@ Future<_PerformanceRunResult> _runPerformanceSuite(_BenchConfig config) async {
         '--dart-define=UNROUTER_BENCH_SAMPLES=${config.samples}',
         '--dart-define=UNROUTER_BENCH_WARMUP_ROUNDS=${config.warmupRounds}',
         '--dart-define=UNROUTER_BENCH_WARMUP_SAMPLES=${config.warmupSamples}',
+        '--dart-define=UNROUTER_BENCH_HARNESS_ROTATE_BY=${runIndex - 1}',
       ],
       workingDirectory: config.benchDirectory,
       verbose: config.verbose,
@@ -414,6 +415,7 @@ Future<_PerformanceRunResult> _runPerformanceSuite(_BenchConfig config) async {
           capturedRuns: 1,
           totalRuns: 1,
           meanCvPercent: 0,
+          runMeanUs: const <double>[],
         );
       },
     );
@@ -480,6 +482,7 @@ List<_PerformanceRouterResult> _aggregatePerformanceRouters(
           capturedRuns: 0,
           totalRuns: totalRuns,
           meanCvPercent: 0,
+          runMeanUs: const <double>[],
         ),
       );
       continue;
@@ -505,6 +508,7 @@ List<_PerformanceRouterResult> _aggregatePerformanceRouters(
         capturedRuns: entries.length,
         totalRuns: totalRuns,
         meanCvPercent: _coefficientOfVariationPercent(means),
+        runMeanUs: List<double>.unmodifiable(means),
       ),
     );
   }
@@ -710,10 +714,15 @@ String _renderSummary({
       'Aggregation: median across ${performance.runCount} run(s), '
       'warmup=${performance.warmupSamples}x${performance.warmupRounds}',
     );
+    buffer.writeln('Router order: rotated each run (offset = runIndex - 1)');
     if (performance.routers.isEmpty) {
       buffer.writeln('No performance markers captured.');
     } else {
       buffer.writeln(_renderPerformanceMatrix(performance));
+      final runMeanSeries = _renderRunMeanSeries(performance.routers);
+      if (runMeanSeries.isNotEmpty) {
+        buffer.writeln(runMeanSeries);
+      }
       buffer.writeln(
         'Cross-router checksum alignment: '
         '${performance.checksumAligned ? 'OK' : 'FAIL'}',
@@ -902,6 +911,30 @@ String _renderPerformanceMatrix(_PerformanceRunResult performance) {
       '${_style('best', const <TextStyle>[TextStyle.bold, TextStyle.green])} '
       '| ${_style('warning', const <TextStyle>[TextStyle.yellow])} '
       '| ${_style('anomaly', const <TextStyle>[TextStyle.bold, TextStyle.red])}';
+}
+
+String _renderRunMeanSeries(List<_PerformanceRouterResult> routers) {
+  if (routers.isEmpty) {
+    return '';
+  }
+
+  final buffer = StringBuffer();
+  buffer.writeln('Run means / round (ordered by run index):');
+  for (final router in routers) {
+    if (router.runMeanUs.isEmpty) {
+      buffer.writeln('- ${router.router}: -');
+      continue;
+    }
+    final values = router.runMeanUs
+        .asMap()
+        .entries
+        .map(
+          (entry) => 'r${entry.key + 1}=${_formatMicrosFriendly(entry.value)}',
+        )
+        .join(', ');
+    buffer.writeln('- ${router.router}: $values');
+  }
+  return buffer.toString().trimRight();
 }
 
 String _styleMeanLikeMetric({
@@ -1228,6 +1261,7 @@ class _PerformanceRouterResult {
     required this.capturedRuns,
     required this.totalRuns,
     required this.meanCvPercent,
+    required this.runMeanUs,
   });
 
   final String router;
@@ -1241,6 +1275,7 @@ class _PerformanceRouterResult {
   final int capturedRuns;
   final int totalRuns;
   final double meanCvPercent;
+  final List<double> runMeanUs;
 
   bool get hasCompleteRuns => capturedRuns == totalRuns;
 }

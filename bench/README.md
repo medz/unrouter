@@ -42,6 +42,9 @@ dart run main.dart \
 
 Performance output now uses a compact metric-by-router matrix with friendly
 time units (`us`/`ms`/`s`) to keep common terminal widths readable.
+Across repeated performance runs, router execution order is automatically
+rotated to reduce fixed-order bias. The summary also prints per-run mean series
+for each router to make variance sources easier to inspect.
 
 Run only behavior parity:
 

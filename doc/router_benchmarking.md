@@ -145,8 +145,13 @@ dart run main.dart --verbose
   directly, without writing JSON report files.
 - For performance stability, use warmup (`--warmup-rounds`, `--warmup-samples`)
   and repeated-run median aggregation (`--performance-runs`).
+- Repeated performance runs automatically rotate router execution order
+  (`offset = runIndex - 1`) to reduce fixed-order bias from warm caches and
+  scheduler state.
 - Performance summary is rendered as a compact metric-by-router matrix with
   friendly units (`us`/`ms`/`s`) for terminal readability.
+- Performance summary also includes run-indexed mean series per router, so
+  cross-run variance can be inspected directly.
 - This baseline favors correctness first. Performance output is informative and
   intended for trend tracking, not strict cross-package winner declarations.
 - For richer coverage, add more scripts over time (redirect/guard, nested shell,

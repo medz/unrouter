@@ -25,9 +25,18 @@ void main() {
         'UNROUTER_BENCH_WARMUP_SAMPLES',
         defaultValue: 1,
       );
+      const rotateBy = int.fromEnvironment(
+        'UNROUTER_BENCH_HARNESS_ROTATE_BY',
+        defaultValue: 0,
+      );
 
+      final harnesses = createHarnesses(rotateBy: rotateBy);
       final series = <PerformanceSeries>[];
-      for (final harness in createHarnesses()) {
+      debugPrint(
+        '[router-benchmark][performance] '
+        'harnessOrder=${harnesses.map((h) => h.routerName).join(',')}',
+      );
+      for (final harness in harnesses) {
         await harness.attach(tester);
         try {
           if (warmupRounds > 0 && warmupSamples > 0) {
