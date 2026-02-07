@@ -12,3 +12,5 @@
   `clearStateTimeline`, `stateTimelineLimit`).
 - Reworked `UnrouterController` to wrap the `unrouter` core runtime controller
   so route resolution/navigation behavior is shared instead of duplicated.
+- Reworked shell restoration/branch stack runtime to use `unrouter` core
+  `ShellCoordinator`, removing duplicated envelope/stack algorithms.

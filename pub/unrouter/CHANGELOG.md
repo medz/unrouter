@@ -8,6 +8,9 @@
   APIs and redirect handling.
 - Added `UnrouterController.resolution` to expose the current typed
   `RouteResolution`.
+- Added platform-agnostic shell coordination APIs
+  (`ShellCoordinator`, state envelope codec, restoration snapshot, branch
+  descriptors) for adapter reuse.
 - Removed timeline-related runtime APIs (`UnrouterStateTimelineEntry`,
   `stateTimeline`, `clearStateTimeline`, `stateTimelineLimit`).
 - Removed Flutter-only runtime APIs from `unrouter`; those APIs moved to

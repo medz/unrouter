@@ -14,7 +14,11 @@ import 'package:unrouter/unrouter.dart'
         RouteParser,
         RouteParserState,
         RouteRecord,
-        RouteRedirect;
+        RouteRedirect,
+        ShellBranchDescriptor,
+        ShellCoordinator,
+        ShellHistoryStateRequest,
+        ShellNavigationEvent;
 import 'package:unstory/unstory.dart';
 
 import '../runtime/navigation.dart';
@@ -35,3 +39,7 @@ typedef _CoreRouteParser<T extends RouteData> = core.RouteParser<T>;
 typedef _CoreRouteGuardResult = core.RouteGuardResult;
 typedef _CoreRouteParserState = core.RouteParserState;
 typedef _CoreRouteHookContext<T extends RouteData> = core.RouteHookContext<T>;
+typedef _CoreShellCoordinator = core.ShellCoordinator;
+typedef _CoreShellBranchDescriptor = core.ShellBranchDescriptor;
+typedef _CoreShellHistoryStateRequest = core.ShellHistoryStateRequest;
+typedef _CoreShellNavigationEvent = core.ShellNavigationEvent;
