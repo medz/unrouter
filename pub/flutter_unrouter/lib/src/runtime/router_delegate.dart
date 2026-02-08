@@ -15,7 +15,7 @@ class UnrouterDelegate<R extends RouteData>
   UnrouterDelegate(this.config)
     : _routeInformationProvider = config.routeInformationProvider {
     final initial = _routeInformationProvider.value;
-    _controller = UnrouterController(
+    _controller = createUnrouterController(
       coreRouter: config.coreRouter,
       routeInformationProvider: _routeInformationProvider,
       resolveInitialRoute: false,

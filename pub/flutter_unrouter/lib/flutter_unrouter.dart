@@ -19,4 +19,8 @@ export 'package:unrouter/unrouter.dart'
         RouteNeverCancelledSignal,
         RouteParserState;
 export 'src/runtime/navigation.dart'
-    show UnrouterController, UnrouterScope, UnrouterBuildContextExtension;
+    show
+        UnrouterController,
+        UnrouterScope,
+        UnrouterBuildContextExtension,
+        UnrouterControllerListenableExtension;

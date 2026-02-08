@@ -10,8 +10,9 @@
   focused on runtime navigation/state.
 - Removed timeline-related runtime APIs (`stateTimeline`,
   `clearStateTimeline`, `stateTimelineLimit`).
-- Reworked `UnrouterController` to wrap the `unrouter` core runtime controller
-  so route resolution/navigation behavior is shared instead of duplicated.
+- Reworked `UnrouterController` to directly reuse the `unrouter` core runtime
+  controller via type alias + Flutter listenable extension, removing adapter
+  runtime wrapper duplication.
 - Reworked route definition records to inherit core `RouteDefinition` /
   `LoadedRouteDefinition` so parse/guard/redirect/loader semantics stay owned
   by `unrouter`.

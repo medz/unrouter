@@ -8,6 +8,10 @@
   APIs and redirect handling.
 - Added `UnrouterController.cast<S>()` to share one runtime controller across
   typed route views.
+- Added `UnrouterHistoryStateComposer` and shell branch resolver APIs
+  (`setShellBranchResolvers`, `switchBranch`, `popBranch`) to
+  `UnrouterController` so adapter packages no longer need to reimplement
+  navigation-side state composition.
 - Added `UnrouterController.resolution` to expose the current typed
   `RouteResolution`.
 - Added platform-agnostic shell coordination APIs

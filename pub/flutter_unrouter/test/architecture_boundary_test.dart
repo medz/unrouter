@@ -27,4 +27,11 @@ void main() {
       );
     }
   });
+
+  test('controller binding reuses core controller type', () {
+    final source = File('lib/src/runtime/navigation.dart').readAsStringSync();
+
+    expect(source.contains('typedef UnrouterController<'), isTrue);
+    expect(source.contains('class UnrouterController<'), isFalse);
+  });
 }

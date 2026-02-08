@@ -64,6 +64,24 @@ final controller = UnrouterController<AppRoute>(
 
 await controller.idle;
 print(controller.state.resolution); // matched
+
+controller.setHistoryStateComposer((request) {
+  return {
+    'uri': request.uri.toString(),
+    'action': request.action.name,
+    'userState': request.state,
+  };
+});
+
+controller.setShellBranchResolvers(
+  resolveTarget: (index, {required initialLocation}) {
+    if (index == 0) return Uri(path: '/feed');
+    if (index == 1) return Uri(path: '/settings');
+    return null;
+  },
+  popTarget: () => Uri(path: '/feed'),
+);
+
 controller.dispose();
 ```
 
