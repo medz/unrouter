@@ -22,6 +22,8 @@
   by `unrouter`.
 - Reworked shell restoration/branch stack runtime to use `unrouter` core
   `ShellCoordinator`, removing duplicated envelope/stack algorithms.
+- Removed adapter-local shell contract definitions (`ShellState`,
+  `ShellRouteRecordHost`) and reused core contracts from `unrouter`.
 - Removed adapter alias typedef wrappers and direct shim accessors
   (`RouteRecord.core`, `CoreUnrouter`, `typedef UnrouterController = ...`) so
   adapter internals use core types directly.

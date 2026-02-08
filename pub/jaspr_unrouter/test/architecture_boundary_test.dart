@@ -29,6 +29,9 @@ void main() {
   test('runtime binding does not depend on jaspr_router', () {
     final pubspec = File('pubspec.yaml').readAsStringSync();
     final runtime = File('lib/src/runtime/unrouter.dart').readAsStringSync();
+    final routeDefs = File(
+      'lib/src/core/route_definition.dart',
+    ).readAsStringSync();
 
     expect(
       pubspec.contains('jaspr_router:'),
@@ -69,6 +72,11 @@ void main() {
       runtime.contains('RouteRecord<R>? routeRecordOf('),
       isFalse,
       reason: 'adapter should avoid redundant record-cast shim APIs.',
+    );
+    expect(routeDefs.contains('class ShellState<'), isFalse);
+    expect(
+      routeDefs.contains('abstract interface class ShellRouteRecordHost<'),
+      isFalse,
     );
   });
 }

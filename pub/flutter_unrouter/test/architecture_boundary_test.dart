@@ -49,6 +49,12 @@ void main() {
         reason: 'Found forbidden duplicated shell runtime token: $token',
       );
     }
+
+    expect(source.contains('class ShellState<'), isFalse);
+    expect(
+      source.contains('abstract interface class ShellRouteRecordHost<'),
+      isFalse,
+    );
   });
 
   test('controller binding reuses core controller type', () {

@@ -29,7 +29,7 @@ class UnrouterDelegate<R extends RouteData>
     _stateListener = () {
       _resolution = _controller.resolution;
       final routeRecord = _asAdapterRouteRecord(_resolution.record);
-      if (routeRecord is! adapter.ShellRouteRecordHost<R>) {
+      if (routeRecord is! ShellRouteRecordHost<R>) {
         _controller.clearHistoryStateComposer();
       }
       _pageRevision += 1;
@@ -185,7 +185,7 @@ class UnrouterDelegate<R extends RouteData>
 
   Uri? _resolveShellBranchTarget(int index, {required bool initialLocation}) {
     final activeRecord = _activeRouteRecord;
-    if (activeRecord case adapter.ShellRouteRecordHost<R> shellHost) {
+    if (activeRecord case ShellRouteRecordHost<R> shellHost) {
       return shellHost.resolveBranchTarget(
         index,
         initialLocation: initialLocation,
@@ -196,7 +196,7 @@ class UnrouterDelegate<R extends RouteData>
 
   Uri? _popShellBranchTarget() {
     final activeRecord = _activeRouteRecord;
-    if (activeRecord case adapter.ShellRouteRecordHost<R> shellHost) {
+    if (activeRecord case ShellRouteRecordHost<R> shellHost) {
       return shellHost.popBranch();
     }
     return null;

@@ -1,5 +1,3 @@
-import 'dart:collection';
-
 import 'package:jaspr/jaspr.dart';
 import 'package:unrouter/unrouter.dart'
     hide
@@ -162,82 +160,6 @@ ShellBranch<R> branch<R extends RouteData>({
   );
 }
 
-/// Contract implemented by shell-aware route records.
-abstract interface class ShellRouteRecordHost<R extends RouteData> {
-  Uri resolveBranchTarget(int index, {bool initialLocation = false});
-
-  bool canPopBranch();
-
-  Uri? popBranch({Object? result});
-}
-
-/// Runtime state passed to shell builders.
-class ShellState<R extends RouteData> {
-  const ShellState._({
-    required this.activeBranchIndex,
-    required this.branches,
-    required this.currentUri,
-    required List<Uri> currentBranchHistory,
-    required void Function(
-      int index, {
-      bool initialLocation,
-      bool completePendingResult,
-      Object? result,
-    })
-    onGoBranch,
-    required bool Function() canPopBranch,
-    required bool Function(Object? result) onPopBranch,
-  }) : _currentBranchHistory = currentBranchHistory,
-       _onGoBranch = onGoBranch,
-       _canPopBranch = canPopBranch,
-       _onPopBranch = onPopBranch;
-
-  final int activeBranchIndex;
-  final List<ShellBranch<R>> branches;
-  final Uri currentUri;
-  final List<Uri> _currentBranchHistory;
-  final void Function(
-    int index, {
-    bool initialLocation,
-    bool completePendingResult,
-    Object? result,
-  })
-  _onGoBranch;
-  final bool Function() _canPopBranch;
-  final bool Function(Object? result) _onPopBranch;
-
-  int get branchCount => branches.length;
-
-  List<Uri> get currentBranchHistory {
-    return UnmodifiableListView(_currentBranchHistory);
-  }
-
-  bool get canPopBranch => _canPopBranch();
-
-  /// Switches active branch.
-  ///
-  /// Set [initialLocation] to reset the target branch stack, and optionally
-  /// complete an active push result with [completePendingResult]/[result].
-  void goBranch(
-    int index, {
-    bool initialLocation = false,
-    bool completePendingResult = false,
-    Object? result,
-  }) {
-    _onGoBranch(
-      index,
-      initialLocation: initialLocation,
-      completePendingResult: completePendingResult,
-      result: result,
-    );
-  }
-
-  /// Pops the active branch stack and optionally completes push result.
-  bool popBranch<T extends Object?>([T? result]) {
-    return _onPopBranch(result);
-  }
-}
-
 /// Wraps branch routes into a shared shell.
 List<RouteRecord<R>> shell<R extends RouteData>({
   required ShellBuilder<R> builder,
@@ -357,7 +279,7 @@ class _ShellRouteRecord<R extends RouteData>
       );
     });
 
-    final shellState = ShellState<R>._(
+    final shellState = ShellState<R>(
       activeBranchIndex: _branchIndex,
       branches: _runtime.branches,
       currentUri: currentUri,

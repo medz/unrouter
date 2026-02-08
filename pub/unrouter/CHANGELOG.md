@@ -17,6 +17,8 @@
 - Added platform-agnostic shell coordination APIs
   (`ShellCoordinator`, state envelope codec, restoration snapshot, branch
   descriptors) for adapter reuse.
+- Promoted shell runtime contracts (`ShellState`, `ShellRouteRecordHost`) to
+  core API so adapters can share one shell state model.
 - Added architecture guard tests to keep `unrouter` free from Flutter imports.
 - Removed timeline-related runtime APIs (`UnrouterStateTimelineEntry`,
   `stateTimeline`, `clearStateTimeline`, `stateTimelineLimit`).

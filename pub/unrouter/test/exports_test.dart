@@ -9,5 +9,7 @@ void main() {
     expect(unrouter.UnrouterController, isNotNull);
     expect(unrouter.ShellCoordinator, isNotNull);
     expect(unrouter.ShellRuntimeBinding, isNotNull);
+    expect(unrouter.ShellState, isNotNull);
+    expect(unrouter.ShellRouteRecordHost, isNotNull);
   });
 }
