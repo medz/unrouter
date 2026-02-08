@@ -132,7 +132,10 @@ class _UnrouterState<R extends RouteData> extends State<Unrouter<R>>
           return;
         }
         setState(() {
-          _resolution = syncControllerResolution(controller);
+          _resolution = controller.resolution;
+          if (_resolution.record is! ShellRouteRecordHost) {
+            controller.clearHistoryStateComposer();
+          }
         });
       });
     }
@@ -167,7 +170,10 @@ class _UnrouterState<R extends RouteData> extends State<Unrouter<R>>
           return;
         }
         setState(() {
-          _resolution = syncControllerResolution(controller);
+          _resolution = controller.resolution;
+          if (_resolution.record is! ShellRouteRecordHost) {
+            controller.clearHistoryStateComposer();
+          }
         });
       });
     }
@@ -249,74 +255,83 @@ class _UnrouterState<R extends RouteData> extends State<Unrouter<R>>
   }
 
   Component _buildFromResolution(BuildContext context) {
-    return resolveRouteResolution<R, Component>(
-      resolution: _resolution,
-      onPending: (resolution) {
-        final loadingBuilder = component.loading;
-        if (loadingBuilder != null) {
-          return loadingBuilder(context, resolution.uri);
-        }
-        return const Component.empty();
-      },
-      onError: (resolution) {
-        return _buildError(
+    final resolution = _resolution;
+
+    if (resolution.isPending) {
+      final loadingBuilder = component.loading;
+      if (loadingBuilder != null) {
+        return loadingBuilder(context, resolution.uri);
+      }
+      return const Component.empty();
+    }
+
+    if (resolution.hasError) {
+      return _buildError(
+        context,
+        resolution.error!,
+        resolution.stackTrace ?? StackTrace.current,
+      );
+    }
+
+    if (resolution.isBlocked) {
+      final blockedBuilder = component.blocked;
+      if (blockedBuilder != null) {
+        return blockedBuilder(context, resolution.uri);
+      }
+
+      final unknownBuilder = component.unknown;
+      if (unknownBuilder != null) {
+        return unknownBuilder(context, resolution.uri);
+      }
+
+      return Component.text('No route matches ${resolution.uri.path}');
+    }
+
+    if (resolution.isMatched) {
+      final record = _requireRouteRecord(resolution);
+      try {
+        return record.build(
           context,
-          resolution.error!,
-          resolution.stackTrace ?? StackTrace.current,
+          resolution.route!,
+          resolution.loaderData,
         );
-      },
-      onBlocked: (resolution) {
-        final blockedBuilder = component.blocked;
-        if (blockedBuilder != null) {
-          return blockedBuilder(context, resolution.uri);
-        }
+      } catch (error, stackTrace) {
+        return _buildError(context, error, stackTrace);
+      }
+    }
 
-        final unknownBuilder = component.unknown;
-        if (unknownBuilder != null) {
-          return unknownBuilder(context, resolution.uri);
-        }
+    final unknown = component.unknown;
+    if (unknown != null) {
+      return unknown(context, resolution.uri);
+    }
 
-        return Component.text('No route matches ${resolution.uri.path}');
-      },
-      onMatched: (resolution) {
-        final record = _requireRouteRecord(resolution);
-
-        try {
-          return record.build(
-            context,
-            resolution.route!,
-            resolution.loaderData,
-          );
-        } catch (error, stackTrace) {
-          return _buildError(context, error, stackTrace);
-        }
-      },
-      onUnmatched: (resolution) {
-        final unknown = component.unknown;
-        if (unknown != null) {
-          return unknown(context, resolution.uri);
-        }
-
-        return Component.text('No route matches ${resolution.uri.path}');
-      },
-    );
+    return Component.text('No route matches ${resolution.uri.path}');
   }
 
   Uri? _resolveShellBranchTarget(int index, {required bool initialLocation}) {
-    final shellHost = castShellRouteRecordHost(_activeRouteRecord);
-    return shellHost?.resolveBranchTarget(
-      index,
-      initialLocation: initialLocation,
-    );
+    final activeRecord = _activeRouteRecord;
+    if (activeRecord case ShellRouteRecordHost shellHost) {
+      return shellHost.resolveBranchTarget(
+        index,
+        initialLocation: initialLocation,
+      );
+    }
+    return null;
   }
 
   Uri? _popShellBranchTarget() {
-    final shellHost = castShellRouteRecordHost(_activeRouteRecord);
-    return shellHost?.popBranch();
+    final activeRecord = _activeRouteRecord;
+    if (activeRecord case ShellRouteRecordHost shellHost) {
+      return shellHost.popBranch();
+    }
+    return null;
   }
 
   RouteRecord<R>? _asAdapterRouteRecord(core.RouteRecord<R>? record) {
-    return castRouteRecord<R, RouteRecord<R>>(record);
+    if (record case RouteRecord<R> adapterRecord) {
+      return adapterRecord;
+    }
+    return null;
   }
 
   RouteRecord<R>? get _activeRouteRecord {

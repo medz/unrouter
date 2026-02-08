@@ -11,10 +11,6 @@ void main() {
     expect(unrouter.ShellRuntimeBinding, isNotNull);
     expect(unrouter.buildShellRouteRecords, isNotNull);
     expect(unrouter.requireShellRouteRecord, isNotNull);
-    expect(unrouter.castRouteRecord, isNotNull);
-    expect(unrouter.castShellRouteRecordHost, isNotNull);
-    expect(unrouter.syncControllerResolution, isNotNull);
-    expect(unrouter.resolveRouteResolution, isNotNull);
     expect(unrouter.ShellRouteRecordBinding, isNotNull);
     expect(unrouter.ShellState, isNotNull);
     expect(unrouter.ShellRouteRecordHost, isNotNull);

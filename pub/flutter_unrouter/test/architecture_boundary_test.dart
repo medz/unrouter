@@ -87,8 +87,8 @@ void main() {
       delegate.contains("import 'package:unrouter/unrouter.dart' hide"),
       isFalse,
     );
-    expect(delegate.contains('resolveRouteResolution<'), isTrue);
-    expect(delegate.contains('syncControllerResolution('), isTrue);
+    expect(delegate.contains('resolveRouteResolution<'), isFalse);
+    expect(delegate.contains('syncControllerResolution('), isFalse);
     expect(delegate.contains('final unknown = config.unknown;'), isTrue);
   });
 }

@@ -73,8 +73,8 @@ void main() {
       isFalse,
       reason: 'adapter should avoid redundant record-cast shim APIs.',
     );
-    expect(runtime.contains('resolveRouteResolution<'), isTrue);
-    expect(runtime.contains('syncControllerResolution('), isTrue);
+    expect(runtime.contains('resolveRouteResolution<'), isFalse);
+    expect(runtime.contains('syncControllerResolution('), isFalse);
     expect(runtime.contains('Error.throwWithStackTrace('), isTrue);
     expect(routeDefs.contains('class ShellState<'), isFalse);
     expect(
