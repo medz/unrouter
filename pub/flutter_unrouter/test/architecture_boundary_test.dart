@@ -3,6 +3,29 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('adapter source does not reintroduce dotted typedef aliases', () {
+    final aliasPattern = RegExp(r'typedef\s+\w+\s*=\s*[A-Za-z_]\w*\.');
+    final violations = <String>[];
+
+    for (final entity in Directory('lib').listSync(recursive: true)) {
+      if (entity is! File || !entity.path.endsWith('.dart')) {
+        continue;
+      }
+      final source = entity.readAsStringSync();
+      if (aliasPattern.hasMatch(source)) {
+        violations.add(entity.path);
+      }
+    }
+
+    expect(
+      violations,
+      isEmpty,
+      reason:
+          'Found dotted typedef aliases that look like core passthroughs: '
+          '${violations.join(', ')}',
+    );
+  });
+
   test('shell runtime does not carry duplicated core algorithms', () {
     final source = File(
       'lib/src/core/route_definition_shell.dart',
@@ -38,6 +61,9 @@ void main() {
 
   test('runtime API inherits core router runtime directly', () {
     final runtime = File('lib/src/runtime/unrouter.dart').readAsStringSync();
+    final delegate = File(
+      'lib/src/runtime/router_delegate.dart',
+    ).readAsStringSync();
 
     expect(runtime.contains('typedef CoreUnrouter<'), isFalse);
     expect(
@@ -48,5 +74,9 @@ void main() {
     );
     expect(runtime.contains('core.Unrouter<R> get coreRouter'), isFalse);
     expect(runtime.contains('RouteRecord<R>? routeRecordOf('), isFalse);
+    expect(
+      delegate.contains("import 'package:unrouter/unrouter.dart' hide"),
+      isFalse,
+    );
   });
 }

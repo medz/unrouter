@@ -3,6 +3,29 @@ import 'dart:io';
 import 'package:test/test.dart';
 
 void main() {
+  test('adapter source does not reintroduce dotted typedef aliases', () {
+    final aliasPattern = RegExp(r'typedef\s+\w+\s*=\s*[A-Za-z_]\w*\.');
+    final violations = <String>[];
+
+    for (final entity in Directory('lib').listSync(recursive: true)) {
+      if (entity is! File || !entity.path.endsWith('.dart')) {
+        continue;
+      }
+      final source = entity.readAsStringSync();
+      if (aliasPattern.hasMatch(source)) {
+        violations.add(entity.path);
+      }
+    }
+
+    expect(
+      violations,
+      isEmpty,
+      reason:
+          'Found dotted typedef aliases that look like core passthroughs: '
+          '${violations.join(', ')}',
+    );
+  });
+
   test('runtime binding does not depend on jaspr_router', () {
     final pubspec = File('pubspec.yaml').readAsStringSync();
     final runtime = File('lib/src/runtime/unrouter.dart').readAsStringSync();
