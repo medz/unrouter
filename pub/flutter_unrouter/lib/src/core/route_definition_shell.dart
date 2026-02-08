@@ -175,6 +175,26 @@ class _ShellRouteRecord<R extends RouteData>
   _CoreRouteRecord<R> get core => _coreRecord;
 
   @override
+  R parse(_CoreRouteParserState state) => _coreRecord.parse(state);
+
+  @override
+  Future<Uri?> runRedirect(_CoreRouteHookContext<RouteData> context) {
+    return _coreRecord.runRedirect(context);
+  }
+
+  @override
+  Future<_CoreRouteGuardResult> runGuards(
+    _CoreRouteHookContext<RouteData> context,
+  ) {
+    return _coreRecord.runGuards(context);
+  }
+
+  @override
+  Future<Object?> load(_CoreRouteHookContext<RouteData> context) {
+    return _coreRecord.load(context);
+  }
+
+  @override
   Uri resolveBranchTarget(int index, {bool initialLocation = false}) {
     return _runtime.resolveTargetUri(index, initialLocation: initialLocation);
   }

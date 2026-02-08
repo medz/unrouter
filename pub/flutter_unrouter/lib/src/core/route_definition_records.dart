@@ -49,9 +49,12 @@ class RoutePageBuilderState {
   final Widget child;
 }
 
-abstract interface class RouteRecord<T extends RouteData> {
+abstract interface class RouteRecord<T extends RouteData>
+    implements CoreRouteRecord<T> {
+  @override
   String get path;
 
+  @override
   String? get name;
 
   CoreRouteRecord<T> get core;
@@ -66,34 +69,21 @@ abstract interface class RouteRecord<T extends RouteData> {
 }
 
 /// Route definition without asynchronous loader data.
-class RouteDefinition<T extends RouteData> implements RouteRecord<T> {
+class RouteDefinition<T extends RouteData> extends _CoreRouteDefinition<T>
+    implements RouteRecord<T> {
   RouteDefinition({
-    required this.path,
-    required RouteParser<T> parse,
+    required super.path,
+    required super.parse,
     required RouteWidgetBuilder<T> builder,
-    this.name,
-    List<RouteGuard<T>> guards = const [],
-    RouteRedirect<T>? redirect,
+    super.name,
+    super.guards = const [],
+    super.redirect,
     this.pageBuilder,
     this.transitionBuilder,
     this.transitionDuration = Duration.zero,
     this.reverseTransitionDuration = Duration.zero,
-  }) : _coreRecord = _CoreRouteDefinition<T>(
-         path: path,
-         parse: parse,
-         name: name,
-         guards: guards,
-         redirect: redirect,
-       ),
-       _builder = builder;
+  }) : _builder = builder;
 
-  @override
-  final String path;
-
-  @override
-  final String? name;
-
-  final _CoreRouteDefinition<T> _coreRecord;
   final RouteWidgetBuilder<T> _builder;
   final RoutePageBuilder? pageBuilder;
   final RouteTransitionBuilder? transitionBuilder;
@@ -101,7 +91,7 @@ class RouteDefinition<T extends RouteData> implements RouteRecord<T> {
   final Duration reverseTransitionDuration;
 
   @override
-  CoreRouteRecord<T> get core => _coreRecord;
+  CoreRouteRecord<T> get core => this;
 
   @override
   Widget build(BuildContext context, RouteData route, Object? loaderData) {
@@ -127,36 +117,23 @@ class RouteDefinition<T extends RouteData> implements RouteRecord<T> {
 }
 
 /// Route definition that resolves typed loader data before build.
-class LoadedRouteDefinition<T extends RouteData, L> implements RouteRecord<T> {
+class LoadedRouteDefinition<T extends RouteData, L>
+    extends _CoreLoadedRouteDefinition<T, L>
+    implements RouteRecord<T> {
   LoadedRouteDefinition({
-    required this.path,
-    required RouteParser<T> parse,
-    required RouteLoader<T, L> loader,
+    required super.path,
+    required super.parse,
+    required super.loader,
     required RouteLoadedWidgetBuilder<T, L> builder,
-    this.name,
-    List<RouteGuard<T>> guards = const [],
-    RouteRedirect<T>? redirect,
+    super.name,
+    super.guards = const [],
+    super.redirect,
     this.pageBuilder,
     this.transitionBuilder,
     this.transitionDuration = Duration.zero,
     this.reverseTransitionDuration = Duration.zero,
-  }) : _coreRecord = _CoreLoadedRouteDefinition<T, L>(
-         path: path,
-         parse: parse,
-         loader: loader,
-         name: name,
-         guards: guards,
-         redirect: redirect,
-       ),
-       _builder = builder;
+  }) : _builder = builder;
 
-  @override
-  final String path;
-
-  @override
-  final String? name;
-
-  final _CoreLoadedRouteDefinition<T, L> _coreRecord;
   final RouteLoadedWidgetBuilder<T, L> _builder;
   final RoutePageBuilder? pageBuilder;
   final RouteTransitionBuilder? transitionBuilder;
@@ -164,7 +141,7 @@ class LoadedRouteDefinition<T extends RouteData, L> implements RouteRecord<T> {
   final Duration reverseTransitionDuration;
 
   @override
-  CoreRouteRecord<T> get core => _coreRecord;
+  CoreRouteRecord<T> get core => this;
 
   @override
   Widget build(BuildContext context, RouteData route, Object? loaderData) {

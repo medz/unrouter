@@ -12,6 +12,9 @@
   `clearStateTimeline`, `stateTimelineLimit`).
 - Reworked `UnrouterController` to wrap the `unrouter` core runtime controller
   so route resolution/navigation behavior is shared instead of duplicated.
+- Reworked route definition records to inherit core `RouteDefinition` /
+  `LoadedRouteDefinition` so parse/guard/redirect/loader semantics stay owned
+  by `unrouter`.
 - Reworked shell restoration/branch stack runtime to use `unrouter` core
   `ShellCoordinator`, removing duplicated envelope/stack algorithms.
 - Added shell runtime widget tests for branch switching/restoration and
