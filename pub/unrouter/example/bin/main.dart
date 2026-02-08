@@ -13,7 +13,7 @@ final class HomeRoute extends AppRoute {
 
 void main() async {
   final router = Unrouter<AppRoute>(
-    routes: const [Route(path: '/', parse: HomeRoute.new)],
+    routes: [route(path: '/', parse: HomeRoute.new)],
   );
 
   final result = await router.resolve(Uri(path: '/'));

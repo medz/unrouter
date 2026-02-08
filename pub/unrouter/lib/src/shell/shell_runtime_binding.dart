@@ -176,7 +176,7 @@ abstract class ShellRouteRecordBinding<
   R extends RouteData,
   TRecord extends RouteRecord<R>
 >
-    implements RouteRecord<R>, ShellRouteRecordHost<R> {
+    implements RouteRecord<R>, ShellRouteRecordHost {
   ShellRouteRecordBinding({
     required this.record,
     required ShellRuntimeBinding<R> runtime,
@@ -276,18 +276,31 @@ abstract class ShellRouteRecordBinding<
       bool completePendingResult,
       Object? result,
     })
-    onGoBranch,
+    goBranch,
     required bool Function() canPopBranch,
-    required bool Function(Object? result) onPopBranch,
+    required bool Function(Object? result) popBranch,
   }) {
     return ShellState<R>(
       activeBranchIndex: _branchIndex,
       branches: _runtime.branches,
       currentUri: currentUri,
       currentBranchHistory: _runtime.currentBranchHistory(_branchIndex),
-      onGoBranch: onGoBranch,
-      canPopBranch: canPopBranch,
-      onPopBranch: onPopBranch,
+      goBranch:
+          (
+            index, {
+            initialLocation,
+            completePendingResult,
+            result,
+          }) {
+            goBranch(
+              index,
+              initialLocation: initialLocation ?? false,
+              completePendingResult: completePendingResult ?? false,
+              result: result,
+            );
+          },
+      popBranch: (value) => popBranch(value),
+      canPopBranch: () => canPopBranch(),
     );
   }
 }

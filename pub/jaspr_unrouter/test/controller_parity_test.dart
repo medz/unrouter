@@ -86,7 +86,7 @@ void main() {
   test('loader data is produced by core runtime controller', () async {
     final router = core.Unrouter<AppRoute>(
       routes: <RouteRecord<AppRoute>>[
-        routeWithLoader<ProfileRoute, String>(
+        dataRoute<ProfileRoute, String>(
           path: '/profile',
           parse: (_) => const ProfileRoute(),
           loader: (_) => 'profile-data',

@@ -38,7 +38,7 @@ List<RouteRecord<R>> shell<R extends RouteData>({
       return requireShellRouteRecord<R, RouteRecord<R>>(
         record,
         adapterLabel: 'flutter',
-        buildHint: 'flutter_unrouter route()/routeWithLoader()',
+        buildHint: 'flutter_unrouter route()/dataRoute()',
       );
     },
     wrapRecord:
@@ -95,7 +95,7 @@ class _ShellRouteRecord<R extends RouteData>
 
     final shellState = createShellState(
       currentUri: currentUri,
-      onGoBranch:
+      goBranch:
           (
             index, {
             initialLocation = false,
@@ -110,7 +110,7 @@ class _ShellRouteRecord<R extends RouteData>
             );
           },
       canPopBranch: canPopBranch,
-      onPopBranch: (result) => controller.popBranch(result),
+      popBranch: (result) => controller.popBranch(result),
     );
 
     return _shellBuilder(context, shellState, child);

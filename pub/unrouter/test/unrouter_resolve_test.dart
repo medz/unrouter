@@ -45,13 +45,13 @@ void main() {
     test('returns redirect result from route redirect callback', () async {
       final router = Unrouter<AppRoute>(
         routes: [
-          Route<HomeRoute>(path: '/', parse: (_) => const HomeRoute()),
-          Route<PrivateRoute>(
+          route<HomeRoute>(path: '/', parse: (_) => const HomeRoute()),
+          route<PrivateRoute>(
             path: '/private',
             parse: (_) => const PrivateRoute(),
             redirect: (_) => Uri(path: '/login'),
           ),
-          Route<LoginRoute>(path: '/login', parse: (_) => const LoginRoute()),
+          route<LoginRoute>(path: '/login', parse: (_) => const LoginRoute()),
         ],
       );
 
@@ -64,7 +64,7 @@ void main() {
     test('returns blocked result when guard blocks route', () async {
       final router = Unrouter<AppRoute>(
         routes: [
-          Route<AdminRoute>(
+          route<AdminRoute>(
             path: '/admin',
             parse: (_) => const AdminRoute(),
             guards: [(_) => RouteGuardResult.block()],
@@ -80,14 +80,14 @@ void main() {
     test('returns redirect result when guard redirects route', () async {
       final router = Unrouter<AppRoute>(
         routes: [
-          Route<PrivateRoute>(
+          route<PrivateRoute>(
             path: '/private',
             parse: (_) => const PrivateRoute(),
             guards: [
               (_) => RouteGuardResult.redirect(uri: Uri(path: '/login')),
             ],
           ),
-          Route<LoginRoute>(path: '/login', parse: (_) => const LoginRoute()),
+          route<LoginRoute>(path: '/login', parse: (_) => const LoginRoute()),
         ],
       );
 
@@ -100,7 +100,7 @@ void main() {
     test('returns loader data for loaded routes', () async {
       final router = Unrouter<AppRoute>(
         routes: [
-          DataRoute<ProfileRoute, String>(
+          dataRoute<ProfileRoute, String>(
             path: '/profiles/:id',
             parse: (state) => ProfileRoute(id: state.params.$int('id')),
             loader: (context) => 'profile:${context.route.id}',
@@ -120,7 +120,7 @@ void main() {
         final loaderGate = Completer<String>();
         final router = Unrouter<AppRoute>(
           routes: [
-            DataRoute<SlowRoute, String>(
+            dataRoute<SlowRoute, String>(
               path: '/slow',
               parse: (_) => const SlowRoute(),
               loader: (context) async {
@@ -152,8 +152,8 @@ void main() {
 Unrouter<AppRoute> _buildBasicRouter() {
   return Unrouter<AppRoute>(
     routes: [
-      Route<HomeRoute>(path: '/', parse: (_) => const HomeRoute()),
-      Route<UserRoute>(
+      route<HomeRoute>(path: '/', parse: (_) => const HomeRoute()),
+      route<UserRoute>(
         path: '/users/:id',
         parse: (state) => UserRoute(
           id: state.params.$int('id'),

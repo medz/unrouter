@@ -331,7 +331,7 @@ class _UnrouterState<R extends RouteData> extends State<Unrouter<R>>
 
     throw StateError(
       'Matched record does not implement jaspr RouteRecord. '
-      'Build routes with jaspr_unrouter route()/routeWithLoader().',
+      'Build routes with jaspr_unrouter route()/dataRoute().',
     );
   }
 

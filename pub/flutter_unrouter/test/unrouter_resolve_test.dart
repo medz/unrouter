@@ -166,7 +166,7 @@ void main() {
       final router = Unrouter<AppRoute>(
         history: MemoryHistory(),
         routes: [
-          routeWithLoader<ProfileRoute, String>(
+          dataRoute<ProfileRoute, String>(
             path: '/profiles/:id',
             parse: (state) => ProfileRoute(id: state.params.$int('id')),
             loader: (context) => 'profile:${context.route.id}',
@@ -191,7 +191,7 @@ void main() {
         final router = Unrouter<AppRoute>(
           history: MemoryHistory(),
           routes: [
-            routeWithLoader<SlowRoute, String>(
+            dataRoute<SlowRoute, String>(
               path: '/slow',
               parse: (_) => const SlowRoute(),
               loader: (context) async {

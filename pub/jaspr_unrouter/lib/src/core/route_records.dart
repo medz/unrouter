@@ -1,14 +1,14 @@
 import 'package:jaspr/jaspr.dart';
 import 'package:unrouter/unrouter.dart'
     hide
-        DataRoute,
-        Route,
+        DataRouteDefinition,
+        RouteDefinition,
         RouteRecord,
         branch,
         shell;
 import 'package:unrouter/unrouter.dart'
     as core
-    show DataRoute, Route, RouteRecord;
+    show DataRouteDefinition, RouteDefinition, RouteRecord;
 
 import '../runtime/navigation.dart';
 
@@ -34,7 +34,7 @@ abstract interface class RouteRecord<T extends RouteData>
 }
 
 /// Route definition without asynchronous loader data.
-class RouteDefinition<T extends RouteData> extends core.Route<T>
+class RouteDefinition<T extends RouteData> extends core.RouteDefinition<T>
     implements RouteRecord<T> {
   RouteDefinition({
     required String path,
@@ -62,7 +62,7 @@ class RouteDefinition<T extends RouteData> extends core.Route<T>
 
 /// Route definition that resolves typed loader data before build.
 class LoadedRouteDefinition<T extends RouteData, L>
-    extends core.DataRoute<T, L>
+    extends core.DataRouteDefinition<T, L>
     implements RouteRecord<T> {
   LoadedRouteDefinition({
     required String path,
@@ -120,7 +120,7 @@ RouteDefinition<T> route<T extends RouteData>({
 }
 
 /// Creates a [LoadedRouteDefinition].
-LoadedRouteDefinition<T, L> routeWithLoader<T extends RouteData, L>({
+LoadedRouteDefinition<T, L> dataRoute<T extends RouteData, L>({
   required String path,
   required RouteParser<T> parse,
   required DataLoader<T, L> loader,
@@ -166,7 +166,7 @@ List<RouteRecord<R>> shell<R extends RouteData>({
       return requireShellRouteRecord<R, RouteRecord<R>>(
         record,
         adapterLabel: 'jaspr',
-        buildHint: 'jaspr_unrouter route()/routeWithLoader()',
+        buildHint: 'jaspr_unrouter route()/dataRoute()',
       );
     },
     wrapRecord:
@@ -223,7 +223,7 @@ class _ShellRouteRecord<R extends RouteData>
 
     final shellState = createShellState(
       currentUri: currentUri,
-      onGoBranch:
+      goBranch:
           (
             index, {
             initialLocation = false,
@@ -238,7 +238,7 @@ class _ShellRouteRecord<R extends RouteData>
             );
           },
       canPopBranch: canPopBranch,
-      onPopBranch: (result) => controller.popBranch(result),
+      popBranch: (result) => controller.popBranch(result),
     );
 
     return _shellBuilder(context, shellState, child);

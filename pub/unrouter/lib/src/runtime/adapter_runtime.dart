@@ -14,10 +14,10 @@ TRecord? castRouteRecord<R extends RouteData, TRecord extends RouteRecord<R>>(
 }
 
 /// Casts a core route record to a shell host record when available.
-ShellRouteRecordHost<R>? castShellRouteRecordHost<R extends RouteData>(
+ShellRouteRecordHost? castShellRouteRecordHost<R extends RouteData>(
   RouteRecord<R>? record,
 ) {
-  if (record case ShellRouteRecordHost<R> shellHost) {
+  if (record case ShellRouteRecordHost shellHost) {
     return shellHost;
   }
   return null;
@@ -30,7 +30,7 @@ RouteResolution<R> syncControllerResolution<R extends RouteData>(
 ) {
   final resolution = controller.resolution;
   final record = resolution.record;
-  if (record is! ShellRouteRecordHost<R>) {
+  if (record is! ShellRouteRecordHost) {
     controller.clearHistoryStateComposer();
   }
   return resolution;

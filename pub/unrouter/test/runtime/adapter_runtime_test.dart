@@ -174,7 +174,7 @@ class _RouteRecord implements RouteRecord<_AppRoute> {
 }
 
 final class _ShellRecord extends _RouteRecord
-    implements ShellRouteRecordHost<_AppRoute> {
+    implements ShellRouteRecordHost {
   _ShellRecord({required super.path});
 
   @override

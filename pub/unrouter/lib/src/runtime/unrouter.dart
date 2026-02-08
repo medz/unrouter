@@ -117,7 +117,7 @@ class Unrouter<R extends RouteData> {
 
       Object? loaderData;
       final record = matched.data;
-      if (record case DataRoute<R, Object?> dataRoute) {
+      if (record case DataRouteDefinition<R, Object?> dataRoute) {
         loaderData = await dataRoute.load(context);
       }
       signal.throwIfCancelled();

@@ -9,7 +9,7 @@ import 'package:unrouter/unrouter.dart'
         ShellState;
 import 'package:unrouter/unrouter.dart'
     as core
-    show DataRoute, Route, RouteRecord;
+    show DataRouteDefinition, RouteDefinition, RouteRecord;
 
 /// Builds a route widget without loader data.
 typedef RouteWidgetBuilder<T extends RouteData> =
@@ -66,7 +66,7 @@ abstract interface class RouteRecord<T extends RouteData>
 }
 
 /// Route definition without asynchronous loader data.
-class RouteDefinition<T extends RouteData> extends core.Route<T>
+class RouteDefinition<T extends RouteData> extends core.RouteDefinition<T>
     implements RouteRecord<T> {
   RouteDefinition({
     required super.path,
@@ -112,7 +112,7 @@ class RouteDefinition<T extends RouteData> extends core.Route<T>
 
 /// Route definition that resolves typed loader data before build.
 class LoadedRouteDefinition<T extends RouteData, L>
-    extends core.DataRoute<T, L>
+    extends core.DataRouteDefinition<T, L>
     implements RouteRecord<T> {
   LoadedRouteDefinition({
     required super.path,
@@ -195,7 +195,7 @@ RouteDefinition<T> route<T extends RouteData>({
 }
 
 /// Creates a [LoadedRouteDefinition].
-LoadedRouteDefinition<T, L> routeWithLoader<T extends RouteData, L>({
+LoadedRouteDefinition<T, L> dataRoute<T extends RouteData, L>({
   required String path,
   required RouteParser<T> parse,
   required DataLoader<T, L> loader,
