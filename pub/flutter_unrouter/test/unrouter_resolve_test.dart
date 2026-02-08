@@ -7,6 +7,22 @@ import 'package:unstory/unstory.dart';
 
 void main() {
   group('Unrouter.resolve', () {
+    test('constructor keeps blocked fallback builder', () {
+      final router = Unrouter<AppRoute>(
+        history: MemoryHistory(),
+        blocked: (context, uri) => const SizedBox.shrink(),
+        routes: [
+          route<HomeRoute>(
+            path: '/',
+            parse: (_) => const HomeRoute(),
+            builder: (_, _) => const SizedBox.shrink(),
+          ),
+        ],
+      );
+
+      expect(router.blocked, isNotNull);
+    });
+
     test('matches path and decodes typed params/query', () async {
       final router = _buildBasicRouter();
 

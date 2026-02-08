@@ -16,6 +16,8 @@
 - Exposed `CoreUnrouter` alias for pure Dart/core router scenarios and aligned
   `Unrouter.resolve` to optional `signal` parameter (default
   `RouteNeverCancelledSignal`) for adapter parity.
+- Added `blocked` fallback builder on `Unrouter` to align fallback API naming
+  with `jaspr_unrouter`.
 - Reworked route definition records to inherit core `RouteDefinition` /
   `LoadedRouteDefinition` so parse/guard/redirect/loader semantics stay owned
   by `unrouter`.

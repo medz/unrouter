@@ -46,6 +46,7 @@ class Unrouter<R extends RouteData> extends StatelessWidget
     this.unknown,
     this.onError,
     this.loading,
+    this.blocked,
     this.maxRedirectHops = 8,
     this.redirectLoopPolicy = RedirectLoopPolicy.error,
     this.onRedirectDiagnostics,
@@ -80,6 +81,9 @@ class Unrouter<R extends RouteData> extends StatelessWidget
 
   /// Optional global loading widget shown before first successful resolution.
   final WidgetBuilder? loading;
+
+  /// Optional builder for blocked locations.
+  final UnknownRouteBuilder? blocked;
 
   /// Redirect hop limit used to prevent infinite redirect chains.
   final int maxRedirectHops;

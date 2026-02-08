@@ -126,6 +126,16 @@ class UnrouterDelegate<R extends RouteData>
       );
     }
 
+    if (_resolution.isBlocked) {
+      final blocked = config.blocked;
+      if (blocked != null) {
+        return Builder(
+          builder: (innerContext) => blocked(innerContext, _resolution.uri),
+        );
+      }
+      return _DefaultUnknownRoutePage(uri: _resolution.uri);
+    }
+
     if (_resolution.isMatched) {
       final routeRecord = _requireRouteRecord();
       return Builder(
