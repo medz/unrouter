@@ -1,31 +1,14 @@
 import 'dart:async';
 
 import 'package:jaspr/jaspr.dart';
-import 'package:unrouter/unrouter.dart'
-    show
-        RedirectDiagnosticsCallback,
-        RedirectLoopPolicy,
-        RouteData,
-        RouteExecutionSignal,
-        RouteNeverCancelledSignal;
+import 'package:unrouter/unrouter.dart' hide RouteRecord, Unrouter;
 import 'package:unrouter/unrouter.dart'
     as core
-    show
-        RouteRecord,
-        RouteResolution,
-        RouteResolutionType,
-        Unrouter,
-        UnrouterController,
-        UnrouterStateSnapshot;
+    show Unrouter, UnrouterController, UnrouterStateSnapshot;
 import 'package:unstory/unstory.dart';
 
 import '../core/route_definition.dart';
 import 'navigation.dart';
-
-/// Pure Dart core router type exported for controller-only usage.
-typedef CoreUnrouter<R extends RouteData> = core.Unrouter<R>;
-typedef RouteResolutionType = core.RouteResolutionType;
-typedef RouteResolution<R extends RouteData> = core.RouteResolution<R>;
 
 /// Builds fallback UI for unmatched locations.
 typedef UnknownRouteBuilder = Component Function(BuildContext context, Uri uri);
@@ -67,7 +50,7 @@ class Unrouter<R extends RouteData> extends StatefulComponent {
        ),
        routes = List<RouteRecord<R>>.unmodifiable(routes),
        _core = core.Unrouter<R>(
-         routes: routes.cast<core.RouteRecord<R>>(),
+         routes: routes.cast(),
          maxRedirectHops: maxRedirectHops,
          redirectLoopPolicy: redirectLoopPolicy,
          onRedirectDiagnostics: onRedirectDiagnostics,
@@ -75,7 +58,7 @@ class Unrouter<R extends RouteData> extends StatefulComponent {
 
   /// Immutable route table consumed by the matcher.
   final List<RouteRecord<R>> routes;
-  final CoreUnrouter<R> _core;
+  final core.Unrouter<R> _core;
 
   final UnknownRouteBuilder? unknown;
   final RouteErrorBuilder? onError;
@@ -112,11 +95,11 @@ class Unrouter<R extends RouteData> extends StatefulComponent {
   }
 
   /// Exposes pure core router for controller-only scenarios.
-  CoreUnrouter<R> get coreRouter {
+  core.Unrouter<R> get coreRouter {
     return _core;
   }
 
-  RouteRecord<R>? routeRecordOf(core.RouteRecord<R>? record) {
+  RouteRecord<R>? routeRecordOf(Object? record) {
     return record is RouteRecord<R> ? record : null;
   }
 

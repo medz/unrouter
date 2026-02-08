@@ -8,7 +8,7 @@ void main() {
       'lib/src/core/route_definition_shell.dart',
     ).readAsStringSync();
 
-    expect(source.contains('unrouter_core.ShellRuntimeBinding'), isTrue);
+    expect(source.contains('core.ShellRuntimeBinding'), isTrue);
 
     const forbiddenTokens = <String>[
       '_UnrouterStateEnvelope',
@@ -31,20 +31,21 @@ void main() {
   test('controller binding reuses core controller type', () {
     final source = File('lib/src/runtime/navigation.dart').readAsStringSync();
 
-    expect(source.contains('typedef UnrouterController<'), isTrue);
+    expect(source.contains('typedef UnrouterController<'), isFalse);
     expect(source.contains('class UnrouterController<'), isFalse);
+    expect(source.contains("import 'package:unrouter/unrouter.dart';"), isTrue);
   });
 
   test('runtime API inherits core router runtime directly', () {
     final runtime = File('lib/src/runtime/unrouter.dart').readAsStringSync();
 
-    expect(runtime.contains('typedef CoreUnrouter<'), isTrue);
+    expect(runtime.contains('typedef CoreUnrouter<'), isFalse);
     expect(
       runtime.contains(
         'class Unrouter<R extends RouteData> extends core.Unrouter<R>',
       ),
       isTrue,
     );
-    expect(runtime.contains('final CoreUnrouter<R> _core;'), isFalse);
+    expect(runtime.contains('core.Unrouter<R> get coreRouter'), isTrue);
   });
 }

@@ -1,12 +1,13 @@
 import 'package:jaspr/jaspr.dart';
 import 'package:jaspr_unrouter/jaspr_unrouter.dart';
+import 'package:unrouter/unrouter.dart' as core;
 import 'package:test/test.dart';
 import 'package:unstory/unstory.dart';
 
 void main() {
   test('controller follows guard redirects', () async {
     var signedIn = false;
-    final router = CoreUnrouter<AppRoute>(
+    final router = core.Unrouter<AppRoute>(
       routes: <RouteRecord<AppRoute>>[
         route<HomeRoute>(
           path: '/',
@@ -51,7 +52,7 @@ void main() {
   });
 
   test('blocked route falls back when a route is already committed', () async {
-    final router = CoreUnrouter<AppRoute>(
+    final router = core.Unrouter<AppRoute>(
       routes: <RouteRecord<AppRoute>>[
         route<HomeRoute>(
           path: '/',
@@ -83,7 +84,7 @@ void main() {
   });
 
   test('loader data is produced by core runtime controller', () async {
-    final router = CoreUnrouter<AppRoute>(
+    final router = core.Unrouter<AppRoute>(
       routes: <RouteRecord<AppRoute>>[
         routeWithLoader<ProfileRoute, String>(
           path: '/profile',

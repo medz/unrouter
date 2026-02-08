@@ -38,7 +38,7 @@ class RoutePageBuilderState {
 }
 
 abstract interface class RouteRecord<T extends RouteData>
-    implements unrouter_core.RouteRecord<T> {
+    implements core.RouteRecord<T> {
   @override
   String get path;
 
@@ -55,8 +55,7 @@ abstract interface class RouteRecord<T extends RouteData>
 }
 
 /// Route definition without asynchronous loader data.
-class RouteDefinition<T extends RouteData>
-    extends unrouter_core.RouteDefinition<T>
+class RouteDefinition<T extends RouteData> extends core.RouteDefinition<T>
     implements RouteRecord<T> {
   RouteDefinition({
     required super.path,
@@ -102,7 +101,7 @@ class RouteDefinition<T extends RouteData>
 
 /// Route definition that resolves typed loader data before build.
 class LoadedRouteDefinition<T extends RouteData, L>
-    extends unrouter_core.LoadedRouteDefinition<T, L>
+    extends core.LoadedRouteDefinition<T, L>
     implements RouteRecord<T> {
   LoadedRouteDefinition({
     required super.path,
@@ -160,11 +159,11 @@ class LoadedRouteDefinition<T extends RouteData, L>
 /// Creates a [RouteDefinition].
 RouteDefinition<T> route<T extends RouteData>({
   required String path,
-  required unrouter_core.RouteParser<T> parse,
+  required RouteParser<T> parse,
   required RouteWidgetBuilder<T> builder,
   String? name,
-  List<unrouter_core.RouteGuard<T>> guards = const [],
-  unrouter_core.RouteRedirect<T>? redirect,
+  List<RouteGuard<T>> guards = const [],
+  RouteRedirect<T>? redirect,
   RoutePageBuilder? pageBuilder,
   RouteTransitionBuilder? transitionBuilder,
   Duration transitionDuration = Duration.zero,
@@ -187,12 +186,12 @@ RouteDefinition<T> route<T extends RouteData>({
 /// Creates a [LoadedRouteDefinition].
 LoadedRouteDefinition<T, L> routeWithLoader<T extends RouteData, L>({
   required String path,
-  required unrouter_core.RouteParser<T> parse,
-  required unrouter_core.RouteLoader<T, L> loader,
+  required RouteParser<T> parse,
+  required RouteLoader<T, L> loader,
   required RouteLoadedWidgetBuilder<T, L> builder,
   String? name,
-  List<unrouter_core.RouteGuard<T>> guards = const [],
-  unrouter_core.RouteRedirect<T>? redirect,
+  List<RouteGuard<T>> guards = const [],
+  RouteRedirect<T>? redirect,
   RoutePageBuilder? pageBuilder,
   RouteTransitionBuilder? transitionBuilder,
   Duration transitionDuration = Duration.zero,

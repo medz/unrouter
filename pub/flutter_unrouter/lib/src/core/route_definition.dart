@@ -2,21 +2,21 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:flutter/widgets.dart';
-import 'package:unrouter/unrouter.dart' show RouteData;
 import 'package:unrouter/unrouter.dart'
-    as unrouter_core
+    hide
+        LoadedRouteDefinition,
+        RouteDefinition,
+        RouteRecord,
+        branch,
+        route,
+        routeWithLoader,
+        shell;
+import 'package:unrouter/unrouter.dart'
+    as core
     show
         LoadedRouteDefinition,
         RouteDefinition,
-        RouteGuard,
-        RouteGuardResult,
-        RouteHookContext,
-        RouteLoader,
-        RouteParser,
-        RouteParserState,
         RouteRecord,
-        RouteRedirect,
-        ShellBranch,
         ShellRuntimeBinding,
         branch;
 

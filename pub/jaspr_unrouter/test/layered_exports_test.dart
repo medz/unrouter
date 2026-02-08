@@ -1,5 +1,6 @@
 import 'package:jaspr/jaspr.dart';
 import 'package:jaspr_unrouter/jaspr_unrouter.dart' as unrouter;
+import 'package:unrouter/unrouter.dart' as core;
 import 'package:test/test.dart';
 
 void main() {
@@ -8,7 +9,6 @@ void main() {
     expect(unrouter.UnrouterResolutionState.values, isNotEmpty);
     expect(unrouter.UnrouterStateSnapshot, isNotNull);
     expect(unrouter.Unrouter, isNotNull);
-    expect(unrouter.CoreUnrouter, isNotNull);
     expect(unrouter.UnrouterController, isNotNull);
     expect(unrouter.UnrouterScope, isNotNull);
     expect(unrouter.UnrouterLink, isNotNull);
@@ -19,7 +19,7 @@ void main() {
   });
 
   test('adapter route records can be resolved through core router', () async {
-    final router = unrouter.CoreUnrouter<AppRoute>(
+    final router = core.Unrouter<AppRoute>(
       routes: <unrouter.RouteRecord<AppRoute>>[
         unrouter.route<HomeRoute>(
           path: '/',

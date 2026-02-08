@@ -16,7 +16,6 @@ dart pub add jaspr_unrouter
 
 - Reuses `unrouter` core route resolution/runtime semantics.
 - Exposes Jaspr `Unrouter` component for mounting/runtime binding.
-- Exposes `CoreUnrouter` for pure Dart/controller-only scenarios.
 - Provides Jaspr-flavored route definitions (`route`, `routeWithLoader`) with
   component builders.
 - Provides shell helpers (`branch`, `shell`, `ShellState`) aligned with
@@ -67,9 +66,10 @@ Pure Dart usage (without mounting component router):
 ```dart
 import 'package:jaspr/jaspr.dart';
 import 'package:jaspr_unrouter/jaspr_unrouter.dart';
+import 'package:unrouter/unrouter.dart' as core;
 import 'package:unstory/unstory.dart';
 
-final coreRouter = CoreUnrouter<AppRoute>(
+final coreRouter = core.Unrouter<AppRoute>(
   routes: [
     route<HomeRoute>(
       path: '/',
@@ -116,7 +116,7 @@ void main() async {
     ],
   );
 
-  final result = await router.coreRouter.resolve(Uri(path: '/'));
+  final result = await router.resolve(Uri(path: '/'));
   print(result.isMatched);
 }
 ```

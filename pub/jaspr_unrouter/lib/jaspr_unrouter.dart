@@ -5,7 +5,7 @@ export 'src/core/route_definition.dart';
 export 'src/runtime/link.dart' show UnrouterLink, UnrouterLinkMode;
 export 'src/runtime/unrouter.dart';
 export 'src/runtime/navigation.dart'
-    show UnrouterBuildContextExtension, UnrouterController, UnrouterScope;
+    show UnrouterBuildContextExtension, UnrouterScope;
 export 'package:unrouter/unrouter.dart'
     hide
         Unrouter,
@@ -14,9 +14,5 @@ export 'package:unrouter/unrouter.dart'
         LoadedRouteDefinition,
         route,
         routeWithLoader,
-        ShellBranch,
         branch,
-        shell,
-        RouteResolution,
-        RouteResolutionType,
-        UnrouterController;
+        shell;

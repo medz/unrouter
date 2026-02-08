@@ -1,9 +1,5 @@
 import 'package:jaspr/jaspr.dart';
-import 'package:unrouter/unrouter.dart' as core show UnrouterController;
-import 'package:unrouter/unrouter.dart' show RouteData;
-
-/// Runtime controller is directly reused from core.
-typedef UnrouterController<R extends RouteData> = core.UnrouterController<R>;
+import 'package:unrouter/unrouter.dart';
 
 /// Provides `UnrouterController` to descendants.
 class UnrouterScope extends InheritedComponent {

@@ -1,6 +1,6 @@
 import 'package:jaspr/dom.dart' as dom;
 import 'package:jaspr/jaspr.dart';
-import 'package:unrouter/unrouter.dart' show RouteData;
+import 'package:unrouter/unrouter.dart';
 
 import 'navigation.dart';
 

@@ -14,15 +14,10 @@ export 'package:unrouter/unrouter.dart'
         LoadedRouteDefinition,
         route,
         routeWithLoader,
-        ShellBranch,
         branch,
-        shell,
-        RouteResolution,
-        RouteResolutionType,
-        UnrouterController;
+        shell;
 export 'src/runtime/navigation.dart'
     show
-        UnrouterController,
         UnrouterScope,
         UnrouterBuildContextExtension,
         UnrouterControllerListenableExtension;

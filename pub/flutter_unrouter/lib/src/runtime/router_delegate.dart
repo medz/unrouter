@@ -1,8 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/widgets.dart';
-import 'package:unrouter/unrouter.dart' as core show RouteResolution;
-import 'package:unrouter/unrouter.dart' show RouteData;
+import 'package:unrouter/unrouter.dart' hide RouteRecord, Unrouter;
 import 'package:unstory/unstory.dart';
 
 import 'navigation.dart';
@@ -46,7 +45,7 @@ class UnrouterDelegate<R extends RouteData>
   final Unrouter<R> config;
   final UnrouterRouteInformationProvider _routeInformationProvider;
 
-  late core.RouteResolution<R> _resolution;
+  late RouteResolution<R> _resolution;
   late final UnrouterController<R> _controller;
   late final UnrouterController<RouteData> _scopeController;
   late final VoidCallback _stateListener;

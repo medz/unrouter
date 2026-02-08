@@ -1,32 +1,19 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
-import 'package:unrouter/unrouter.dart'
-    as core
-    show
-        Unrouter,
-        UnrouterController,
-        UnrouterHistoryStateComposer,
-        UnrouterHistoryStateRequest;
-import 'package:unrouter/unrouter.dart' show RouteData, UnrouterStateSnapshot;
+import 'package:unrouter/unrouter.dart';
 import 'package:unstory/unstory.dart';
 
 import '../platform/route_information_provider.dart';
-
-typedef UnrouterHistoryStateRequest = core.UnrouterHistoryStateRequest;
-typedef UnrouterHistoryStateComposer = core.UnrouterHistoryStateComposer;
-
-/// Runtime controller is directly reused from core.
-typedef UnrouterController<R extends RouteData> = core.UnrouterController<R>;
 
 final Expando<_ControllerStateListenable<RouteData>> _stateListenables =
     Expando<_ControllerStateListenable<RouteData>>('flutter_unrouter.state');
 
 UnrouterController<R> createUnrouterController<R extends RouteData>({
-  required core.Unrouter<R> coreRouter,
+  required Unrouter<R> coreRouter,
   required UnrouterRouteInformationProvider routeInformationProvider,
   bool resolveInitialRoute = false,
 }) {
-  return core.UnrouterController<R>(
+  return UnrouterController<R>(
     router: coreRouter,
     history: _UnrouterProviderBackedHistory(routeInformationProvider),
     resolveInitialRoute: resolveInitialRoute,

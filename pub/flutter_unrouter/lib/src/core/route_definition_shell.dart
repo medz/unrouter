@@ -1,15 +1,13 @@
 part of 'route_definition.dart';
 
-typedef ShellBranch<R extends RouteData> = unrouter_core.ShellBranch<R>;
-
 /// Creates a [ShellBranch].
 ShellBranch<R> branch<R extends RouteData>({
   required List<RouteRecord<R>> routes,
   required Uri initialLocation,
   String? name,
 }) {
-  return unrouter_core.branch<R>(
-    routes: routes.cast<unrouter_core.RouteRecord<R>>(),
+  return core.branch<R>(
+    routes: routes.cast<core.RouteRecord<R>>(),
     initialLocation: initialLocation,
     name: name,
   );
@@ -99,9 +97,7 @@ List<RouteRecord<R>> shell<R extends RouteData>({
 }) {
   assert(branches.isNotEmpty, 'shell() requires at least one branch.');
   final immutableBranches = List<ShellBranch<R>>.unmodifiable(branches);
-  final runtime = unrouter_core.ShellRuntimeBinding<R>(
-    branches: immutableBranches,
-  );
+  final runtime = core.ShellRuntimeBinding<R>(branches: immutableBranches);
   final wrapped = <RouteRecord<R>>[];
   for (var i = 0; i < immutableBranches.length; i++) {
     final branch = immutableBranches[i];
@@ -125,7 +121,7 @@ class _ShellRouteRecord<R extends RouteData>
     implements RouteRecord<R>, ShellRouteRecordHost<R> {
   _ShellRouteRecord({
     required RouteRecord<R> record,
-    required unrouter_core.ShellRuntimeBinding<R> runtime,
+    required core.ShellRuntimeBinding<R> runtime,
     required ShellBuilder<R> shellBuilder,
     required int branchIndex,
     String? shellName,
@@ -136,7 +132,7 @@ class _ShellRouteRecord<R extends RouteData>
        _shellName = shellName;
 
   final RouteRecord<R> _record;
-  final unrouter_core.ShellRuntimeBinding<R> _runtime;
+  final core.ShellRuntimeBinding<R> _runtime;
   final ShellBuilder<R> _shellBuilder;
   final int _branchIndex;
   final String? _shellName;
@@ -157,22 +153,20 @@ class _ShellRouteRecord<R extends RouteData>
   }
 
   @override
-  R parse(unrouter_core.RouteParserState state) => _record.parse(state);
+  R parse(RouteParserState state) => _record.parse(state);
 
   @override
-  Future<Uri?> runRedirect(unrouter_core.RouteHookContext<RouteData> context) {
+  Future<Uri?> runRedirect(RouteHookContext<RouteData> context) {
     return _record.runRedirect(context);
   }
 
   @override
-  Future<unrouter_core.RouteGuardResult> runGuards(
-    unrouter_core.RouteHookContext<RouteData> context,
-  ) {
+  Future<RouteGuardResult> runGuards(RouteHookContext<RouteData> context) {
     return _record.runGuards(context);
   }
 
   @override
-  Future<Object?> load(unrouter_core.RouteHookContext<RouteData> context) {
+  Future<Object?> load(RouteHookContext<RouteData> context) {
     return _record.load(context);
   }
 
@@ -251,7 +245,7 @@ class _ShellRouteRecord<R extends RouteData>
 }
 
 RouteRecord<R> _asAdapterRouteRecord<R extends RouteData>(
-  unrouter_core.RouteRecord<R> record,
+  core.RouteRecord<R> record,
 ) {
   if (record case RouteRecord<R> adapterRecord) {
     return adapterRecord;

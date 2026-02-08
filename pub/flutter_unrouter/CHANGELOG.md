@@ -11,11 +11,8 @@
 - Removed timeline-related runtime APIs (`stateTimeline`,
   `clearStateTimeline`, `stateTimelineLimit`).
 - Reworked `UnrouterController` to directly reuse the `unrouter` core runtime
-  controller via type alias + Flutter listenable extension, removing adapter
-  runtime wrapper duplication.
-- Exposed `CoreUnrouter` alias for pure Dart/core router scenarios and aligned
-  `Unrouter.resolve` to optional `signal` parameter (default
-  `RouteNeverCancelledSignal`) for adapter parity.
+  controller with Flutter listenable extension, removing adapter runtime
+  wrapper duplication.
 - Added `blocked` fallback builder on `Unrouter` to align fallback API naming
   with `jaspr_unrouter`.
 - Removed adapter-local `RouteData` re-export shim file and referenced core
@@ -25,5 +22,8 @@
   by `unrouter`.
 - Reworked shell restoration/branch stack runtime to use `unrouter` core
   `ShellCoordinator`, removing duplicated envelope/stack algorithms.
+- Removed adapter alias typedef wrappers and direct shim accessors
+  (`RouteRecord.core`, `CoreUnrouter`, `typedef UnrouterController = ...`) so
+  adapter internals use core types directly.
 - Added shell runtime widget tests for branch switching/restoration and
   `popBranch` pending-result completion.

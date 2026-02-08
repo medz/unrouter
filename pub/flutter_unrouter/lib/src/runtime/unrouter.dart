@@ -1,5 +1,5 @@
 import 'package:flutter/widgets.dart';
-import 'package:unrouter/unrouter.dart' show RedirectLoopPolicy, RouteData;
+import 'package:unrouter/unrouter.dart' hide RouteRecord, Unrouter;
 import 'package:unrouter/unrouter.dart' as core show RouteRecord, Unrouter;
 import 'package:unstory/unstory.dart';
 
@@ -14,9 +14,6 @@ export 'package:unrouter/unrouter.dart'
         RedirectDiagnosticsCallback,
         RedirectDiagnosticsReason,
         RedirectLoopPolicy;
-
-/// Pure Dart core router type exported for controller-only usage.
-typedef CoreUnrouter<R extends RouteData> = core.Unrouter<R>;
 
 /// Builds a fallback widget for unmatched locations.
 typedef UnknownRouteBuilder = Widget Function(BuildContext context, Uri uri);
@@ -79,7 +76,7 @@ class Unrouter<R extends RouteData> extends core.Unrouter<R>
     return const UnrouterRouteInformationParser();
   }
 
-  CoreUnrouter<R> get coreRouter {
+  core.Unrouter<R> get coreRouter {
     return this;
   }
 

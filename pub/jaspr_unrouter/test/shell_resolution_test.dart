@@ -1,5 +1,6 @@
 import 'package:jaspr/jaspr.dart';
 import 'package:jaspr_unrouter/jaspr_unrouter.dart' as unrouter;
+import 'package:unrouter/unrouter.dart' as core;
 import 'package:test/test.dart';
 
 void main() {
@@ -34,7 +35,7 @@ void main() {
         builder: (_, __, child) => child,
       ),
     ];
-    final router = unrouter.CoreUnrouter<AppRoute>(routes: routes);
+    final router = core.Unrouter<AppRoute>(routes: routes);
 
     final feedResult = await router.resolve(Uri(path: '/feed'));
     expect(feedResult.isMatched, isTrue);

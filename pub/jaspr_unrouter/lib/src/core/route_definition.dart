@@ -1,21 +1,21 @@
 import 'dart:collection';
 
 import 'package:jaspr/jaspr.dart';
-import 'package:unrouter/unrouter.dart' show RouteData;
+import 'package:unrouter/unrouter.dart'
+    hide
+        LoadedRouteDefinition,
+        RouteDefinition,
+        RouteRecord,
+        branch,
+        route,
+        routeWithLoader,
+        shell;
 import 'package:unrouter/unrouter.dart'
     as core
     show
         LoadedRouteDefinition,
         RouteDefinition,
-        RouteGuard,
-        RouteGuardResult,
-        RouteHookContext,
-        RouteLoader,
-        RouteParser,
-        RouteParserState,
         RouteRecord,
-        RouteRedirect,
-        ShellBranch,
         ShellRuntimeBinding,
         branch;
 
@@ -37,8 +37,6 @@ typedef ShellBuilder<R extends RouteData> =
       Component child,
     );
 
-typedef ShellBranch<R extends RouteData> = core.ShellBranch<R>;
-
 abstract interface class RouteRecord<T extends RouteData>
     implements core.RouteRecord<T> {
   Component build(BuildContext context, RouteData route, Object? loaderData);
@@ -49,11 +47,11 @@ class RouteDefinition<T extends RouteData> extends core.RouteDefinition<T>
     implements RouteRecord<T> {
   RouteDefinition({
     required String path,
-    required core.RouteParser<T> parse,
+    required RouteParser<T> parse,
     required RouteComponentBuilder<T> builder,
     String? name,
-    List<core.RouteGuard<T>> guards = const [],
-    core.RouteRedirect<T>? redirect,
+    List<RouteGuard<T>> guards = const [],
+    RouteRedirect<T>? redirect,
   }) : _builder = builder,
        super(
          path: path,
@@ -77,12 +75,12 @@ class LoadedRouteDefinition<T extends RouteData, L>
     implements RouteRecord<T> {
   LoadedRouteDefinition({
     required String path,
-    required core.RouteParser<T> parse,
-    required core.RouteLoader<T, L> loader,
+    required RouteParser<T> parse,
+    required RouteLoader<T, L> loader,
     required RouteLoadedComponentBuilder<T, L> builder,
     String? name,
-    List<core.RouteGuard<T>> guards = const [],
-    core.RouteRedirect<T>? redirect,
+    List<RouteGuard<T>> guards = const [],
+    RouteRedirect<T>? redirect,
   }) : _builder = builder,
        super(
          path: path,
@@ -114,11 +112,11 @@ class LoadedRouteDefinition<T extends RouteData, L>
 /// Creates a [RouteDefinition].
 RouteDefinition<T> route<T extends RouteData>({
   required String path,
-  required core.RouteParser<T> parse,
+  required RouteParser<T> parse,
   required RouteComponentBuilder<T> builder,
   String? name,
-  List<core.RouteGuard<T>> guards = const [],
-  core.RouteRedirect<T>? redirect,
+  List<RouteGuard<T>> guards = const [],
+  RouteRedirect<T>? redirect,
 }) {
   return RouteDefinition<T>(
     path: path,
@@ -133,12 +131,12 @@ RouteDefinition<T> route<T extends RouteData>({
 /// Creates a [LoadedRouteDefinition].
 LoadedRouteDefinition<T, L> routeWithLoader<T extends RouteData, L>({
   required String path,
-  required core.RouteParser<T> parse,
-  required core.RouteLoader<T, L> loader,
+  required RouteParser<T> parse,
+  required RouteLoader<T, L> loader,
   required RouteLoadedComponentBuilder<T, L> builder,
   String? name,
-  List<core.RouteGuard<T>> guards = const [],
-  core.RouteRedirect<T>? redirect,
+  List<RouteGuard<T>> guards = const [],
+  RouteRedirect<T>? redirect,
 }) {
   return LoadedRouteDefinition<T, L>(
     path: path,
@@ -304,22 +302,20 @@ class _ShellRouteRecord<R extends RouteData>
   }
 
   @override
-  R parse(core.RouteParserState state) => _record.parse(state);
+  R parse(RouteParserState state) => _record.parse(state);
 
   @override
-  Future<Uri?> runRedirect(core.RouteHookContext<RouteData> context) {
+  Future<Uri?> runRedirect(RouteHookContext<RouteData> context) {
     return _record.runRedirect(context);
   }
 
   @override
-  Future<core.RouteGuardResult> runGuards(
-    core.RouteHookContext<RouteData> context,
-  ) {
+  Future<RouteGuardResult> runGuards(RouteHookContext<RouteData> context) {
     return _record.runGuards(context);
   }
 
   @override
-  Future<Object?> load(core.RouteHookContext<RouteData> context) {
+  Future<Object?> load(RouteHookContext<RouteData> context) {
     return _record.load(context);
   }
 
