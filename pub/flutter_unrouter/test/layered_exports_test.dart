@@ -7,5 +7,6 @@ void main() {
     expect(unrouter.RedirectLoopPolicy.values, isNotEmpty);
     expect(unrouter.UnrouterResolutionState.values, isNotEmpty);
     expect(unrouter.UnrouterStateSnapshot, isNotNull);
+    expect(unrouter.CoreUnrouter, isNotNull);
   });
 }

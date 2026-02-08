@@ -19,6 +19,7 @@ flutter pub add flutter_unrouter
 - Route resolution and runtime navigation semantics come from `unrouter`.
 - Shell branch restoration/stack coordination also comes from
   `unrouter` (`ShellCoordinator`).
+- `CoreUnrouter<T>` is exported for controller-only/core access when needed.
 - This package only adds Flutter bindings (RouterDelegate/Scope/BuildContext
   extensions/Page & transition builders).
 

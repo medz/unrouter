@@ -22,12 +22,12 @@ typedef UnrouterController<R extends RouteData> = core.UnrouterController<R>;
 final Expando<_ControllerStateListenable<RouteData>> _stateListenables =
     Expando<_ControllerStateListenable<RouteData>>('flutter_unrouter.state');
 
-UnrouterController<RouteData> createUnrouterController({
-  required core.Unrouter<RouteData> coreRouter,
+UnrouterController<R> createUnrouterController<R extends RouteData>({
+  required core.Unrouter<R> coreRouter,
   required UnrouterRouteInformationProvider routeInformationProvider,
   bool resolveInitialRoute = false,
 }) {
-  return core.UnrouterController<RouteData>(
+  return core.UnrouterController<R>(
     router: coreRouter,
     history: _UnrouterProviderBackedHistory(routeInformationProvider),
     resolveInitialRoute: resolveInitialRoute,

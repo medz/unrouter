@@ -7,14 +7,11 @@ import 'package:unstory/unstory.dart';
 
 void main() {
   group('Unrouter.resolve', () {
-    const neverSignal = RouteNeverCancelledSignal();
-
     test('matches path and decodes typed params/query', () async {
       final router = _buildBasicRouter();
 
       final result = await router.resolve(
         Uri(path: '/users/42', queryParameters: {'tab': 'likes'}),
-        signal: neverSignal,
       );
 
       expect(result.isMatched, isTrue);
@@ -31,7 +28,7 @@ void main() {
 
       final result = await router.resolve(
         Uri(path: '/missing'),
-        signal: neverSignal,
+        signal: const RouteNeverCancelledSignal(),
       );
 
       expect(result.isUnmatched, isTrue);
@@ -44,7 +41,7 @@ void main() {
 
       final result = await router.resolve(
         Uri(path: '/users/1', queryParameters: {'tab': 'unknown'}),
-        signal: neverSignal,
+        signal: const RouteNeverCancelledSignal(),
       );
 
       expect(result.hasError, isTrue);
@@ -76,7 +73,7 @@ void main() {
 
       final result = await router.resolve(
         Uri(path: '/private'),
-        signal: neverSignal,
+        signal: const RouteNeverCancelledSignal(),
       );
 
       expect(result.isRedirect, isTrue);
@@ -98,7 +95,7 @@ void main() {
 
       final result = await router.resolve(
         Uri(path: '/admin'),
-        signal: neverSignal,
+        signal: const RouteNeverCancelledSignal(),
       );
 
       expect(result.isBlocked, isTrue);
@@ -124,7 +121,7 @@ void main() {
 
       final result = await router.resolve(
         Uri(path: '/private'),
-        signal: neverSignal,
+        signal: const RouteNeverCancelledSignal(),
       );
 
       expect(result.isRedirect, isTrue);
@@ -146,7 +143,7 @@ void main() {
 
       final result = await router.resolve(
         Uri(path: '/profiles/7'),
-        signal: neverSignal,
+        signal: const RouteNeverCancelledSignal(),
       );
 
       expect(result.isMatched, isTrue);

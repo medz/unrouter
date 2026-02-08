@@ -34,4 +34,16 @@ void main() {
     expect(source.contains('typedef UnrouterController<'), isTrue);
     expect(source.contains('class UnrouterController<'), isFalse);
   });
+
+  test('runtime API keeps core alias and optional resolve signal', () {
+    final runtime = File('lib/src/runtime/unrouter.dart').readAsStringSync();
+
+    expect(runtime.contains('typedef CoreUnrouter<'), isTrue);
+    expect(
+      runtime.contains(
+        'RouteExecutionSignal signal = const RouteNeverCancelledSignal()',
+      ),
+      isTrue,
+    );
+  });
 }

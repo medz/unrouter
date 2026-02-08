@@ -13,6 +13,9 @@
 - Reworked `UnrouterController` to directly reuse the `unrouter` core runtime
   controller via type alias + Flutter listenable extension, removing adapter
   runtime wrapper duplication.
+- Exposed `CoreUnrouter` alias for pure Dart/core router scenarios and aligned
+  `Unrouter.resolve` to optional `signal` parameter (default
+  `RouteNeverCancelledSignal`) for adapter parity.
 - Reworked route definition records to inherit core `RouteDefinition` /
   `LoadedRouteDefinition` so parse/guard/redirect/loader semantics stay owned
   by `unrouter`.

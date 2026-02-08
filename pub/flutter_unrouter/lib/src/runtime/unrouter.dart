@@ -1,6 +1,10 @@
 import 'package:flutter/widgets.dart';
 import 'package:unrouter/unrouter.dart'
-    show RedirectDiagnosticsCallback, RedirectLoopPolicy, RouteExecutionSignal;
+    show
+        RedirectDiagnosticsCallback,
+        RedirectLoopPolicy,
+        RouteExecutionSignal,
+        RouteNeverCancelledSignal;
 import 'package:unrouter/unrouter.dart'
     as core
     show RouteRecord, RouteResolution, RouteResolutionType, Unrouter;
@@ -18,6 +22,9 @@ typedef _CoreRouteRecord<T extends RouteData> = core.RouteRecord<T>;
 typedef _CoreRouteResolution<R extends RouteData> = core.RouteResolution<R>;
 typedef _CoreRouteResolutionType = core.RouteResolutionType;
 typedef _CoreUnrouter<R extends RouteData> = core.Unrouter<R>;
+
+/// Pure Dart core router type exported for controller-only usage.
+typedef CoreUnrouter<R extends RouteData> = _CoreUnrouter<R>;
 
 typedef RouteResolutionType = _CoreRouteResolutionType;
 typedef RouteResolution<R extends RouteData> = _CoreRouteResolution<R>;
@@ -63,7 +70,7 @@ class Unrouter<R extends RouteData> extends StatelessWidget
 
   /// Immutable route table consumed by the matcher.
   final List<RouteRecord<R>> routes;
-  final _CoreUnrouter<R> _core;
+  final CoreUnrouter<R> _core;
 
   /// Optional builder for unknown locations.
   final UnknownRouteBuilder? unknown;
@@ -103,11 +110,11 @@ class Unrouter<R extends RouteData> extends StatelessWidget
   /// Resolves [uri] to a typed route, redirect, block, or error result.
   Future<RouteResolution<R>> resolve(
     Uri uri, {
-    required RouteExecutionSignal signal,
+    RouteExecutionSignal signal = const RouteNeverCancelledSignal(),
   }) => _core.resolve(uri, signal: signal);
 
-  core.Unrouter<RouteData> get coreRouter {
-    return _core as core.Unrouter<RouteData>;
+  CoreUnrouter<R> get coreRouter {
+    return _core;
   }
 
   RouteRecord<R>? routeRecordOf(core.RouteRecord<R>? record) {

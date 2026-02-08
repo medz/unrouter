@@ -15,19 +15,19 @@ class UnrouterDelegate<R extends RouteData>
   UnrouterDelegate(this.config)
     : _routeInformationProvider = config.routeInformationProvider {
     final initial = _routeInformationProvider.value;
-    _controller = createUnrouterController(
+    _controller = createUnrouterController<R>(
       coreRouter: config.coreRouter,
       routeInformationProvider: _routeInformationProvider,
       resolveInitialRoute: false,
     );
-    _typedController = _controller.cast<R>();
-    _resolution = _typedController.resolution;
+    _scopeController = _controller.cast<RouteData>();
+    _resolution = _controller.resolution;
     _controller.setShellBranchResolvers(
       resolveTarget: _resolveShellBranchTarget,
       popTarget: _popShellBranchTarget,
     );
     _stateListener = () {
-      _resolution = _typedController.resolution;
+      _resolution = _controller.resolution;
       final routeRecord = config.routeRecordOf(_resolution.record);
       if (routeRecord is! ShellRouteRecordHost<R>) {
         _controller.clearHistoryStateComposer();
@@ -46,8 +46,8 @@ class UnrouterDelegate<R extends RouteData>
   final UnrouterRouteInformationProvider _routeInformationProvider;
 
   late RouteResolution<R> _resolution;
-  late final UnrouterController<RouteData> _controller;
-  late final UnrouterController<R> _typedController;
+  late final UnrouterController<R> _controller;
+  late final UnrouterController<RouteData> _scopeController;
   late final VoidCallback _stateListener;
 
   int _pageRevision = 0;
@@ -151,7 +151,7 @@ class UnrouterDelegate<R extends RouteData>
     final pageKey = ValueKey<String>('${_resolution.uri}::$_pageRevision');
     final pageName = _resolution.uri.toString();
     final scopedChild = UnrouterScope(
-      controller: _controller,
+      controller: _scopeController,
       child: pageChild,
     );
 
