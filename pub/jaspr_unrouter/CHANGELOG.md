@@ -17,6 +17,9 @@
   adapter-local branch flattening/runtime wiring templates.
 - Reworked shell route record casting to reuse core `requireShellRouteRecord`,
   removing adapter-local cast/validation duplication.
+- Reworked runtime resolution branching and controller-sync behavior to reuse
+  core adapter runtime helpers (`resolveRouteResolution`,
+  `syncControllerResolution`, `castRouteRecord`, `castShellRouteRecordHost`).
 - Removed redundant adapter typedef indirection in route definition/runtime
   API and switched to direct core type usage.
 - Removed adapter-local `RouteData` re-export shim file; adapter now references

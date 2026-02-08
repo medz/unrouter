@@ -73,6 +73,8 @@ void main() {
       isFalse,
       reason: 'adapter should avoid redundant record-cast shim APIs.',
     );
+    expect(runtime.contains('resolveRouteResolution<'), isTrue);
+    expect(runtime.contains('syncControllerResolution('), isTrue);
     expect(routeDefs.contains('class ShellState<'), isFalse);
     expect(
       routeDefs.contains('abstract interface class ShellRouteRecordHost<'),

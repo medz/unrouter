@@ -1,4 +1,4 @@
-part of 'route_definition.dart';
+part of 'package:unrouter/src/core/route_definition.dart';
 
 /// Strongly typed parser helpers built from a matched URI.
 class RouteParserState {

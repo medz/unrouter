@@ -25,6 +25,9 @@
   and shell runtime wiring with only adapter-specific wrapping logic.
 - Added `requireShellRouteRecord` helper so adapters can share shell record cast
   validation/error handling instead of duplicating it.
+- Added adapter runtime helpers (`resolveRouteResolution`,
+  `syncControllerResolution`, `castRouteRecord`, `castShellRouteRecordHost`)
+  so platform packages can share resolution dispatch and runtime synchronization.
 - Added architecture guard tests to keep `unrouter` free from Flutter imports.
 - Removed timeline-related runtime APIs (`UnrouterStateTimelineEntry`,
   `stateTimeline`, `clearStateTimeline`, `stateTimelineLimit`).

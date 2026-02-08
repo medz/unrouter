@@ -1,4 +1,4 @@
-part of 'route_definition.dart';
+part of 'package:unrouter/src/core/route_definition.dart';
 
 /// Executes route guards in order and returns the first non-allow result.
 Future<RouteGuardResult> runRouteGuards<T extends RouteData>(

@@ -27,11 +27,7 @@ class UnrouterDelegate<R extends RouteData>
       popTarget: _popShellBranchTarget,
     );
     _stateListener = () {
-      _resolution = _controller.resolution;
-      final routeRecord = _asAdapterRouteRecord(_resolution.record);
-      if (routeRecord is! ShellRouteRecordHost<R>) {
-        _controller.clearHistoryStateComposer();
-      }
+      _resolution = syncControllerResolution(_controller);
       _pageRevision += 1;
       notifyListeners();
     };
@@ -100,61 +96,60 @@ class UnrouterDelegate<R extends RouteData>
   }
 
   Widget _buildPageChild(BuildContext context) {
-    if (_resolution.isPending) {
-      final loadingBuilder = config.loading;
-      if (loadingBuilder != null) {
-        return Builder(builder: loadingBuilder);
-      }
+    return resolveRouteResolution<R, Widget>(
+      resolution: _resolution,
+      onPending: (_) {
+        final loadingBuilder = config.loading;
+        if (loadingBuilder != null) {
+          return Builder(builder: loadingBuilder);
+        }
+        return const SizedBox.shrink();
+      },
+      onError: (resolution) {
+        if (config.onError != null) {
+          return Builder(
+            builder: (innerContext) => config.onError!(
+              innerContext,
+              resolution.error!,
+              resolution.stackTrace ?? StackTrace.current,
+            ),
+          );
+        }
 
-      return const SizedBox.shrink();
-    }
-
-    if (_resolution.hasError) {
-      if (config.onError != null) {
+        Error.throwWithStackTrace(
+          resolution.error!,
+          resolution.stackTrace ?? StackTrace.current,
+        );
+      },
+      onBlocked: (resolution) {
+        final blocked = config.blocked;
+        if (blocked != null) {
+          return Builder(
+            builder: (innerContext) => blocked(innerContext, resolution.uri),
+          );
+        }
+        return _DefaultUnknownRoutePage(uri: resolution.uri);
+      },
+      onMatched: (resolution) {
+        final routeRecord = _requireRouteRecord(resolution);
         return Builder(
-          builder: (innerContext) => config.onError!(
+          builder: (innerContext) => routeRecord.build(
             innerContext,
-            _resolution.error!,
-            _resolution.stackTrace ?? StackTrace.current,
+            resolution.route!,
+            resolution.loaderData,
           ),
         );
-      }
-
-      Error.throwWithStackTrace(
-        _resolution.error!,
-        _resolution.stackTrace ?? StackTrace.current,
-      );
-    }
-
-    if (_resolution.isBlocked) {
-      final blocked = config.blocked;
-      if (blocked != null) {
-        return Builder(
-          builder: (innerContext) => blocked(innerContext, _resolution.uri),
-        );
-      }
-      return _DefaultUnknownRoutePage(uri: _resolution.uri);
-    }
-
-    if (_resolution.isMatched) {
-      final routeRecord = _requireRouteRecord();
-      return Builder(
-        builder: (innerContext) => routeRecord.build(
-          innerContext,
-          _resolution.route!,
-          _resolution.loaderData,
-        ),
-      );
-    }
-
-    final unknown = config.unknown;
-    if (unknown != null) {
-      return Builder(
-        builder: (innerContext) => unknown(innerContext, _resolution.uri),
-      );
-    }
-
-    return _DefaultUnknownRoutePage(uri: _resolution.uri);
+      },
+      onUnmatched: (resolution) {
+        final unknown = config.unknown;
+        if (unknown != null) {
+          return Builder(
+            builder: (innerContext) => unknown(innerContext, resolution.uri),
+          );
+        }
+        return _DefaultUnknownRoutePage(uri: resolution.uri);
+      },
+    );
   }
 
   Page<void> _buildNavigatorPage(Widget pageChild) {
@@ -166,7 +161,7 @@ class UnrouterDelegate<R extends RouteData>
     );
 
     if (_resolution.isMatched) {
-      final routeRecord = _requireRouteRecord();
+      final routeRecord = _requireRouteRecord(_resolution);
       return routeRecord.createPage(
         key: pageKey,
         name: pageName,
@@ -184,37 +179,28 @@ class UnrouterDelegate<R extends RouteData>
   }
 
   Uri? _resolveShellBranchTarget(int index, {required bool initialLocation}) {
-    final activeRecord = _activeRouteRecord;
-    if (activeRecord case ShellRouteRecordHost<R> shellHost) {
-      return shellHost.resolveBranchTarget(
-        index,
-        initialLocation: initialLocation,
-      );
-    }
-    return null;
+    final shellHost = castShellRouteRecordHost(_activeRouteRecord);
+    return shellHost?.resolveBranchTarget(
+      index,
+      initialLocation: initialLocation,
+    );
   }
 
   Uri? _popShellBranchTarget() {
-    final activeRecord = _activeRouteRecord;
-    if (activeRecord case ShellRouteRecordHost<R> shellHost) {
-      return shellHost.popBranch();
-    }
-    return null;
+    final shellHost = castShellRouteRecordHost(_activeRouteRecord);
+    return shellHost?.popBranch();
   }
 
   adapter.RouteRecord<R>? _asAdapterRouteRecord(RouteRecord<R>? record) {
-    if (record case adapter.RouteRecord<R> adapterRecord) {
-      return adapterRecord;
-    }
-    return null;
+    return castRouteRecord<R, adapter.RouteRecord<R>>(record);
   }
 
   adapter.RouteRecord<R>? get _activeRouteRecord {
     return _asAdapterRouteRecord(_resolution.record);
   }
 
-  adapter.RouteRecord<R> _requireRouteRecord() {
-    final routeRecord = _activeRouteRecord;
+  adapter.RouteRecord<R> _requireRouteRecord(RouteResolution<R> resolution) {
+    final routeRecord = _asAdapterRouteRecord(resolution.record);
     if (routeRecord != null) {
       return routeRecord;
     }

@@ -1,4 +1,4 @@
-part of 'route_definition.dart';
+part of 'package:unrouter/src/core/route_definition.dart';
 
 /// A branch in a shell route tree.
 class ShellBranch<R extends RouteData> {
