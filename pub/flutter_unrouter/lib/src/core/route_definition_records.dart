@@ -45,8 +45,6 @@ abstract interface class RouteRecord<T extends RouteData>
   @override
   String? get name;
 
-  unrouter_core.RouteRecord<T> get core;
-
   Widget build(BuildContext context, RouteData route, Object? loaderData);
 
   Page<void> createPage({
@@ -78,9 +76,6 @@ class RouteDefinition<T extends RouteData>
   final RouteTransitionBuilder? transitionBuilder;
   final Duration transitionDuration;
   final Duration reverseTransitionDuration;
-
-  @override
-  unrouter_core.RouteRecord<T> get core => this;
 
   @override
   Widget build(BuildContext context, RouteData route, Object? loaderData) {
@@ -128,9 +123,6 @@ class LoadedRouteDefinition<T extends RouteData, L>
   final RouteTransitionBuilder? transitionBuilder;
   final Duration transitionDuration;
   final Duration reverseTransitionDuration;
-
-  @override
-  unrouter_core.RouteRecord<T> get core => this;
 
   @override
   Widget build(BuildContext context, RouteData route, Object? loaderData) {

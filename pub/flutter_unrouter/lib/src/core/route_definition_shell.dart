@@ -157,9 +157,6 @@ class _ShellRouteRecord<R extends RouteData>
   }
 
   @override
-  unrouter_core.RouteRecord<R> get core => this;
-
-  @override
   R parse(unrouter_core.RouteParserState state) => _record.parse(state);
 
   @override

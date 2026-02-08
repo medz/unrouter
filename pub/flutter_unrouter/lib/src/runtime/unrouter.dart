@@ -1,8 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:unrouter/unrouter.dart' show RedirectLoopPolicy, RouteData;
-import 'package:unrouter/unrouter.dart'
-    as core
-    show RouteRecord, Unrouter;
+import 'package:unrouter/unrouter.dart' as core show RouteRecord, Unrouter;
 import 'package:unstory/unstory.dart';
 
 import '../core/route_definition.dart';
@@ -10,7 +8,12 @@ import '../platform/route_information_parser.dart';
 import '../platform/route_information_provider.dart';
 import 'router_delegate.dart';
 
-export '../core/redirect_diagnostics.dart';
+export 'package:unrouter/unrouter.dart'
+    show
+        RedirectDiagnostics,
+        RedirectDiagnosticsCallback,
+        RedirectDiagnosticsReason,
+        RedirectLoopPolicy;
 
 /// Pure Dart core router type exported for controller-only usage.
 typedef CoreUnrouter<R extends RouteData> = core.Unrouter<R>;
