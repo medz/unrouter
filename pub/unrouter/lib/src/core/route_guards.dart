@@ -7,7 +7,7 @@ typedef RouteGuard<T extends RouteData> =
 
 /// Executes route guards in order and returns the first non-allow result.
 Future<RouteGuardResult> runRouteGuards<T extends RouteData>(
-  List<RouteGuard<T>> guards,
+  Iterable<RouteGuard<T>> guards,
   RouteContext<T> context,
 ) async {
   if (guards.isEmpty) return const .allow();
