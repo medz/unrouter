@@ -10,12 +10,7 @@ import 'package:unrouter/unrouter.dart'
         shell;
 import 'package:unrouter/unrouter.dart'
     as core
-    show
-        LoadedRouteDefinition,
-        RouteDefinition,
-        RouteRecord,
-        ShellRuntimeBinding,
-        branch;
+    show LoadedRouteDefinition, RouteDefinition, RouteRecord;
 
 import '../runtime/navigation.dart';
 
@@ -153,7 +148,7 @@ ShellBranch<R> branch<R extends RouteData>({
   required Uri initialLocation,
   String? name,
 }) {
-  return core.branch<R>(
+  return ShellBranch<R>(
     routes: routes.cast<core.RouteRecord<R>>(),
     initialLocation: initialLocation,
     name: name,
@@ -168,7 +163,7 @@ List<RouteRecord<R>> shell<R extends RouteData>({
 }) {
   assert(branches.isNotEmpty, 'shell() requires at least one branch.');
   final immutableBranches = List<ShellBranch<R>>.unmodifiable(branches);
-  final runtime = core.ShellRuntimeBinding<R>(branches: immutableBranches);
+  final runtime = ShellRuntimeBinding<R>(branches: immutableBranches);
   final wrapped = <RouteRecord<R>>[];
   for (var i = 0; i < immutableBranches.length; i++) {
     final branch = immutableBranches[i];

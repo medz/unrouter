@@ -10,12 +10,7 @@ import 'package:unrouter/unrouter.dart'
         shell;
 import 'package:unrouter/unrouter.dart'
     as core
-    show
-        LoadedRouteDefinition,
-        RouteDefinition,
-        RouteRecord,
-        ShellRuntimeBinding,
-        branch;
+    show LoadedRouteDefinition, RouteDefinition, RouteRecord;
 
 import '../runtime/navigation.dart';
 
