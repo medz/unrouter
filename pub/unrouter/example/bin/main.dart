@@ -5,7 +5,7 @@ sealed class AppRoute implements RouteData {
 }
 
 final class HomeRoute extends AppRoute {
-  const HomeRoute();
+  const HomeRoute(RouteState _);
 
   @override
   Uri toUri() => Uri(path: '/');
@@ -13,7 +13,7 @@ final class HomeRoute extends AppRoute {
 
 void main() async {
   final router = Unrouter<AppRoute>(
-    routes: [route<HomeRoute>(path: '/', parse: (_) => const HomeRoute())],
+    routes: const [Route(path: '/', parse: HomeRoute.new)],
   );
 
   final result = await router.resolve(Uri(path: '/'));

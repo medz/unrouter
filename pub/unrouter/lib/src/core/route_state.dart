@@ -1,3 +1,5 @@
+import 'package:unstory/unstory.dart';
+
 extension type const TypedParams(Map<String, String> _)
     implements Map<String, String> {
   String required(String key) {
@@ -32,12 +34,12 @@ extension type const TypedParams(Map<String, String> _)
 }
 
 /// Strongly typed parser helpers built from a matched URI.
-class RouteParserState {
-  RouteParserState({required this.uri, required Map<String, String> params})
+class RouteState {
+  RouteState({required this.location, required Map<String, String> params})
     : params = TypedParams(params),
-      query = TypedParams(uri.queryParameters);
+      query = TypedParams(location.uri.queryParameters);
 
-  final Uri uri;
+  final HistoryLocation location;
   final TypedParams params;
   final TypedParams query;
 }

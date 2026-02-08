@@ -2,166 +2,81 @@ import 'dart:async';
 
 import 'route_data.dart';
 import 'route_guards.dart';
-import 'route_parser.dart';
+import 'route_state.dart';
 
 /// Parses a matched [RouteParserState] into a typed route object.
-typedef RouteParser<T extends RouteData> = T Function(RouteParserState state);
+typedef RouteParser<T extends RouteData> = T Function(RouteState state);
 
 /// Route-level redirect resolver.
 typedef RouteRedirect<T extends RouteData> =
     FutureOr<Uri?> Function(RouteContext<T> context);
 
 /// Asynchronous loader executed during route resolution.
-typedef RouteLoader<T extends RouteData, L> =
+typedef DataLoader<T extends RouteData, L> =
     FutureOr<L> Function(RouteContext<T> context);
 
-abstract interface class RouteRecord<T extends RouteData> {
-  String get path;
+abstract class RouteRecord<T extends RouteData> {
+  const RouteRecord({required this.path, required this.parse, this.name});
 
-  String? get name;
-
-  T parse(RouteParserState state);
+  final String path;
+  final String? name;
+  final RouteParser<T> parse;
 
   Future<Uri?> runRedirect(RouteContext<RouteData> context);
-
   Future<RouteGuardResult> runGuards(RouteContext<RouteData> context);
-
-  Future<Object?> load(RouteContext<RouteData> context);
 }
 
 /// Route definition without asynchronous loader data.
-class RouteDefinition<T extends RouteData> implements RouteRecord<T> {
-  RouteDefinition({
-    required this.path,
-    required RouteParser<T> parse,
-    this.name,
-    List<RouteGuard<T>> guards = const [],
+class Route<T extends RouteData> extends RouteRecord<T> {
+  const Route({
+    required super.path,
+    required super.parse,
+    super.name,
+    this.guards = const [],
     this.redirect,
-  }) : _parse = parse,
-       _guards = List<RouteGuard<T>>.unmodifiable(guards);
+  });
 
-  @override
-  final String path;
-
-  @override
-  final String? name;
-
-  final RouteParser<T> _parse;
-  final List<RouteGuard<T>> _guards;
+  final List<RouteGuard<T>> guards;
   final RouteRedirect<T>? redirect;
-
-  @override
-  T parse(RouteParserState state) => _parse(state);
 
   @override
   Future<Uri?> runRedirect(RouteContext<RouteData> context) async {
     final resolver = redirect;
-    if (resolver == null) {
-      return null;
-    }
+    if (resolver == null) return null;
 
     context.signal.throwIfCancelled();
-    final uri = await resolver(context.cast<T>());
-    context.signal.throwIfCancelled();
-    return uri;
+    try {
+      return await resolver(context.cast<T>());
+    } finally {
+      context.signal.throwIfCancelled();
+    }
   }
 
   @override
   Future<RouteGuardResult> runGuards(RouteContext<RouteData> context) {
-    return runRouteGuards(_guards, context.cast<T>());
+    return runRouteGuards(guards, context.cast<T>());
   }
-
-  @override
-  Future<Object?> load(RouteContext<RouteData> context) async => null;
 }
 
 /// Route definition that resolves typed loader data before completion.
-class LoadedRouteDefinition<T extends RouteData, L> implements RouteRecord<T> {
-  LoadedRouteDefinition({
-    required this.path,
-    required RouteParser<T> parse,
-    required RouteLoader<T, L> loader,
-    this.name,
-    List<RouteGuard<T>> guards = const [],
-    this.redirect,
-  }) : _parse = parse,
-       _loader = loader,
-       _guards = List<RouteGuard<T>>.unmodifiable(guards);
+class DataRoute<T extends RouteData, L> extends Route<T> {
+  const DataRoute({
+    required super.path,
+    required super.parse,
+    required DataLoader<T, L> loader,
+    super.name,
+    super.guards,
+    super.redirect,
+  }) : _loader = loader;
 
-  @override
-  final String path;
+  final DataLoader<T, L> _loader;
 
-  @override
-  final String? name;
-
-  final RouteParser<T> _parse;
-  final RouteLoader<T, L> _loader;
-  final List<RouteGuard<T>> _guards;
-  final RouteRedirect<T>? redirect;
-
-  @override
-  T parse(RouteParserState state) => _parse(state);
-
-  @override
-  Future<Uri?> runRedirect(RouteContext<RouteData> context) async {
-    final resolver = redirect;
-    if (resolver == null) {
-      return null;
+  Future<L> load(RouteContext<RouteData> context) async {
+    context.signal.throwIfCancelled();
+    try {
+      return await _loader(context.cast<T>());
+    } finally {
+      context.signal.throwIfCancelled();
     }
-
-    context.signal.throwIfCancelled();
-    final uri = await resolver(context.cast<T>());
-    context.signal.throwIfCancelled();
-    return uri;
   }
-
-  @override
-  Future<RouteGuardResult> runGuards(RouteContext<RouteData> context) {
-    return runRouteGuards(_guards, context.cast<T>());
-  }
-
-  @override
-  Future<Object?> load(RouteContext<RouteData> context) async {
-    final typedContext = context.cast<T>();
-    context.signal.throwIfCancelled();
-    final data = await _loader(typedContext);
-    context.signal.throwIfCancelled();
-    return data;
-  }
-}
-
-/// Creates a [RouteDefinition].
-RouteDefinition<T> route<T extends RouteData>({
-  required String path,
-  required RouteParser<T> parse,
-  String? name,
-  List<RouteGuard<T>> guards = const [],
-  RouteRedirect<T>? redirect,
-}) {
-  return RouteDefinition<T>(
-    path: path,
-    parse: parse,
-    name: name,
-    guards: guards,
-    redirect: redirect,
-  );
-}
-
-/// Creates a [LoadedRouteDefinition].
-LoadedRouteDefinition<T, L> routeWithLoader<T extends RouteData, L>({
-  required String path,
-  required RouteParser<T> parse,
-  required RouteLoader<T, L> loader,
-  String? name,
-  List<RouteGuard<T>> guards = const [],
-  RouteRedirect<T>? redirect,
-}) {
-  return LoadedRouteDefinition<T, L>(
-    path: path,
-    parse: parse,
-    loader: loader,
-    name: name,
-    guards: guards,
-    redirect: redirect,
-  );
 }
