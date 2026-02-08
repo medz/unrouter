@@ -191,7 +191,7 @@ List<RouteRecord<R>> shell<R extends RouteData>({
 
 class _ShellRouteRecord<R extends RouteData>
     extends ShellRouteRecordBinding<R, RouteRecord<R>>
-    implements RouteRecord<R>, ShellRouteRecordHost<R> {
+    implements RouteRecord<R> {
   _ShellRouteRecord({
     required super.record,
     required super.runtime,
