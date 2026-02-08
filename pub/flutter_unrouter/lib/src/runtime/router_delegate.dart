@@ -1,10 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/widgets.dart';
+import 'package:unrouter/unrouter.dart' show RouteData;
 import 'package:unstory/unstory.dart';
 
 import 'navigation.dart';
-import '../core/route_data.dart';
 import '../core/route_definition.dart';
 import '../platform/route_information_provider.dart';
 import 'unrouter.dart';

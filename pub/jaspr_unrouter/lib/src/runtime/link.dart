@@ -1,7 +1,7 @@
 import 'package:jaspr/dom.dart' as dom;
 import 'package:jaspr/jaspr.dart';
+import 'package:unrouter/unrouter.dart' show RouteData;
 
-import '../core/route_data.dart';
 import 'navigation.dart';
 
 /// Navigation mode used by [UnrouterLink].

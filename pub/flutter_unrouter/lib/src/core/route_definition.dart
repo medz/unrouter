@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:flutter/widgets.dart';
+import 'package:unrouter/unrouter.dart' show RouteData;
 import 'package:unrouter/unrouter.dart'
     as core
     show
@@ -22,7 +23,6 @@ import 'package:unrouter/unrouter.dart'
 import 'package:unstory/unstory.dart';
 
 import '../runtime/navigation.dart';
-import 'route_data.dart';
 
 part 'route_definition_records.dart';
 part 'route_definition_shell.dart';

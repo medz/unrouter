@@ -3,6 +3,7 @@ import 'package:unrouter/unrouter.dart'
     show
         RedirectDiagnosticsCallback,
         RedirectLoopPolicy,
+        RouteData,
         RouteExecutionSignal,
         RouteNeverCancelledSignal;
 import 'package:unrouter/unrouter.dart'
@@ -11,7 +12,6 @@ import 'package:unrouter/unrouter.dart'
 import 'router_delegate.dart';
 import 'package:unstory/unstory.dart';
 
-import '../core/route_data.dart';
 import '../core/route_definition.dart';
 import '../platform/route_information_parser.dart';
 import '../platform/route_information_provider.dart';

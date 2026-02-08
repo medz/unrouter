@@ -1,4 +1,5 @@
 import 'package:jaspr/jaspr.dart';
+import 'package:unrouter/unrouter.dart' show RouteData;
 import 'package:unrouter/unrouter.dart'
     as core
     show
@@ -10,19 +11,8 @@ import 'package:unrouter/unrouter.dart'
         RouteRecord,
         RouteRedirect;
 
-import 'route_data.dart';
-
-typedef CoreRouteRecord<T extends RouteData> = core.RouteRecord<T>;
-typedef _CoreRouteDefinition<T extends RouteData> = core.RouteDefinition<T>;
-typedef _CoreLoadedRouteDefinition<T extends RouteData, L> =
-    core.LoadedRouteDefinition<T, L>;
-typedef _CoreRouteGuard<T extends RouteData> = core.RouteGuard<T>;
-typedef _CoreRouteRedirect<T extends RouteData> = core.RouteRedirect<T>;
-typedef _CoreRouteLoader<T extends RouteData, L> = core.RouteLoader<T, L>;
-typedef _CoreRouteParser<T extends RouteData> = core.RouteParser<T>;
-
 /// Parses a matched [RouteParserState] into a typed route object.
-typedef RouteParser<T extends RouteData> = _CoreRouteParser<T>;
+typedef RouteParser<T extends RouteData> = core.RouteParser<T>;
 
 /// Builds a route component without loader data.
 typedef RouteComponentBuilder<T extends RouteData> =
@@ -33,21 +23,21 @@ typedef RouteLoadedComponentBuilder<T extends RouteData, L> =
     Component Function(BuildContext context, T route, L data);
 
 /// Route guard that can allow, block, or redirect navigation.
-typedef RouteGuard<T extends RouteData> = _CoreRouteGuard<T>;
+typedef RouteGuard<T extends RouteData> = core.RouteGuard<T>;
 
 /// Route-level redirect resolver.
-typedef RouteRedirect<T extends RouteData> = _CoreRouteRedirect<T>;
+typedef RouteRedirect<T extends RouteData> = core.RouteRedirect<T>;
 
 /// Asynchronous loader executed before route build.
-typedef RouteLoader<T extends RouteData, L> = _CoreRouteLoader<T, L>;
+typedef RouteLoader<T extends RouteData, L> = core.RouteLoader<T, L>;
 
 abstract interface class RouteRecord<T extends RouteData>
-    implements CoreRouteRecord<T> {
+    implements core.RouteRecord<T> {
   Component build(BuildContext context, RouteData route, Object? loaderData);
 }
 
 /// Route definition without asynchronous loader data.
-class RouteDefinition<T extends RouteData> extends _CoreRouteDefinition<T>
+class RouteDefinition<T extends RouteData> extends core.RouteDefinition<T>
     implements RouteRecord<T> {
   RouteDefinition({
     required String path,
@@ -75,7 +65,7 @@ class RouteDefinition<T extends RouteData> extends _CoreRouteDefinition<T>
 
 /// Route definition that resolves typed loader data before build.
 class LoadedRouteDefinition<T extends RouteData, L>
-    extends _CoreLoadedRouteDefinition<T, L>
+    extends core.LoadedRouteDefinition<T, L>
     implements RouteRecord<T> {
   LoadedRouteDefinition({
     required String path,

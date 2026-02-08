@@ -1,7 +1,6 @@
 import 'package:jaspr/jaspr.dart';
 import 'package:unrouter/unrouter.dart' as core show UnrouterController;
-
-import '../core/route_data.dart';
+import 'package:unrouter/unrouter.dart' show RouteData;
 
 /// Runtime controller is directly reused from core.
 typedef UnrouterController<R extends RouteData> = core.UnrouterController<R>;

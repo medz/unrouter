@@ -18,6 +18,8 @@
   `RouteNeverCancelledSignal`) for adapter parity.
 - Added `blocked` fallback builder on `Unrouter` to align fallback API naming
   with `jaspr_unrouter`.
+- Removed adapter-local `RouteData` re-export shim file and referenced core
+  `RouteData` directly across runtime/core modules.
 - Reworked route definition records to inherit core `RouteDefinition` /
   `LoadedRouteDefinition` so parse/guard/redirect/loader semantics stay owned
   by `unrouter`.

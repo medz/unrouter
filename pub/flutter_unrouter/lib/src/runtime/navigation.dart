@@ -7,10 +7,9 @@ import 'package:unrouter/unrouter.dart'
         UnrouterController,
         UnrouterHistoryStateComposer,
         UnrouterHistoryStateRequest;
-import 'package:unrouter/unrouter.dart' show UnrouterStateSnapshot;
+import 'package:unrouter/unrouter.dart' show RouteData, UnrouterStateSnapshot;
 import 'package:unstory/unstory.dart';
 
-import '../core/route_data.dart';
 import '../platform/route_information_provider.dart';
 
 typedef UnrouterHistoryStateRequest = core.UnrouterHistoryStateRequest;
