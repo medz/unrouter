@@ -36,6 +36,13 @@
   `syncControllerResolution`, `castRouteRecord`, `castShellRouteRecordHost`)
   so platform packages can share resolution dispatch and runtime synchronization.
 - Added architecture guard tests to keep `unrouter` free from Flutter imports.
+- Simplified shell runtime APIs:
+  - removed `name` from core `ShellBranch` / `branch()` and removed shell-name
+    prefixing in `buildShellRouteRecords`;
+  - `ShellState` now exposes method-based actions (`goBranch`, `popBranch`,
+    `canPopBranch`) instead of raw callback fields;
+  - `ShellRouteRecordHost.popBranch()` no longer accepts an unused `result`
+    parameter.
 - Simplified `RouteParserState` parser API by introducing typed param views:
   - `RouteParserState` now exposes `params` and `query` (`TypedParams`);
   - `RouteParserState.queryParameters` is removed;

@@ -199,7 +199,7 @@ class UnrouterController<R extends RouteData> {
     }
     final record = resolved as ShellRouteRecordHost;
 
-    final target = record.popBranch(result: result);
+    final target = record.popBranch();
     if (target == null) {
       return false;
     }

@@ -10,13 +10,11 @@ void main() {
       branches: <ShellBranchDescriptor>[
         ShellBranchDescriptor(
           index: 0,
-          name: 'feed',
           initialLocation: Uri(path: '/feed'),
           routePatterns: <String>['/feed', '/feed/:id'],
         ),
         ShellBranchDescriptor(
           index: 1,
-          name: 'settings',
           initialLocation: Uri(path: '/settings'),
           routePatterns: <String>['/settings', '/settings/:tab'],
         ),

@@ -3,15 +3,10 @@ import 'route_records.dart';
 
 /// A branch in a shell route tree.
 class ShellBranch<T extends RouteData> {
-  const ShellBranch({
-    required this.routes,
-    required this.initialLocation,
-    this.name,
-  });
+  const ShellBranch({required this.routes, required this.initialLocation});
 
   final Iterable<RouteRecord<T>> routes;
   final Uri initialLocation;
-  final String? name;
 }
 
 /// Contract implemented by shell-aware route records.
@@ -21,16 +16,19 @@ class ShellBranch<T extends RouteData> {
 abstract interface class ShellRouteRecordHost {
   Uri resolveBranchTarget(int index, {bool initialLocation = false});
   bool canPopBranch();
-  Uri? popBranch({Object? result});
+  Uri? popBranch();
 }
 
 typedef GoBranchHandler =
     void Function(
       int index, {
-      bool? initialLocation,
-      bool? completePendingResult,
+      required bool initialLocation,
+      required bool completePendingResult,
       Object? result,
     });
+
+typedef PopBranchHandler = bool Function([Object? result]);
+typedef CanPopBranchHandler = bool Function();
 
 /// Runtime state passed to shell builders.
 ///
@@ -41,10 +39,12 @@ class ShellState<R extends RouteData> {
     required this.branches,
     required this.currentUri,
     required this.currentBranchHistory,
-    required this.goBranch,
-    required this.popBranch,
-    required this.canPopBranch,
-  });
+    required GoBranchHandler onGoBranch,
+    required PopBranchHandler onPopBranch,
+    required CanPopBranchHandler onCanPopBranch,
+  }) : _onGoBranch = onGoBranch,
+       _onPopBranch = onPopBranch,
+       _onCanPopBranch = onCanPopBranch;
 
   final int activeBranchIndex;
   final Iterable<ShellBranch<R>> branches;
@@ -52,9 +52,31 @@ class ShellState<R extends RouteData> {
 
   final Iterable<Uri> currentBranchHistory;
 
-  final GoBranchHandler goBranch;
-  final bool Function(Object value) popBranch;
-  final void Function() canPopBranch;
+  final GoBranchHandler _onGoBranch;
+  final PopBranchHandler _onPopBranch;
+  final CanPopBranchHandler _onCanPopBranch;
+
+  void goBranch(
+    int index, {
+    bool initialLocation = false,
+    bool completePendingResult = false,
+    Object? result,
+  }) {
+    _onGoBranch(
+      index,
+      initialLocation: initialLocation,
+      completePendingResult: completePendingResult,
+      result: result,
+    );
+  }
+
+  bool popBranch([Object? result]) {
+    return _onPopBranch(result);
+  }
+
+  bool canPopBranch() {
+    return _onCanPopBranch();
+  }
 
   int get branchCount => branches.length;
 }
@@ -62,13 +84,8 @@ class ShellState<R extends RouteData> {
 ShellBranch<T> branch<T extends RouteData>({
   required Iterable<RouteRecord<T>> routes,
   required Uri initialLocation,
-  String? name,
 }) {
-  return ShellBranch<T>(
-    routes: routes,
-    initialLocation: initialLocation,
-    name: name,
-  );
+  return ShellBranch<T>(routes: routes, initialLocation: initialLocation);
 }
 
 /// Flattens branch routes into a single route list for shell-aware adapters.

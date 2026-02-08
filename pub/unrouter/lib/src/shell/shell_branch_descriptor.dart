@@ -4,7 +4,6 @@ class ShellBranchDescriptor {
     required this.index,
     required this.initialLocation,
     required List<String> routePatterns,
-    this.name,
   }) : routePatterns = List<String>.unmodifiable(routePatterns);
 
   /// Stable branch index.
@@ -15,7 +14,4 @@ class ShellBranchDescriptor {
 
   /// Route path patterns that belong to this branch.
   final List<String> routePatterns;
-
-  /// Optional branch name for diagnostics or tooling.
-  final String? name;
 }

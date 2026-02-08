@@ -139,12 +139,10 @@ LoadedRouteDefinition<T, L> dataRoute<T extends RouteData, L>({
 ShellBranch<R> branch<R extends RouteData>({
   required List<RouteRecord<R>> routes,
   required Uri initialLocation,
-  String? name,
 }) {
   return ShellBranch<R>(
     routes: routes.cast<core.RouteRecord<R>>(),
     initialLocation: initialLocation,
-    name: name,
   );
 }
 
@@ -152,11 +150,9 @@ ShellBranch<R> branch<R extends RouteData>({
 List<RouteRecord<R>> shell<R extends RouteData>({
   required ShellBuilder<R> builder,
   required List<ShellBranch<R>> branches,
-  String? name,
 }) {
   return buildShellRouteRecords<R, RouteRecord<R>, RouteRecord<R>>(
     branches: branches,
-    shellName: name,
     resolveRecord: (record) {
       return requireShellRouteRecord<R, RouteRecord<R>>(
         record,
@@ -169,14 +165,12 @@ List<RouteRecord<R>> shell<R extends RouteData>({
           required RouteRecord<R> record,
           required ShellRuntimeBinding<R> runtime,
           required int branchIndex,
-          String? shellName,
         }) {
           return _ShellRouteRecord<R>(
             record: record,
             runtime: runtime,
             shellBuilder: builder,
             branchIndex: branchIndex,
-            shellName: shellName,
           );
         },
   );
@@ -189,7 +183,6 @@ class _ShellRouteRecord<R extends RouteData>
     required super.record,
     required super.runtime,
     required super.branchIndex,
-    super.shellName,
     required ShellBuilder<R> shellBuilder,
   }) : _shellBuilder = shellBuilder;
 
@@ -214,8 +207,8 @@ class _ShellRouteRecord<R extends RouteData>
       goBranch:
           (
             index, {
-            initialLocation = false,
-            completePendingResult = false,
+            required initialLocation,
+            required completePendingResult,
             result,
           }) {
             controller.switchBranch(
@@ -226,7 +219,7 @@ class _ShellRouteRecord<R extends RouteData>
             );
           },
       canPopBranch: canPopBranch,
-      popBranch: (result) => controller.popBranch(result),
+      popBranch: ([result]) => controller.popBranch(result),
     );
 
     return _shellBuilder(context, shellState, child);

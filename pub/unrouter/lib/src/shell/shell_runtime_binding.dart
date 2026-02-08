@@ -21,7 +21,6 @@ class ShellRuntimeBinding<R extends RouteData> {
           final branch = branches[index];
           return ShellBranchDescriptor(
             index: index,
-            name: branch.name,
             initialLocation: branch.initialLocation,
             routePatterns: branch.routes
                 .map<String>((route) => route.path)
@@ -109,7 +108,6 @@ typedef ShellRouteRecordWrapper<
       required TAdapterRecord record,
       required ShellRuntimeBinding<R> runtime,
       required int branchIndex,
-      String? shellName,
     });
 
 /// Builds shell-aware wrapped route records for adapter packages.
@@ -122,7 +120,6 @@ List<TWrappedRecord> buildShellRouteRecords<
   TWrappedRecord extends RouteRecord<R>
 >({
   required List<ShellBranch<R>> branches,
-  String? shellName,
   required ShellRouteRecordResolver<R, TAdapterRecord> resolveRecord,
   required ShellRouteRecordWrapper<R, TAdapterRecord, TWrappedRecord>
   wrapRecord,
@@ -136,12 +133,7 @@ List<TWrappedRecord> buildShellRouteRecords<
     for (final record in branch.routes) {
       final adapterRecord = resolveRecord(record);
       wrapped.add(
-        wrapRecord(
-          record: adapterRecord,
-          runtime: runtime,
-          branchIndex: i,
-          shellName: shellName,
-        ),
+        wrapRecord(record: adapterRecord, runtime: runtime, branchIndex: i),
       );
     }
   }
@@ -181,30 +173,18 @@ abstract class ShellRouteRecordBinding<
     required this.record,
     required ShellRuntimeBinding<R> runtime,
     required int branchIndex,
-    String? shellName,
   }) : _runtime = runtime,
-       _branchIndex = branchIndex,
-       _shellName = shellName;
+       _branchIndex = branchIndex;
 
   final TRecord record;
   final ShellRuntimeBinding<R> _runtime;
   final int _branchIndex;
-  final String? _shellName;
 
   @override
   String get path => record.path;
 
   @override
-  String? get name {
-    if (_shellName == null) {
-      return record.name;
-    }
-    final routeName = record.name;
-    if (routeName == null || routeName.isEmpty) {
-      return _shellName;
-    }
-    return '$_shellName.$routeName';
-  }
+  String? get name => record.name;
 
   @override
   RouteParser<R> get parse => record.parse;
@@ -230,7 +210,7 @@ abstract class ShellRouteRecordBinding<
   }
 
   @override
-  Uri? popBranch({Object? result}) {
+  Uri? popBranch() {
     return _runtime.popBranch(_branchIndex);
   }
 
@@ -272,35 +252,35 @@ abstract class ShellRouteRecordBinding<
     required Uri currentUri,
     required void Function(
       int index, {
-      bool initialLocation,
-      bool completePendingResult,
+      required bool initialLocation,
+      required bool completePendingResult,
       Object? result,
     })
     goBranch,
     required bool Function() canPopBranch,
-    required bool Function(Object? result) popBranch,
+    required bool Function([Object? result]) popBranch,
   }) {
     return ShellState<R>(
       activeBranchIndex: _branchIndex,
       branches: _runtime.branches,
       currentUri: currentUri,
       currentBranchHistory: _runtime.currentBranchHistory(_branchIndex),
-      goBranch:
+      onGoBranch:
           (
             index, {
-            initialLocation,
-            completePendingResult,
+            required initialLocation,
+            required completePendingResult,
             result,
           }) {
             goBranch(
               index,
-              initialLocation: initialLocation ?? false,
-              completePendingResult: completePendingResult ?? false,
+              initialLocation: initialLocation,
+              completePendingResult: completePendingResult,
               result: result,
             );
           },
-      popBranch: (value) => popBranch(value),
-      canPopBranch: () => canPopBranch(),
+      onPopBranch: ([result]) => popBranch(result),
+      onCanPopBranch: canPopBranch,
     );
   }
 }

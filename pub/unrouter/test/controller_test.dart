@@ -192,7 +192,7 @@ void main() {
       throw RangeError.index(index, const <int>[0, 1], 'index');
     }
 
-    Uri? popBranchTarget({Object? result}) {
+    Uri? popBranchTarget() {
       return Uri(path: '/a');
     }
 
@@ -248,12 +248,12 @@ final class _ShellHostRouteRecord extends RouteDefinition<BranchRoute>
     required super.parse,
     required Uri Function(int index, {required bool initialLocation})
     resolveTarget,
-    required Uri? Function({Object? result}) popTarget,
+    required Uri? Function() popTarget,
   }) : _resolveTarget = resolveTarget,
        _popTarget = popTarget;
 
   final Uri Function(int index, {required bool initialLocation}) _resolveTarget;
-  final Uri? Function({Object? result}) _popTarget;
+  final Uri? Function() _popTarget;
 
   @override
   Uri resolveBranchTarget(int index, {bool initialLocation = false}) {
@@ -266,8 +266,8 @@ final class _ShellHostRouteRecord extends RouteDefinition<BranchRoute>
   }
 
   @override
-  Uri? popBranch({Object? result}) {
-    return _popTarget(result: result);
+  Uri? popBranch() {
+    return _popTarget();
   }
 }
 

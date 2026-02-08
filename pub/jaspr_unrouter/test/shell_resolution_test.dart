@@ -7,7 +7,6 @@ void main() {
   test('shell route wrappers resolve through core router', () async {
     final routes = <unrouter.RouteRecord<AppRoute>>[
       ...unrouter.shell<AppRoute>(
-        name: 'app',
         branches: <unrouter.ShellBranch<AppRoute>>[
           unrouter.branch<AppRoute>(
             initialLocation: Uri(path: '/feed'),
@@ -40,12 +39,12 @@ void main() {
     final feedResult = await router.resolve(Uri(path: '/feed'));
     expect(feedResult.isMatched, isTrue);
     expect(feedResult.record, isA<unrouter.RouteRecord<AppRoute>>());
-    expect(feedResult.record?.name, 'app.feed');
+    expect(feedResult.record?.name, 'feed');
 
     final settingsResult = await router.resolve(Uri(path: '/settings'));
     expect(settingsResult.isMatched, isTrue);
     expect(settingsResult.record, isA<unrouter.RouteRecord<AppRoute>>());
-    expect(settingsResult.record?.name, 'app.settings');
+    expect(settingsResult.record?.name, 'settings');
   });
 }
 

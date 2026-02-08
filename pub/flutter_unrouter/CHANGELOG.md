@@ -50,3 +50,7 @@
   - removed `RouteParserState.queryParameters`;
   - route parsing now uses typed helpers on `state.params` / `state.query`
     (`required()/decode()/$int()/$double()/$enum()`).
+- Synced shell API slimming from `unrouter`:
+  - removed `name` parameters from adapter `branch()` / `shell()`;
+  - shell-wrapped route records now keep route-level `name` values directly
+    (no shell-name prefixing).
