@@ -15,7 +15,7 @@ void main() {
     expect(unrouter.UnrouterLinkMode.values, isNotEmpty);
   });
 
-  test('adapter router wraps core route records and resolve', () async {
+  test('adapter route records can be resolved through core router', () async {
     final router = unrouter.Unrouter<AppRoute>(
       routes: <unrouter.RouteRecord<AppRoute>>[
         unrouter.route<HomeRoute>(
@@ -28,10 +28,8 @@ void main() {
 
     final result = await router.resolve(Uri(path: '/'));
     expect(result.isMatched, isTrue);
-
-    final adapterRecord = router.routeRecordOf(result.record);
-    expect(adapterRecord, isNotNull);
-    expect(adapterRecord!.path, '/');
+    expect(result.record, isA<unrouter.RouteRecord<AppRoute>>());
+    expect(result.record!.path, '/');
   });
 
   test('router config can mount into jaspr router component', () {

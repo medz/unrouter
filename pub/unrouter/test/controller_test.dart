@@ -127,6 +127,32 @@ void main() {
     expect(controller.uri.path, '/secure');
     expect(controller.state.isUnmatched, isTrue);
   });
+
+  test('controller cast returns same runtime view', () async {
+    final controller = UnrouterController<AppRoute>(
+      router: Unrouter<AppRoute>(
+        routes: <RouteRecord<AppRoute>>[
+          route<HomeRoute>(path: '/', parse: (_) => const HomeRoute()),
+          route<UserRoute>(
+            path: '/users/:id',
+            parse: (state) => UserRoute(id: state.pathInt('id')),
+          ),
+        ],
+      ),
+    );
+    addTearDown(controller.dispose);
+
+    await controller.idle;
+
+    final casted = controller.cast<AppRoute>();
+    expect(casted, same(controller));
+
+    casted.go(const UserRoute(id: 3));
+    await casted.idle;
+
+    expect(controller.uri.path, '/users/3');
+    expect(casted.uri.path, '/users/3');
+  });
 }
 
 sealed class AppRoute implements RouteData {

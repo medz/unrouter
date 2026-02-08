@@ -15,6 +15,7 @@ dart pub add jaspr_unrouter
 ## Current scope
 
 - Reuses `unrouter` core route resolution/runtime semantics.
+- Reuses core `Unrouter` and core `UnrouterController` directly.
 - Provides Jaspr-flavored route definitions (`route`, `routeWithLoader`) with
   component builders.
 - Provides `UnrouterRouter` driven by core `UnrouterController` state.
@@ -64,7 +65,12 @@ UnrouterLink<HomeRoute>(
 Pure Dart usage (without mounting component router):
 
 ```dart
-final controller = router.createController();
+import 'package:unstory/unstory.dart';
+
+final controller = UnrouterController<AppRoute>(
+  router: router,
+  history: MemoryHistory(),
+);
 await controller.idle;
 print(controller.state.resolution); // matched / unmatched / ...
 controller.dispose();

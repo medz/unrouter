@@ -506,6 +506,11 @@ class UnrouterController<R extends RouteData> {
     _history.go(delta);
   }
 
+  /// Casts controller to another typed route view over the same runtime.
+  UnrouterController<S> cast<S extends RouteData>() {
+    return this as UnrouterController<S>;
+  }
+
   /// Resolves [uri] and commits router state.
   Future<void> dispatchRouteRequest(Uri uri, {Object? state}) {
     if (_isDisposed) {

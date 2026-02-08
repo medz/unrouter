@@ -6,6 +6,8 @@
 - `unrouter` is now platform-agnostic and depends only on Dart SDK.
 - Added pure Dart `UnrouterController` runtime with `go/replace/push/pop/back`
   APIs and redirect handling.
+- Added `UnrouterController.cast<S>()` to share one runtime controller across
+  typed route views.
 - Added `UnrouterController.resolution` to expose the current typed
   `RouteResolution`.
 - Added platform-agnostic shell coordination APIs

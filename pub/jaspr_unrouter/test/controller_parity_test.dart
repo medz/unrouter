@@ -30,7 +30,8 @@ void main() {
         ),
       ],
     );
-    final controller = router.createController(
+    final controller = UnrouterController<AppRoute>(
+      router: router,
       history: MemoryHistory(),
       resolveInitialRoute: true,
     );
@@ -65,7 +66,8 @@ void main() {
         ),
       ],
     );
-    final controller = router.createController(
+    final controller = UnrouterController<AppRoute>(
+      router: router,
       history: MemoryHistory(),
       resolveInitialRoute: true,
     );
@@ -91,7 +93,8 @@ void main() {
         ),
       ],
     );
-    final controller = router.createController(
+    final controller = UnrouterController<AppRoute>(
+      router: router,
       history: MemoryHistory(
         initialEntries: <HistoryLocation>[
           HistoryLocation(Uri(path: '/profile')),

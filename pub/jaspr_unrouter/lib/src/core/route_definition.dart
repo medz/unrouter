@@ -41,45 +41,31 @@ typedef RouteRedirect<T extends RouteData> = _CoreRouteRedirect<T>;
 /// Asynchronous loader executed before route build.
 typedef RouteLoader<T extends RouteData, L> = _CoreRouteLoader<T, L>;
 
-abstract interface class RouteRecord<T extends RouteData> {
-  String get path;
-
-  String? get name;
-
-  CoreRouteRecord<T> get core;
-
+abstract interface class RouteRecord<T extends RouteData>
+    implements CoreRouteRecord<T> {
   Component build(BuildContext context, RouteData route, Object? loaderData);
 }
 
 /// Route definition without asynchronous loader data.
-class RouteDefinition<T extends RouteData> implements RouteRecord<T> {
+class RouteDefinition<T extends RouteData> extends _CoreRouteDefinition<T>
+    implements RouteRecord<T> {
   RouteDefinition({
-    required this.path,
+    required String path,
     required RouteParser<T> parse,
     required RouteComponentBuilder<T> builder,
-    this.name,
+    String? name,
     List<RouteGuard<T>> guards = const [],
     RouteRedirect<T>? redirect,
-  }) : _coreRecord = _CoreRouteDefinition<T>(
+  }) : _builder = builder,
+       super(
          path: path,
          parse: parse,
          name: name,
          guards: guards,
          redirect: redirect,
-       ),
-       _builder = builder;
+       );
 
-  @override
-  final String path;
-
-  @override
-  final String? name;
-
-  final _CoreRouteDefinition<T> _coreRecord;
   final RouteComponentBuilder<T> _builder;
-
-  @override
-  CoreRouteRecord<T> get core => _coreRecord;
 
   @override
   Component build(BuildContext context, RouteData route, Object? loaderData) {
@@ -88,36 +74,28 @@ class RouteDefinition<T extends RouteData> implements RouteRecord<T> {
 }
 
 /// Route definition that resolves typed loader data before build.
-class LoadedRouteDefinition<T extends RouteData, L> implements RouteRecord<T> {
+class LoadedRouteDefinition<T extends RouteData, L>
+    extends _CoreLoadedRouteDefinition<T, L>
+    implements RouteRecord<T> {
   LoadedRouteDefinition({
-    required this.path,
+    required String path,
     required RouteParser<T> parse,
     required RouteLoader<T, L> loader,
     required RouteLoadedComponentBuilder<T, L> builder,
-    this.name,
+    String? name,
     List<RouteGuard<T>> guards = const [],
     RouteRedirect<T>? redirect,
-  }) : _coreRecord = _CoreLoadedRouteDefinition<T, L>(
+  }) : _builder = builder,
+       super(
          path: path,
          parse: parse,
          loader: loader,
          name: name,
          guards: guards,
          redirect: redirect,
-       ),
-       _builder = builder;
+       );
 
-  @override
-  final String path;
-
-  @override
-  final String? name;
-
-  final _CoreLoadedRouteDefinition<T, L> _coreRecord;
   final RouteLoadedComponentBuilder<T, L> _builder;
-
-  @override
-  CoreRouteRecord<T> get core => _coreRecord;
 
   @override
   Component build(BuildContext context, RouteData route, Object? loaderData) {
