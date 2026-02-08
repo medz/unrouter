@@ -4,7 +4,7 @@ import 'package:jaspr/jaspr.dart';
 import 'package:unrouter/unrouter.dart' hide RouteRecord, Unrouter;
 import 'package:unrouter/unrouter.dart'
     as core
-    show Unrouter, UnrouterController, UnrouterStateSnapshot, RouteRecord;
+    show Unrouter, UnrouterController, StateSnapshot, RouteRecord;
 import 'package:unstory/unstory.dart';
 
 import '../core/route_records.dart';
@@ -102,7 +102,7 @@ class _UnrouterState<R extends RouteData> extends State<Unrouter<R>>
     with PreloadStateMixin<Unrouter<R>> {
   core.UnrouterController<R>? _controller;
   core.UnrouterController<RouteData>? _scopeController;
-  StreamSubscription<core.UnrouterStateSnapshot<R>>? _stateSubscription;
+  StreamSubscription<core.StateSnapshot<R>>? _stateSubscription;
   late RouteResolution<R> _resolution;
 
   @override
@@ -290,11 +290,7 @@ class _UnrouterState<R extends RouteData> extends State<Unrouter<R>>
     if (resolution.isMatched) {
       final record = _requireRouteRecord(resolution);
       try {
-        return record.build(
-          context,
-          resolution.route!,
-          resolution.loaderData,
-        );
+        return record.build(context, resolution.route!, resolution.loaderData);
       } catch (error, stackTrace) {
         return _buildError(context, error, stackTrace);
       }

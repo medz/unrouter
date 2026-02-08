@@ -4,7 +4,7 @@ import 'package:unstory/unstory.dart';
 
 import '../core/route_data.dart';
 import '../core/route_records.dart';
-import 'runtime_state.dart';
+import 'state.dart';
 import 'unrouter.dart';
 
 /// Typed view over a core controller runtime.
@@ -42,8 +42,8 @@ final class UnrouterControllerCastView<R extends RouteData>
   Object? get historyState => _source.historyState;
 
   @override
-  UnrouterStateSnapshot<R> get state {
-    return (_source.state as UnrouterStateSnapshot<dynamic>).cast<R>();
+  StateSnapshot<R> get state {
+    return (_source.state as StateSnapshot<dynamic>).cast<R>();
   }
 
   @override
@@ -52,8 +52,8 @@ final class UnrouterControllerCastView<R extends RouteData>
   }
 
   @override
-  Stream<UnrouterStateSnapshot<R>> get states {
-    final stream = _source.states.cast<UnrouterStateSnapshot<dynamic>>();
+  Stream<StateSnapshot<R>> get states {
+    final stream = _source.states.cast<StateSnapshot<dynamic>>();
     return stream.map((snapshot) => snapshot.cast<R>());
   }
 

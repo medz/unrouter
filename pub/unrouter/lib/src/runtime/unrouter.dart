@@ -9,7 +9,7 @@ import '../core/route_data.dart';
 import '../core/route_guards.dart';
 import '../core/route_records.dart';
 import '../core/route_state.dart';
-import 'runtime_state.dart';
+import 'state.dart';
 import 'unrouter_controller_cast_view.dart';
 
 export '../core/redirect_diagnostics.dart';
@@ -325,10 +325,10 @@ class UnrouterController<R extends RouteData> {
        _lastAction = history.action,
        _trackedHistoryIndex = history.index ?? 0,
        _resolution = RouteResolution<R>.pending(history.location.uri),
-       _state = UnrouterStateSnapshot<R>(
+       _state = StateSnapshot<R>(
          uri: history.location.uri,
          route: null,
-         resolution: UnrouterResolutionState.pending,
+         resolution: ResolutionState.pending,
          routePath: null,
          routeName: null,
          error: null,
@@ -349,13 +349,13 @@ class UnrouterController<R extends RouteData> {
 
   late final void Function() _unlisten;
 
-  final StreamController<UnrouterStateSnapshot<R>> _stateController =
-      StreamController<UnrouterStateSnapshot<R>>.broadcast();
+  final StreamController<StateSnapshot<R>> _stateController =
+      StreamController<StateSnapshot<R>>.broadcast();
   final List<Completer<Object?>> _pendingPushResults = <Completer<Object?>>[];
   final ListQueue<Object?> _popResultQueue = ListQueue<Object?>();
 
   RouteResolution<R> _resolution;
-  UnrouterStateSnapshot<R> _state;
+  StateSnapshot<R> _state;
   int _trackedHistoryIndex;
   HistoryAction _lastAction;
   int? _lastDelta;
@@ -395,13 +395,13 @@ class UnrouterController<R extends RouteData> {
   Object? get historyState => _history.location.state;
 
   /// Current runtime snapshot.
-  UnrouterStateSnapshot<R> get state => _state;
+  StateSnapshot<R> get state => _state;
 
   /// Current route resolution.
   RouteResolution<R> get resolution => _resolution;
 
   /// Broadcast stream of state updates.
-  Stream<UnrouterStateSnapshot<R>> get states => _stateController.stream;
+  Stream<StateSnapshot<R>> get states => _stateController.stream;
 
   /// Pending resolution task, or an already completed future when idle.
   Future<void> get idle => _resolvingFuture ?? Future<void>.value();
@@ -780,7 +780,7 @@ class UnrouterController<R extends RouteData> {
             _trackedHistoryIndex = _history.index ?? _trackedHistoryIndex;
           }
           _updateState(
-            UnrouterStateSnapshot<R>(
+            StateSnapshot<R>(
               uri: previousSnapshot.uri,
               route: previousSnapshot.route,
               resolution: previousSnapshot.resolution,
@@ -835,10 +835,10 @@ class UnrouterController<R extends RouteData> {
 
   void _setPending(Uri uri) {
     _resolution = RouteResolution<R>.pending(uri);
-    final pending = UnrouterStateSnapshot<R>(
+    final pending = StateSnapshot<R>(
       uri: uri,
       route: null,
-      resolution: UnrouterResolutionState.pending,
+      resolution: ResolutionState.pending,
       routePath: null,
       routeName: null,
       error: null,
@@ -853,7 +853,7 @@ class UnrouterController<R extends RouteData> {
   void _commitResolution(RouteResolution<R> resolution) {
     _resolution = resolution;
     _hasCommittedResolution = true;
-    final snapshot = UnrouterStateSnapshot<R>(
+    final snapshot = StateSnapshot<R>(
       uri: resolution.uri,
       route: resolution.route,
       resolution: _mapResolutionState(resolution.type),
@@ -868,7 +868,7 @@ class UnrouterController<R extends RouteData> {
     _updateState(snapshot);
   }
 
-  void _updateState(UnrouterStateSnapshot<R> next) {
+  void _updateState(StateSnapshot<R> next) {
     if (_isSameSnapshot(_state, next)) {
       return;
     }
@@ -876,14 +876,14 @@ class UnrouterController<R extends RouteData> {
     _emitState(next);
   }
 
-  void _emitState(UnrouterStateSnapshot<R> snapshot) {
+  void _emitState(StateSnapshot<R> snapshot) {
     if (_stateController.isClosed) {
       return;
     }
     _stateController.add(snapshot);
   }
 
-  bool _isSameSnapshot(UnrouterStateSnapshot<R> a, UnrouterStateSnapshot<R> b) {
+  bool _isSameSnapshot(StateSnapshot<R> a, StateSnapshot<R> b) {
     return a.uri.toString() == b.uri.toString() &&
         _routeIdentity(a.route) == _routeIdentity(b.route) &&
         a.resolution == b.resolution &&
@@ -1082,20 +1082,20 @@ class UnrouterController<R extends RouteData> {
     return a.toString() == b.toString();
   }
 
-  UnrouterResolutionState _mapResolutionState(RouteResolutionType type) {
+  ResolutionState _mapResolutionState(RouteResolutionType type) {
     switch (type) {
       case RouteResolutionType.pending:
-        return UnrouterResolutionState.pending;
+        return ResolutionState.pending;
       case RouteResolutionType.matched:
-        return UnrouterResolutionState.matched;
+        return ResolutionState.matched;
       case RouteResolutionType.unmatched:
-        return UnrouterResolutionState.unmatched;
+        return ResolutionState.unmatched;
       case RouteResolutionType.redirect:
-        return UnrouterResolutionState.redirect;
+        return ResolutionState.redirect;
       case RouteResolutionType.blocked:
-        return UnrouterResolutionState.blocked;
+        return ResolutionState.blocked;
       case RouteResolutionType.error:
-        return UnrouterResolutionState.error;
+        return ResolutionState.error;
     }
   }
 }

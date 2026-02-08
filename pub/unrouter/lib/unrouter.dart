@@ -11,5 +11,4 @@ export 'src/core/route_records.dart';
 export 'src/core/route_shell.dart';
 export 'src/runtime/unrouter.dart';
 export 'src/shell/shell.dart';
-export 'src/runtime/runtime_state.dart'
-    show UnrouterResolutionState, UnrouterStateSnapshot;
+export 'src/runtime/state.dart' show ResolutionState, StateSnapshot;

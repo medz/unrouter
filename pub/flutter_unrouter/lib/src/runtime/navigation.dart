@@ -37,14 +37,14 @@ _ControllerStateListenable<RouteData> _stateListenableFor(
 /// Flutter `ValueListenable` bridge for core controller states.
 extension UnrouterControllerListenableExtension<R extends RouteData>
     on UnrouterController<R> {
-  ValueListenable<UnrouterStateSnapshot<R>> get stateListenable {
+  ValueListenable<StateSnapshot<R>> get stateListenable {
     final source = _stateListenableFor(cast<RouteData>());
     return _UnrouterTypedStateListenable<R>(source);
   }
 }
 
 class _ControllerStateListenable<R extends RouteData>
-    implements ValueListenable<UnrouterStateSnapshot<R>> {
+    implements ValueListenable<StateSnapshot<R>> {
   _ControllerStateListenable(this._controller) : _value = _controller.state {
     _controller.states.listen((snapshot) {
       _value = snapshot;
@@ -60,10 +60,10 @@ class _ControllerStateListenable<R extends RouteData>
 
   final UnrouterController<R> _controller;
   final List<VoidCallback> _listeners = <VoidCallback>[];
-  UnrouterStateSnapshot<R> _value;
+  StateSnapshot<R> _value;
 
   @override
-  UnrouterStateSnapshot<R> get value => _value;
+  StateSnapshot<R> get value => _value;
 
   @override
   void addListener(VoidCallback listener) {
@@ -77,13 +77,13 @@ class _ControllerStateListenable<R extends RouteData>
 }
 
 class _UnrouterTypedStateListenable<R extends RouteData>
-    implements ValueListenable<UnrouterStateSnapshot<R>> {
+    implements ValueListenable<StateSnapshot<R>> {
   const _UnrouterTypedStateListenable(this._source);
 
-  final ValueListenable<UnrouterStateSnapshot<RouteData>> _source;
+  final ValueListenable<StateSnapshot<RouteData>> _source;
 
   @override
-  UnrouterStateSnapshot<R> get value => _source.value.cast<R>();
+  StateSnapshot<R> get value => _source.value.cast<R>();
 
   @override
   void addListener(VoidCallback listener) {

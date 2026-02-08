@@ -3,7 +3,7 @@ import 'package:unstory/unstory.dart';
 import '../core/route_data.dart';
 
 /// Normalized route resolution state shared by runtime snapshots.
-enum UnrouterResolutionState {
+enum ResolutionState {
   unknown,
   pending,
   matched,
@@ -14,8 +14,8 @@ enum UnrouterResolutionState {
 }
 
 /// Immutable snapshot of current router state.
-class UnrouterStateSnapshot<R extends RouteData> {
-  const UnrouterStateSnapshot({
+class StateSnapshot<R extends RouteData> {
+  const StateSnapshot({
     required this.uri,
     required this.route,
     required this.resolution,
@@ -30,7 +30,7 @@ class UnrouterStateSnapshot<R extends RouteData> {
 
   final Uri uri;
   final R? route;
-  final UnrouterResolutionState resolution;
+  final ResolutionState resolution;
   final String? routePath;
   final String? routeName;
   final Object? error;
@@ -40,19 +40,15 @@ class UnrouterStateSnapshot<R extends RouteData> {
   final int? historyIndex;
 
   /// Whether current resolution is pending.
-  bool get isPending => resolution == UnrouterResolutionState.pending;
-
-  bool get isMatched => resolution == UnrouterResolutionState.matched;
-
-  bool get isUnmatched => resolution == UnrouterResolutionState.unmatched;
-
-  bool get isBlocked => resolution == UnrouterResolutionState.blocked;
-
-  bool get hasError => resolution == UnrouterResolutionState.error;
+  bool get isPending => resolution == .pending;
+  bool get isMatched => resolution == .matched;
+  bool get isUnmatched => resolution == .unmatched;
+  bool get isBlocked => resolution == .blocked;
+  bool get hasError => resolution == .error;
 
   /// Casts snapshot route type while preserving captured values.
-  UnrouterStateSnapshot<S> cast<S extends RouteData>() {
-    return UnrouterStateSnapshot<S>(
+  StateSnapshot<S> cast<S extends RouteData>() {
+    return StateSnapshot<S>(
       uri: uri,
       route: route as S?,
       resolution: resolution,
