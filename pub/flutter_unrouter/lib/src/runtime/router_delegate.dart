@@ -98,10 +98,13 @@ class UnrouterDelegate<R extends RouteData>
   Widget _buildPageChild(BuildContext context) {
     return resolveRouteResolution<R, Widget>(
       resolution: _resolution,
-      onPending: (_) {
+      onPending: (resolution) {
         final loadingBuilder = config.loading;
         if (loadingBuilder != null) {
-          return Builder(builder: loadingBuilder);
+          return Builder(
+            builder: (innerContext) =>
+                loadingBuilder(innerContext, resolution.uri),
+          );
         }
         return const SizedBox.shrink();
       },

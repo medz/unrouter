@@ -20,6 +20,10 @@
 - Reworked runtime resolution branching and controller-sync behavior to reuse
   core adapter runtime helpers (`resolveRouteResolution`,
   `syncControllerResolution`, `castRouteRecord`, `castShellRouteRecordHost`).
+- Aligned runtime defaults with `flutter_unrouter`: `resolveInitialRoute`
+  now defaults to `false`.
+- Aligned default error handling with `flutter_unrouter`: when `onError` is
+  not provided, errors are rethrown with stack trace.
 - Removed redundant adapter typedef indirection in route definition/runtime
   API and switched to direct core type usage.
 - Removed adapter-local `RouteData` re-export shim file; adapter now references

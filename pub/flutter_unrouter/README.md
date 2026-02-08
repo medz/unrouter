@@ -53,6 +53,12 @@ void main() {
 }
 ```
 
+Optional pending-state UI can read the target URI:
+
+```dart
+loading: (context, uri) => const CircularProgressIndicator(),
+```
+
 ## Example
 
 ```bash

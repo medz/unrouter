@@ -33,6 +33,8 @@
 - Reworked runtime delegate resolution branching and controller-sync behavior to
   reuse core adapter runtime helpers (`resolveRouteResolution`,
   `syncControllerResolution`, `castRouteRecord`, `castShellRouteRecordHost`).
+- Aligned pending-state builder signature with `jaspr_unrouter` by changing
+  `loading` to `Widget Function(BuildContext context, Uri uri)`.
 - Removed adapter alias typedef wrappers and direct shim accessors
   (`RouteRecord.core`, `CoreUnrouter`, `typedef UnrouterController = ...`) so
   adapter internals use core types directly.

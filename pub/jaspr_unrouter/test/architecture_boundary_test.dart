@@ -75,6 +75,7 @@ void main() {
     );
     expect(runtime.contains('resolveRouteResolution<'), isTrue);
     expect(runtime.contains('syncControllerResolution('), isTrue);
+    expect(runtime.contains('Error.throwWithStackTrace('), isTrue);
     expect(routeDefs.contains('class ShellState<'), isFalse);
     expect(
       routeDefs.contains('abstract interface class ShellRouteRecordHost<'),

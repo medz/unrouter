@@ -22,6 +22,9 @@ typedef UnknownRouteBuilder = Widget Function(BuildContext context, Uri uri);
 typedef RouteErrorBuilder =
     Widget Function(BuildContext context, Object error, StackTrace stackTrace);
 
+/// Builds fallback UI while route resolution is pending.
+typedef RouteLoadingBuilder = Widget Function(BuildContext context, Uri uri);
+
 /// Router configuration entrypoint for typed URL-first navigation.
 class Unrouter<R extends RouteData> extends core.Unrouter<R>
     implements RouterConfig<HistoryLocation> {
@@ -50,8 +53,8 @@ class Unrouter<R extends RouteData> extends core.Unrouter<R>
   /// Optional builder for route resolution errors.
   final RouteErrorBuilder? onError;
 
-  /// Optional global loading widget shown before first successful resolution.
-  final WidgetBuilder? loading;
+  /// Optional loading UI shown while route resolution is pending.
+  final RouteLoadingBuilder? loading;
 
   /// Optional builder for blocked locations.
   final UnknownRouteBuilder? blocked;

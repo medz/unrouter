@@ -23,6 +23,22 @@ void main() {
       expect(router.blocked, isNotNull);
     });
 
+    test('constructor keeps loading fallback builder with uri', () {
+      final router = Unrouter<AppRoute>(
+        history: MemoryHistory(),
+        loading: (context, uri) => const SizedBox.shrink(),
+        routes: [
+          route<HomeRoute>(
+            path: '/',
+            parse: (_) => const HomeRoute(),
+            builder: (_, _) => const SizedBox.shrink(),
+          ),
+        ],
+      );
+
+      expect(router.loading, isNotNull);
+    });
+
     test('matches path and decodes typed params/query', () async {
       final router = _buildBasicRouter();
 

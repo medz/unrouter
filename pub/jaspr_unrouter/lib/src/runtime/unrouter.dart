@@ -41,7 +41,7 @@ class Unrouter<R extends RouteData> extends StatefulComponent {
     this.history,
     this.base,
     this.strategy = HistoryStrategy.browser,
-    this.resolveInitialRoute = true,
+    this.resolveInitialRoute = false,
     super.key,
   }) : assert(routes.isNotEmpty, 'Unrouter routes must not be empty.'),
        assert(
@@ -344,7 +344,8 @@ class _UnrouterState<R extends RouteData> extends State<Unrouter<R>>
     if (fallback != null) {
       return fallback(context, error, stackTrace);
     }
-    return Component.text('jaspr_unrouter error: $error');
+
+    Error.throwWithStackTrace(error, stackTrace);
   }
 
   static Uri _normalizeRequestUri(String raw) {

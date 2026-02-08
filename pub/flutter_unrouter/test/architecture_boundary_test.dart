@@ -83,6 +83,8 @@ void main() {
     );
     expect(runtime.contains('core.Unrouter<R> get coreRouter'), isFalse);
     expect(runtime.contains('RouteRecord<R>? routeRecordOf('), isFalse);
+    expect(runtime.contains('typedef RouteLoadingBuilder ='), isTrue);
+    expect(runtime.contains('final RouteLoadingBuilder? loading;'), isTrue);
     expect(
       delegate.contains("import 'package:unrouter/unrouter.dart' hide"),
       isFalse,

@@ -42,6 +42,9 @@ final router = Unrouter<AppRoute>(
 runApp(router);
 ```
 
+`resolveInitialRoute` defaults to `false` (same as `flutter_unrouter`).
+When `onError` is not provided, runtime errors are rethrown with stack trace.
+
 Navigation from a component:
 
 ```dart

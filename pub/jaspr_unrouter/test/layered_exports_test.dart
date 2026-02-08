@@ -48,6 +48,20 @@ void main() {
     expect(mounted, isA<Component>());
   });
 
+  test('component defaults resolveInitialRoute to false', () {
+    final mounted = unrouter.Unrouter<AppRoute>(
+      routes: <unrouter.RouteRecord<AppRoute>>[
+        unrouter.route<HomeRoute>(
+          path: '/',
+          parse: (_) => const HomeRoute(),
+          builder: (_, __) => const Component.text('home'),
+        ),
+      ],
+    );
+
+    expect(mounted.resolveInitialRoute, isFalse);
+  });
+
   test('link component can be created for typed route', () {
     const link = unrouter.UnrouterLink<HomeRoute>(
       route: HomeRoute(),
