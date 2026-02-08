@@ -131,6 +131,14 @@ class UnrouterDelegate<R extends RouteData>
             builder: (innerContext) => blocked(innerContext, resolution.uri),
           );
         }
+
+        final unknown = config.unknown;
+        if (unknown != null) {
+          return Builder(
+            builder: (innerContext) => unknown(innerContext, resolution.uri),
+          );
+        }
+
         return _DefaultUnknownRoutePage(uri: resolution.uri);
       },
       onMatched: (resolution) {

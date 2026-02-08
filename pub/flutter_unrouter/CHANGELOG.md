@@ -35,6 +35,8 @@
   `syncControllerResolution`, `castRouteRecord`, `castShellRouteRecordHost`).
 - Aligned pending-state builder signature with `jaspr_unrouter` by changing
   `loading` to `Widget Function(BuildContext context, Uri uri)`.
+- Aligned blocked fallback flow with `jaspr_unrouter`: when `blocked` is not
+  provided, runtime now falls back to `unknown` before default page.
 - Removed adapter alias typedef wrappers and direct shim accessors
   (`RouteRecord.core`, `CoreUnrouter`, `typedef UnrouterController = ...`) so
   adapter internals use core types directly.

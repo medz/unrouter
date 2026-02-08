@@ -59,6 +59,9 @@ Optional pending-state UI can read the target URI:
 loading: (context, uri) => const CircularProgressIndicator(),
 ```
 
+`blocked` is optional. If it is not provided, `unknown` is used as fallback
+before the default unknown-route page.
+
 ## Example
 
 ```bash
