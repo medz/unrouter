@@ -2,13 +2,11 @@ import 'dart:async';
 
 import '../core/route_data.dart';
 import '../core/route_records.dart';
+import 'controller.dart';
+import 'route_resolution.dart';
 import 'state.dart';
-import 'unrouter.dart';
 
 /// Typed view over a core controller runtime.
-///
-/// This keeps one underlying runtime while allowing adapters to project the
-/// controller as different route types.
 final class UnrouterControllerCastView<R extends RouteData>
     implements UnrouterController<R> {
   const UnrouterControllerCastView(this._source);
