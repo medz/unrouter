@@ -137,9 +137,6 @@ class _UnrouterState<R extends RouteData> extends State<Unrouter<R>>
         }
         setState(() {
           _resolution = controller.resolution;
-          if (_resolution.record is! ShellRouteRecordHost) {
-            controller.clearHistoryStateComposer();
-          }
         });
       });
     }
@@ -176,9 +173,6 @@ class _UnrouterState<R extends RouteData> extends State<Unrouter<R>>
         }
         setState(() {
           _resolution = controller.resolution;
-          if (_resolution.record is! ShellRouteRecordHost) {
-            controller.clearHistoryStateComposer();
-          }
         });
       });
     }
@@ -216,10 +210,6 @@ class _UnrouterState<R extends RouteData> extends State<Unrouter<R>>
       resolveInitialRoute: component.resolveInitialRoute,
       publishPendingState: component.publishPendingState,
       disposeHistory: historyPlan.disposeHistory,
-    );
-    _controller!.setShellBranchResolvers(
-      resolveTarget: _resolveShellBranchTarget,
-      popTarget: _popShellBranchTarget,
     );
     _scopeController = _controller!.cast<RouteData>();
     _resolution = _controller!.resolution;
@@ -310,34 +300,11 @@ class _UnrouterState<R extends RouteData> extends State<Unrouter<R>>
     return Component.text('No route matches ${resolution.uri.path}');
   }
 
-  Uri? _resolveShellBranchTarget(int index, {required bool initialLocation}) {
-    final activeRecord = _activeRouteRecord;
-    if (activeRecord case ShellRouteRecordHost shellHost) {
-      return shellHost.resolveBranchTarget(
-        index,
-        initialLocation: initialLocation,
-      );
-    }
-    return null;
-  }
-
-  Uri? _popShellBranchTarget() {
-    final activeRecord = _activeRouteRecord;
-    if (activeRecord case ShellRouteRecordHost shellHost) {
-      return shellHost.popBranch();
-    }
-    return null;
-  }
-
   RouteRecord<R>? _asAdapterRouteRecord(core.RouteRecord<R>? record) {
     if (record case RouteRecord<R> adapterRecord) {
       return adapterRecord;
     }
     return null;
-  }
-
-  RouteRecord<R>? get _activeRouteRecord {
-    return _asAdapterRouteRecord(_resolution.record);
   }
 
   RouteRecord<R> _requireRouteRecord(RouteResolution<R> resolution) {

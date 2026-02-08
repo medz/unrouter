@@ -84,14 +84,6 @@ class _ShellRouteRecord<R extends RouteData>
       delta: controller.lastDelta,
       historyIndex: controller.historyIndex,
     );
-    controller.setHistoryStateComposer((request) {
-      return composeShellHistoryState(
-        uri: request.uri,
-        action: request.action,
-        state: request.state,
-        currentState: request.currentState,
-      );
-    });
 
     final shellState = createShellState(
       currentUri: currentUri,

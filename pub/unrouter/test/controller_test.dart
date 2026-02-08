@@ -154,52 +154,68 @@ void main() {
     expect(casted.uri.path, '/users/3');
   });
 
-  test(
-    'controller history state composer is applied to navigation writes',
-    () async {
-      final controller = UnrouterController<AppRoute>(
-        router: Unrouter<AppRoute>(
-          routes: <RouteRecord<AppRoute>>[
-            route<HomeRoute>(path: '/', parse: (_) => const HomeRoute()),
-            route<UserRoute>(
-              path: '/users/:id',
-              parse: (state) => UserRoute(id: state.params.$int('id')),
-            ),
-          ],
-        ),
-      );
-      addTearDown(controller.dispose);
-      await controller.idle;
-
-      controller.setHistoryStateComposer((request) {
-        return <String, Object?>{
-          'uri': request.uri.path,
-          'action': request.action.name,
-          'state': request.state,
-          'current': request.currentState,
-        };
-      });
-
-      controller.go(const UserRoute(id: 8), state: 'payload');
-      await controller.idle;
-
-      final historyState = controller.historyState as Map<String, Object?>;
-      expect(historyState['uri'], '/users/8');
-      expect(historyState['action'], HistoryAction.replace.name);
-      expect(historyState['state'], 'payload');
-      expect(historyState['current'], isNull);
-    },
-  );
-
-  test('controller switchBranch/popBranch use configured resolvers', () async {
+  test('controller writes provided history state payload', () async {
     final controller = UnrouterController<AppRoute>(
       router: Unrouter<AppRoute>(
         routes: <RouteRecord<AppRoute>>[
-          route<BranchRoute>(path: '/a', parse: (_) => const BranchRoute('/a')),
-          route<BranchRoute>(path: '/b', parse: (_) => const BranchRoute('/b')),
-          route<BranchRoute>(
+          route<HomeRoute>(path: '/', parse: (_) => const HomeRoute()),
+          route<UserRoute>(
+            path: '/users/:id',
+            parse: (state) => UserRoute(id: state.params.$int('id')),
+          ),
+        ],
+      ),
+    );
+    addTearDown(controller.dispose);
+    await controller.idle;
+
+    const payload = <String, Object?>{
+      'source': 'test',
+      'purpose': 'state-pass-through',
+    };
+
+    controller.go(const UserRoute(id: 8), state: payload);
+    await controller.idle;
+
+    final historyState = controller.historyState as Map<String, Object?>;
+    expect(historyState, payload);
+  });
+
+  test('controller switchBranch/popBranch use configured resolvers', () async {
+    Uri resolveBranchTarget(int index, {required bool initialLocation}) {
+      switch (index) {
+        case 0:
+          return Uri(path: '/a');
+        case 1:
+          return initialLocation ? Uri(path: '/b') : Uri(path: '/b/details');
+      }
+      throw RangeError.index(index, const <int>[0, 1], 'index');
+    }
+
+    Uri? popBranchTarget({Object? result}) {
+      return Uri(path: '/a');
+    }
+
+    final controller = UnrouterController<AppRoute>(
+      router: Unrouter<AppRoute>(
+        routes: <RouteRecord<AppRoute>>[
+          _ShellHostRouteRecord(
+            path: '/a',
+            parse: (_) => const BranchRoute('/a'),
+            resolveTarget: resolveBranchTarget,
+            popTarget: popBranchTarget,
+          ),
+          _ShellHostRouteRecord(
+            path: '/b',
+            parse: (_) => const BranchRoute('/b'),
+            resolveTarget: resolveBranchTarget,
+            popTarget: popBranchTarget,
+          ),
+          _ShellHostRouteRecord(
             path: '/b/details',
             parse: (_) => const BranchRoute('/b/details'),
+            resolveTarget: resolveBranchTarget,
+            popTarget: popBranchTarget,
           ),
         ],
       ),
@@ -210,20 +226,6 @@ void main() {
     );
     addTearDown(controller.dispose);
     await controller.idle;
-
-    controller.setShellBranchResolvers(
-      resolveTarget: (index, {required initialLocation}) {
-        switch (index) {
-          case 0:
-            return Uri(path: '/a');
-          case 1:
-            return initialLocation ? Uri(path: '/b') : Uri(path: '/b/details');
-          default:
-            throw RangeError.index(index, const <int>[0, 1], 'index');
-        }
-      },
-      popTarget: () => Uri(path: '/a'),
-    );
 
     expect(controller.switchBranch(1), isTrue);
     await controller.idle;
@@ -237,6 +239,36 @@ void main() {
     expect(await pending, 99);
     expect(controller.uri.path, '/a');
   });
+}
+
+final class _ShellHostRouteRecord extends RouteDefinition<BranchRoute>
+    implements ShellRouteRecordHost {
+  _ShellHostRouteRecord({
+    required super.path,
+    required super.parse,
+    required Uri Function(int index, {required bool initialLocation})
+    resolveTarget,
+    required Uri? Function({Object? result}) popTarget,
+  }) : _resolveTarget = resolveTarget,
+       _popTarget = popTarget;
+
+  final Uri Function(int index, {required bool initialLocation}) _resolveTarget;
+  final Uri? Function({Object? result}) _popTarget;
+
+  @override
+  Uri resolveBranchTarget(int index, {bool initialLocation = false}) {
+    return _resolveTarget(index, initialLocation: initialLocation);
+  }
+
+  @override
+  bool canPopBranch() {
+    return _popTarget() != null;
+  }
+
+  @override
+  Uri? popBranch({Object? result}) {
+    return _popTarget(result: result);
+  }
 }
 
 sealed class AppRoute implements RouteData {

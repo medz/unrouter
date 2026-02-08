@@ -23,16 +23,9 @@ class UnrouterDelegate<R extends RouteData>
     );
     _scopeController = _controller.cast<RouteData>();
     _resolution = _controller.resolution;
-    _controller.setShellBranchResolvers(
-      resolveTarget: _resolveShellBranchTarget,
-      popTarget: _popShellBranchTarget,
-    );
     _stateListener = () {
       final previous = _resolution;
       final next = _controller.resolution;
-      if (next.record is! ShellRouteRecordHost) {
-        _controller.clearHistoryStateComposer();
-      }
       _resolution = next;
       if (_isSameVisibleResolution(previous, next)) {
         return;
@@ -224,34 +217,11 @@ class UnrouterDelegate<R extends RouteData>
     return a.toUri() == b.toUri();
   }
 
-  Uri? _resolveShellBranchTarget(int index, {required bool initialLocation}) {
-    final activeRecord = _activeRouteRecord;
-    if (activeRecord case ShellRouteRecordHost shellHost) {
-      return shellHost.resolveBranchTarget(
-        index,
-        initialLocation: initialLocation,
-      );
-    }
-    return null;
-  }
-
-  Uri? _popShellBranchTarget() {
-    final activeRecord = _activeRouteRecord;
-    if (activeRecord case ShellRouteRecordHost shellHost) {
-      return shellHost.popBranch();
-    }
-    return null;
-  }
-
   adapter.RouteRecord<R>? _asAdapterRouteRecord(RouteRecord<R>? record) {
     if (record case adapter.RouteRecord<R> adapterRecord) {
       return adapterRecord;
     }
     return null;
-  }
-
-  adapter.RouteRecord<R>? get _activeRouteRecord {
-    return _asAdapterRouteRecord(_resolution.record);
   }
 
   adapter.RouteRecord<R> _requireRouteRecord(RouteResolution<R> resolution) {

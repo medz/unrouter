@@ -1,11 +1,6 @@
 import 'package:jaspr/jaspr.dart';
 import 'package:unrouter/unrouter.dart'
-    hide
-        DataRouteDefinition,
-        RouteDefinition,
-        RouteRecord,
-        branch,
-        shell;
+    hide DataRouteDefinition, RouteDefinition, RouteRecord, branch, shell;
 import 'package:unrouter/unrouter.dart'
     as core
     show DataRouteDefinition, RouteDefinition, RouteRecord;
@@ -212,14 +207,6 @@ class _ShellRouteRecord<R extends RouteData>
       delta: controller.lastDelta,
       historyIndex: controller.historyIndex,
     );
-    controller.setHistoryStateComposer((request) {
-      return composeShellHistoryState(
-        uri: request.uri,
-        action: request.action,
-        state: request.state,
-        currentState: request.currentState,
-      );
-    });
 
     final shellState = createShellState(
       currentUri: currentUri,

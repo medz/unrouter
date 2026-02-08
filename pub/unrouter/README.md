@@ -65,21 +65,9 @@ final controller = UnrouterController<AppRoute>(
 await controller.idle;
 print(controller.state.resolution); // matched
 
-controller.setHistoryStateComposer((request) {
-  return {
-    'uri': request.uri.toString(),
-    'action': request.action.name,
-    'userState': request.state,
-  };
-});
-
-controller.setShellBranchResolvers(
-  resolveTarget: (index, {required initialLocation}) {
-    if (index == 0) return Uri(path: '/feed');
-    if (index == 1) return Uri(path: '/settings');
-    return null;
-  },
-  popTarget: () => Uri(path: '/feed'),
+controller.goUri(
+  Uri(path: '/settings'),
+  state: const {'source': 'user'},
 );
 
 controller.dispose();
@@ -123,9 +111,8 @@ coordinator.recordNavigation(
 );
 ```
 
-For adapter authors, `ShellRuntimeBinding` is also available to bridge
-`ShellBranch` trees with `UnrouterController` history callbacks while keeping
-rendering logic in adapter packages.
+For adapter authors, `ShellRuntimeBinding` is available to bridge
+`ShellBranch` trees while keeping rendering logic in adapter packages.
 
 ## Flutter usage
 

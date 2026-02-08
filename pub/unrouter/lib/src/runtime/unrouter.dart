@@ -8,6 +8,7 @@ import '../core/redirect_diagnostics.dart';
 import '../core/route_data.dart';
 import '../core/route_guards.dart';
 import '../core/route_records.dart';
+import '../core/route_shell.dart';
 import '../core/route_state.dart';
 import 'state.dart';
 import 'unrouter_controller_cast_view.dart';
@@ -257,41 +258,11 @@ class RouteResolution<R extends RouteData> {
   bool get hasError => type == RouteResolutionType.error;
 }
 
-/// Input payload for [UnrouterHistoryStateComposer].
-class UnrouterHistoryStateRequest {
-  const UnrouterHistoryStateRequest({
-    required this.uri,
-    required this.action,
-    required this.state,
-    required this.currentState,
-  });
-
-  final Uri uri;
-  final HistoryAction action;
-  final Object? state;
-  final Object? currentState;
-}
-
-/// Composes custom history state payload before navigation writes.
-typedef UnrouterHistoryStateComposer =
-    Object? Function(UnrouterHistoryStateRequest request);
-
 /// Platform-agnostic runtime controller for [Unrouter].
 ///
 /// This controller is designed for pure Dart usage while keeping method names
 /// aligned with adapter packages.
 class UnrouterController<R extends RouteData> {
-  static Uri? _defaultShellBranchTargetResolver(
-    int _, {
-    required bool initialLocation,
-  }) {
-    return null;
-  }
-
-  static Uri? _defaultShellBranchPopResolver() {
-    return null;
-  }
-
   UnrouterController({
     required Unrouter<R> router,
     History? history,
@@ -360,10 +331,6 @@ class UnrouterController<R extends RouteData> {
   Future<void>? _resolvingFuture;
   _RedirectChainState? _redirectChain;
   bool _isDisposed = false;
-  UnrouterHistoryStateComposer? _historyStateComposer;
-  Uri? Function(int index, {required bool initialLocation})
-  _shellBranchTargetResolver = _defaultShellBranchTargetResolver;
-  Uri? Function() _shellBranchPopResolver = _defaultShellBranchPopResolver;
 
   /// Underlying history abstraction.
   History get history => _history;
@@ -436,19 +403,14 @@ class UnrouterController<R extends RouteData> {
     if (_isDisposed) {
       return;
     }
-    final composedState = _composeHistoryState(
-      uri: uri,
-      action: HistoryAction.replace,
-      state: state,
-    );
     if (completePendingResult) {
       _completeTopPending(result);
     }
-    _history.replace(uri, state: composedState);
+    _history.replace(uri, state: state);
     _lastAction = HistoryAction.replace;
     _lastDelta = null;
     _trackedHistoryIndex = _history.index ?? _trackedHistoryIndex;
-    _scheduleResolve(uri, state: composedState);
+    _scheduleResolve(uri, state: state);
   }
 
   /// Replaces current entry with [route].
@@ -491,19 +453,14 @@ class UnrouterController<R extends RouteData> {
     if (_isDisposed) {
       return Future<T?>.value(null);
     }
-    final composedState = _composeHistoryState(
-      uri: uri,
-      action: HistoryAction.push,
-      state: state,
-    );
 
     final completer = Completer<Object?>();
     _pendingPushResults.add(completer);
-    _history.push(uri, state: composedState);
+    _history.push(uri, state: state);
     _lastAction = HistoryAction.push;
     _lastDelta = null;
     _trackedHistoryIndex = _history.index ?? (_trackedHistoryIndex + 1);
-    _scheduleResolve(uri, state: composedState);
+    _scheduleResolve(uri, state: state);
     return completer.future.then((value) => value as T?);
   }
 
@@ -522,17 +479,12 @@ class UnrouterController<R extends RouteData> {
     if (_isDisposed) {
       return;
     }
-    final composedState = _composeHistoryState(
-      uri: uri,
-      action: HistoryAction.replace,
-      state: state,
-    );
     _completeTopPending(result);
-    _history.replace(uri, state: composedState);
+    _history.replace(uri, state: state);
     _lastAction = HistoryAction.replace;
     _lastDelta = null;
     _trackedHistoryIndex = _history.index ?? _trackedHistoryIndex;
-    _scheduleResolve(uri, state: composedState);
+    _scheduleResolve(uri, state: state);
   }
 
   /// Goes back one history entry.
@@ -560,32 +512,6 @@ class UnrouterController<R extends RouteData> {
     _history.go(delta);
   }
 
-  /// Sets or clears custom history state composer.
-  void setHistoryStateComposer(UnrouterHistoryStateComposer? composer) {
-    _historyStateComposer = composer;
-  }
-
-  /// Clears custom history state composer.
-  void clearHistoryStateComposer() {
-    _historyStateComposer = null;
-  }
-
-  /// Registers shell branch URI resolvers.
-  void setShellBranchResolvers({
-    required Uri? Function(int index, {required bool initialLocation})
-    resolveTarget,
-    required Uri? Function() popTarget,
-  }) {
-    _shellBranchTargetResolver = resolveTarget;
-    _shellBranchPopResolver = popTarget;
-  }
-
-  /// Clears custom shell branch URI resolvers.
-  void clearShellBranchResolvers() {
-    _shellBranchTargetResolver = _defaultShellBranchTargetResolver;
-    _shellBranchPopResolver = _defaultShellBranchPopResolver;
-  }
-
   /// Switches active shell branch.
   bool switchBranch(
     int index, {
@@ -593,19 +519,21 @@ class UnrouterController<R extends RouteData> {
     bool completePendingResult = false,
     Object? result,
   }) {
-    Uri? target;
+    final resolved = _resolution.record;
+    if (resolved == null || resolved is! ShellRouteRecordHost) {
+      return false;
+    }
+    final record = resolved as ShellRouteRecordHost;
+
+    late final Uri target;
     try {
-      target = _shellBranchTargetResolver(
+      target = record.resolveBranchTarget(
         index,
         initialLocation: initialLocation,
       );
     } on RangeError {
       return false;
     } on ArgumentError {
-      return false;
-    }
-
-    if (target == null) {
       return false;
     }
 
@@ -620,7 +548,13 @@ class UnrouterController<R extends RouteData> {
 
   /// Pops active shell branch stack.
   bool popBranch([Object? result]) {
-    final target = _shellBranchPopResolver();
+    final resolved = _resolution.record;
+    if (resolved == null || resolved is! ShellRouteRecordHost) {
+      return false;
+    }
+    final record = resolved as ShellRouteRecordHost;
+
+    final target = record.popBranch(result: result);
     if (target == null) {
       return false;
     }
@@ -663,14 +597,6 @@ class UnrouterController<R extends RouteData> {
       }
     });
     return _resolvingFuture!;
-  }
-
-  /// Forces state publication to listeners.
-  void publishState() {
-    if (_isDisposed) {
-      return;
-    }
-    _emitState(_state);
   }
 
   /// Disposes controller resources.
@@ -907,25 +833,6 @@ class UnrouterController<R extends RouteData> {
 
   void _scheduleResolve(Uri uri, {Object? state}) {
     unawaited(dispatchRouteRequest(uri, state: state));
-  }
-
-  Object? _composeHistoryState({
-    required Uri uri,
-    required HistoryAction action,
-    required Object? state,
-  }) {
-    final composer = _historyStateComposer;
-    if (composer == null) {
-      return state;
-    }
-    return composer(
-      UnrouterHistoryStateRequest(
-        uri: uri,
-        action: action,
-        state: state,
-        currentState: historyState,
-      ),
-    );
   }
 
   int _resolveHistoryIndex({

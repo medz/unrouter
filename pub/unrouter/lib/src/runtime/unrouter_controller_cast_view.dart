@@ -166,33 +166,6 @@ final class UnrouterControllerCastView<R extends RouteData>
   }
 
   @override
-  void setHistoryStateComposer(UnrouterHistoryStateComposer? composer) {
-    _source.setHistoryStateComposer(composer);
-  }
-
-  @override
-  void clearHistoryStateComposer() {
-    _source.clearHistoryStateComposer();
-  }
-
-  @override
-  void setShellBranchResolvers({
-    required Uri? Function(int index, {required bool initialLocation})
-    resolveTarget,
-    required Uri? Function() popTarget,
-  }) {
-    _source.setShellBranchResolvers(
-      resolveTarget: resolveTarget,
-      popTarget: popTarget,
-    );
-  }
-
-  @override
-  void clearShellBranchResolvers() {
-    _source.clearShellBranchResolvers();
-  }
-
-  @override
   bool switchBranch(
     int index, {
     bool initialLocation = false,
@@ -223,11 +196,6 @@ final class UnrouterControllerCastView<R extends RouteData>
   @override
   Future<void> dispatchRouteRequest(Uri uri, {Object? state}) {
     return _source.dispatchRouteRequest(uri, state: state);
-  }
-
-  @override
-  void publishState() {
-    _source.publishState();
   }
 
   @override
