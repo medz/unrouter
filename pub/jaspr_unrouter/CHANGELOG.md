@@ -28,3 +28,11 @@
   API and switched to direct core type usage.
 - Removed adapter-local `RouteData` re-export shim file; adapter now references
   core `RouteData` directly.
+
+### Changed
+
+- Synced to `unrouter` parser helper renames:
+  - `RouteParserState` now exposes `params` and `query` (`TypedParams`);
+  - removed `RouteParserState.queryParameters`;
+  - route parsing now uses typed helpers on `state.params` / `state.query`
+    (`required()/decode()/$int()/$double()/$enum()`).

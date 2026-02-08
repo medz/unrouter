@@ -29,6 +29,11 @@
   `syncControllerResolution`, `castRouteRecord`, `castShellRouteRecordHost`)
   so platform packages can share resolution dispatch and runtime synchronization.
 - Added architecture guard tests to keep `unrouter` free from Flutter imports.
+- Simplified `RouteParserState` parser API by introducing typed param views:
+  - `RouteParserState` now exposes `params` and `query` (`TypedParams`);
+  - `RouteParserState.queryParameters` is removed;
+  - use `required()/decode()/$int()/$double()/$enum()` helpers on
+    `state.params` / `state.query`.
 - Removed timeline-related runtime APIs (`UnrouterStateTimelineEntry`,
   `stateTimeline`, `clearStateTimeline`, `stateTimelineLimit`).
 - Removed Flutter-only runtime APIs from `unrouter`; those APIs moved to

@@ -85,6 +85,16 @@ controller.setShellBranchResolvers(
 controller.dispose();
 ```
 
+## Route parser helpers
+
+`RouteParserState` exposes compact parser helpers:
+
+- `state.params` and `state.query` are typed map views (`TypedParams`).
+- `state.params.required('id')`, `state.params.$int('id')`.
+- `state.query.required('tab')`, `state.query.$enum('tab', Tab.values)`.
+- Use `state.query` or `state.uri.queryParameters` directly for raw query map
+  access.
+
 ## Shell coordinator (platform-agnostic)
 
 Use `ShellCoordinator` when building adapter packages or custom runtimes. It

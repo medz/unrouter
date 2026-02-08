@@ -166,7 +166,7 @@ void main() {
         routes: [
           routeWithLoader<ProfileRoute, String>(
             path: '/profiles/:id',
-            parse: (state) => ProfileRoute(id: state.pathInt('id')),
+            parse: (state) => ProfileRoute(id: state.params.$int('id')),
             loader: (context) => 'profile:${context.route.id}',
             builder: (_, _, data) => Text(data),
           ),
@@ -231,8 +231,10 @@ Unrouter<AppRoute> _buildBasicRouter() {
       route<UserRoute>(
         path: '/users/:id',
         parse: (state) => UserRoute(
-          id: state.pathInt('id'),
-          tab: state.queryEnum('tab', UserTab.values, fallback: UserTab.posts),
+          id: state.params.$int('id'),
+          tab: state.query.containsKey('tab')
+              ? state.query.$enum('tab', UserTab.values)
+              : UserTab.posts,
         ),
         builder: (_, _) => const SizedBox.shrink(),
       ),

@@ -18,7 +18,7 @@ Unrouter<AppRoute> _createRouter() {
       ),
       route<UserRoute>(
         path: '/users/:id',
-        parse: (state) => UserRoute(id: state.pathInt('id')),
+        parse: (state) => UserRoute(id: state.params.$int('id')),
         builder: (_, route) => UserScreen(route: route),
       ),
       route<SettingsRoute>(
@@ -28,7 +28,7 @@ Unrouter<AppRoute> _createRouter() {
       ),
       route<LoginRoute>(
         path: '/login',
-        parse: (state) => LoginRoute(from: state.queryOrNull('from')),
+        parse: (state) => LoginRoute(from: state.query['from']),
         builder: (_, route) => LoginScreen(route: route),
       ),
       route<SecureRoute>(

@@ -1,136 +1,45 @@
 part of 'package:unrouter/src/core/route_definition.dart';
 
+extension type const TypedParams(Map<String, String> _)
+    implements Map<String, String> {
+  String required(String key) {
+    if (!containsKey(key)) {
+      throw FormatException('Missing required parameter "$key".');
+    }
+
+    return this[key]!;
+  }
+
+  T decode<T>(String key, T? Function(String raw) parser) {
+    return switch (parser(required(key))) {
+      T value => value,
+      _ => throw FormatException(
+        'Route parameter "$key" failed to decode as "$T".',
+      ),
+    };
+  }
+
+  num $num(String key) => decode(key, num.tryParse);
+  int $int(String key) => decode(key, int.tryParse);
+  double $double(String key) => decode(key, double.tryParse);
+
+  T $enum<T extends Enum>(String key, Iterable<T> values) {
+    return decode(key, (name) {
+      for (final e in values) {
+        if (e.name == name) return e;
+      }
+      throw FormatException('Route parameter "$key" failed to decode as "$T".');
+    });
+  }
+}
+
 /// Strongly typed parser helpers built from a matched URI.
 class RouteParserState {
-  RouteParserState({
-    required this.uri,
-    required Map<String, String> pathParameters,
-  }) : _pathParameters = Map.unmodifiable(pathParameters);
+  RouteParserState({required this.uri, required Map<String, String> params})
+    : params = TypedParams(params),
+      query = TypedParams(uri.queryParameters);
 
   final Uri uri;
-  final Map<String, String> _pathParameters;
-
-  Map<String, String> get pathParameters {
-    return UnmodifiableMapView(_pathParameters);
-  }
-
-  Map<String, String> get queryParameters {
-    return UnmodifiableMapView(uri.queryParameters);
-  }
-
-  /// Returns required path parameter by [key].
-  String path(String key) {
-    final value = _pathParameters[key];
-    if (value != null) {
-      return value;
-    }
-
-    throw FormatException(
-      'Missing required path parameter "$key" for uri "$uri".',
-    );
-  }
-
-  /// Returns nullable path parameter by [key].
-  String? pathOrNull(String key) {
-    return _pathParameters[key];
-  }
-
-  /// Parses required path parameter as `int`.
-  int pathInt(String key) {
-    final raw = path(key);
-    final parsed = int.tryParse(raw);
-    if (parsed != null) {
-      return parsed;
-    }
-
-    throw FormatException(
-      'Path parameter "$key" must be an int, got "$raw" for uri "$uri".',
-    );
-  }
-
-  /// Returns required query parameter by [key], or [fallback] when provided.
-  String query(String key, {String? fallback}) {
-    final value = uri.queryParameters[key];
-    if (value != null) {
-      return value;
-    }
-
-    if (fallback != null) {
-      return fallback;
-    }
-
-    throw FormatException(
-      'Missing required query parameter "$key" for uri "$uri".',
-    );
-  }
-
-  /// Returns nullable query parameter by [key].
-  String? queryOrNull(String key) {
-    return uri.queryParameters[key];
-  }
-
-  /// Parses required query parameter as `int`.
-  int queryInt(String key, {int? fallback}) {
-    final value = queryOrNull(key);
-    if (value == null) {
-      if (fallback != null) {
-        return fallback;
-      }
-
-      throw FormatException(
-        'Missing required query parameter "$key" for uri "$uri".',
-      );
-    }
-
-    final parsed = int.tryParse(value);
-    if (parsed != null) {
-      return parsed;
-    }
-
-    throw FormatException(
-      'Query parameter "$key" must be an int, got "$value" for uri "$uri".',
-    );
-  }
-
-  /// Parses nullable query parameter as `int`.
-  int? queryIntOrNull(String key) {
-    final value = queryOrNull(key);
-    if (value == null) {
-      return null;
-    }
-
-    final parsed = int.tryParse(value);
-    if (parsed != null) {
-      return parsed;
-    }
-
-    throw FormatException(
-      'Query parameter "$key" must be an int, got "$value" for uri "$uri".',
-    );
-  }
-
-  /// Parses query parameter as enum value by matching `Enum.name`.
-  T queryEnum<T extends Enum>(String key, List<T> values, {T? fallback}) {
-    final value = queryOrNull(key);
-    if (value == null) {
-      if (fallback != null) {
-        return fallback;
-      }
-
-      throw FormatException(
-        'Missing required query parameter "$key" for uri "$uri".',
-      );
-    }
-
-    for (final entry in values) {
-      if (entry.name == value) {
-        return entry;
-      }
-    }
-
-    throw FormatException(
-      'Query parameter "$key" must be one of '
-      '${values.map((entry) => entry.name).join(', ')}, got "$value".',
-    );
-  }
+  final TypedParams params;
+  final TypedParams query;
 }

@@ -27,7 +27,7 @@ void main() {
           route<HomeRoute>(path: '/', parse: (_) => const HomeRoute()),
           route<UserRoute>(
             path: '/users/:id',
-            parse: (state) => UserRoute(id: state.pathInt('id')),
+            parse: (state) => UserRoute(id: state.params.$int('id')),
           ),
         ],
       ),
@@ -135,7 +135,7 @@ void main() {
           route<HomeRoute>(path: '/', parse: (_) => const HomeRoute()),
           route<UserRoute>(
             path: '/users/:id',
-            parse: (state) => UserRoute(id: state.pathInt('id')),
+            parse: (state) => UserRoute(id: state.params.$int('id')),
           ),
         ],
       ),
@@ -163,7 +163,7 @@ void main() {
             route<HomeRoute>(path: '/', parse: (_) => const HomeRoute()),
             route<UserRoute>(
               path: '/users/:id',
-              parse: (state) => UserRoute(id: state.pathInt('id')),
+              parse: (state) => UserRoute(id: state.params.$int('id')),
             ),
           ],
         ),

@@ -116,7 +116,7 @@ Unrouter<AppRoute> _createShellRouter() {
               ),
               route<FeedDetailRoute>(
                 path: '/feed/details/:id',
-                parse: (state) => FeedDetailRoute(id: state.pathInt('id')),
+                parse: (state) => FeedDetailRoute(id: state.params.$int('id')),
                 builder: (_, route) {
                   return Text(
                     'feed-detail-${route.id}',
@@ -138,7 +138,8 @@ Unrouter<AppRoute> _createShellRouter() {
               ),
               route<SettingsDetailRoute>(
                 path: '/settings/details/:tab',
-                parse: (state) => SettingsDetailRoute(tab: state.path('tab')),
+                parse: (state) =>
+                    SettingsDetailRoute(tab: state.params.required('tab')),
                 builder: (_, route) {
                   return Column(
                     children: <Widget>[

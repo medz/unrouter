@@ -39,7 +39,7 @@ void main() {
         ),
         route<UserRoute>(
           path: '/users/:id',
-          parse: (state) => UserRoute(id: state.pathInt('id')),
+          parse: (state) => UserRoute(id: state.params.$int('id')),
           builder: (context, route) {
             return Scaffold(
               body: FilledButton(

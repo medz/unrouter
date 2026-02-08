@@ -54,7 +54,7 @@ class Unrouter<R extends RouteData> {
     }
 
     final params = matched.params ?? const <String, String>{};
-    final state = RouteParserState(uri: normalizedUri, pathParameters: params);
+    final state = RouteParserState(uri: normalizedUri, params: params);
 
     late final R route;
     try {

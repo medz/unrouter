@@ -42,3 +42,11 @@
   adapter internals use core types directly.
 - Added shell runtime widget tests for branch switching/restoration and
   `popBranch` pending-result completion.
+
+### Changed
+
+- Synced to `unrouter` parser helper renames:
+  - `RouteParserState` now exposes `params` and `query` (`TypedParams`);
+  - removed `RouteParserState.queryParameters`;
+  - route parsing now uses typed helpers on `state.params` / `state.query`
+    (`required()/decode()/$int()/$double()/$enum()`).
