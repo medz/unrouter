@@ -18,7 +18,7 @@ void main() {
       reason: 'runtime binding should be driven by core controller.',
     );
     expect(
-      runtime.contains('_CoreUnrouterController<'),
+      runtime.contains('core.UnrouterController<'),
       isTrue,
       reason: 'runtime binding should directly use core controller runtime.',
     );

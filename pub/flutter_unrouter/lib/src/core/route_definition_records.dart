@@ -1,7 +1,7 @@
 part of 'route_definition.dart';
 
 /// Parses a matched [RouteParserState] into a typed route object.
-typedef RouteParser<T extends RouteData> = _CoreRouteParser<T>;
+typedef RouteParser<T extends RouteData> = unrouter_core.RouteParser<T>;
 
 /// Builds a route widget without loader data.
 typedef RouteWidgetBuilder<T extends RouteData> =
@@ -12,13 +12,13 @@ typedef RouteLoadedWidgetBuilder<T extends RouteData, L> =
     Widget Function(BuildContext context, T route, L data);
 
 /// Route guard that can allow, block, or redirect navigation.
-typedef RouteGuard<T extends RouteData> = _CoreRouteGuard<T>;
+typedef RouteGuard<T extends RouteData> = unrouter_core.RouteGuard<T>;
 
 /// Route-level redirect resolver.
-typedef RouteRedirect<T extends RouteData> = _CoreRouteRedirect<T>;
+typedef RouteRedirect<T extends RouteData> = unrouter_core.RouteRedirect<T>;
 
 /// Asynchronous loader executed before route build.
-typedef RouteLoader<T extends RouteData, L> = _CoreRouteLoader<T, L>;
+typedef RouteLoader<T extends RouteData, L> = unrouter_core.RouteLoader<T, L>;
 
 /// Shell frame builder used by [shell].
 typedef ShellBuilder<R extends RouteData> =
@@ -50,14 +50,14 @@ class RoutePageBuilderState {
 }
 
 abstract interface class RouteRecord<T extends RouteData>
-    implements CoreRouteRecord<T> {
+    implements unrouter_core.RouteRecord<T> {
   @override
   String get path;
 
   @override
   String? get name;
 
-  CoreRouteRecord<T> get core;
+  unrouter_core.RouteRecord<T> get core;
 
   Widget build(BuildContext context, RouteData route, Object? loaderData);
 
@@ -69,7 +69,8 @@ abstract interface class RouteRecord<T extends RouteData>
 }
 
 /// Route definition without asynchronous loader data.
-class RouteDefinition<T extends RouteData> extends _CoreRouteDefinition<T>
+class RouteDefinition<T extends RouteData>
+    extends unrouter_core.RouteDefinition<T>
     implements RouteRecord<T> {
   RouteDefinition({
     required super.path,
@@ -91,7 +92,7 @@ class RouteDefinition<T extends RouteData> extends _CoreRouteDefinition<T>
   final Duration reverseTransitionDuration;
 
   @override
-  CoreRouteRecord<T> get core => this;
+  unrouter_core.RouteRecord<T> get core => this;
 
   @override
   Widget build(BuildContext context, RouteData route, Object? loaderData) {
@@ -118,7 +119,7 @@ class RouteDefinition<T extends RouteData> extends _CoreRouteDefinition<T>
 
 /// Route definition that resolves typed loader data before build.
 class LoadedRouteDefinition<T extends RouteData, L>
-    extends _CoreLoadedRouteDefinition<T, L>
+    extends unrouter_core.LoadedRouteDefinition<T, L>
     implements RouteRecord<T> {
   LoadedRouteDefinition({
     required super.path,
@@ -141,7 +142,7 @@ class LoadedRouteDefinition<T extends RouteData, L>
   final Duration reverseTransitionDuration;
 
   @override
-  CoreRouteRecord<T> get core => this;
+  unrouter_core.RouteRecord<T> get core => this;
 
   @override
   Widget build(BuildContext context, RouteData route, Object? loaderData) {

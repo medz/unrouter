@@ -22,18 +22,10 @@ import 'package:unstory/unstory.dart';
 import '../core/route_definition.dart';
 import 'navigation.dart';
 
-typedef _CoreRouteRecord<T extends RouteData> = core.RouteRecord<T>;
-typedef _CoreRouteResolution<R extends RouteData> = core.RouteResolution<R>;
-typedef _CoreRouteResolutionType = core.RouteResolutionType;
-typedef _CoreUnrouter<R extends RouteData> = core.Unrouter<R>;
-typedef _CoreUnrouterController<R extends RouteData> =
-    core.UnrouterController<R>;
-
 /// Pure Dart core router type exported for controller-only usage.
-typedef CoreUnrouter<R extends RouteData> = _CoreUnrouter<R>;
-
-typedef RouteResolutionType = _CoreRouteResolutionType;
-typedef RouteResolution<R extends RouteData> = _CoreRouteResolution<R>;
+typedef CoreUnrouter<R extends RouteData> = core.Unrouter<R>;
+typedef RouteResolutionType = core.RouteResolutionType;
+typedef RouteResolution<R extends RouteData> = core.RouteResolution<R>;
 
 /// Builds fallback UI for unmatched locations.
 typedef UnknownRouteBuilder = Component Function(BuildContext context, Uri uri);
@@ -74,8 +66,8 @@ class Unrouter<R extends RouteData> extends StatefulComponent {
          'Unrouter maxRedirectHops must be greater than zero.',
        ),
        routes = List<RouteRecord<R>>.unmodifiable(routes),
-       _core = _CoreUnrouter<R>(
-         routes: routes.cast<_CoreRouteRecord<R>>(),
+       _core = core.Unrouter<R>(
+         routes: routes.cast<core.RouteRecord<R>>(),
          maxRedirectHops: maxRedirectHops,
          redirectLoopPolicy: redirectLoopPolicy,
          onRedirectDiagnostics: onRedirectDiagnostics,
@@ -83,7 +75,7 @@ class Unrouter<R extends RouteData> extends StatefulComponent {
 
   /// Immutable route table consumed by the matcher.
   final List<RouteRecord<R>> routes;
-  final _CoreUnrouter<R> _core;
+  final CoreUnrouter<R> _core;
 
   final UnknownRouteBuilder? unknown;
   final RouteErrorBuilder? onError;
@@ -134,8 +126,8 @@ class Unrouter<R extends RouteData> extends StatefulComponent {
 
 class _UnrouterState<R extends RouteData> extends State<Unrouter<R>>
     with PreloadStateMixin<Unrouter<R>> {
-  _CoreUnrouterController<R>? _controller;
-  _CoreUnrouterController<RouteData>? _scopeController;
+  core.UnrouterController<R>? _controller;
+  core.UnrouterController<RouteData>? _scopeController;
   StreamSubscription<core.UnrouterStateSnapshot<R>>? _stateSubscription;
   late RouteResolution<R> _resolution;
 
@@ -233,7 +225,7 @@ class _UnrouterState<R extends RouteData> extends State<Unrouter<R>>
     }
 
     final historyPlan = _resolveHistory();
-    _controller = _CoreUnrouterController<R>(
+    _controller = core.UnrouterController<R>(
       router: component.coreRouter,
       history: historyPlan.history,
       resolveInitialRoute: component.resolveInitialRoute,

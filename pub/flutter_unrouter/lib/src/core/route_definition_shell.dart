@@ -170,25 +170,25 @@ class _ShellRouteRecord<R extends RouteData>
   }
 
   @override
-  _CoreRouteRecord<R> get core => this;
+  unrouter_core.RouteRecord<R> get core => this;
 
   @override
-  R parse(_CoreRouteParserState state) => _record.parse(state);
+  R parse(unrouter_core.RouteParserState state) => _record.parse(state);
 
   @override
-  Future<Uri?> runRedirect(_CoreRouteHookContext<RouteData> context) {
+  Future<Uri?> runRedirect(unrouter_core.RouteHookContext<RouteData> context) {
     return _record.runRedirect(context);
   }
 
   @override
-  Future<_CoreRouteGuardResult> runGuards(
-    _CoreRouteHookContext<RouteData> context,
+  Future<unrouter_core.RouteGuardResult> runGuards(
+    unrouter_core.RouteHookContext<RouteData> context,
   ) {
     return _record.runGuards(context);
   }
 
   @override
-  Future<Object?> load(_CoreRouteHookContext<RouteData> context) {
+  Future<Object?> load(unrouter_core.RouteHookContext<RouteData> context) {
     return _record.load(context);
   }
 
@@ -265,24 +265,25 @@ class _ShellRouteRecord<R extends RouteData>
 
 class _ShellRuntime<R extends RouteData> {
   _ShellRuntime(this.branches)
-    : _coordinator = _CoreShellCoordinator(
-        branches: List<_CoreShellBranchDescriptor>.generate(branches.length, (
-          index,
-        ) {
-          final branch = branches[index];
-          return _CoreShellBranchDescriptor(
-            index: index,
-            name: branch.name,
-            initialLocation: branch.initialLocation,
-            routePatterns: branch.routes
-                .map<String>((route) => route.path)
-                .toList(growable: false),
-          );
-        }),
+    : _coordinator = unrouter_core.ShellCoordinator(
+        branches: List<unrouter_core.ShellBranchDescriptor>.generate(
+          branches.length,
+          (index) {
+            final branch = branches[index];
+            return unrouter_core.ShellBranchDescriptor(
+              index: index,
+              name: branch.name,
+              initialLocation: branch.initialLocation,
+              routePatterns: branch.routes
+                  .map<String>((route) => route.path)
+                  .toList(growable: false),
+            );
+          },
+        ),
       );
 
   final List<ShellBranch<R>> branches;
-  final _CoreShellCoordinator _coordinator;
+  final unrouter_core.ShellCoordinator _coordinator;
 
   void restoreFromState(Object? state) {
     _coordinator.restoreFromState(state);
@@ -293,7 +294,7 @@ class _ShellRuntime<R extends RouteData> {
     required int activeBranchIndex,
   }) {
     return _coordinator.composeHistoryState(
-      request: _CoreShellHistoryStateRequest(
+      request: unrouter_core.ShellHistoryStateRequest(
         uri: request.uri,
         action: request.action,
         state: request.state,
@@ -312,7 +313,7 @@ class _ShellRuntime<R extends RouteData> {
   }) {
     _coordinator.recordNavigation(
       branchIndex: branchIndex,
-      event: _CoreShellNavigationEvent(
+      event: unrouter_core.ShellNavigationEvent(
         uri: uri,
         action: action,
         delta: delta,

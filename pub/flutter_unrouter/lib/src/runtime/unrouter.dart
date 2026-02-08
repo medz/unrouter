@@ -18,16 +18,10 @@ import '../platform/route_information_provider.dart';
 
 export '../core/redirect_diagnostics.dart';
 
-typedef _CoreRouteRecord<T extends RouteData> = core.RouteRecord<T>;
-typedef _CoreRouteResolution<R extends RouteData> = core.RouteResolution<R>;
-typedef _CoreRouteResolutionType = core.RouteResolutionType;
-typedef _CoreUnrouter<R extends RouteData> = core.Unrouter<R>;
-
 /// Pure Dart core router type exported for controller-only usage.
-typedef CoreUnrouter<R extends RouteData> = _CoreUnrouter<R>;
-
-typedef RouteResolutionType = _CoreRouteResolutionType;
-typedef RouteResolution<R extends RouteData> = _CoreRouteResolution<R>;
+typedef CoreUnrouter<R extends RouteData> = core.Unrouter<R>;
+typedef RouteResolutionType = core.RouteResolutionType;
+typedef RouteResolution<R extends RouteData> = core.RouteResolution<R>;
 
 /// Builds a fallback widget for unmatched locations.
 typedef UnknownRouteBuilder = Widget Function(BuildContext context, Uri uri);
@@ -59,8 +53,8 @@ class Unrouter<R extends RouteData> extends StatelessWidget
          'Unrouter maxRedirectHops must be greater than zero.',
        ),
        routes = List<RouteRecord<R>>.unmodifiable(routes),
-       _core = _CoreUnrouter<R>(
-         routes: routes.cast<_CoreRouteRecord<R>>(),
+       _core = core.Unrouter<R>(
+         routes: routes.cast<core.RouteRecord<R>>(),
          maxRedirectHops: maxRedirectHops,
          redirectLoopPolicy: redirectLoopPolicy,
          onRedirectDiagnostics: onRedirectDiagnostics,
