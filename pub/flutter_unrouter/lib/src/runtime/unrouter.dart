@@ -36,6 +36,7 @@ class Unrouter<R extends RouteData> extends core.Unrouter<R>
     this.loading,
     this.blocked,
     this.resolveInitialRoute = false,
+    this.publishPendingState = false,
     super.maxRedirectHops = 8,
     super.redirectLoopPolicy = RedirectLoopPolicy.error,
     super.onRedirectDiagnostics,
@@ -61,6 +62,9 @@ class Unrouter<R extends RouteData> extends core.Unrouter<R>
 
   /// Whether the delegate resolves initial route when mounted.
   final bool resolveInitialRoute;
+
+  /// Whether pending route resolution snapshots are published to listeners.
+  final bool publishPendingState;
 
   /// Optional restoration scope id passed to `Router.withConfig`.
   final String? restorationScopeId;

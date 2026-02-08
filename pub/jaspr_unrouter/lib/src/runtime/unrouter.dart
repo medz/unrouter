@@ -42,6 +42,7 @@ class Unrouter<R extends RouteData> extends StatefulComponent {
     this.base,
     this.strategy = HistoryStrategy.browser,
     this.resolveInitialRoute = false,
+    this.publishPendingState = false,
     super.key,
   }) : assert(routes.isNotEmpty, 'Unrouter routes must not be empty.'),
        assert(
@@ -85,6 +86,9 @@ class Unrouter<R extends RouteData> extends StatefulComponent {
 
   /// Whether runtime resolves the initial location when mounted.
   final bool resolveInitialRoute;
+
+  /// Whether pending route resolution snapshots are published to listeners.
+  final bool publishPendingState;
 
   /// Resolves [uri] through the core router.
   Future<RouteResolution<R>> resolve(
@@ -152,7 +156,8 @@ class _UnrouterState<R extends RouteData> extends State<Unrouter<R>>
         oldComponent.history != component.history ||
         oldComponent.base != component.base ||
         oldComponent.strategy != component.strategy ||
-        oldComponent.resolveInitialRoute != component.resolveInitialRoute;
+        oldComponent.resolveInitialRoute != component.resolveInitialRoute ||
+        oldComponent.publishPendingState != component.publishPendingState;
     if (!shouldRecreateController) {
       return;
     }
@@ -209,6 +214,7 @@ class _UnrouterState<R extends RouteData> extends State<Unrouter<R>>
       router: component._core,
       history: historyPlan.history,
       resolveInitialRoute: component.resolveInitialRoute,
+      publishPendingState: component.publishPendingState,
       disposeHistory: historyPlan.disposeHistory,
     );
     _controller!.setShellBranchResolvers(

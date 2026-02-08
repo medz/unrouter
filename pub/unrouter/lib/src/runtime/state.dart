@@ -3,8 +3,7 @@ import 'package:unstory/unstory.dart';
 import '../core/route_data.dart';
 
 /// Normalized route resolution state shared by runtime snapshots.
-enum ResolutionState {
-  unknown,
+enum RouteResolutionType {
   pending,
   matched,
   unmatched,
@@ -30,7 +29,7 @@ class StateSnapshot<R extends RouteData> {
 
   final Uri uri;
   final R? route;
-  final ResolutionState resolution;
+  final RouteResolutionType resolution;
   final String? routePath;
   final String? routeName;
   final Object? error;
@@ -40,11 +39,11 @@ class StateSnapshot<R extends RouteData> {
   final int? historyIndex;
 
   /// Whether current resolution is pending.
-  bool get isPending => resolution == .pending;
-  bool get isMatched => resolution == .matched;
-  bool get isUnmatched => resolution == .unmatched;
-  bool get isBlocked => resolution == .blocked;
-  bool get hasError => resolution == .error;
+  bool get isPending => resolution == RouteResolutionType.pending;
+  bool get isMatched => resolution == RouteResolutionType.matched;
+  bool get isUnmatched => resolution == RouteResolutionType.unmatched;
+  bool get isBlocked => resolution == RouteResolutionType.blocked;
+  bool get hasError => resolution == RouteResolutionType.error;
 
   /// Casts snapshot route type while preserving captured values.
   StateSnapshot<S> cast<S extends RouteData>() {

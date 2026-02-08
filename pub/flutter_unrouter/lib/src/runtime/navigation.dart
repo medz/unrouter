@@ -12,11 +12,13 @@ UnrouterController<R> createUnrouterController<R extends RouteData>({
   required Unrouter<R> router,
   required UnrouterRouteInformationProvider routeInformationProvider,
   bool resolveInitialRoute = false,
+  bool publishPendingState = false,
 }) {
   return UnrouterController<R>(
     router: router,
     history: _UnrouterProviderBackedHistory(routeInformationProvider),
     resolveInitialRoute: resolveInitialRoute,
+    publishPendingState: publishPendingState,
     disposeHistory: false,
   );
 }

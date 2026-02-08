@@ -19,6 +19,7 @@ class UnrouterDelegate<R extends RouteData>
       router: config,
       routeInformationProvider: _routeInformationProvider,
       resolveInitialRoute: config.resolveInitialRoute,
+      publishPendingState: config.publishPendingState,
     );
     _scopeController = _controller.cast<RouteData>();
     _resolution = _controller.resolution;
@@ -27,11 +28,18 @@ class UnrouterDelegate<R extends RouteData>
       popTarget: _popShellBranchTarget,
     );
     _stateListener = () {
-      _resolution = _controller.resolution;
-      if (_resolution.record is! ShellRouteRecordHost) {
+      final previous = _resolution;
+      final next = _controller.resolution;
+      if (next.record is! ShellRouteRecordHost) {
         _controller.clearHistoryStateComposer();
       }
-      _pageRevision += 1;
+      _resolution = next;
+      if (_isSameVisibleResolution(previous, next)) {
+        return;
+      }
+      if (previous.uri == next.uri) {
+        _pageRevision += 1;
+      }
       notifyListeners();
     };
     _controller.stateListenable.addListener(_stateListener);
@@ -190,6 +198,30 @@ class UnrouterDelegate<R extends RouteData>
     if (_routeInformationProvider.canGoBack) {
       _routeInformationProvider.back();
     }
+  }
+
+  bool _isSameVisibleResolution(RouteResolution<R> a, RouteResolution<R> b) {
+    return a.type == b.type &&
+        a.uri == b.uri &&
+        a.record?.path == b.record?.path &&
+        a.record?.name == b.record?.name &&
+        _isSameRoute(a.route, b.route) &&
+        a.loaderData == b.loaderData &&
+        a.error == b.error &&
+        a.stackTrace == b.stackTrace;
+  }
+
+  bool _isSameRoute(RouteData? a, RouteData? b) {
+    if (identical(a, b) || a == b) {
+      return true;
+    }
+    if (a == null || b == null) {
+      return false;
+    }
+    if (a.runtimeType != b.runtimeType) {
+      return false;
+    }
+    return a.toUri() == b.toUri();
   }
 
   Uri? _resolveShellBranchTarget(int index, {required bool initialLocation}) {

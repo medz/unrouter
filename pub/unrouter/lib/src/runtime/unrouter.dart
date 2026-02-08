@@ -171,16 +171,6 @@ class Unrouter<R extends RouteData> {
   }
 }
 
-/// Route resolution lifecycle state.
-enum RouteResolutionType {
-  pending,
-  matched,
-  unmatched,
-  redirect,
-  blocked,
-  error,
-}
-
 /// Result returned by [Unrouter.resolve].
 class RouteResolution<R extends RouteData> {
   const RouteResolution._({
@@ -307,11 +297,13 @@ class UnrouterController<R extends RouteData> {
     History? history,
     bool resolveInitialRoute = true,
     bool disposeHistory = true,
+    bool publishPendingState = false,
   }) : this._(
          router: router,
          history: history ?? MemoryHistory(),
          resolveInitialRoute: resolveInitialRoute,
          disposeHistory: disposeHistory,
+         publishPendingState: publishPendingState,
        );
 
   UnrouterController._({
@@ -319,16 +311,18 @@ class UnrouterController<R extends RouteData> {
     required History history,
     required bool resolveInitialRoute,
     required bool disposeHistory,
+    required bool publishPendingState,
   }) : _router = router,
        _history = history,
        _disposeHistory = disposeHistory,
+       _publishPendingState = publishPendingState,
        _lastAction = history.action,
        _trackedHistoryIndex = history.index ?? 0,
        _resolution = RouteResolution<R>.pending(history.location.uri),
        _state = StateSnapshot<R>(
          uri: history.location.uri,
          route: null,
-         resolution: ResolutionState.pending,
+         resolution: RouteResolutionType.pending,
          routePath: null,
          routeName: null,
          error: null,
@@ -346,6 +340,7 @@ class UnrouterController<R extends RouteData> {
   final Unrouter<R> _router;
   final History _history;
   final bool _disposeHistory;
+  final bool _publishPendingState;
 
   late final void Function() _unlisten;
 
@@ -655,9 +650,7 @@ class UnrouterController<R extends RouteData> {
 
     final activeUri = _resolvingUri;
     final activeFuture = _resolvingFuture;
-    if (activeUri != null &&
-        activeFuture != null &&
-        _isSameUri(activeUri, uri)) {
+    if (activeUri != null && activeFuture != null && activeUri == uri) {
       return activeFuture;
     }
 
@@ -773,7 +766,7 @@ class UnrouterController<R extends RouteData> {
       if (resolution.isBlocked) {
         _clearRedirectChain();
         if (_hasCommittedResolution) {
-          if (!_isSameUri(currentUri, previousUri)) {
+          if (currentUri != previousUri) {
             _history.replace(previousUri, state: state);
             _lastAction = HistoryAction.replace;
             _lastDelta = null;
@@ -835,10 +828,13 @@ class UnrouterController<R extends RouteData> {
 
   void _setPending(Uri uri) {
     _resolution = RouteResolution<R>.pending(uri);
+    if (!_publishPendingState) {
+      return;
+    }
     final pending = StateSnapshot<R>(
       uri: uri,
       route: null,
-      resolution: ResolutionState.pending,
+      resolution: RouteResolutionType.pending,
       routePath: null,
       routeName: null,
       error: null,
@@ -856,7 +852,7 @@ class UnrouterController<R extends RouteData> {
     final snapshot = StateSnapshot<R>(
       uri: resolution.uri,
       route: resolution.route,
-      resolution: _mapResolutionState(resolution.type),
+      resolution: resolution.type,
       routePath: resolution.record?.path,
       routeName: resolution.record?.name,
       error: resolution.error,
@@ -884,8 +880,8 @@ class UnrouterController<R extends RouteData> {
   }
 
   bool _isSameSnapshot(StateSnapshot<R> a, StateSnapshot<R> b) {
-    return a.uri.toString() == b.uri.toString() &&
-        _routeIdentity(a.route) == _routeIdentity(b.route) &&
+    return a.uri == b.uri &&
+        _isSameRoute(a.route, b.route) &&
         a.resolution == b.resolution &&
         a.routePath == b.routePath &&
         a.routeName == b.routeName &&
@@ -896,11 +892,17 @@ class UnrouterController<R extends RouteData> {
         a.historyIndex == b.historyIndex;
   }
 
-  String? _routeIdentity(RouteData? route) {
-    if (route == null) {
-      return null;
+  bool _isSameRoute(RouteData? a, RouteData? b) {
+    if (identical(a, b) || a == b) {
+      return true;
     }
-    return '${route.runtimeType}:${route.toUri()}';
+    if (a == null || b == null) {
+      return false;
+    }
+    if (a.runtimeType != b.runtimeType) {
+      return false;
+    }
+    return a.toUri() == b.toUri();
   }
 
   void _scheduleResolve(Uri uri, {Object? state}) {
@@ -997,7 +999,7 @@ class UnrouterController<R extends RouteData> {
     }
 
     final expected = chain.expectedNextUri;
-    if (expected != null && _isSameUri(expected, incomingUri)) {
+    if (expected != null && expected == incomingUri) {
       chain.expectedNextUri = null;
       return;
     }
@@ -1031,9 +1033,8 @@ class UnrouterController<R extends RouteData> {
       );
     }
 
-    final redirectKey = redirectUri.toString();
     if (_router.redirectLoopPolicy == RedirectLoopPolicy.error &&
-        chain.seen.contains(redirectKey)) {
+        chain.seen.contains(redirectUri)) {
       return RedirectDiagnostics(
         reason: RedirectDiagnosticsReason.loopDetected,
         currentUri: uri,
@@ -1077,27 +1078,6 @@ class UnrouterController<R extends RouteData> {
             '(policy: ${diagnostics.loopPolicy.name}): $trail';
     }
   }
-
-  bool _isSameUri(Uri a, Uri b) {
-    return a.toString() == b.toString();
-  }
-
-  ResolutionState _mapResolutionState(RouteResolutionType type) {
-    switch (type) {
-      case RouteResolutionType.pending:
-        return ResolutionState.pending;
-      case RouteResolutionType.matched:
-        return ResolutionState.matched;
-      case RouteResolutionType.unmatched:
-        return ResolutionState.unmatched;
-      case RouteResolutionType.redirect:
-        return ResolutionState.redirect;
-      case RouteResolutionType.blocked:
-        return ResolutionState.blocked;
-      case RouteResolutionType.error:
-        return ResolutionState.error;
-    }
-  }
 }
 
 class _ControllerRouteExecutionSignal implements RouteExecutionSignal {
@@ -1119,7 +1099,7 @@ class _ControllerRouteExecutionSignal implements RouteExecutionSignal {
 
 class _RedirectChainState {
   _RedirectChainState({required this.trail}) {
-    seen = trail.map((uri) => uri.toString()).toSet();
+    seen = trail.toSet();
   }
 
   factory _RedirectChainState.initial(Uri uri) {
@@ -1127,30 +1107,27 @@ class _RedirectChainState {
   }
 
   final List<Uri> trail;
-  late final Set<String> seen;
+  late final Set<Uri> seen;
   int hops = 0;
   Uri? expectedNextUri;
 
   void recordCurrent(Uri uri) {
-    final uriKey = uri.toString();
-    if (trail.isEmpty || trail.last.toString() != uriKey) {
+    if (trail.isEmpty || trail.last != uri) {
       trail.add(uri);
     }
-    seen.add(uriKey);
+    seen.add(uri);
   }
 
   List<Uri> trailWith(Uri uri) {
-    final uriKey = uri.toString();
-    if (trail.isNotEmpty && trail.last.toString() == uriKey) {
+    if (trail.isNotEmpty && trail.last == uri) {
       return List<Uri>.unmodifiable(trail);
     }
     return List<Uri>.unmodifiable(<Uri>[...trail, uri]);
   }
 
   void acceptRedirect(Uri redirectUri) {
-    final redirectKey = redirectUri.toString();
-    seen.add(redirectKey);
-    if (trail.isEmpty || trail.last.toString() != redirectKey) {
+    seen.add(redirectUri);
+    if (trail.isEmpty || trail.last != redirectUri) {
       trail.add(redirectUri);
     }
     expectedNextUri = redirectUri;

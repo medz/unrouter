@@ -5,7 +5,7 @@ void main() {
   test('layered entrypoints expose expected symbols', () {
     expect(unrouter.RouteGuardResult.allow().isAllowed, isTrue);
     expect(unrouter.RedirectLoopPolicy.values, isNotEmpty);
-    expect(unrouter.ResolutionState.values, isNotEmpty);
+    expect(unrouter.RouteResolutionType.values, isNotEmpty);
     expect(unrouter.UnrouterController, isNotNull);
     expect(unrouter.ShellCoordinator, isNotNull);
     expect(unrouter.ShellRuntimeBinding, isNotNull);
