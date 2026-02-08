@@ -7,14 +7,16 @@ export 'src/runtime/unrouter.dart';
 export 'src/runtime/navigation.dart'
     show UnrouterBuildContextExtension, UnrouterController, UnrouterScope;
 export 'package:unrouter/unrouter.dart'
-    show
-        RouteData,
-        RouteExecutionCancelledException,
-        RouteExecutionSignal,
-        RouteGuardResult,
-        RouteGuardResultType,
-        RouteHookContext,
-        RouteNeverCancelledSignal,
-        RouteParserState,
-        UnrouterResolutionState,
-        UnrouterStateSnapshot;
+    hide
+        Unrouter,
+        RouteRecord,
+        RouteDefinition,
+        LoadedRouteDefinition,
+        route,
+        routeWithLoader,
+        ShellBranch,
+        branch,
+        shell,
+        RouteResolution,
+        RouteResolutionType,
+        UnrouterController;

@@ -21,9 +21,6 @@ import 'package:unrouter/unrouter.dart'
 
 import '../runtime/navigation.dart';
 
-/// Parses a matched [RouteParserState] into a typed route object.
-typedef RouteParser<T extends RouteData> = core.RouteParser<T>;
-
 /// Builds a route component without loader data.
 typedef RouteComponentBuilder<T extends RouteData> =
     Component Function(BuildContext context, T route);
@@ -31,15 +28,6 @@ typedef RouteComponentBuilder<T extends RouteData> =
 /// Builds a route component with resolved loader data.
 typedef RouteLoadedComponentBuilder<T extends RouteData, L> =
     Component Function(BuildContext context, T route, L data);
-
-/// Route guard that can allow, block, or redirect navigation.
-typedef RouteGuard<T extends RouteData> = core.RouteGuard<T>;
-
-/// Route-level redirect resolver.
-typedef RouteRedirect<T extends RouteData> = core.RouteRedirect<T>;
-
-/// Asynchronous loader executed before route build.
-typedef RouteLoader<T extends RouteData, L> = core.RouteLoader<T, L>;
 
 /// Shell frame builder used by [shell].
 typedef ShellBuilder<R extends RouteData> =
@@ -61,11 +49,11 @@ class RouteDefinition<T extends RouteData> extends core.RouteDefinition<T>
     implements RouteRecord<T> {
   RouteDefinition({
     required String path,
-    required RouteParser<T> parse,
+    required core.RouteParser<T> parse,
     required RouteComponentBuilder<T> builder,
     String? name,
-    List<RouteGuard<T>> guards = const [],
-    RouteRedirect<T>? redirect,
+    List<core.RouteGuard<T>> guards = const [],
+    core.RouteRedirect<T>? redirect,
   }) : _builder = builder,
        super(
          path: path,
@@ -89,12 +77,12 @@ class LoadedRouteDefinition<T extends RouteData, L>
     implements RouteRecord<T> {
   LoadedRouteDefinition({
     required String path,
-    required RouteParser<T> parse,
-    required RouteLoader<T, L> loader,
+    required core.RouteParser<T> parse,
+    required core.RouteLoader<T, L> loader,
     required RouteLoadedComponentBuilder<T, L> builder,
     String? name,
-    List<RouteGuard<T>> guards = const [],
-    RouteRedirect<T>? redirect,
+    List<core.RouteGuard<T>> guards = const [],
+    core.RouteRedirect<T>? redirect,
   }) : _builder = builder,
        super(
          path: path,
@@ -126,11 +114,11 @@ class LoadedRouteDefinition<T extends RouteData, L>
 /// Creates a [RouteDefinition].
 RouteDefinition<T> route<T extends RouteData>({
   required String path,
-  required RouteParser<T> parse,
+  required core.RouteParser<T> parse,
   required RouteComponentBuilder<T> builder,
   String? name,
-  List<RouteGuard<T>> guards = const [],
-  RouteRedirect<T>? redirect,
+  List<core.RouteGuard<T>> guards = const [],
+  core.RouteRedirect<T>? redirect,
 }) {
   return RouteDefinition<T>(
     path: path,
@@ -145,12 +133,12 @@ RouteDefinition<T> route<T extends RouteData>({
 /// Creates a [LoadedRouteDefinition].
 LoadedRouteDefinition<T, L> routeWithLoader<T extends RouteData, L>({
   required String path,
-  required RouteParser<T> parse,
-  required RouteLoader<T, L> loader,
+  required core.RouteParser<T> parse,
+  required core.RouteLoader<T, L> loader,
   required RouteLoadedComponentBuilder<T, L> builder,
   String? name,
-  List<RouteGuard<T>> guards = const [],
-  RouteRedirect<T>? redirect,
+  List<core.RouteGuard<T>> guards = const [],
+  core.RouteRedirect<T>? redirect,
 }) {
   return LoadedRouteDefinition<T, L>(
     path: path,

@@ -1,8 +1,5 @@
 part of 'route_definition.dart';
 
-/// Parses a matched [RouteParserState] into a typed route object.
-typedef RouteParser<T extends RouteData> = unrouter_core.RouteParser<T>;
-
 /// Builds a route widget without loader data.
 typedef RouteWidgetBuilder<T extends RouteData> =
     Widget Function(BuildContext context, T route);
@@ -10,15 +7,6 @@ typedef RouteWidgetBuilder<T extends RouteData> =
 /// Builds a route widget with resolved loader data.
 typedef RouteLoadedWidgetBuilder<T extends RouteData, L> =
     Widget Function(BuildContext context, T route, L data);
-
-/// Route guard that can allow, block, or redirect navigation.
-typedef RouteGuard<T extends RouteData> = unrouter_core.RouteGuard<T>;
-
-/// Route-level redirect resolver.
-typedef RouteRedirect<T extends RouteData> = unrouter_core.RouteRedirect<T>;
-
-/// Asynchronous loader executed before route build.
-typedef RouteLoader<T extends RouteData, L> = unrouter_core.RouteLoader<T, L>;
 
 /// Shell frame builder used by [shell].
 typedef ShellBuilder<R extends RouteData> =
@@ -180,11 +168,11 @@ class LoadedRouteDefinition<T extends RouteData, L>
 /// Creates a [RouteDefinition].
 RouteDefinition<T> route<T extends RouteData>({
   required String path,
-  required RouteParser<T> parse,
+  required unrouter_core.RouteParser<T> parse,
   required RouteWidgetBuilder<T> builder,
   String? name,
-  List<RouteGuard<T>> guards = const [],
-  RouteRedirect<T>? redirect,
+  List<unrouter_core.RouteGuard<T>> guards = const [],
+  unrouter_core.RouteRedirect<T>? redirect,
   RoutePageBuilder? pageBuilder,
   RouteTransitionBuilder? transitionBuilder,
   Duration transitionDuration = Duration.zero,
@@ -207,12 +195,12 @@ RouteDefinition<T> route<T extends RouteData>({
 /// Creates a [LoadedRouteDefinition].
 LoadedRouteDefinition<T, L> routeWithLoader<T extends RouteData, L>({
   required String path,
-  required RouteParser<T> parse,
-  required RouteLoader<T, L> loader,
+  required unrouter_core.RouteParser<T> parse,
+  required unrouter_core.RouteLoader<T, L> loader,
   required RouteLoadedWidgetBuilder<T, L> builder,
   String? name,
-  List<RouteGuard<T>> guards = const [],
-  RouteRedirect<T>? redirect,
+  List<unrouter_core.RouteGuard<T>> guards = const [],
+  unrouter_core.RouteRedirect<T>? redirect,
   RoutePageBuilder? pageBuilder,
   RouteTransitionBuilder? transitionBuilder,
   Duration transitionDuration = Duration.zero,
