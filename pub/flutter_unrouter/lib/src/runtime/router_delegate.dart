@@ -1,13 +1,13 @@
 import 'dart:async';
 
 import 'package:flutter/widgets.dart';
-import 'package:unrouter/unrouter.dart' hide RouteRecord, Unrouter;
+import 'package:unrouter/unrouter.dart';
 import 'package:unstory/unstory.dart';
 
-import 'navigation.dart';
-import '../core/route_definition.dart';
+import '../core/route_definition.dart' as adapter;
 import '../platform/route_information_provider.dart';
-import 'unrouter.dart';
+import 'navigation.dart';
+import 'unrouter.dart' as runtime;
 
 class UnrouterDelegate<R extends RouteData>
     extends RouterDelegate<HistoryLocation>
@@ -16,7 +16,7 @@ class UnrouterDelegate<R extends RouteData>
     : _routeInformationProvider = config.routeInformationProvider {
     final initial = _routeInformationProvider.value;
     _controller = createUnrouterController<R>(
-      coreRouter: config.coreRouter,
+      router: config,
       routeInformationProvider: _routeInformationProvider,
       resolveInitialRoute: config.resolveInitialRoute,
     );
@@ -28,8 +28,8 @@ class UnrouterDelegate<R extends RouteData>
     );
     _stateListener = () {
       _resolution = _controller.resolution;
-      final routeRecord = config.routeRecordOf(_resolution.record);
-      if (routeRecord is! ShellRouteRecordHost<R>) {
+      final routeRecord = _asAdapterRouteRecord(_resolution.record);
+      if (routeRecord is! adapter.ShellRouteRecordHost<R>) {
         _controller.clearHistoryStateComposer();
       }
       _pageRevision += 1;
@@ -42,7 +42,7 @@ class UnrouterDelegate<R extends RouteData>
     );
   }
 
-  final Unrouter<R> config;
+  final runtime.Unrouter<R> config;
   final UnrouterRouteInformationProvider _routeInformationProvider;
 
   late RouteResolution<R> _resolution;
@@ -185,7 +185,7 @@ class UnrouterDelegate<R extends RouteData>
 
   Uri? _resolveShellBranchTarget(int index, {required bool initialLocation}) {
     final activeRecord = _activeRouteRecord;
-    if (activeRecord case ShellRouteRecordHost<R> shellHost) {
+    if (activeRecord case adapter.ShellRouteRecordHost<R> shellHost) {
       return shellHost.resolveBranchTarget(
         index,
         initialLocation: initialLocation,
@@ -196,17 +196,24 @@ class UnrouterDelegate<R extends RouteData>
 
   Uri? _popShellBranchTarget() {
     final activeRecord = _activeRouteRecord;
-    if (activeRecord case ShellRouteRecordHost<R> shellHost) {
+    if (activeRecord case adapter.ShellRouteRecordHost<R> shellHost) {
       return shellHost.popBranch();
     }
     return null;
   }
 
-  RouteRecord<R>? get _activeRouteRecord {
-    return config.routeRecordOf(_resolution.record);
+  adapter.RouteRecord<R>? _asAdapterRouteRecord(RouteRecord<R>? record) {
+    if (record case adapter.RouteRecord<R> adapterRecord) {
+      return adapterRecord;
+    }
+    return null;
   }
 
-  RouteRecord<R> _requireRouteRecord() {
+  adapter.RouteRecord<R>? get _activeRouteRecord {
+    return _asAdapterRouteRecord(_resolution.record);
+  }
+
+  adapter.RouteRecord<R> _requireRouteRecord() {
     final routeRecord = _activeRouteRecord;
     if (routeRecord != null) {
       return routeRecord;

@@ -37,5 +37,15 @@ void main() {
       isFalse,
       reason: 'legacy UnrouterRouter wrapper should be removed.',
     );
+    expect(
+      runtime.contains('core.Unrouter<R> get coreRouter'),
+      isFalse,
+      reason: 'adapter should not expose trivial core passthrough getters.',
+    );
+    expect(
+      runtime.contains('RouteRecord<R>? routeRecordOf('),
+      isFalse,
+      reason: 'adapter should avoid redundant record-cast shim APIs.',
+    );
   });
 }

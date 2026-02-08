@@ -75,12 +75,4 @@ class Unrouter<R extends RouteData> extends core.Unrouter<R>
   RouteInformationParser<HistoryLocation> get routeInformationParser {
     return const UnrouterRouteInformationParser();
   }
-
-  core.Unrouter<R> get coreRouter {
-    return this;
-  }
-
-  RouteRecord<R>? routeRecordOf(core.RouteRecord<R>? record) {
-    return record is RouteRecord<R> ? record : null;
-  }
 }

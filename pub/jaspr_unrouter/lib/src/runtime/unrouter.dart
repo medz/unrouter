@@ -94,15 +94,6 @@ class Unrouter<R extends RouteData> extends StatefulComponent {
     return _core.resolve(uri, signal: signal);
   }
 
-  /// Exposes pure core router for controller-only scenarios.
-  core.Unrouter<R> get coreRouter {
-    return _core;
-  }
-
-  RouteRecord<R>? routeRecordOf(Object? record) {
-    return record is RouteRecord<R> ? record : null;
-  }
-
   @override
   State<Unrouter<R>> createState() => _UnrouterState<R>();
 }
@@ -142,7 +133,7 @@ class _UnrouterState<R extends RouteData> extends State<Unrouter<R>>
         }
         setState(() {
           _resolution = controller.resolution;
-          final routeRecord = component.routeRecordOf(_resolution.record);
+          final routeRecord = _asAdapterRouteRecord(_resolution.record);
           if (routeRecord is! ShellRouteRecordHost<R>) {
             _controller?.clearHistoryStateComposer();
           }
@@ -181,7 +172,7 @@ class _UnrouterState<R extends RouteData> extends State<Unrouter<R>>
         }
         setState(() {
           _resolution = controller.resolution;
-          final routeRecord = component.routeRecordOf(_resolution.record);
+          final routeRecord = _asAdapterRouteRecord(_resolution.record);
           if (routeRecord is! ShellRouteRecordHost<R>) {
             _controller?.clearHistoryStateComposer();
           }
@@ -217,7 +208,7 @@ class _UnrouterState<R extends RouteData> extends State<Unrouter<R>>
 
     final historyPlan = _resolveHistory();
     _controller = core.UnrouterController<R>(
-      router: component.coreRouter,
+      router: component._core,
       history: historyPlan.history,
       resolveInitialRoute: component.resolveInitialRoute,
       disposeHistory: historyPlan.disposeHistory,
@@ -298,7 +289,7 @@ class _UnrouterState<R extends RouteData> extends State<Unrouter<R>>
     }
 
     if (resolution.isMatched) {
-      final record = component.routeRecordOf(resolution.record);
+      final record = _asAdapterRouteRecord(resolution.record);
       if (record == null) {
         return _buildError(
           context,
@@ -344,8 +335,15 @@ class _UnrouterState<R extends RouteData> extends State<Unrouter<R>>
     return null;
   }
 
+  RouteRecord<R>? _asAdapterRouteRecord(Object? record) {
+    if (record case RouteRecord<R> adapterRecord) {
+      return adapterRecord;
+    }
+    return null;
+  }
+
   RouteRecord<R>? get _activeRouteRecord {
-    return component.routeRecordOf(_resolution.record);
+    return _asAdapterRouteRecord(_resolution.record);
   }
 
   Component _buildError(

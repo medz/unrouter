@@ -9,12 +9,12 @@ final Expando<_ControllerStateListenable<RouteData>> _stateListenables =
     Expando<_ControllerStateListenable<RouteData>>('flutter_unrouter.state');
 
 UnrouterController<R> createUnrouterController<R extends RouteData>({
-  required Unrouter<R> coreRouter,
+  required Unrouter<R> router,
   required UnrouterRouteInformationProvider routeInformationProvider,
   bool resolveInitialRoute = false,
 }) {
   return UnrouterController<R>(
-    router: coreRouter,
+    router: router,
     history: _UnrouterProviderBackedHistory(routeInformationProvider),
     resolveInitialRoute: resolveInitialRoute,
     disposeHistory: false,

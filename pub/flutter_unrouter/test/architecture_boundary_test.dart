@@ -46,6 +46,7 @@ void main() {
       ),
       isTrue,
     );
-    expect(runtime.contains('core.Unrouter<R> get coreRouter'), isTrue);
+    expect(runtime.contains('core.Unrouter<R> get coreRouter'), isFalse);
+    expect(runtime.contains('RouteRecord<R>? routeRecordOf('), isFalse);
   });
 }
