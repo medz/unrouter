@@ -16,7 +16,13 @@ dart pub get
 ## Package checks
 
 ```bash
-(cd pub/unrouter && dart test)
-flutter test pub/flutter_unrouter/test
-(cd pub/jaspr_unrouter && dart test)
+./tool/workspace_check.sh
+```
+
+Or run each package manually:
+
+```bash
+(cd pub/unrouter && dart analyze && dart test)
+(cd pub/flutter_unrouter && flutter analyze && flutter test)
+(cd pub/jaspr_unrouter && dart analyze && dart test)
 ```
