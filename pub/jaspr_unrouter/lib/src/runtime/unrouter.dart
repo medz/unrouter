@@ -7,7 +7,7 @@ import 'package:unrouter/unrouter.dart'
     show Unrouter, UnrouterController, UnrouterStateSnapshot, RouteRecord;
 import 'package:unstory/unstory.dart';
 
-import '../core/route_definition.dart';
+import '../core/route_records.dart';
 import 'navigation.dart';
 
 /// Builds fallback UI for unmatched locations.

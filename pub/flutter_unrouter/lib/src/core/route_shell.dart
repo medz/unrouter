@@ -1,4 +1,16 @@
-part of 'route_definition.dart';
+import 'package:flutter/widgets.dart';
+import 'package:unrouter/unrouter.dart'
+    show
+        RouteData,
+        ShellBranch,
+        ShellRuntimeBinding,
+        ShellRouteRecordBinding,
+        buildShellRouteRecords,
+        requireShellRouteRecord;
+import 'package:unrouter/unrouter.dart' as core show RouteRecord;
+
+import '../runtime/navigation.dart';
+import 'route_records.dart';
 
 /// Creates a [ShellBranch].
 ShellBranch<R> branch<R extends RouteData>({

@@ -27,9 +27,7 @@ void main() {
   });
 
   test('shell runtime does not carry duplicated core algorithms', () {
-    final source = File(
-      'lib/src/core/route_definition_shell.dart',
-    ).readAsStringSync();
+    final source = File('lib/src/core/route_shell.dart').readAsStringSync();
 
     expect(source.contains('ShellRuntimeBinding<'), isTrue);
 

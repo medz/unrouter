@@ -1,4 +1,15 @@
-part of 'route_definition.dart';
+import 'package:flutter/widgets.dart';
+import 'package:unrouter/unrouter.dart'
+    show
+        RouteData,
+        RouteParser,
+        RouteGuard,
+        RouteRedirect,
+        RouteLoader,
+        ShellState;
+import 'package:unrouter/unrouter.dart'
+    as core
+    show LoadedRouteDefinition, RouteDefinition, RouteRecord;
 
 /// Builds a route widget without loader data.
 typedef RouteWidgetBuilder<T extends RouteData> =

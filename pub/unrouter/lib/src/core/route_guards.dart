@@ -1,8 +1,10 @@
-part of 'package:unrouter/src/core/route_definition.dart';
+import 'dart:async';
+
+import 'route_data.dart';
 
 /// Executes route guards in order and returns the first non-allow result.
 Future<RouteGuardResult> runRouteGuards<T extends RouteData>(
-  List<RouteGuard<T>> guards,
+  List<FutureOr<RouteGuardResult> Function(RouteHookContext<T> context)> guards,
   RouteHookContext<T> context,
 ) async {
   if (guards.isEmpty) {

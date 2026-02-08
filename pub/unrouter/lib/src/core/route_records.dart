@@ -1,4 +1,8 @@
-part of 'package:unrouter/src/core/route_definition.dart';
+import 'dart:async';
+
+import 'route_data.dart';
+import 'route_guards.dart';
+import 'route_parser.dart';
 
 /// Parses a matched [RouteParserState] into a typed route object.
 typedef RouteParser<T extends RouteData> = T Function(RouteParserState state);

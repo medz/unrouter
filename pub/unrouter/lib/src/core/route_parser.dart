@@ -1,5 +1,3 @@
-part of 'package:unrouter/src/core/route_definition.dart';
-
 extension type const TypedParams(Map<String, String> _)
     implements Map<String, String> {
   String required(String key) {

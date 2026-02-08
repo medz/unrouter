@@ -30,7 +30,7 @@ void main() {
     final pubspec = File('pubspec.yaml').readAsStringSync();
     final runtime = File('lib/src/runtime/unrouter.dart').readAsStringSync();
     final routeDefs = File(
-      'lib/src/core/route_definition.dart',
+      'lib/src/core/route_records.dart',
     ).readAsStringSync();
 
     expect(

@@ -4,7 +4,8 @@
 /// and widget-level navigation access.
 library;
 
-export 'src/core/route_definition.dart';
+export 'src/core/route_records.dart';
+export 'src/core/route_shell.dart';
 export 'src/runtime/unrouter.dart';
 export 'package:unrouter/unrouter.dart'
     hide

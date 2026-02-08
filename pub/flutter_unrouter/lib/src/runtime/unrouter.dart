@@ -3,7 +3,7 @@ import 'package:unrouter/unrouter.dart' hide RouteRecord, Unrouter;
 import 'package:unrouter/unrouter.dart' as core show RouteRecord, Unrouter;
 import 'package:unstory/unstory.dart';
 
-import '../core/route_definition.dart';
+import '../core/route_records.dart';
 import '../platform/route_information_parser.dart';
 import '../platform/route_information_provider.dart';
 import 'router_delegate.dart';

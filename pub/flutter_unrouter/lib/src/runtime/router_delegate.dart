@@ -4,7 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:unrouter/unrouter.dart';
 import 'package:unstory/unstory.dart';
 
-import '../core/route_definition.dart' as adapter;
+import '../core/route_records.dart' as adapter;
 import '../platform/route_information_provider.dart';
 import 'navigation.dart';
 import 'unrouter.dart' as runtime;

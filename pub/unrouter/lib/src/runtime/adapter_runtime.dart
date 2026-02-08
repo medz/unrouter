@@ -1,5 +1,6 @@
 import 'package:unrouter/src/core/route_data.dart';
-import 'package:unrouter/src/core/route_definition.dart';
+import 'package:unrouter/src/core/route_records.dart';
+import 'package:unrouter/src/core/route_shell.dart';
 import 'package:unrouter/src/runtime/unrouter.dart';
 
 /// Casts a core route record to an adapter-specific route record type.

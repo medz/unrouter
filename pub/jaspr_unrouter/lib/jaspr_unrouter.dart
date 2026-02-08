@@ -1,7 +1,7 @@
 /// Jaspr adapter API for `unrouter`.
 library;
 
-export 'src/core/route_definition.dart';
+export 'src/core/route_records.dart';
 export 'src/runtime/link.dart' show UnrouterLink, UnrouterLinkMode;
 export 'src/runtime/unrouter.dart';
 export 'src/runtime/navigation.dart'
