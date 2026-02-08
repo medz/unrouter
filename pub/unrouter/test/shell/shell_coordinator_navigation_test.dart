@@ -1,5 +1,6 @@
 import 'package:test/test.dart';
-import 'package:unrouter/unrouter.dart';
+import 'package:unrouter/src/shell/shell_branch_descriptor.dart';
+import 'package:unrouter/src/shell/shell_coordinator.dart';
 import 'package:unstory/unstory.dart';
 
 void main() {
@@ -25,30 +26,24 @@ void main() {
   test('recordNavigation tracks push/pop and branch target', () {
     coordinator.recordNavigation(
       branchIndex: 0,
-      event: ShellNavigationEvent(
-        uri: Uri(path: '/feed'),
-        action: HistoryAction.replace,
-        delta: null,
-        historyIndex: 0,
-      ),
+      uri: Uri(path: '/feed'),
+      action: HistoryAction.replace,
+      delta: null,
+      historyIndex: 0,
     );
     coordinator.recordNavigation(
       branchIndex: 0,
-      event: ShellNavigationEvent(
-        uri: Uri(path: '/feed/1'),
-        action: HistoryAction.push,
-        delta: null,
-        historyIndex: 1,
-      ),
+      uri: Uri(path: '/feed/1'),
+      action: HistoryAction.push,
+      delta: null,
+      historyIndex: 1,
     );
     coordinator.recordNavigation(
       branchIndex: 0,
-      event: ShellNavigationEvent(
-        uri: Uri(path: '/feed/2'),
-        action: HistoryAction.push,
-        delta: null,
-        historyIndex: 2,
-      ),
+      uri: Uri(path: '/feed/2'),
+      action: HistoryAction.push,
+      delta: null,
+      historyIndex: 2,
     );
 
     expect(coordinator.currentBranchHistory(0).length, 3);
@@ -59,12 +54,10 @@ void main() {
 
     coordinator.recordNavigation(
       branchIndex: 0,
-      event: ShellNavigationEvent(
-        uri: Uri(path: '/feed/1'),
-        action: HistoryAction.pop,
-        delta: -1,
-        historyIndex: 1,
-      ),
+      uri: Uri(path: '/feed/1'),
+      action: HistoryAction.pop,
+      delta: -1,
+      historyIndex: 1,
     );
 
     expect(
@@ -75,70 +68,38 @@ void main() {
   });
 
   test('recordNavigation ignores duplicate events', () {
-    final event = ShellNavigationEvent(
+    coordinator.recordNavigation(
+      branchIndex: 0,
+      uri: Uri(path: '/feed/1'),
+      action: HistoryAction.push,
+      delta: null,
+      historyIndex: 1,
+    );
+    coordinator.recordNavigation(
+      branchIndex: 0,
       uri: Uri(path: '/feed/1'),
       action: HistoryAction.push,
       delta: null,
       historyIndex: 1,
     );
 
-    coordinator.recordNavigation(branchIndex: 0, event: event);
-    coordinator.recordNavigation(branchIndex: 0, event: event);
-
     expect(coordinator.currentBranchHistory(0), hasLength(1));
   });
-
-  test(
-    'composeHistoryState infers branch from uri and preserves user state',
-    () {
-      final first = coordinator.composeHistoryState(
-        request: ShellHistoryStateRequest(
-          uri: Uri(path: '/settings/profile'),
-          action: HistoryAction.push,
-          state: {'a': 1},
-          currentState: null,
-        ),
-        activeBranchIndex: 0,
-      );
-
-      final parsedFirst = coordinator.codec.tryParse(first);
-      expect(parsedFirst, isNotNull);
-      expect(parsedFirst!.userState, {'a': 1});
-      expect(parsedFirst.shell!.activeBranchIndex, 1);
-
-      final second = coordinator.composeHistoryState(
-        request: ShellHistoryStateRequest(
-          uri: Uri(path: '/settings'),
-          action: HistoryAction.replace,
-          state: null,
-          currentState: first,
-        ),
-        activeBranchIndex: 1,
-      );
-      final parsedSecond = coordinator.codec.tryParse(second);
-      expect(parsedSecond, isNotNull);
-      expect(parsedSecond!.userState, {'a': 1});
-    },
-  );
 
   test('branch operations resolve and pop expected target', () {
     coordinator.recordNavigation(
       branchIndex: 1,
-      event: ShellNavigationEvent(
-        uri: Uri(path: '/settings'),
-        action: HistoryAction.replace,
-        delta: null,
-        historyIndex: 0,
-      ),
+      uri: Uri(path: '/settings'),
+      action: HistoryAction.replace,
+      delta: null,
+      historyIndex: 0,
     );
     coordinator.recordNavigation(
       branchIndex: 1,
-      event: ShellNavigationEvent(
-        uri: Uri(path: '/settings/profile'),
-        action: HistoryAction.push,
-        delta: null,
-        historyIndex: 1,
-      ),
+      uri: Uri(path: '/settings/profile'),
+      action: HistoryAction.push,
+      delta: null,
+      historyIndex: 1,
     );
 
     expect(coordinator.canPopBranch(1), isTrue);

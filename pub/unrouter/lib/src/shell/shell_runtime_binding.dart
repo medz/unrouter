@@ -9,8 +9,8 @@ import 'shell_coordinator.dart';
 
 /// Shared shell runtime bridge for adapter packages.
 ///
-/// This class centralizes branch stack coordination and history-state envelope
-/// composition so adapters only bind UI/runtime callbacks.
+/// This class centralizes branch stack coordination so adapters only bind
+/// UI/runtime callbacks.
 class ShellRuntimeBinding<R extends RouteData> {
   ShellRuntimeBinding({required List<ShellBranch<R>> branches})
     : branches = List<ShellBranch<R>>.unmodifiable(branches),
@@ -32,28 +32,6 @@ class ShellRuntimeBinding<R extends RouteData> {
   final List<ShellBranch<R>> branches;
   final ShellCoordinator _coordinator;
 
-  void restoreFromState(Object? state) {
-    _coordinator.restoreFromState(state);
-  }
-
-  Object? composeHistoryState({
-    required Uri uri,
-    required HistoryAction action,
-    required Object? state,
-    required Object? currentState,
-    required int activeBranchIndex,
-  }) {
-    return _coordinator.composeHistoryState(
-      request: ShellHistoryStateRequest(
-        uri: uri,
-        action: action,
-        state: state,
-        currentState: currentState,
-      ),
-      activeBranchIndex: activeBranchIndex,
-    );
-  }
-
   void recordNavigation({
     required int branchIndex,
     required Uri uri,
@@ -63,12 +41,10 @@ class ShellRuntimeBinding<R extends RouteData> {
   }) {
     _coordinator.recordNavigation(
       branchIndex: branchIndex,
-      event: ShellNavigationEvent(
-        uri: uri,
-        action: action,
-        delta: delta,
-        historyIndex: historyIndex,
-      ),
+      uri: uri,
+      action: action,
+      delta: delta,
+      historyIndex: historyIndex,
     );
   }
 
@@ -214,10 +190,6 @@ abstract class ShellRouteRecordBinding<
     return _runtime.popBranch(_branchIndex);
   }
 
-  void restoreShellState(Object? state) {
-    _runtime.restoreFromState(state);
-  }
-
   void recordShellNavigation({
     required Uri uri,
     required HistoryAction action,
@@ -230,21 +202,6 @@ abstract class ShellRouteRecordBinding<
       action: action,
       delta: delta,
       historyIndex: historyIndex,
-    );
-  }
-
-  Object? composeShellHistoryState({
-    required Uri uri,
-    required HistoryAction action,
-    required Object? state,
-    required Object? currentState,
-  }) {
-    return _runtime.composeHistoryState(
-      uri: uri,
-      action: action,
-      state: state,
-      currentState: currentState,
-      activeBranchIndex: _branchIndex,
     );
   }
 

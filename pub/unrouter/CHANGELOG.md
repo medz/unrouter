@@ -21,9 +21,7 @@
   getters.
 - Added `UnrouterController.resolution` to expose the current typed
   `RouteResolution`.
-- Added platform-agnostic shell coordination APIs
-  (`ShellCoordinator`, state envelope codec, restoration snapshot, branch
-  descriptors) for adapter reuse.
+- Added platform-agnostic shell coordination runtime for adapter reuse.
 - Promoted shell runtime contracts (`ShellState`, `ShellRouteRecordHost`) to
   core API so adapters can share one shell state model.
 - Added `ShellRouteRecordBinding` base class so adapter packages can reuse
@@ -43,6 +41,8 @@
     `canPopBranch`) instead of raw callback fields;
   - `ShellRouteRecordHost.popBranch()` no longer accepts an unused `result`
     parameter.
+- Removed shell history-state envelope/restoration APIs and kept only
+  branch-stack coordination in `ShellCoordinator`/`ShellRuntimeBinding`.
 - Simplified `RouteParserState` parser API by introducing typed param views:
   - `RouteParserState` now exposes `params` and `query` (`TypedParams`);
   - `RouteParserState.queryParameters` is removed;

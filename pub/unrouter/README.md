@@ -83,36 +83,11 @@ controller.dispose();
 - Use `state.query` or `state.uri.queryParameters` directly for raw query map
   access.
 
-## Shell coordinator (platform-agnostic)
+## Shell integration
 
-Use `ShellCoordinator` when building adapter packages or custom runtimes. It
-provides branch stack tracking and `history.state` envelope composition without
-depending on Flutter/Jaspr/Nocterm APIs.
-
-```dart
-final coordinator = ShellCoordinator(
-  branches: [
-    ShellBranchDescriptor(
-      index: 0,
-      initialLocation: Uri(path: '/feed'),
-      routePatterns: ['/feed', '/feed/:id'],
-    ),
-  ],
-);
-
-coordinator.recordNavigation(
-  branchIndex: 0,
-  event: ShellNavigationEvent(
-    uri: Uri(path: '/feed'),
-    action: HistoryAction.replace,
-    delta: null,
-    historyIndex: 0,
-  ),
-);
-```
-
-For adapter authors, `ShellRuntimeBinding` is available to bridge
-`ShellBranch` trees while keeping rendering logic in adapter packages.
+For adapter authors, `ShellRuntimeBinding`, `ShellRouteRecordBinding`, and
+`buildShellRouteRecords` are available to bridge `ShellBranch` trees while
+keeping rendering logic in adapter packages.
 
 ## Flutter usage
 

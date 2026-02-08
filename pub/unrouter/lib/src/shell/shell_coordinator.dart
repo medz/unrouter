@@ -1,152 +1,51 @@
 import 'package:unstory/unstory.dart';
 
 import 'shell_branch_descriptor.dart';
-import 'shell_restoration_snapshot.dart';
 import 'shell_stack_state.dart';
-import 'shell_state_envelope_codec.dart';
 
-/// Input payload used when composing `history.state`.
-class ShellHistoryStateRequest {
-  const ShellHistoryStateRequest({
-    required this.uri,
-    required this.action,
-    required this.state,
-    required this.currentState,
-  });
-
-  final Uri uri;
-  final HistoryAction action;
-  final Object? state;
-  final Object? currentState;
-}
-
-/// Navigation event observed by shell coordinator.
-class ShellNavigationEvent {
-  const ShellNavigationEvent({
-    required this.uri,
-    required this.action,
-    required this.delta,
-    required this.historyIndex,
-  });
-
-  final Uri uri;
-  final HistoryAction action;
-  final int? delta;
-  final int? historyIndex;
-}
-
-/// Platform-agnostic coordinator for shell branch stacks and restoration state.
+/// Platform-agnostic coordinator for shell branch stacks.
 class ShellCoordinator {
-  ShellCoordinator({
-    required List<ShellBranchDescriptor> branches,
-    ShellStateEnvelopeCodec? codec,
-  }) : branches = List<ShellBranchDescriptor>.unmodifiable(branches),
-       codec = codec ?? const ShellStateEnvelopeCodec();
+  ShellCoordinator({required List<ShellBranchDescriptor> branches})
+    : branches = List<ShellBranchDescriptor>.unmodifiable(branches);
 
   final List<ShellBranchDescriptor> branches;
-  final ShellStateEnvelopeCodec codec;
 
   final Map<int, ShellBranchStackState> _stacks =
       <int, ShellBranchStackState>{};
   int? _lastRecordedHistoryIndex;
   HistoryAction? _lastRecordedAction;
   String? _lastRecordedUri;
-  String? _lastRestorationSignature;
-
-  /// Restores branch stacks from encoded state envelope.
-  void restoreFromState(Object? state) {
-    final envelope = codec.tryParse(state);
-    final snapshot = envelope?.shell;
-    if (snapshot == null) {
-      return;
-    }
-
-    final signature = snapshot.signature;
-    if (_lastRestorationSignature == signature) {
-      return;
-    }
-    _lastRestorationSignature = signature;
-
-    _stacks.clear();
-    snapshot.stacks.forEach((branchIndex, stack) {
-      if (branchIndex < 0 || branchIndex >= branches.length) {
-        return;
-      }
-      if (stack.entries.isEmpty) {
-        return;
-      }
-      final safeIndex = stack.index.clamp(0, stack.entries.length - 1);
-      _stacks[branchIndex] = ShellBranchStackState(
-        entries: stack.entries,
-        index: safeIndex,
-      );
-    });
-  }
-
-  /// Composes state envelope for next history write.
-  Object? composeHistoryState({
-    required ShellHistoryStateRequest request,
-    required int activeBranchIndex,
-  }) {
-    _assertBranchIndex(activeBranchIndex);
-    final requested = codec.parseOrRaw(request.state);
-    final current = codec.parseOrRaw(request.currentState);
-    final userState = request.state == null
-        ? current.userState
-        : requested.userState;
-
-    final projectedStacks = _cloneStacks(_stacks);
-    final branchIndex = branchIndexForUri(request.uri) ?? activeBranchIndex;
-    final stack = _ensureStackIn(
-      projectedStacks,
-      branchIndex,
-      seed: request.uri,
-    );
-    switch (request.action) {
-      case HistoryAction.push:
-        _applyPush(stack, request.uri);
-      case HistoryAction.replace:
-        _applyReplace(stack, request.uri);
-      case HistoryAction.pop:
-        _applyPop(stack, request.uri, null);
-    }
-
-    final snapshot = ShellRestorationSnapshot.fromStacks(
-      activeBranchIndex: branchIndex,
-      stacks: projectedStacks,
-    );
-    return codec.encode(
-      ShellStateEnvelope(userState: userState, shell: snapshot),
-    );
-  }
 
   /// Records actual navigation applied by history provider.
   void recordNavigation({
     required int branchIndex,
-    required ShellNavigationEvent event,
+    required Uri uri,
+    required HistoryAction action,
+    required int? delta,
+    required int? historyIndex,
   }) {
     _assertBranchIndex(branchIndex);
-    if (_isDuplicateEvent(event)) {
+    if (_isDuplicateEvent(
+      uri: uri,
+      action: action,
+      historyIndex: historyIndex,
+    )) {
       return;
     }
 
-    final stack = _ensureStack(branchIndex, seed: event.uri);
-    switch (event.action) {
+    final stack = _ensureStack(branchIndex, seed: uri);
+    switch (action) {
       case HistoryAction.push:
-        _applyPush(stack, event.uri);
+        _applyPush(stack, uri);
       case HistoryAction.replace:
-        _applyReplace(stack, event.uri);
+        _applyReplace(stack, uri);
       case HistoryAction.pop:
-        _applyPop(stack, event.uri, event.delta);
+        _applyPop(stack, uri, delta);
     }
 
-    _lastRecordedHistoryIndex = event.historyIndex;
-    _lastRecordedAction = event.action;
-    _lastRecordedUri = event.uri.toString();
-    _lastRestorationSignature = ShellRestorationSnapshot.fromStacks(
-      activeBranchIndex: branchIndex,
-      stacks: _stacks,
-    ).signature;
+    _lastRecordedHistoryIndex = historyIndex;
+    _lastRecordedAction = action;
+    _lastRecordedUri = uri.toString();
   }
 
   /// Returns branch index matching [uri], if any.
@@ -219,15 +118,6 @@ class ShellCoordinator {
     return stack.snapshotEntries;
   }
 
-  /// Snapshot of current branch stacks.
-  ShellRestorationSnapshot snapshot({required int activeBranchIndex}) {
-    _assertBranchIndex(activeBranchIndex);
-    return ShellRestorationSnapshot.fromStacks(
-      activeBranchIndex: activeBranchIndex,
-      stacks: _stacks,
-    );
-  }
-
   ShellBranchStackState _ensureStack(int branchIndex, {required Uri seed}) {
     final existing = _stacks[branchIndex];
     if (existing != null) {
@@ -239,38 +129,19 @@ class ShellCoordinator {
     return stack;
   }
 
-  ShellBranchStackState _ensureStackIn(
-    Map<int, ShellBranchStackState> stacks,
-    int branchIndex, {
-    required Uri seed,
+  bool _isDuplicateEvent({
+    required Uri uri,
+    required HistoryAction action,
+    required int? historyIndex,
   }) {
-    final existing = stacks[branchIndex];
-    if (existing != null) {
-      return existing;
-    }
-    final stack = ShellBranchStackState(entries: <Uri>[seed], index: 0);
-    stacks[branchIndex] = stack;
-    return stack;
-  }
-
-  Map<int, ShellBranchStackState> _cloneStacks(
-    Map<int, ShellBranchStackState> source,
-  ) {
-    return source.map<int, ShellBranchStackState>(
-      (branchIndex, stack) =>
-          MapEntry<int, ShellBranchStackState>(branchIndex, stack.copy()),
-    );
-  }
-
-  bool _isDuplicateEvent(ShellNavigationEvent event) {
-    final uriString = event.uri.toString();
-    if (event.historyIndex != null) {
-      return _lastRecordedHistoryIndex == event.historyIndex &&
-          _lastRecordedAction == event.action &&
+    final uriString = uri.toString();
+    if (historyIndex != null) {
+      return _lastRecordedHistoryIndex == historyIndex &&
+          _lastRecordedAction == action &&
           _lastRecordedUri == uriString;
     }
 
-    return _lastRecordedAction == event.action && _lastRecordedUri == uriString;
+    return _lastRecordedAction == action && _lastRecordedUri == uriString;
   }
 
   void _applyPush(ShellBranchStackState stack, Uri uri) {

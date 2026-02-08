@@ -7,7 +7,6 @@ void main() {
     expect(unrouter.RedirectLoopPolicy.values, isNotEmpty);
     expect(unrouter.RouteResolutionType.values, isNotEmpty);
     expect(unrouter.UnrouterController, isNotNull);
-    expect(unrouter.ShellCoordinator, isNotNull);
     expect(unrouter.ShellRuntimeBinding, isNotNull);
     expect(unrouter.buildShellRouteRecords, isNotNull);
     expect(unrouter.requireShellRouteRecord, isNotNull);

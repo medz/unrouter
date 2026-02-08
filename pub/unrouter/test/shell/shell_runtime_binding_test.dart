@@ -33,26 +33,30 @@ void main() {
     ]);
   });
 
-  test('composes/restores shell history state envelope', () {
+  test('resolveTargetUri uses stack top and supports reset to initial', () {
     final runtime = ShellRuntimeBinding<AppRoute>(branches: _branches());
 
-    final composedState = runtime.composeHistoryState(
+    runtime.recordNavigation(
+      branchIndex: 1,
       uri: Uri(path: '/settings'),
       action: HistoryAction.replace,
-      state: const <String, Object?>{'from': 'test'},
-      currentState: null,
-      activeBranchIndex: 1,
+      delta: null,
+      historyIndex: 0,
     );
-    final parsed = const ShellStateEnvelopeCodec().tryParse(composedState);
-    expect(parsed, isNotNull);
-    expect(parsed!.shell, isNotNull);
-    expect(parsed.shell!.activeBranchIndex, 1);
-    expect(parsed.userState, const <String, Object?>{'from': 'test'});
+    runtime.recordNavigation(
+      branchIndex: 1,
+      uri: Uri(path: '/settings/details/profile'),
+      action: HistoryAction.push,
+      delta: null,
+      historyIndex: 1,
+    );
 
-    final restored = ShellRuntimeBinding<AppRoute>(branches: _branches());
-    restored.restoreFromState(composedState);
     expect(
-      restored.resolveTargetUri(1, initialLocation: false),
+      runtime.resolveTargetUri(1, initialLocation: false),
+      Uri(path: '/settings/details/profile'),
+    );
+    expect(
+      runtime.resolveTargetUri(1, initialLocation: true),
       Uri(path: '/settings'),
     );
   });

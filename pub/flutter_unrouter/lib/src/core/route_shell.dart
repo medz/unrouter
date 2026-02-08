@@ -70,7 +70,6 @@ class _ShellRouteRecord<R extends RouteData>
     final child = record.build(context, route, loaderData);
     final controller = context.unrouter;
     final snapshot = controller.state;
-    restoreShellState(snapshot.historyState);
     final currentUri = snapshot.uri;
     recordShellNavigation(
       uri: currentUri,

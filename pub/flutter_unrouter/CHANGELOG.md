@@ -20,8 +20,8 @@
 - Reworked route definition records to inherit core `RouteDefinition` /
   `LoadedRouteDefinition` so parse/guard/redirect/loader semantics stay owned
   by `unrouter`.
-- Reworked shell restoration/branch stack runtime to use `unrouter` core
-  `ShellCoordinator`, removing duplicated envelope/stack algorithms.
+- Reworked shell branch-stack runtime to use `unrouter` core shell runtime,
+  removing duplicated stack algorithms.
 - Removed adapter-local shell contract definitions (`ShellState`,
   `ShellRouteRecordHost`) and reused core contracts from `unrouter`.
 - Reworked shell route wrapper implementation to extend core
@@ -40,7 +40,7 @@
 - Removed adapter alias typedef wrappers and direct shim accessors
   (`RouteRecord.core`, `CoreUnrouter`, `typedef UnrouterController = ...`) so
   adapter internals use core types directly.
-- Added shell runtime widget tests for branch switching/restoration and
+- Added shell runtime widget tests for branch switching and
   `popBranch` pending-result completion.
 
 ### Changed

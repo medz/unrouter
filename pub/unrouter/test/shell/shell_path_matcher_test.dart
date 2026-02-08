@@ -1,5 +1,6 @@
 import 'package:test/test.dart';
-import 'package:unrouter/unrouter.dart';
+import 'package:unrouter/src/shell/shell_branch_descriptor.dart';
+import 'package:unrouter/src/shell/shell_coordinator.dart';
 
 void main() {
   test('branchIndexForUri matches static and dynamic patterns', () {

@@ -33,7 +33,6 @@ void main() {
 
     const forbiddenTokens = <String>[
       '_UnrouterStateEnvelope',
-      '_ShellRestorationSnapshot',
       '_BranchStackSnapshot',
       '_BranchStack',
       '_pathMatchesRoutePattern',
