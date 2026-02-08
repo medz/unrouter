@@ -28,8 +28,13 @@ void main() {
 
   test('shell runtime does not carry duplicated core algorithms', () {
     final source = File('lib/src/core/route_shell.dart').readAsStringSync();
+    final routeRecords = File('lib/src/core/route_records.dart')
+        .readAsStringSync();
 
     expect(source.contains('ShellCoordinator<'), isTrue);
+    expect(routeRecords.contains('abstract class RouteRecord<'), isTrue);
+    expect(routeRecords.contains('extends core.RouteRecord<'), isTrue);
+    expect(routeRecords.contains('implements core.RouteRecord<'), isFalse);
 
     const forbiddenTokens = <String>[
       '_UnrouterStateEnvelope',

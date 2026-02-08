@@ -3,7 +3,6 @@ import 'package:unrouter/unrouter.dart'
     show
         RouteData,
         RouteGuardResult,
-        RouteParser,
         RouteContext,
         ShellBranch,
         ShellCoordinator,
@@ -57,28 +56,20 @@ List<RouteRecord<R>> shell<R extends RouteData>({
   );
 }
 
-class _ShellRouteRecord<R extends RouteData>
-    implements RouteRecord<R>, ShellRouteRecordHost {
+class _ShellRouteRecord<R extends RouteData> extends RouteRecord<R>
+    implements ShellRouteRecordHost {
   _ShellRouteRecord({
     required this.record,
     required this.coordinator,
     required this.branchIndex,
     required ShellBuilder<R> shellBuilder,
-  }) : _shellBuilder = shellBuilder;
+  }) : _shellBuilder = shellBuilder,
+       super(path: record.path, parse: record.parse, name: record.name);
 
   final RouteRecord<R> record;
   final ShellCoordinator<R> coordinator;
   final int branchIndex;
   final ShellBuilder<R> _shellBuilder;
-
-  @override
-  String get path => record.path;
-
-  @override
-  String? get name => record.name;
-
-  @override
-  RouteParser<R> get parse => record.parse;
 
   @override
   Future<Uri?> runRedirect(RouteContext<RouteData> context) {

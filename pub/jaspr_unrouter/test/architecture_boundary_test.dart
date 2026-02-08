@@ -48,6 +48,9 @@ void main() {
       isTrue,
       reason: 'runtime binding should directly use core controller runtime.',
     );
+    expect(routeDefs.contains('abstract class RouteRecord<'), isTrue);
+    expect(routeDefs.contains('extends core.RouteRecord<'), isTrue);
+    expect(routeDefs.contains('implements core.RouteRecord<'), isFalse);
     expect(runtime.contains('setShellBranchResolvers('), isFalse);
     expect(
       runtime.contains('class Unrouter<'),

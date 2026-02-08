@@ -54,3 +54,8 @@
   - removed `name` parameters from adapter `branch()` / `shell()`;
   - shell-wrapped route records now keep route-level `name` values directly
     (no shell-name prefixing).
+- Simplified route-record contracts:
+  - adapter `RouteRecord` now extends core `RouteRecord` and only adds
+    Flutter rendering methods;
+  - shell wrapper records now extend adapter `RouteRecord` instead of
+    re-declaring core route semantics.

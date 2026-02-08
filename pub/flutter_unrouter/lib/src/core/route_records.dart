@@ -48,13 +48,8 @@ class RoutePageBuilderState {
   final Widget child;
 }
 
-abstract interface class RouteRecord<T extends RouteData>
-    implements core.RouteRecord<T> {
-  @override
-  String get path;
-
-  @override
-  String? get name;
+abstract class RouteRecord<T extends RouteData> extends core.RouteRecord<T> {
+  RouteRecord({required super.path, required super.parse, super.name});
 
   Widget build(BuildContext context, RouteData route, Object? loaderData);
 
