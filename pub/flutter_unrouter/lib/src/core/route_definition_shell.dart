@@ -22,7 +22,13 @@ List<RouteRecord<R>> shell<R extends RouteData>({
   return buildShellRouteRecords<R, RouteRecord<R>, RouteRecord<R>>(
     branches: branches,
     shellName: name,
-    resolveRecord: _asAdapterRouteRecord,
+    resolveRecord: (record) {
+      return requireShellRouteRecord<R, RouteRecord<R>>(
+        record,
+        adapterLabel: 'flutter',
+        buildHint: 'flutter_unrouter route()/routeWithLoader()',
+      );
+    },
     wrapRecord:
         ({
           required RouteRecord<R> record,
@@ -106,17 +112,4 @@ class _ShellRouteRecord<R extends RouteData>
   }) {
     return record.createPage(key: key, name: name, child: child);
   }
-}
-
-RouteRecord<R> _asAdapterRouteRecord<R extends RouteData>(
-  core.RouteRecord<R> record,
-) {
-  if (record case RouteRecord<R> adapterRecord) {
-    return adapterRecord;
-  }
-  throw StateError(
-    'Shell branch route "${record.path}" does not implement flutter '
-    'RouteRecord. Build shell routes with flutter_unrouter route()/'
-    'routeWithLoader().',
-  );
 }

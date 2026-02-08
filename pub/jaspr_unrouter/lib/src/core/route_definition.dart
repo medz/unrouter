@@ -164,7 +164,13 @@ List<RouteRecord<R>> shell<R extends RouteData>({
   return buildShellRouteRecords<R, RouteRecord<R>, RouteRecord<R>>(
     branches: branches,
     shellName: name,
-    resolveRecord: _asAdapterRouteRecord,
+    resolveRecord: (record) {
+      return requireShellRouteRecord<R, RouteRecord<R>>(
+        record,
+        adapterLabel: 'jaspr',
+        buildHint: 'jaspr_unrouter route()/routeWithLoader()',
+      );
+    },
     wrapRecord:
         ({
           required RouteRecord<R> record,
@@ -239,16 +245,4 @@ class _ShellRouteRecord<R extends RouteData>
 
     return _shellBuilder(context, shellState, child);
   }
-}
-
-RouteRecord<R> _asAdapterRouteRecord<R extends RouteData>(
-  core.RouteRecord<R> record,
-) {
-  if (record case RouteRecord<R> adapterRecord) {
-    return adapterRecord;
-  }
-  throw StateError(
-    'Shell branch route "${record.path}" does not implement jaspr RouteRecord. '
-    'Build shell routes with jaspr_unrouter route()/routeWithLoader().',
-  );
 }

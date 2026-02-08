@@ -15,6 +15,8 @@
   `ShellRouteRecordBinding`, reducing adapter-side forwarding duplication.
 - Reworked `shell()` assembly to reuse core `buildShellRouteRecords`, removing
   adapter-local branch flattening/runtime wiring templates.
+- Reworked shell route record casting to reuse core `requireShellRouteRecord`,
+  removing adapter-local cast/validation duplication.
 - Removed redundant adapter typedef indirection in route definition/runtime
   API and switched to direct core type usage.
 - Removed adapter-local `RouteData` re-export shim file; adapter now references

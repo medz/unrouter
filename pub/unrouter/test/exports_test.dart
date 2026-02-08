@@ -10,6 +10,7 @@ void main() {
     expect(unrouter.ShellCoordinator, isNotNull);
     expect(unrouter.ShellRuntimeBinding, isNotNull);
     expect(unrouter.buildShellRouteRecords, isNotNull);
+    expect(unrouter.requireShellRouteRecord, isNotNull);
     expect(unrouter.ShellRouteRecordBinding, isNotNull);
     expect(unrouter.ShellState, isNotNull);
     expect(unrouter.ShellRouteRecordHost, isNotNull);

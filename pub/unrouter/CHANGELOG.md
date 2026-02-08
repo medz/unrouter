@@ -23,6 +23,8 @@
   shell record forwarding logic instead of duplicating it.
 - Added `buildShellRouteRecords` helper so adapters can reuse branch flattening
   and shell runtime wiring with only adapter-specific wrapping logic.
+- Added `requireShellRouteRecord` helper so adapters can share shell record cast
+  validation/error handling instead of duplicating it.
 - Added architecture guard tests to keep `unrouter` free from Flutter imports.
 - Removed timeline-related runtime APIs (`UnrouterStateTimelineEntry`,
   `stateTimeline`, `clearStateTimeline`, `stateTimelineLimit`).

@@ -146,6 +146,27 @@ List<TWrappedRecord> buildShellRouteRecords<
   return wrapped;
 }
 
+/// Casts a core shell route record to an adapter-specific route record type.
+///
+/// Throws with an adapter-oriented error message when record type does not
+/// match the expected adapter route contract.
+TAdapterRecord requireShellRouteRecord<
+  R extends RouteData,
+  TAdapterRecord extends RouteRecord<R>
+>(
+  RouteRecord<R> record, {
+  required String adapterLabel,
+  required String buildHint,
+}) {
+  if (record case TAdapterRecord adapterRecord) {
+    return adapterRecord;
+  }
+  throw StateError(
+    'Shell branch route "${record.path}" does not implement $adapterLabel '
+    'RouteRecord. Build shell routes with $buildHint.',
+  );
+}
+
 /// Shared base for adapter shell route wrappers.
 ///
 /// Adapter packages can extend this type and only implement rendering concerns.

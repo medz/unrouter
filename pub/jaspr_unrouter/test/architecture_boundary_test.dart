@@ -80,5 +80,6 @@ void main() {
     );
     expect(routeDefs.contains('extends ShellRouteRecordBinding<'), isTrue);
     expect(routeDefs.contains('buildShellRouteRecords<'), isTrue);
+    expect(routeDefs.contains('_asAdapterRouteRecord'), isFalse);
   });
 }
