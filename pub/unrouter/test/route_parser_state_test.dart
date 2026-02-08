@@ -1,12 +1,15 @@
 import 'package:test/test.dart';
 import 'package:unrouter/unrouter.dart';
+import 'package:unstory/unstory.dart';
 
 void main() {
-  test('RouteParserState exposes typed params and query helpers', () {
-    final state = RouteParserState(
-      uri: Uri(
-        path: '/users/42',
-        queryParameters: {'tab': 'likes', 'page': '2'},
+  test('RouteState exposes typed params and query helpers', () {
+    final state = RouteState(
+      location: HistoryLocation(
+        Uri(
+          path: '/users/42',
+          queryParameters: {'tab': 'likes', 'page': '2'},
+        ),
       ),
       params: const {'id': '42'},
     );

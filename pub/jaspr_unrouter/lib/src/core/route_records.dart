@@ -1,16 +1,14 @@
 import 'package:jaspr/jaspr.dart';
 import 'package:unrouter/unrouter.dart'
     hide
-        LoadedRouteDefinition,
-        RouteDefinition,
+        DataRoute,
+        Route,
         RouteRecord,
         branch,
-        route,
-        routeWithLoader,
         shell;
 import 'package:unrouter/unrouter.dart'
     as core
-    show LoadedRouteDefinition, RouteDefinition, RouteRecord;
+    show DataRoute, Route, RouteRecord;
 
 import '../runtime/navigation.dart';
 
@@ -36,7 +34,7 @@ abstract interface class RouteRecord<T extends RouteData>
 }
 
 /// Route definition without asynchronous loader data.
-class RouteDefinition<T extends RouteData> extends core.RouteDefinition<T>
+class RouteDefinition<T extends RouteData> extends core.Route<T>
     implements RouteRecord<T> {
   RouteDefinition({
     required String path,
@@ -64,12 +62,12 @@ class RouteDefinition<T extends RouteData> extends core.RouteDefinition<T>
 
 /// Route definition that resolves typed loader data before build.
 class LoadedRouteDefinition<T extends RouteData, L>
-    extends core.LoadedRouteDefinition<T, L>
+    extends core.DataRoute<T, L>
     implements RouteRecord<T> {
   LoadedRouteDefinition({
     required String path,
     required RouteParser<T> parse,
-    required RouteLoader<T, L> loader,
+    required DataLoader<T, L> loader,
     required RouteLoadedComponentBuilder<T, L> builder,
     String? name,
     List<RouteGuard<T>> guards = const [],
@@ -125,7 +123,7 @@ RouteDefinition<T> route<T extends RouteData>({
 LoadedRouteDefinition<T, L> routeWithLoader<T extends RouteData, L>({
   required String path,
   required RouteParser<T> parse,
-  required RouteLoader<T, L> loader,
+  required DataLoader<T, L> loader,
   required RouteLoadedComponentBuilder<T, L> builder,
   String? name,
   List<RouteGuard<T>> guards = const [],

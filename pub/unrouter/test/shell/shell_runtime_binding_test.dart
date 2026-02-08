@@ -63,8 +63,8 @@ List<ShellBranch<AppRoute>> _branches() {
     branch<AppRoute>(
       initialLocation: Uri(path: '/feed'),
       routes: <RouteRecord<AppRoute>>[
-        route<FeedRoute>(path: '/feed', parse: (_) => const FeedRoute()),
-        route<FeedDetailRoute>(
+        Route<FeedRoute>(path: '/feed', parse: (_) => const FeedRoute()),
+        Route<FeedDetailRoute>(
           path: '/feed/details/:id',
           parse: (_) => const FeedDetailRoute(),
         ),
@@ -73,7 +73,7 @@ List<ShellBranch<AppRoute>> _branches() {
     branch<AppRoute>(
       initialLocation: Uri(path: '/settings'),
       routes: <RouteRecord<AppRoute>>[
-        route<SettingsRoute>(
+        Route<SettingsRoute>(
           path: '/settings',
           parse: (_) => const SettingsRoute(),
         ),

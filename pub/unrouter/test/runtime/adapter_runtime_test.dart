@@ -4,8 +4,8 @@ import 'package:unstory/unstory.dart';
 
 void main() {
   test('cast helpers return typed records and shell hosts', () {
-    const record = _RouteRecord(path: '/');
-    const shellRecord = _ShellRecord(path: '/shell');
+    final record = _RouteRecord(path: '/');
+    final shellRecord = _ShellRecord(path: '/shell');
 
     expect(castRouteRecord<_AppRoute, _RouteRecord>(record), same(record));
     expect(castRouteRecord<_AppRoute, _ShellRecord>(record), isNull);
@@ -17,7 +17,7 @@ void main() {
   test('resolveRouteResolution dispatches callbacks by lifecycle state', () {
     final matched = RouteResolution<_AppRoute>.matched(
       uri: Uri(path: '/'),
-      record: const _RouteRecord(path: '/'),
+      record: _RouteRecord(path: '/'),
       route: const _AppRoute('/'),
     );
     final blocked = RouteResolution<_AppRoute>.blocked(Uri(path: '/blocked'));
@@ -120,7 +120,7 @@ void main() {
     );
     final controller = UnrouterController<_AppRoute>(
       router: Unrouter<_AppRoute>(
-        routes: <RouteRecord<_AppRoute>>[const _RouteRecord(path: '/')],
+        routes: <RouteRecord<_AppRoute>>[_RouteRecord(path: '/')],
       ),
       history: history,
       resolveInitialRoute: true,
@@ -153,16 +153,16 @@ final class _AppRoute implements RouteData {
 }
 
 class _RouteRecord implements RouteRecord<_AppRoute> {
-  const _RouteRecord({required this.path});
+  _RouteRecord({required this.path}) : parse = ((_) => _AppRoute(path));
 
   @override
   final String path;
 
   @override
-  String? get name => null;
+  final RouteParser<_AppRoute> parse;
 
   @override
-  _AppRoute parse(RouteParserState state) => _AppRoute(path);
+  String? get name => null;
 
   @override
   Future<Uri?> runRedirect(RouteContext<RouteData> context) async => null;
@@ -171,14 +171,11 @@ class _RouteRecord implements RouteRecord<_AppRoute> {
   Future<RouteGuardResult> runGuards(RouteContext<RouteData> context) async {
     return RouteGuardResult.allow();
   }
-
-  @override
-  Future<Object?> load(RouteContext<RouteData> context) async => null;
 }
 
 final class _ShellRecord extends _RouteRecord
     implements ShellRouteRecordHost<_AppRoute> {
-  const _ShellRecord({required super.path});
+  _ShellRecord({required super.path});
 
   @override
   bool canPopBranch() => false;

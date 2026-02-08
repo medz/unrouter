@@ -7,7 +7,7 @@ void main() {
     final controller = UnrouterController<AppRoute>(
       router: Unrouter<AppRoute>(
         routes: <RouteRecord<AppRoute>>[
-          route<HomeRoute>(path: '/', parse: (_) => const HomeRoute()),
+          Route<HomeRoute>(path: '/', parse: (_) => const HomeRoute()),
         ],
       ),
     );
@@ -24,8 +24,8 @@ void main() {
     final controller = UnrouterController<AppRoute>(
       router: Unrouter<AppRoute>(
         routes: <RouteRecord<AppRoute>>[
-          route<HomeRoute>(path: '/', parse: (_) => const HomeRoute()),
-          route<UserRoute>(
+          Route<HomeRoute>(path: '/', parse: (_) => const HomeRoute()),
+          Route<UserRoute>(
             path: '/users/:id',
             parse: (state) => UserRoute(id: state.params.$int('id')),
           ),
@@ -50,9 +50,9 @@ void main() {
     final controller = UnrouterController<AppRoute>(
       router: Unrouter<AppRoute>(
         routes: <RouteRecord<AppRoute>>[
-          route<HomeRoute>(path: '/', parse: (_) => const HomeRoute()),
-          route<LoginRoute>(path: '/login', parse: (_) => const LoginRoute()),
-          route<SecureRoute>(
+          Route<HomeRoute>(path: '/', parse: (_) => const HomeRoute()),
+          Route<LoginRoute>(path: '/login', parse: (_) => const LoginRoute()),
+          Route<SecureRoute>(
             path: '/secure',
             parse: (_) => const SecureRoute(),
             guards: <RouteGuard<SecureRoute>>[
@@ -83,8 +83,8 @@ void main() {
     final controller = UnrouterController<AppRoute>(
       router: Unrouter<AppRoute>(
         routes: <RouteRecord<AppRoute>>[
-          route<HomeRoute>(path: '/', parse: (_) => const HomeRoute()),
-          route<SecureRoute>(
+          Route<HomeRoute>(path: '/', parse: (_) => const HomeRoute()),
+          Route<SecureRoute>(
             path: '/secure',
             parse: (_) => const SecureRoute(),
             guards: <RouteGuard<SecureRoute>>[(_) => RouteGuardResult.block()],
@@ -111,7 +111,7 @@ void main() {
     final controller = UnrouterController<AppRoute>(
       router: Unrouter<AppRoute>(
         routes: <RouteRecord<AppRoute>>[
-          route<SecureRoute>(
+          Route<SecureRoute>(
             path: '/secure',
             parse: (_) => const SecureRoute(),
             guards: <RouteGuard<SecureRoute>>[(_) => RouteGuardResult.block()],
@@ -132,8 +132,8 @@ void main() {
     final controller = UnrouterController<AppRoute>(
       router: Unrouter<AppRoute>(
         routes: <RouteRecord<AppRoute>>[
-          route<HomeRoute>(path: '/', parse: (_) => const HomeRoute()),
-          route<UserRoute>(
+          Route<HomeRoute>(path: '/', parse: (_) => const HomeRoute()),
+          Route<UserRoute>(
             path: '/users/:id',
             parse: (state) => UserRoute(id: state.params.$int('id')),
           ),
@@ -160,8 +160,8 @@ void main() {
       final controller = UnrouterController<AppRoute>(
         router: Unrouter<AppRoute>(
           routes: <RouteRecord<AppRoute>>[
-            route<HomeRoute>(path: '/', parse: (_) => const HomeRoute()),
-            route<UserRoute>(
+            Route<HomeRoute>(path: '/', parse: (_) => const HomeRoute()),
+            Route<UserRoute>(
               path: '/users/:id',
               parse: (state) => UserRoute(id: state.params.$int('id')),
             ),
@@ -195,9 +195,9 @@ void main() {
     final controller = UnrouterController<AppRoute>(
       router: Unrouter<AppRoute>(
         routes: <RouteRecord<AppRoute>>[
-          route<BranchRoute>(path: '/a', parse: (_) => const BranchRoute('/a')),
-          route<BranchRoute>(path: '/b', parse: (_) => const BranchRoute('/b')),
-          route<BranchRoute>(
+          Route<BranchRoute>(path: '/a', parse: (_) => const BranchRoute('/a')),
+          Route<BranchRoute>(path: '/b', parse: (_) => const BranchRoute('/b')),
+          Route<BranchRoute>(
             path: '/b/details',
             parse: (_) => const BranchRoute('/b/details'),
           ),

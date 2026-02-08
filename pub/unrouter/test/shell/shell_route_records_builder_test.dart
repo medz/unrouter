@@ -62,7 +62,8 @@ final class _AppRoute implements RouteData {
 }
 
 final class _TestRecord implements RouteRecord<_AppRoute> {
-  const _TestRecord({required this.path, this.name});
+  _TestRecord({required this.path, this.name})
+    : parse = ((_) => _AppRoute(path));
 
   @override
   final String path;
@@ -71,16 +72,11 @@ final class _TestRecord implements RouteRecord<_AppRoute> {
   final String? name;
 
   @override
-  _AppRoute parse(RouteParserState state) => _AppRoute(path);
+  final RouteParser<_AppRoute> parse;
 
   @override
   Future<RouteGuardResult> runGuards(RouteContext<RouteData> context) {
     return Future<RouteGuardResult>.value(RouteGuardResult.allow());
-  }
-
-  @override
-  Future<Object?> load(RouteContext<RouteData> context) {
-    return Future<Object?>.value(null);
   }
 
   @override
@@ -109,16 +105,11 @@ final class _WrappedRecord implements RouteRecord<_AppRoute> {
   String? get name => record.name;
 
   @override
-  _AppRoute parse(RouteParserState state) => record.parse(state);
+  RouteParser<_AppRoute> get parse => record.parse;
 
   @override
   Future<RouteGuardResult> runGuards(RouteContext<RouteData> context) {
     return record.runGuards(context);
-  }
-
-  @override
-  Future<Object?> load(RouteContext<RouteData> context) {
-    return record.load(context);
   }
 
   @override

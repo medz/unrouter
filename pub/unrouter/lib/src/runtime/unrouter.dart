@@ -7,8 +7,8 @@ import 'package:unstory/unstory.dart';
 import '../core/redirect_diagnostics.dart';
 import '../core/route_data.dart';
 import '../core/route_guards.dart';
-import '../core/route_parser.dart';
 import '../core/route_records.dart';
+import '../core/route_state.dart';
 import 'runtime_state.dart';
 import 'unrouter_controller_cast_view.dart';
 
@@ -56,7 +56,10 @@ class Unrouter<R extends RouteData> {
     }
 
     final params = matched.params ?? const <String, String>{};
-    final state = RouteParserState(uri: normalizedUri, params: params);
+    final state = RouteState(
+      location: HistoryLocation(normalizedUri),
+      params: params,
+    );
 
     late final R route;
     try {
@@ -112,7 +115,11 @@ class Unrouter<R extends RouteData> {
         return RouteResolution.blocked(normalizedUri);
       }
 
-      final loaderData = await matched.data.load(context);
+      Object? loaderData;
+      final record = matched.data;
+      if (record case DataRoute<R, Object?> dataRoute) {
+        loaderData = await dataRoute.load(context);
+      }
       signal.throwIfCancelled();
 
       return RouteResolution.matched(

@@ -11,10 +11,8 @@ export 'package:unrouter/unrouter.dart'
     hide
         Unrouter,
         RouteRecord,
-        RouteDefinition,
-        LoadedRouteDefinition,
-        route,
-        routeWithLoader,
+        Route,
+        DataRoute,
         branch,
         shell;
 export 'src/runtime/navigation.dart'

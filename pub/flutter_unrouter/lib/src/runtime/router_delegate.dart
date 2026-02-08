@@ -227,7 +227,7 @@ class _UnrouterPage extends Page<void> {
   final Widget child;
 
   @override
-  Route<void> createRoute(BuildContext context) {
+  PageRoute<void> createRoute(BuildContext context) {
     return PageRouteBuilder<void>(
       settings: this,
       pageBuilder: (_, _, _) => child,

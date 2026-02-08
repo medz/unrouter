@@ -2,7 +2,6 @@ import 'package:unstory/unstory.dart';
 
 import '../core/route_data.dart';
 import '../core/route_guards.dart';
-import '../core/route_parser.dart';
 import '../core/route_records.dart';
 import '../core/route_shell.dart';
 import 'shell_branch_descriptor.dart';
@@ -208,7 +207,7 @@ abstract class ShellRouteRecordBinding<
   }
 
   @override
-  R parse(RouteParserState state) => record.parse(state);
+  RouteParser<R> get parse => record.parse;
 
   @override
   Future<Uri?> runRedirect(RouteContext<RouteData> context) {
@@ -218,11 +217,6 @@ abstract class ShellRouteRecordBinding<
   @override
   Future<RouteGuardResult> runGuards(RouteContext<RouteData> context) {
     return record.runGuards(context);
-  }
-
-  @override
-  Future<Object?> load(RouteContext<RouteData> context) {
-    return record.load(context);
   }
 
   @override
