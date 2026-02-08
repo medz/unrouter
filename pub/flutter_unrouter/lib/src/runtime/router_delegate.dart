@@ -37,9 +37,7 @@ class UnrouterDelegate<R extends RouteData>
     };
     _controller.stateListenable.addListener(_stateListener);
 
-    unawaited(
-      _controller.dispatchRouteRequest(initial.uri, state: initial.state),
-    );
+    unawaited(_controller.sync(initial.uri, state: initial.state));
   }
 
   final runtime.Unrouter<R> config;
@@ -86,10 +84,7 @@ class UnrouterDelegate<R extends RouteData>
 
   @override
   Future<void> setNewRoutePath(HistoryLocation configuration) {
-    return _controller.dispatchRouteRequest(
-      configuration.uri,
-      state: configuration.state,
-    );
+    return _controller.sync(configuration.uri, state: configuration.state);
   }
 
   @override

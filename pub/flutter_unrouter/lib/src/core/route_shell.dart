@@ -76,13 +76,14 @@ class _ShellRouteRecord<R extends RouteData>
   Widget build(BuildContext context, RouteData route, Object? loaderData) {
     final child = record.build(context, route, loaderData);
     final controller = context.unrouter;
-    restoreShellState(controller.historyState);
-    final currentUri = controller.uri;
+    final snapshot = controller.state;
+    restoreShellState(snapshot.historyState);
+    final currentUri = snapshot.uri;
     recordShellNavigation(
       uri: currentUri,
-      action: controller.lastAction,
-      delta: controller.lastDelta,
-      historyIndex: controller.historyIndex,
+      action: snapshot.lastAction,
+      delta: snapshot.lastDelta,
+      historyIndex: snapshot.historyIndex,
     );
 
     final shellState = createShellState(

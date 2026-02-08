@@ -4,13 +4,21 @@
 
 - Split repository into `pub workspace` packages.
 - `unrouter` is now platform-agnostic and depends only on Dart SDK.
-- Added pure Dart `UnrouterController` runtime with `go/replace/push/pop/back`
-  APIs and redirect handling.
+- Added pure Dart `UnrouterController` runtime with `go/push/pop/back` APIs
+  and redirect handling.
 - Added `UnrouterController.cast<S>()` to share one runtime controller across
   typed route views.
 - `UnrouterController` no longer exposes history composer and shell resolver
   injection APIs. Shell branch switching is resolved directly from the active
   shell record (`ShellRouteRecordHost`), keeping the core runtime API smaller.
+- `UnrouterController` navigation API is further reduced by removing duplicated
+  or low-value commands (`replace`, `replaceUri`, `popToUri`, `forward`,
+  `goDelta`). Core runtime now keeps `go/goUri`, `push/pushUri`, `pop/back`,
+  and shell branch actions.
+- Renamed controller sync entrypoint from `dispatchRouteRequest` to `sync`.
+- `StateSnapshot` now includes `historyState`, and shell adapters consume
+  navigation metadata from snapshot values instead of separate controller
+  getters.
 - Added `UnrouterController.resolution` to expose the current typed
   `RouteResolution`.
 - Added platform-agnostic shell coordination APIs

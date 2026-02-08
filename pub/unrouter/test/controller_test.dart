@@ -177,7 +177,7 @@ void main() {
     controller.go(const UserRoute(id: 8), state: payload);
     await controller.idle;
 
-    final historyState = controller.historyState as Map<String, Object?>;
+    final historyState = controller.state.historyState as Map<String, Object?>;
     expect(historyState, payload);
   });
 

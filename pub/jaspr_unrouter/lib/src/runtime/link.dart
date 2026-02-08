@@ -91,7 +91,7 @@ class UnrouterLink<R extends RouteData> extends StatelessComponent {
         controller.go(route, state: state);
         return;
       case UnrouterLinkMode.replace:
-        controller.replace(route, state: state);
+        controller.go(route, state: state);
         return;
       case UnrouterLinkMode.push:
         controller.push<void>(route, state: state);

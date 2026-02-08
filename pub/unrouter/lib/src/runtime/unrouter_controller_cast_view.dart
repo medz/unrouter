@@ -1,7 +1,5 @@
 import 'dart:async';
 
-import 'package:unstory/unstory.dart';
-
 import '../core/route_data.dart';
 import '../core/route_records.dart';
 import 'state.dart';
@@ -18,28 +16,10 @@ final class UnrouterControllerCastView<R extends RouteData>
   final UnrouterController _source;
 
   @override
-  History get history => _source.history;
-
-  @override
   R? get route => _source.route as R?;
 
   @override
   Uri get uri => _source.uri;
-
-  @override
-  bool get canGoBack => _source.canGoBack;
-
-  @override
-  HistoryAction get lastAction => _source.lastAction;
-
-  @override
-  int? get lastDelta => _source.lastDelta;
-
-  @override
-  int? get historyIndex => _source.historyIndex;
-
-  @override
-  Object? get historyState => _source.historyState;
 
   @override
   StateSnapshot<R> get state {
@@ -66,68 +46,13 @@ final class UnrouterControllerCastView<R extends RouteData>
   }
 
   @override
-  String hrefUri(Uri uri) {
-    return _source.hrefUri(uri);
+  void go(R route, {Object? state}) {
+    _source.go(route, state: state);
   }
 
   @override
-  void go(
-    R route, {
-    Object? state,
-    bool completePendingResult = false,
-    Object? result,
-  }) {
-    _source.go(
-      route,
-      state: state,
-      completePendingResult: completePendingResult,
-      result: result,
-    );
-  }
-
-  @override
-  void goUri(
-    Uri uri, {
-    Object? state,
-    bool completePendingResult = false,
-    Object? result,
-  }) {
-    _source.goUri(
-      uri,
-      state: state,
-      completePendingResult: completePendingResult,
-      result: result,
-    );
-  }
-
-  @override
-  void replace(
-    R route, {
-    Object? state,
-    bool completePendingResult = false,
-    Object? result,
-  }) {
-    _source.replace(
-      route,
-      state: state,
-      completePendingResult: completePendingResult,
-      result: result,
-    );
-  }
-
-  @override
-  void replaceUri(
-    Uri uri, {
-    Object? state,
-    bool completePendingResult = false,
-    Object? result,
-  }) {
-    _source.replaceUri(
-      uri,
-      state: state,
-      completePendingResult: completePendingResult,
-      result: result,
-    );
+  void goUri(Uri uri, {Object? state}) {
+    _source.goUri(uri, state: state);
   }
 
   @override
@@ -146,23 +71,8 @@ final class UnrouterControllerCastView<R extends RouteData>
   }
 
   @override
-  void popToUri(Uri uri, {Object? state, Object? result}) {
-    _source.popToUri(uri, state: state, result: result);
-  }
-
-  @override
   bool back() {
     return _source.back();
-  }
-
-  @override
-  void forward() {
-    _source.forward();
-  }
-
-  @override
-  void goDelta(int delta) {
-    _source.goDelta(delta);
   }
 
   @override
@@ -194,8 +104,8 @@ final class UnrouterControllerCastView<R extends RouteData>
   }
 
   @override
-  Future<void> dispatchRouteRequest(Uri uri, {Object? state}) {
-    return _source.dispatchRouteRequest(uri, state: state);
+  Future<void> sync(Uri uri, {Object? state}) {
+    return _source.sync(uri, state: state);
   }
 
   @override

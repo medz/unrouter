@@ -16,6 +16,7 @@ enum RouteResolutionType {
 class StateSnapshot<R extends RouteData> {
   const StateSnapshot({
     required this.uri,
+    required this.historyState,
     required this.route,
     required this.resolution,
     required this.routePath,
@@ -28,6 +29,7 @@ class StateSnapshot<R extends RouteData> {
   });
 
   final Uri uri;
+  final Object? historyState;
   final R? route;
   final RouteResolutionType resolution;
   final String? routePath;
@@ -49,6 +51,7 @@ class StateSnapshot<R extends RouteData> {
   StateSnapshot<S> cast<S extends RouteData>() {
     return StateSnapshot<S>(
       uri: uri,
+      historyState: historyState,
       route: route as S?,
       resolution: resolution,
       routePath: routePath,

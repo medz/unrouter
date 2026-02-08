@@ -292,6 +292,7 @@ class UnrouterController<R extends RouteData> {
        _resolution = RouteResolution<R>.pending(history.location.uri),
        _state = StateSnapshot<R>(
          uri: history.location.uri,
+         historyState: history.location.state,
          route: null,
          resolution: RouteResolutionType.pending,
          routePath: null,
@@ -332,29 +333,11 @@ class UnrouterController<R extends RouteData> {
   _RedirectChainState? _redirectChain;
   bool _isDisposed = false;
 
-  /// Underlying history abstraction.
-  History get history => _history;
-
   /// Current typed route object.
   R? get route => _state.route;
 
   /// Current location URI.
   Uri get uri => _history.location.uri;
-
-  /// Whether history can go back.
-  bool get canGoBack => (_history.index ?? 0) > 0;
-
-  /// Last history action observed by this controller.
-  HistoryAction get lastAction => _lastAction;
-
-  /// Last history delta observed by this controller.
-  int? get lastDelta => _lastDelta;
-
-  /// Current history index when available.
-  int? get historyIndex => _history.index;
-
-  /// Raw history state payload of current location.
-  Object? get historyState => _history.location.state;
 
   /// Current runtime snapshot.
   StateSnapshot<R> get state => _state;
@@ -373,74 +356,14 @@ class UnrouterController<R extends RouteData> {
     return _history.createHref(route.toUri());
   }
 
-  /// Generates href for a URI.
-  String hrefUri(Uri uri) {
-    return _history.createHref(uri);
-  }
-
   /// Navigates to [route] using replace-like semantics.
-  void go(
-    R route, {
-    Object? state,
-    bool completePendingResult = false,
-    Object? result,
-  }) {
-    goUri(
-      route.toUri(),
-      state: state,
-      completePendingResult: completePendingResult,
-      result: result,
-    );
+  void go(R route, {Object? state}) {
+    goUri(route.toUri(), state: state);
   }
 
   /// Navigates to [uri] using replace-like semantics.
-  void goUri(
-    Uri uri, {
-    Object? state,
-    bool completePendingResult = false,
-    Object? result,
-  }) {
-    if (_isDisposed) {
-      return;
-    }
-    if (completePendingResult) {
-      _completeTopPending(result);
-    }
-    _history.replace(uri, state: state);
-    _lastAction = HistoryAction.replace;
-    _lastDelta = null;
-    _trackedHistoryIndex = _history.index ?? _trackedHistoryIndex;
-    _scheduleResolve(uri, state: state);
-  }
-
-  /// Replaces current entry with [route].
-  void replace(
-    R route, {
-    Object? state,
-    bool completePendingResult = false,
-    Object? result,
-  }) {
-    replaceUri(
-      route.toUri(),
-      state: state,
-      completePendingResult: completePendingResult,
-      result: result,
-    );
-  }
-
-  /// Replaces current entry with [uri].
-  void replaceUri(
-    Uri uri, {
-    Object? state,
-    bool completePendingResult = false,
-    Object? result,
-  }) {
-    goUri(
-      uri,
-      state: state,
-      completePendingResult: completePendingResult,
-      result: result,
-    );
+  void goUri(Uri uri, {Object? state}) {
+    _goUri(uri, state: state);
   }
 
   /// Pushes [route] and resolves typed result on pop.
@@ -466,7 +389,7 @@ class UnrouterController<R extends RouteData> {
 
   /// Pops current entry and optionally completes pending push result.
   bool pop<T extends Object?>([T? result]) {
-    if (_isDisposed || !canGoBack) {
+    if (_isDisposed || (_history.index ?? 0) <= 0) {
       return false;
     }
     _popResultQueue.addLast(result);
@@ -474,42 +397,13 @@ class UnrouterController<R extends RouteData> {
     return true;
   }
 
-  /// Pops by replacing with [uri] and completes top pending result.
-  void popToUri(Uri uri, {Object? state, Object? result}) {
-    if (_isDisposed) {
-      return;
-    }
-    _completeTopPending(result);
-    _history.replace(uri, state: state);
-    _lastAction = HistoryAction.replace;
-    _lastDelta = null;
-    _trackedHistoryIndex = _history.index ?? _trackedHistoryIndex;
-    _scheduleResolve(uri, state: state);
-  }
-
   /// Goes back one history entry.
   bool back() {
-    if (_isDisposed || !canGoBack) {
+    if (_isDisposed || (_history.index ?? 0) <= 0) {
       return false;
     }
     _history.back();
     return true;
-  }
-
-  /// Goes forward one history entry.
-  void forward() {
-    if (_isDisposed) {
-      return;
-    }
-    _history.forward();
-  }
-
-  /// Moves history cursor by [delta].
-  void goDelta(int delta) {
-    if (_isDisposed) {
-      return;
-    }
-    _history.go(delta);
   }
 
   /// Switches active shell branch.
@@ -537,7 +431,7 @@ class UnrouterController<R extends RouteData> {
       return false;
     }
 
-    replaceUri(
+    _goUri(
       target,
       state: null,
       completePendingResult: completePendingResult,
@@ -559,12 +453,7 @@ class UnrouterController<R extends RouteData> {
       return false;
     }
 
-    replaceUri(
-      target,
-      state: null,
-      completePendingResult: true,
-      result: result,
-    );
+    _goUri(target, state: null, completePendingResult: true, result: result);
     return true;
   }
 
@@ -576,8 +465,8 @@ class UnrouterController<R extends RouteData> {
     return UnrouterControllerCastView<S>(this);
   }
 
-  /// Resolves [uri] and commits router state.
-  Future<void> dispatchRouteRequest(Uri uri, {Object? state}) {
+  /// Syncs controller state to an externally provided [uri].
+  Future<void> sync(Uri uri, {Object? state}) {
     if (_isDisposed) {
       return Future<void>.value();
     }
@@ -701,6 +590,7 @@ class UnrouterController<R extends RouteData> {
           _updateState(
             StateSnapshot<R>(
               uri: previousSnapshot.uri,
+              historyState: _history.location.state,
               route: previousSnapshot.route,
               resolution: previousSnapshot.resolution,
               routePath: previousSnapshot.routePath,
@@ -759,6 +649,7 @@ class UnrouterController<R extends RouteData> {
     }
     final pending = StateSnapshot<R>(
       uri: uri,
+      historyState: _history.location.state,
       route: null,
       resolution: RouteResolutionType.pending,
       routePath: null,
@@ -777,6 +668,7 @@ class UnrouterController<R extends RouteData> {
     _hasCommittedResolution = true;
     final snapshot = StateSnapshot<R>(
       uri: resolution.uri,
+      historyState: _history.location.state,
       route: resolution.route,
       resolution: resolution.type,
       routePath: resolution.record?.path,
@@ -807,6 +699,7 @@ class UnrouterController<R extends RouteData> {
 
   bool _isSameSnapshot(StateSnapshot<R> a, StateSnapshot<R> b) {
     return a.uri == b.uri &&
+        a.historyState == b.historyState &&
         _isSameRoute(a.route, b.route) &&
         a.resolution == b.resolution &&
         a.routePath == b.routePath &&
@@ -832,7 +725,26 @@ class UnrouterController<R extends RouteData> {
   }
 
   void _scheduleResolve(Uri uri, {Object? state}) {
-    unawaited(dispatchRouteRequest(uri, state: state));
+    unawaited(sync(uri, state: state));
+  }
+
+  void _goUri(
+    Uri uri, {
+    required Object? state,
+    bool completePendingResult = false,
+    Object? result,
+  }) {
+    if (_isDisposed) {
+      return;
+    }
+    if (completePendingResult) {
+      _completeTopPending(result);
+    }
+    _history.replace(uri, state: state);
+    _lastAction = HistoryAction.replace;
+    _lastDelta = null;
+    _trackedHistoryIndex = _history.index ?? _trackedHistoryIndex;
+    _scheduleResolve(uri, state: state);
   }
 
   int _resolveHistoryIndex({
