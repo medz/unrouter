@@ -1,6 +1,6 @@
 # jaspr_unrouter
 
-Jaspr adapter skeleton package for `unrouter`.
+Jaspr adapter package for `unrouter`.
 
 ## Install
 
@@ -48,6 +48,17 @@ Navigation from a component:
 context.unrouterAs<AppRoute>().push(const HomeRoute());
 context.unrouterAs<AppRoute>().go(const HomeRoute());
 context.unrouterAs<AppRoute>().back();
+```
+
+Declarative link:
+
+```dart
+import 'package:jaspr/dom.dart';
+
+UnrouterLink<HomeRoute>(
+  route: const HomeRoute(),
+  children: [span([text('Home')])],
+)
 ```
 
 Pure Dart usage (without mounting component router):

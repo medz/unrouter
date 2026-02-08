@@ -11,6 +11,8 @@ void main() {
     expect(unrouter.UnrouterRouter, isNotNull);
     expect(unrouter.UnrouterController, isNotNull);
     expect(unrouter.UnrouterScope, isNotNull);
+    expect(unrouter.UnrouterLink, isNotNull);
+    expect(unrouter.UnrouterLinkMode.values, isNotEmpty);
   });
 
   test('adapter router wraps core route records and resolve', () async {
@@ -45,6 +47,15 @@ void main() {
 
     final mounted = unrouter.UnrouterRouter<AppRoute>(router: router);
     expect(mounted, isA<Component>());
+  });
+
+  test('link component can be created for typed route', () {
+    const link = unrouter.UnrouterLink<HomeRoute>(
+      route: HomeRoute(),
+      children: <Component>[Component.text('Home')],
+    );
+
+    expect(link, isA<Component>());
   });
 }
 

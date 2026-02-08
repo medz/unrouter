@@ -4,8 +4,7 @@
 
 - Pure Dart runtime or custom runtime integration: use `unrouter`.
 - Flutter app: use `flutter_unrouter` only (it already depends on `unrouter`).
-- Jaspr app: use `jaspr_unrouter` (adapter skeleton, runtime binding in
-  progress).
+- Jaspr app: use `jaspr_unrouter` only (it already depends on `unrouter`).
 
 ## Install
 
@@ -112,15 +111,18 @@ void main() {
 
 ## Runtime navigation API consistency
 
-`unrouter` and `flutter_unrouter` expose the same primary controller methods:
+`unrouter`, `flutter_unrouter`, and `jaspr_unrouter` expose the same primary
+controller methods:
 
 - `go/goUri`
 - `replace/replaceUri`
 - `push/pushUri`
 - `pop/popToUri/back/forward/goDelta`
-- `state`, `resolution`, `stateListenable`
+- `state`, `resolution`, `states`
 
 Flutter adds shell-only helpers (`switchBranch`, `popBranch`) on top.
+Jaspr adds component bindings (`UnrouterRouter`, `UnrouterScope`,
+`UnrouterLink`).
 
 ## Next reads
 

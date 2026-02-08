@@ -1,0 +1,26 @@
+import 'dart:io';
+
+import 'package:test/test.dart';
+
+void main() {
+  test('runtime binding does not depend on jaspr_router', () {
+    final pubspec = File('pubspec.yaml').readAsStringSync();
+    final runtime = File('lib/src/runtime/unrouter.dart').readAsStringSync();
+
+    expect(
+      pubspec.contains('jaspr_router:'),
+      isFalse,
+      reason: 'jaspr_unrouter should not depend on jaspr_router.',
+    );
+    expect(
+      runtime.contains('jaspr_router'),
+      isFalse,
+      reason: 'runtime binding should be driven by core controller.',
+    );
+    expect(
+      runtime.contains('createController('),
+      isTrue,
+      reason: 'runtime binding should build on core controller runtime.',
+    );
+  });
+}

@@ -10,3 +10,4 @@
 - Added BuildContext navigation helpers (`context.unrouter`,
   `context.unrouterAs<T>()`).
 - Added `router.createController()` for pure-Dart runtime usage.
+- Added `UnrouterLink` declarative link component and `UnrouterLinkMode`.
