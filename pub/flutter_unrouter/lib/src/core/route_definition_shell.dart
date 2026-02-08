@@ -146,15 +146,13 @@ class _ShellRouteRecord<R extends RouteData>
        _runtime = runtime,
        _shellBuilder = shellBuilder,
        _branchIndex = branchIndex,
-       _shellName = shellName,
-       _coreRecord = _DelegatingCoreRouteRecord<R>(record.core);
+       _shellName = shellName;
 
   final RouteRecord<R> _record;
   final _ShellRuntime<R> _runtime;
   final ShellBuilder<R> _shellBuilder;
   final int _branchIndex;
   final String? _shellName;
-  final _CoreRouteRecord<R> _coreRecord;
 
   @override
   String get path => _record.path;
@@ -172,26 +170,26 @@ class _ShellRouteRecord<R extends RouteData>
   }
 
   @override
-  _CoreRouteRecord<R> get core => _coreRecord;
+  _CoreRouteRecord<R> get core => this;
 
   @override
-  R parse(_CoreRouteParserState state) => _coreRecord.parse(state);
+  R parse(_CoreRouteParserState state) => _record.parse(state);
 
   @override
   Future<Uri?> runRedirect(_CoreRouteHookContext<RouteData> context) {
-    return _coreRecord.runRedirect(context);
+    return _record.runRedirect(context);
   }
 
   @override
   Future<_CoreRouteGuardResult> runGuards(
     _CoreRouteHookContext<RouteData> context,
   ) {
-    return _coreRecord.runGuards(context);
+    return _record.runGuards(context);
   }
 
   @override
   Future<Object?> load(_CoreRouteHookContext<RouteData> context) {
-    return _coreRecord.load(context);
+    return _record.load(context);
   }
 
   @override
@@ -262,39 +260,6 @@ class _ShellRouteRecord<R extends RouteData>
     required Widget child,
   }) {
     return _record.createPage(key: key, name: name, child: child);
-  }
-}
-
-class _DelegatingCoreRouteRecord<T extends RouteData>
-    implements _CoreRouteRecord<T> {
-  const _DelegatingCoreRouteRecord(this._delegate);
-
-  final _CoreRouteRecord<T> _delegate;
-
-  @override
-  String get path => _delegate.path;
-
-  @override
-  String? get name => _delegate.name;
-
-  @override
-  T parse(_CoreRouteParserState state) => _delegate.parse(state);
-
-  @override
-  Future<Uri?> runRedirect(_CoreRouteHookContext<RouteData> context) {
-    return _delegate.runRedirect(context);
-  }
-
-  @override
-  Future<_CoreRouteGuardResult> runGuards(
-    _CoreRouteHookContext<RouteData> context,
-  ) {
-    return _delegate.runGuards(context);
-  }
-
-  @override
-  Future<Object?> load(_CoreRouteHookContext<RouteData> context) {
-    return _delegate.load(context);
   }
 }
 

@@ -51,15 +51,8 @@ class Unrouter<R extends RouteData> extends StatelessWidget
          'Unrouter maxRedirectHops must be greater than zero.',
        ),
        routes = List<RouteRecord<R>>.unmodifiable(routes),
-       _recordsByCore = Map<_CoreRouteRecord<R>, RouteRecord<R>>.unmodifiable(
-         <_CoreRouteRecord<R>, RouteRecord<R>>{
-           for (final record in routes) record.core: record,
-         },
-       ),
        _core = _CoreUnrouter<R>(
-         routes: routes
-             .map<_CoreRouteRecord<R>>((record) => record.core)
-             .toList(growable: false),
+         routes: routes.cast<_CoreRouteRecord<R>>(),
          maxRedirectHops: maxRedirectHops,
          redirectLoopPolicy: redirectLoopPolicy,
          onRedirectDiagnostics: onRedirectDiagnostics,
@@ -70,7 +63,6 @@ class Unrouter<R extends RouteData> extends StatelessWidget
 
   /// Immutable route table consumed by the matcher.
   final List<RouteRecord<R>> routes;
-  final Map<_CoreRouteRecord<R>, RouteRecord<R>> _recordsByCore;
   final _CoreUnrouter<R> _core;
 
   /// Optional builder for unknown locations.
@@ -119,10 +111,7 @@ class Unrouter<R extends RouteData> extends StatelessWidget
   }
 
   RouteRecord<R>? routeRecordOf(core.RouteRecord<R>? record) {
-    if (record == null) {
-      return null;
-    }
-    return _recordsByCore[record];
+    return record is RouteRecord<R> ? record : null;
   }
 
   @override
