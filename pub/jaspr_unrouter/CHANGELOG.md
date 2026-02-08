@@ -11,6 +11,8 @@
 - Added `UnrouterLink` declarative link component and `UnrouterLinkMode`.
 - Removed adapter-local shell contract definitions (`ShellState`,
   `ShellRouteRecordHost`) and reused core contracts from `unrouter`.
+- Reworked shell route wrapper implementation to extend core
+  `ShellRouteRecordBinding`, reducing adapter-side forwarding duplication.
 - Removed redundant adapter typedef indirection in route definition/runtime
   API and switched to direct core type usage.
 - Removed adapter-local `RouteData` re-export shim file; adapter now references

@@ -55,6 +55,7 @@ void main() {
       source.contains('abstract interface class ShellRouteRecordHost<'),
       isFalse,
     );
+    expect(source.contains('extends ShellRouteRecordBinding<'), isTrue);
   });
 
   test('controller binding reuses core controller type', () {

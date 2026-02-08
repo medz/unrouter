@@ -78,5 +78,6 @@ void main() {
       routeDefs.contains('abstract interface class ShellRouteRecordHost<'),
       isFalse,
     );
+    expect(routeDefs.contains('extends ShellRouteRecordBinding<'), isTrue);
   });
 }

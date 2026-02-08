@@ -24,6 +24,8 @@
   `ShellCoordinator`, removing duplicated envelope/stack algorithms.
 - Removed adapter-local shell contract definitions (`ShellState`,
   `ShellRouteRecordHost`) and reused core contracts from `unrouter`.
+- Reworked shell route wrapper implementation to extend core
+  `ShellRouteRecordBinding`, reducing adapter-side forwarding duplication.
 - Removed adapter alias typedef wrappers and direct shim accessors
   (`RouteRecord.core`, `CoreUnrouter`, `typedef UnrouterController = ...`) so
   adapter internals use core types directly.

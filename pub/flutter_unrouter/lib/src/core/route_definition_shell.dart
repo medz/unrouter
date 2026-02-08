@@ -42,101 +42,41 @@ List<RouteRecord<R>> shell<R extends RouteData>({
 }
 
 class _ShellRouteRecord<R extends RouteData>
+    extends ShellRouteRecordBinding<R, RouteRecord<R>>
     implements RouteRecord<R>, ShellRouteRecordHost<R> {
   _ShellRouteRecord({
-    required RouteRecord<R> record,
-    required core.ShellRuntimeBinding<R> runtime,
+    required super.record,
+    required super.runtime,
+    required super.branchIndex,
+    super.shellName,
     required ShellBuilder<R> shellBuilder,
-    required int branchIndex,
-    String? shellName,
-  }) : _record = record,
-       _runtime = runtime,
-       _shellBuilder = shellBuilder,
-       _branchIndex = branchIndex,
-       _shellName = shellName;
+  }) : _shellBuilder = shellBuilder;
 
-  final RouteRecord<R> _record;
-  final core.ShellRuntimeBinding<R> _runtime;
   final ShellBuilder<R> _shellBuilder;
-  final int _branchIndex;
-  final String? _shellName;
-
-  @override
-  String get path => _record.path;
-
-  @override
-  String? get name {
-    if (_shellName == null) {
-      return _record.name;
-    }
-    final routeName = _record.name;
-    if (routeName == null || routeName.isEmpty) {
-      return _shellName;
-    }
-    return '$_shellName.$routeName';
-  }
-
-  @override
-  R parse(RouteParserState state) => _record.parse(state);
-
-  @override
-  Future<Uri?> runRedirect(RouteHookContext<RouteData> context) {
-    return _record.runRedirect(context);
-  }
-
-  @override
-  Future<RouteGuardResult> runGuards(RouteHookContext<RouteData> context) {
-    return _record.runGuards(context);
-  }
-
-  @override
-  Future<Object?> load(RouteHookContext<RouteData> context) {
-    return _record.load(context);
-  }
-
-  @override
-  Uri resolveBranchTarget(int index, {bool initialLocation = false}) {
-    return _runtime.resolveTargetUri(index, initialLocation: initialLocation);
-  }
-
-  @override
-  bool canPopBranch() {
-    return _runtime.canPopBranch(_branchIndex);
-  }
-
-  @override
-  Uri? popBranch({Object? result}) {
-    return _runtime.popBranch(_branchIndex);
-  }
 
   @override
   Widget build(BuildContext context, RouteData route, Object? loaderData) {
-    final child = _record.build(context, route, loaderData);
+    final child = record.build(context, route, loaderData);
     final controller = context.unrouter;
-    _runtime.restoreFromState(controller.historyState);
+    restoreShellState(controller.historyState);
     final currentUri = controller.uri;
-    _runtime.recordNavigation(
-      branchIndex: _branchIndex,
+    recordShellNavigation(
       uri: currentUri,
       action: controller.lastAction,
       delta: controller.lastDelta,
       historyIndex: controller.historyIndex,
     );
     controller.setHistoryStateComposer((request) {
-      return _runtime.composeHistoryState(
+      return composeShellHistoryState(
         uri: request.uri,
         action: request.action,
         state: request.state,
         currentState: request.currentState,
-        activeBranchIndex: _branchIndex,
       );
     });
 
-    final shellState = ShellState<R>(
-      activeBranchIndex: _branchIndex,
-      branches: _runtime.branches,
+    final shellState = createShellState(
       currentUri: currentUri,
-      currentBranchHistory: _runtime.currentBranchHistory(_branchIndex),
       onGoBranch:
           (
             index, {
@@ -151,7 +91,7 @@ class _ShellRouteRecord<R extends RouteData>
               result: result,
             );
           },
-      canPopBranch: () => _runtime.canPopBranch(_branchIndex),
+      canPopBranch: canPopBranch,
       onPopBranch: (result) => controller.popBranch(result),
     );
 
@@ -164,7 +104,7 @@ class _ShellRouteRecord<R extends RouteData>
     required String name,
     required Widget child,
   }) {
-    return _record.createPage(key: key, name: name, child: child);
+    return record.createPage(key: key, name: name, child: child);
   }
 }
 
