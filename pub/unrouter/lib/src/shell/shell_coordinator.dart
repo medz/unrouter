@@ -1,14 +1,15 @@
 import 'package:unstory/unstory.dart';
 
-import 'shell_branch_descriptor.dart';
+import '../core/route_data.dart';
+import '../core/route_shell.dart';
 import 'shell_stack_state.dart';
 
 /// Platform-agnostic coordinator for shell branch stacks.
-class ShellCoordinator {
-  ShellCoordinator({required List<ShellBranchDescriptor> branches})
-    : branches = List<ShellBranchDescriptor>.unmodifiable(branches);
+class ShellCoordinator<R extends RouteData> {
+  ShellCoordinator({required List<ShellBranch<R>> branches})
+    : branches = List<ShellBranch<R>>.unmodifiable(branches);
 
-  final List<ShellBranchDescriptor> branches;
+  final List<ShellBranch<R>> branches;
 
   final Map<int, ShellBranchStackState> _stacks =
       <int, ShellBranchStackState>{};
@@ -51,10 +52,11 @@ class ShellCoordinator {
   /// Returns branch index matching [uri], if any.
   int? branchIndexForUri(Uri uri) {
     final path = _normalizePathForMatch(uri.path);
-    for (final branch in branches) {
-      for (final pattern in branch.routePatterns) {
-        if (_pathMatchesRoutePattern(pattern, path)) {
-          return branch.index;
+    for (var i = 0; i < branches.length; i++) {
+      final branch = branches[i];
+      for (final route in branch.routes) {
+        if (_pathMatchesRoutePattern(route.path, path)) {
+          return i;
         }
       }
     }
@@ -64,8 +66,9 @@ class ShellCoordinator {
   /// Resolves the location a branch should navigate to when activated.
   Uri resolveBranchTarget(int branchIndex, {required bool initialLocation}) {
     _assertBranchIndex(branchIndex);
+    final branch = branches[branchIndex];
     if (initialLocation) {
-      final initial = branches[branchIndex].initialLocation;
+      final initial = branch.initialLocation;
       _stacks[branchIndex] = ShellBranchStackState(
         entries: <Uri>[initial],
         index: 0,
@@ -75,7 +78,7 @@ class ShellCoordinator {
 
     final stack = _stacks[branchIndex];
     if (stack == null || stack.entries.isEmpty) {
-      final initial = branches[branchIndex].initialLocation;
+      final initial = branch.initialLocation;
       _stacks[branchIndex] = ShellBranchStackState(
         entries: <Uri>[initial],
         index: 0,

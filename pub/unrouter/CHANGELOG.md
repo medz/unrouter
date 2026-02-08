@@ -42,7 +42,9 @@
   - `ShellRouteRecordHost.popBranch()` no longer accepts an unused `result`
     parameter.
 - Removed shell history-state envelope/restoration APIs and kept only
-  branch-stack coordination in `ShellCoordinator`/`ShellRuntimeBinding`.
+  branch-stack coordination in `ShellCoordinator`.
+- Removed `ShellRuntimeBinding`; shell wrappers now share one
+  `ShellCoordinator` directly.
 - Simplified `RouteParserState` parser API by introducing typed param views:
   - `RouteParserState` now exposes `params` and `query` (`TypedParams`);
   - `RouteParserState.queryParameters` is removed;

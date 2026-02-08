@@ -85,7 +85,7 @@ controller.dispose();
 
 ## Shell integration
 
-For adapter authors, `ShellRuntimeBinding`, `ShellRouteRecordBinding`, and
+For adapter authors, `ShellCoordinator`, `ShellRouteRecordBinding`, and
 `buildShellRouteRecords` are available to bridge `ShellBranch` trees while
 keeping rendering logic in adapter packages.
 

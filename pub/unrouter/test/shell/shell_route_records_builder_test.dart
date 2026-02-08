@@ -2,43 +2,50 @@ import 'package:test/test.dart';
 import 'package:unrouter/unrouter.dart';
 
 void main() {
-  test('buildShellRouteRecords flattens branches and reuses one runtime', () {
-    final branches = <ShellBranch<_AppRoute>>[
-      branch<_AppRoute>(
-        routes: <RouteRecord<_AppRoute>>[
-          _TestRecord(path: '/feed', name: 'feed'),
-        ],
-        initialLocation: Uri(path: '/feed'),
-      ),
-      branch<_AppRoute>(
-        routes: <RouteRecord<_AppRoute>>[
-          _TestRecord(path: '/settings', name: 'settings'),
-        ],
-        initialLocation: Uri(path: '/settings'),
-      ),
-    ];
+  test(
+    'buildShellRouteRecords flattens branches and reuses one coordinator',
+    () {
+      final branches = <ShellBranch<_AppRoute>>[
+        branch<_AppRoute>(
+          routes: <RouteRecord<_AppRoute>>[
+            _TestRecord(path: '/feed', name: 'feed'),
+          ],
+          initialLocation: Uri(path: '/feed'),
+        ),
+        branch<_AppRoute>(
+          routes: <RouteRecord<_AppRoute>>[
+            _TestRecord(path: '/settings', name: 'settings'),
+          ],
+          initialLocation: Uri(path: '/settings'),
+        ),
+      ];
 
-    final wrapped =
-        buildShellRouteRecords<_AppRoute, _TestRecord, _WrappedRecord>(
-          branches: branches,
-          resolveRecord: (record) => record as _TestRecord,
-          wrapRecord:
-              ({required record, required runtime, required branchIndex}) {
-                return _WrappedRecord(
-                  record: record,
-                  runtime: runtime,
-                  branchIndex: branchIndex,
-                );
-              },
-        );
+      final wrapped =
+          buildShellRouteRecords<_AppRoute, _TestRecord, _WrappedRecord>(
+            branches: branches,
+            resolveRecord: (record) => record as _TestRecord,
+            wrapRecord:
+                ({
+                  required record,
+                  required coordinator,
+                  required branchIndex,
+                }) {
+                  return _WrappedRecord(
+                    record: record,
+                    coordinator: coordinator,
+                    branchIndex: branchIndex,
+                  );
+                },
+          );
 
-    expect(wrapped, hasLength(2));
-    expect(wrapped[0].path, '/feed');
-    expect(wrapped[1].path, '/settings');
-    expect(wrapped[0].branchIndex, 0);
-    expect(wrapped[1].branchIndex, 1);
-    expect(identical(wrapped[0].runtime, wrapped[1].runtime), isTrue);
-  });
+      expect(wrapped, hasLength(2));
+      expect(wrapped[0].path, '/feed');
+      expect(wrapped[1].path, '/settings');
+      expect(wrapped[0].branchIndex, 0);
+      expect(wrapped[1].branchIndex, 1);
+      expect(identical(wrapped[0].coordinator, wrapped[1].coordinator), isTrue);
+    },
+  );
 }
 
 final class _AppRoute implements RouteData {
@@ -77,12 +84,12 @@ final class _TestRecord implements RouteRecord<_AppRoute> {
 final class _WrappedRecord implements RouteRecord<_AppRoute> {
   const _WrappedRecord({
     required this.record,
-    required this.runtime,
+    required this.coordinator,
     required this.branchIndex,
   });
 
   final _TestRecord record;
-  final ShellRuntimeBinding<_AppRoute> runtime;
+  final ShellCoordinator<_AppRoute> coordinator;
   final int branchIndex;
 
   @override

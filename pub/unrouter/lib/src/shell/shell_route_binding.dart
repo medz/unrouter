@@ -4,69 +4,7 @@ import '../core/route_data.dart';
 import '../core/route_guards.dart';
 import '../core/route_records.dart';
 import '../core/route_shell.dart';
-import 'shell_branch_descriptor.dart';
 import 'shell_coordinator.dart';
-
-/// Shared shell runtime bridge for adapter packages.
-///
-/// This class centralizes branch stack coordination so adapters only bind
-/// UI/runtime callbacks.
-class ShellRuntimeBinding<R extends RouteData> {
-  ShellRuntimeBinding({required List<ShellBranch<R>> branches})
-    : branches = List<ShellBranch<R>>.unmodifiable(branches),
-      _coordinator = ShellCoordinator(
-        branches: List<ShellBranchDescriptor>.generate(branches.length, (
-          index,
-        ) {
-          final branch = branches[index];
-          return ShellBranchDescriptor(
-            index: index,
-            initialLocation: branch.initialLocation,
-            routePatterns: branch.routes
-                .map<String>((route) => route.path)
-                .toList(growable: false),
-          );
-        }),
-      );
-
-  final List<ShellBranch<R>> branches;
-  final ShellCoordinator _coordinator;
-
-  void recordNavigation({
-    required int branchIndex,
-    required Uri uri,
-    required HistoryAction action,
-    required int? delta,
-    required int? historyIndex,
-  }) {
-    _coordinator.recordNavigation(
-      branchIndex: branchIndex,
-      uri: uri,
-      action: action,
-      delta: delta,
-      historyIndex: historyIndex,
-    );
-  }
-
-  Uri resolveTargetUri(int branchIndex, {required bool initialLocation}) {
-    return _coordinator.resolveBranchTarget(
-      branchIndex,
-      initialLocation: initialLocation,
-    );
-  }
-
-  List<Uri> currentBranchHistory(int branchIndex) {
-    return _coordinator.currentBranchHistory(branchIndex);
-  }
-
-  bool canPopBranch(int branchIndex) {
-    return _coordinator.canPopBranch(branchIndex);
-  }
-
-  Uri? popBranch(int branchIndex) {
-    return _coordinator.popBranch(branchIndex);
-  }
-}
 
 /// Resolves a shell branch route record to an adapter-specific record type.
 typedef ShellRouteRecordResolver<
@@ -82,7 +20,7 @@ typedef ShellRouteRecordWrapper<
 > =
     TWrappedRecord Function({
       required TAdapterRecord record,
-      required ShellRuntimeBinding<R> runtime,
+      required ShellCoordinator<R> coordinator,
       required int branchIndex,
     });
 
@@ -102,14 +40,18 @@ List<TWrappedRecord> buildShellRouteRecords<
 }) {
   assert(branches.isNotEmpty, 'shell() requires at least one branch.');
   final immutableBranches = List<ShellBranch<R>>.unmodifiable(branches);
-  final runtime = ShellRuntimeBinding<R>(branches: immutableBranches);
+  final coordinator = ShellCoordinator<R>(branches: immutableBranches);
   final wrapped = <TWrappedRecord>[];
   for (var i = 0; i < immutableBranches.length; i++) {
     final branch = immutableBranches[i];
     for (final record in branch.routes) {
       final adapterRecord = resolveRecord(record);
       wrapped.add(
-        wrapRecord(record: adapterRecord, runtime: runtime, branchIndex: i),
+        wrapRecord(
+          record: adapterRecord,
+          coordinator: coordinator,
+          branchIndex: i,
+        ),
       );
     }
   }
@@ -147,13 +89,13 @@ abstract class ShellRouteRecordBinding<
     implements RouteRecord<R>, ShellRouteRecordHost {
   ShellRouteRecordBinding({
     required this.record,
-    required ShellRuntimeBinding<R> runtime,
+    required ShellCoordinator<R> coordinator,
     required int branchIndex,
-  }) : _runtime = runtime,
+  }) : _coordinator = coordinator,
        _branchIndex = branchIndex;
 
   final TRecord record;
-  final ShellRuntimeBinding<R> _runtime;
+  final ShellCoordinator<R> _coordinator;
   final int _branchIndex;
 
   @override
@@ -177,17 +119,20 @@ abstract class ShellRouteRecordBinding<
 
   @override
   Uri resolveBranchTarget(int index, {bool initialLocation = false}) {
-    return _runtime.resolveTargetUri(index, initialLocation: initialLocation);
+    return _coordinator.resolveBranchTarget(
+      index,
+      initialLocation: initialLocation,
+    );
   }
 
   @override
   bool canPopBranch() {
-    return _runtime.canPopBranch(_branchIndex);
+    return _coordinator.canPopBranch(_branchIndex);
   }
 
   @override
   Uri? popBranch() {
-    return _runtime.popBranch(_branchIndex);
+    return _coordinator.popBranch(_branchIndex);
   }
 
   void recordShellNavigation({
@@ -196,7 +141,7 @@ abstract class ShellRouteRecordBinding<
     required int? delta,
     required int? historyIndex,
   }) {
-    _runtime.recordNavigation(
+    _coordinator.recordNavigation(
       branchIndex: _branchIndex,
       uri: uri,
       action: action,
@@ -219,9 +164,9 @@ abstract class ShellRouteRecordBinding<
   }) {
     return ShellState<R>(
       activeBranchIndex: _branchIndex,
-      branches: _runtime.branches,
+      branches: _coordinator.branches,
       currentUri: currentUri,
-      currentBranchHistory: _runtime.currentBranchHistory(_branchIndex),
+      currentBranchHistory: _coordinator.currentBranchHistory(_branchIndex),
       onGoBranch:
           (
             index, {

@@ -1,26 +1,12 @@
 import 'package:test/test.dart';
-import 'package:unrouter/src/shell/shell_branch_descriptor.dart';
-import 'package:unrouter/src/shell/shell_coordinator.dart';
+import 'package:unrouter/unrouter.dart';
 import 'package:unstory/unstory.dart';
 
 void main() {
-  late ShellCoordinator coordinator;
+  late ShellCoordinator<_AppRoute> coordinator;
 
   setUp(() {
-    coordinator = ShellCoordinator(
-      branches: <ShellBranchDescriptor>[
-        ShellBranchDescriptor(
-          index: 0,
-          initialLocation: Uri(path: '/feed'),
-          routePatterns: <String>['/feed', '/feed/:id'],
-        ),
-        ShellBranchDescriptor(
-          index: 1,
-          initialLocation: Uri(path: '/settings'),
-          routePatterns: <String>['/settings', '/settings/:tab'],
-        ),
-      ],
-    );
+    coordinator = ShellCoordinator<_AppRoute>(branches: _branches());
   });
 
   test('recordNavigation tracks push/pop and branch target', () {
@@ -108,4 +94,41 @@ void main() {
     expect(popped!.path, '/settings');
     expect(coordinator.canPopBranch(1), isFalse);
   });
+}
+
+List<ShellBranch<_AppRoute>> _branches() {
+  return <ShellBranch<_AppRoute>>[
+    branch<_AppRoute>(
+      initialLocation: Uri(path: '/feed'),
+      routes: <RouteRecord<_AppRoute>>[
+        route<_AppRoute>(path: '/feed', parse: (_) => const _AppRoute('/feed')),
+        route<_AppRoute>(
+          path: '/feed/:id',
+          parse: (_) => const _AppRoute('/feed/0'),
+        ),
+      ],
+    ),
+    branch<_AppRoute>(
+      initialLocation: Uri(path: '/settings'),
+      routes: <RouteRecord<_AppRoute>>[
+        route<_AppRoute>(
+          path: '/settings',
+          parse: (_) => const _AppRoute('/settings'),
+        ),
+        route<_AppRoute>(
+          path: '/settings/:tab',
+          parse: (_) => const _AppRoute('/settings/profile'),
+        ),
+      ],
+    ),
+  ];
+}
+
+final class _AppRoute implements RouteData {
+  const _AppRoute(this.path);
+
+  final String path;
+
+  @override
+  Uri toUri() => Uri(path: path);
 }

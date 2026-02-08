@@ -3,7 +3,7 @@ import 'package:unrouter/unrouter.dart'
     show
         RouteData,
         ShellBranch,
-        ShellRuntimeBinding,
+        ShellCoordinator,
         ShellRouteRecordBinding,
         buildShellRouteRecords,
         requireShellRouteRecord;
@@ -40,12 +40,12 @@ List<RouteRecord<R>> shell<R extends RouteData>({
     wrapRecord:
         ({
           required RouteRecord<R> record,
-          required ShellRuntimeBinding<R> runtime,
+          required ShellCoordinator<R> coordinator,
           required int branchIndex,
         }) {
           return _ShellRouteRecord<R>(
             record: record,
-            runtime: runtime,
+            coordinator: coordinator,
             shellBuilder: builder,
             branchIndex: branchIndex,
           );
@@ -58,7 +58,7 @@ class _ShellRouteRecord<R extends RouteData>
     implements RouteRecord<R> {
   _ShellRouteRecord({
     required super.record,
-    required super.runtime,
+    required super.coordinator,
     required super.branchIndex,
     required ShellBuilder<R> shellBuilder,
   }) : _shellBuilder = shellBuilder;

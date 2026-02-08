@@ -4,16 +4,16 @@ import 'package:unstory/unstory.dart';
 
 void main() {
   test('tracks branch stack and supports pop within active branch', () {
-    final runtime = ShellRuntimeBinding<AppRoute>(branches: _branches());
+    final coordinator = ShellCoordinator<AppRoute>(branches: _branches());
 
-    runtime.recordNavigation(
+    coordinator.recordNavigation(
       branchIndex: 0,
       uri: Uri(path: '/feed'),
       action: HistoryAction.replace,
       delta: null,
       historyIndex: 0,
     );
-    runtime.recordNavigation(
+    coordinator.recordNavigation(
       branchIndex: 0,
       uri: Uri(path: '/feed/details/1'),
       action: HistoryAction.push,
@@ -21,29 +21,29 @@ void main() {
       historyIndex: 1,
     );
 
-    expect(runtime.canPopBranch(0), isTrue);
-    expect(runtime.currentBranchHistory(0), <Uri>[
+    expect(coordinator.canPopBranch(0), isTrue);
+    expect(coordinator.currentBranchHistory(0), <Uri>[
       Uri(path: '/feed'),
       Uri(path: '/feed/details/1'),
     ]);
-    expect(runtime.popBranch(0), Uri(path: '/feed'));
-    expect(runtime.currentBranchHistory(0), <Uri>[
+    expect(coordinator.popBranch(0), Uri(path: '/feed'));
+    expect(coordinator.currentBranchHistory(0), <Uri>[
       Uri(path: '/feed'),
       Uri(path: '/feed/details/1'),
     ]);
   });
 
-  test('resolveTargetUri uses stack top and supports reset to initial', () {
-    final runtime = ShellRuntimeBinding<AppRoute>(branches: _branches());
+  test('resolveBranchTarget uses stack top and supports reset to initial', () {
+    final coordinator = ShellCoordinator<AppRoute>(branches: _branches());
 
-    runtime.recordNavigation(
+    coordinator.recordNavigation(
       branchIndex: 1,
       uri: Uri(path: '/settings'),
       action: HistoryAction.replace,
       delta: null,
       historyIndex: 0,
     );
-    runtime.recordNavigation(
+    coordinator.recordNavigation(
       branchIndex: 1,
       uri: Uri(path: '/settings/details/profile'),
       action: HistoryAction.push,
@@ -52,11 +52,11 @@ void main() {
     );
 
     expect(
-      runtime.resolveTargetUri(1, initialLocation: false),
+      coordinator.resolveBranchTarget(1, initialLocation: false),
       Uri(path: '/settings/details/profile'),
     );
     expect(
-      runtime.resolveTargetUri(1, initialLocation: true),
+      coordinator.resolveBranchTarget(1, initialLocation: true),
       Uri(path: '/settings'),
     );
   });
