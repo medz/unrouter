@@ -1,6 +1,6 @@
 # flutter_unrouter
 
-Flutter adapter package for unrouter.
+Flutter adapter for `unrouter`.
 
 ## Install
 
@@ -8,19 +8,19 @@ Flutter adapter package for unrouter.
 flutter pub add flutter_unrouter
 ```
 
-## Entrypoints
+## Entrypoint
 
-- `package:flutter_unrouter/flutter_unrouter.dart`: Flutter routing API
+- `package:flutter_unrouter/flutter_unrouter.dart`
 
-## Layering
+## What this package adds
 
-`flutter_unrouter` is an adapter package:
+- Flutter `RouterConfig` integration (`Unrouter`)
+- Flutter route builders/pages/transitions
+- `UnrouterScope` and `BuildContext` extensions (`context.unrouter`)
+- Shell UI binding on top of core shell runtime (`ShellState`)
 
-- Route resolution and runtime navigation semantics come from `unrouter`.
-- Shell branch stack coordination also comes from `unrouter` core shell
-  runtime.
-- This package only adds Flutter bindings (RouterDelegate/Scope/BuildContext
-  extensions/Page & transition builders).
+Route matching, guards, redirects, loader execution, and runtime controller
+semantics still come from `unrouter`.
 
 ## Quick start
 
@@ -34,13 +34,14 @@ sealed class AppRoute implements RouteData {
 
 final class HomeRoute extends AppRoute {
   const HomeRoute();
+
   @override
   Uri toUri() => Uri(path: '/');
 }
 
 void main() {
   final router = Unrouter<AppRoute>(
-    routes: [
+    routes: <RouteRecord<AppRoute>>[
       route<HomeRoute>(
         path: '/',
         parse: (_) => const HomeRoute(),
@@ -53,14 +54,31 @@ void main() {
 }
 ```
 
-Optional pending-state UI can read the target URI:
+## Route records
+
+Adapter route record surface:
+
+- `RouteDefinition<T>` for non-loader routes
+- `DataRouteDefinition<T, L>` for loader routes
+- `RouteRecord<T>` as adapter record contract
+
+`dataRoute<T, L>()` returns `DataRouteDefinition<T, L>`.
+
+## Runtime access
 
 ```dart
-loading: (context, uri) => const CircularProgressIndicator(),
+final controller = context.unrouterAs<AppRoute>();
+controller.go(const HomeRoute());
+controller.push<void>(const HomeRoute());
+controller.back();
 ```
 
-`blocked` is optional. If it is not provided, `unknown` is used as fallback
-before the default unknown-route page.
+Optional `Unrouter` builders:
+
+- `unknown(BuildContext, Uri)`
+- `blocked(BuildContext, Uri)` (falls back to `unknown` when absent)
+- `loading(BuildContext, Uri)`
+- `onError(BuildContext, Object, StackTrace)`
 
 ## Example
 

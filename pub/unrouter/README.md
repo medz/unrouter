@@ -8,9 +8,9 @@ Platform-agnostic URL-first typed router core for Dart.
 dart pub add unrouter
 ```
 
-## Entrypoints
+## Entrypoint
 
-- `package:unrouter/unrouter.dart`: core routing API
+- `package:unrouter/unrouter.dart`
 
 ## Quick start
 
@@ -21,29 +21,52 @@ sealed class AppRoute implements RouteData {
   const AppRoute();
 }
 
-final class HomeRoute extends AppRoute {
-  const HomeRoute();
+final class UserRoute extends AppRoute {
+  const UserRoute({required this.id});
+
+  final int id;
 
   @override
-  Uri toUri() => Uri(path: '/');
+  Uri toUri() => Uri(path: '/users/$id');
 }
 
 void main() async {
   final router = Unrouter<AppRoute>(
     routes: [
-      route<HomeRoute>(
-        path: '/',
-        parse: (_) => const HomeRoute(),
+      route<UserRoute>(
+        path: '/users/:id',
+        parse: (state) => UserRoute(id: state.params.$int('id')),
       ),
     ],
   );
 
-  final result = await router.resolve(Uri(path: '/'));
-  if (result.isMatched) {
-    print(result.route.runtimeType);
-  }
+  final result = await router.resolve(Uri(path: '/users/42'));
+  print(result.isMatched); // true
 }
 ```
+
+## Data routes
+
+Use `dataRoute<T, L>()` when a route needs async loader data:
+
+```dart
+dataRoute<UserRoute, User>(
+  path: '/users/:id',
+  parse: (state) => UserRoute(id: state.params.$int('id')),
+  loader: (context) => api.fetchUser(context.route.id),
+)
+```
+
+## Route parser state
+
+`RouteState` exposes typed param/query helpers:
+
+- `state.params.required('id')`
+- `state.params.$int('id')`
+- `state.params.$enum('tab', Tab.values)`
+- `state.query.required('q')`
+- `state.query.$double('threshold')`
+- raw query map via `state.location.uri.queryParameters`
 
 ## Runtime controller (pure Dart)
 
@@ -51,48 +74,33 @@ void main() async {
 import 'package:unrouter/unrouter.dart';
 import 'package:unstory/unstory.dart';
 
-final router = Unrouter<AppRoute>(
-  routes: [
-    route<HomeRoute>(path: '/', parse: (_) => const HomeRoute()),
-  ],
-);
-
 final controller = UnrouterController<AppRoute>(
   router: router,
   history: MemoryHistory(),
 );
 
 await controller.idle;
-print(controller.state.resolution); // matched
-
-controller.goUri(
-  Uri(path: '/settings'),
-  state: const {'source': 'user'},
-);
-
+controller.go(const UserRoute(id: 1));
+final result = await controller.push<int>(const UserRoute(id: 2));
+controller.pop(7);
+await controller.sync(Uri(path: '/users/3'));
 controller.dispose();
 ```
 
-## Route parser helpers
+Primary runtime APIs:
 
-`RouteParserState` exposes compact parser helpers:
+- navigation: `go/goUri`, `push/pushUri`, `pop`, `back`
+- shell actions: `switchBranch`, `popBranch`
+- state: `state`, `resolution`, `states`, `idle`
+- utility: `href`, `cast<S>()`, `sync`
 
-- `state.params` and `state.query` are typed map views (`TypedParams`).
-- `state.params.required('id')`, `state.params.$int('id')`.
-- `state.query.required('tab')`, `state.query.$enum('tab', Tab.values)`.
-- Use `state.query` or `state.uri.queryParameters` directly for raw query map
-  access.
+## Shell integration for adapters
 
-## Shell integration
+Core provides shell contracts and helpers for adapter packages:
 
-For adapter authors, `ShellCoordinator`, `ShellRouteRecordHost`, and
-`buildShellRouteRecords` are available to bridge `ShellBranch` trees while
-keeping rendering logic in adapter packages.
+- `ShellBranch`, `ShellState`, `ShellRouteRecordHost`
+- `ShellCoordinator`
+- `buildShellRouteRecords`, `requireShellRouteRecord`
 
-## Flutter usage
-
-For Flutter apps, use `flutter_unrouter` instead:
-
-```bash
-flutter pub add flutter_unrouter
-```
+For Flutter usage, install `flutter_unrouter`. For Jaspr usage, install
+`jaspr_unrouter`.

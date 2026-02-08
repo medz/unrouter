@@ -12,7 +12,7 @@ typedef RouteComponentBuilder<T extends RouteData> =
     Component Function(BuildContext context, T route);
 
 /// Builds a route component with resolved loader data.
-typedef RouteLoadedComponentBuilder<T extends RouteData, L> =
+typedef DataRouteComponentBuilder<T extends RouteData, L> =
     Component Function(BuildContext context, T route, L data);
 
 /// Shell frame builder used by [shell].
@@ -57,14 +57,14 @@ class RouteDefinition<T extends RouteData> extends core.RouteDefinition<T>
 }
 
 /// Route definition that resolves typed loader data before build.
-class LoadedRouteDefinition<T extends RouteData, L>
+class DataRouteDefinition<T extends RouteData, L>
     extends core.DataRouteDefinition<T, L>
     implements RouteRecord<T> {
-  LoadedRouteDefinition({
+  DataRouteDefinition({
     required String path,
     required RouteParser<T> parse,
     required DataLoader<T, L> loader,
-    required RouteLoadedComponentBuilder<T, L> builder,
+    required DataRouteComponentBuilder<T, L> builder,
     String? name,
     List<RouteGuard<T>> guards = const [],
     RouteRedirect<T>? redirect,
@@ -78,7 +78,7 @@ class LoadedRouteDefinition<T extends RouteData, L>
          redirect: redirect,
        );
 
-  final RouteLoadedComponentBuilder<T, L> _builder;
+  final DataRouteComponentBuilder<T, L> _builder;
 
   @override
   Component build(BuildContext context, RouteData route, Object? loaderData) {
@@ -115,17 +115,17 @@ RouteDefinition<T> route<T extends RouteData>({
   );
 }
 
-/// Creates a [LoadedRouteDefinition].
-LoadedRouteDefinition<T, L> dataRoute<T extends RouteData, L>({
+/// Creates a [DataRouteDefinition].
+DataRouteDefinition<T, L> dataRoute<T extends RouteData, L>({
   required String path,
   required RouteParser<T> parse,
   required DataLoader<T, L> loader,
-  required RouteLoadedComponentBuilder<T, L> builder,
+  required DataRouteComponentBuilder<T, L> builder,
   String? name,
   List<RouteGuard<T>> guards = const [],
   RouteRedirect<T>? redirect,
 }) {
-  return LoadedRouteDefinition<T, L>(
+  return DataRouteDefinition<T, L>(
     path: path,
     parse: parse,
     loader: loader,

@@ -32,8 +32,7 @@
 ### Changed
 
 - Synced to `unrouter` parser helper renames:
-  - `RouteParserState` now exposes `params` and `query` (`TypedParams`);
-  - removed `RouteParserState.queryParameters`;
+  - parser state now uses `RouteState` (`params` + `query` as `TypedParams`);
   - route parsing now uses typed helpers on `state.params` / `state.query`
     (`required()/decode()/$int()/$double()/$enum()`).
 - Synced shell API slimming from `unrouter`:
@@ -45,3 +44,7 @@
     Jaspr rendering methods;
   - shell wrapper records now extend adapter `RouteRecord` instead of
     re-declaring core route semantics.
+- Aligned adapter naming with core route records:
+  - renamed adapter loaded-route record type to `DataRouteDefinition`;
+  - renamed loaded-route component builder typedef to
+    `DataRouteComponentBuilder`.

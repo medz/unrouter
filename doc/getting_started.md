@@ -2,13 +2,15 @@
 
 ## Choose package
 
-- Pure Dart runtime or custom runtime integration: use `unrouter`.
-- Flutter app: use `flutter_unrouter` only (it already depends on `unrouter`).
-- Jaspr app: use `jaspr_unrouter` only (it already depends on `unrouter`).
+- Pure Dart runtime, no UI binding: `unrouter`
+- Flutter app integration: `flutter_unrouter`
+- Jaspr app integration: `jaspr_unrouter`
+
+Use one adapter package in apps; adapters already depend on core `unrouter`.
 
 ## Install
 
-Pure Dart:
+Core:
 
 ```bash
 dart pub add unrouter
@@ -26,27 +28,7 @@ Jaspr:
 dart pub add jaspr_unrouter
 ```
 
-## Core imports
-
-Pure Dart:
-
-```dart
-import 'package:unrouter/unrouter.dart';
-```
-
-Flutter:
-
-```dart
-import 'package:flutter_unrouter/flutter_unrouter.dart';
-```
-
-Jaspr:
-
-```dart
-import 'package:jaspr_unrouter/jaspr_unrouter.dart';
-```
-
-## Minimal typed router (pure Dart)
+## Minimal typed routing (core)
 
 ```dart
 import 'package:unrouter/unrouter.dart';
@@ -55,77 +37,74 @@ sealed class AppRoute implements RouteData {
   const AppRoute();
 }
 
-final class HomeRoute extends AppRoute {
-  const HomeRoute();
+final class UserRoute extends AppRoute {
+  const UserRoute({required this.id});
+
+  final int id;
 
   @override
-  Uri toUri() => Uri(path: '/');
+  Uri toUri() => Uri(path: '/users/$id');
 }
 
-void main() async {
-  final router = Unrouter<AppRoute>(
-    routes: [
-      route<HomeRoute>(
-        path: '/',
-        parse: (_) => const HomeRoute(),
-      ),
-    ],
-  );
-
-  final resolution = await router.resolve(Uri(path: '/'));
-  print(resolution.isMatched); // true
-}
+final router = Unrouter<AppRoute>(
+  routes: [
+    route<UserRoute>(
+      path: '/users/:id',
+      parse: (state) => UserRoute(id: state.params.$int('id')),
+    ),
+  ],
+);
 ```
 
-## Minimal Flutter integration
+## Loader routes
+
+Use `dataRoute<T, L>()` for async preload data:
 
 ```dart
-import 'package:flutter/material.dart';
-import 'package:flutter_unrouter/flutter_unrouter.dart';
-
-sealed class AppRoute implements RouteData {
-  const AppRoute();
-}
-
-final class HomeRoute extends AppRoute {
-  const HomeRoute();
-
-  @override
-  Uri toUri() => Uri(path: '/');
-}
-
-void main() {
-  final router = Unrouter<AppRoute>(
-    routes: [
-      route<HomeRoute>(
-        path: '/',
-        parse: (_) => const HomeRoute(),
-        builder: (_, __) => const Text('Home'),
-      ),
-    ],
-  );
-
-  runApp(MaterialApp.router(routerConfig: router));
-}
+dataRoute<UserRoute, User>(
+  path: '/users/:id',
+  parse: (state) => UserRoute(id: state.params.$int('id')),
+  loader: (context) => api.fetchUser(context.route.id),
+)
 ```
 
-## Runtime navigation API consistency
+## Runtime navigation
 
-`unrouter`, `flutter_unrouter`, and `jaspr_unrouter` expose the same primary
-controller methods:
+```dart
+final controller = UnrouterController<AppRoute>(router: router);
+
+controller.go(const UserRoute(id: 1));
+final value = await controller.push<int>(const UserRoute(id: 2));
+controller.pop(7);
+controller.back();
+await controller.sync(Uri(path: '/users/3'));
+```
+
+Current primary controller methods:
 
 - `go/goUri`
-- `replace/replaceUri`
 - `push/pushUri`
-- `pop/popToUri/back/forward/goDelta`
-- `state`, `resolution`, `states`
+- `pop`
+- `back`
+- `sync`
+- `switchBranch/popBranch` (shell record context only)
 
-Flutter adds shell-only helpers (`switchBranch`, `popBranch`) on top.
-Jaspr adds component bindings (`UnrouterRouter`, `UnrouterScope`,
-`UnrouterLink`).
+## Flutter mount
 
-## Next reads
+```dart
+runApp(MaterialApp.router(routerConfig: router));
+```
 
-- Core route semantics: `doc/core_routing.md`
-- Runtime controller details: `doc/runtime_controller.md`
-- Shell state envelope: `doc/state_envelope.md`
+Where `router` is `Unrouter<AppRoute>` from `flutter_unrouter`.
+
+## Jaspr mount
+
+```dart
+runApp(
+  Unrouter<AppRoute>(
+    routes: [...],
+  ),
+);
+```
+
+Where `Unrouter` is from `jaspr_unrouter`.

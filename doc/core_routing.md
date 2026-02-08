@@ -1,115 +1,95 @@
 # Core routing guide
 
-This guide focuses on `package:unrouter/unrouter.dart` only.
+This guide targets `package:unrouter/unrouter.dart`.
 
 ## Route definitions
 
-Create typed routes with `route<T>()`:
+Non-loader route:
 
 ```dart
 route<UserRoute>(
   path: '/users/:id',
-  parse: (state) => UserRoute(id: state.pathInt('id')),
+  parse: (state) => UserRoute(id: state.params.$int('id')),
 )
 ```
 
-Create routes with async preload data using `routeWithLoader<T, L>()`:
+Loader route:
 
 ```dart
-routeWithLoader<UserRoute, User>(
+dataRoute<UserRoute, User>(
   path: '/users/:id',
-  parse: (state) => UserRoute(id: state.pathInt('id')),
-  loader: (context) async => api.fetchUser(context.route.id),
+  parse: (state) => UserRoute(id: state.params.$int('id')),
+  loader: (context) => api.fetchUser(context.route.id),
 )
 ```
 
-## Parser helpers
+## Parser helpers (`RouteState`)
 
-`RouteParserState` provides typed helpers:
+`RouteState` is passed to `parse`.
 
-- `path`, `pathOrNull`, `pathInt`
-- `query`, `queryOrNull`, `queryInt`, `queryIntOrNull`, `queryEnum`
+- `state.params.required('id')`
+- `state.params.$int('id')`, `$double`, `$num`, `$enum`
+- `state.query.required('tab')`
+- `state.query.$enum('tab', Tab.values)`
+- raw query map: `state.location.uri.queryParameters`
 
 ## Guards and redirects
 
-Guards run before route commit:
+Route guards:
 
 ```dart
 guards: [
   (context) async {
     final signedIn = await auth.isSignedIn();
-    if (signedIn) {
-      return RouteGuardResult.allow();
-    }
+    if (signedIn) return RouteGuardResult.allow();
     return RouteGuardResult.redirect(Uri(path: '/login'));
   },
 ]
 ```
 
-Route-level redirect:
+Route redirect:
 
 ```dart
-redirect: (_) => Uri(path: '/new-home')
+redirect: (_) => Uri(path: '/canonical-path')
 ```
 
 Router-level redirect safety:
 
 ```dart
 Unrouter<AppRoute>(
+  routes: [...],
   maxRedirectHops: 8,
   redirectLoopPolicy: RedirectLoopPolicy.error,
   onRedirectDiagnostics: (event) {
     print('${event.reason.name} ${event.hop}/${event.maxHops}');
   },
-  routes: [...],
 )
 ```
 
-## Branch metadata for adapters
-
-`unrouter` itself is runtime/UI agnostic. Use `shell()` and `branch()` to define
-branch metadata that adapter packages can consume:
-
-```dart
-...shell<AppRoute>(
-  branches: [
-    branch<AppRoute>(
-      initialLocation: Uri(path: '/feed'),
-      routes: [...],
-    ),
-    branch<AppRoute>(
-      initialLocation: Uri(path: '/settings'),
-      routes: [...],
-    ),
-  ],
-),
-```
-
-In core package, `shell()` flattens branch records and preserves branch info for
-adapter-specific behaviors (for example `flutter_unrouter` shell navigation).
-
-## Resolution and runtime state
-
-Use `Unrouter.resolve` for one-off resolution:
+## Route resolution
 
 ```dart
 final result = await router.resolve(Uri(path: '/users/1'));
+
 if (result.isMatched) {
+  print(result.record?.path);
   print(result.route);
+} else if (result.isRedirect) {
+  print(result.redirectUri);
 }
 ```
 
-Use `UnrouterController` for runtime navigation/state flow:
+## Shell metadata (adapter-facing)
 
-```dart
-final controller = UnrouterController<AppRoute>(
-  router: router,
-  history: MemoryHistory(),
-);
+Core shell contracts are runtime/UI agnostic:
 
-await controller.idle;
-print(controller.state.uri);
-print(controller.resolution.type);
-```
+- `ShellBranch`
+- `ShellState`
+- `ShellRouteRecordHost`
+- `shell()` and `branch()` for branch table assembly
 
-See `doc/runtime_controller.md` for the full controller API and adapter parity.
+Adapter-focused helpers:
+
+- `ShellCoordinator`
+- `buildShellRouteRecords`
+- `requireShellRouteRecord`

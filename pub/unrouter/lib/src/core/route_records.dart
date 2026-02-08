@@ -4,7 +4,7 @@ import 'route_data.dart';
 import 'route_guards.dart';
 import 'route_state.dart';
 
-/// Parses a matched [RouteParserState] into a typed route object.
+/// Parses a matched [RouteState] into a typed route object.
 typedef RouteParser<T extends RouteData> = T Function(RouteState state);
 
 /// Route-level redirect resolver.

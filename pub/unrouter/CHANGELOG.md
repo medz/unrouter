@@ -45,9 +45,10 @@
   `ShellCoordinator` directly.
 - Removed `ShellRouteRecordBinding`; adapters now implement
   `ShellRouteRecordHost` directly and compose `ShellCoordinator`.
-- Simplified `RouteParserState` parser API by introducing typed param views:
-  - `RouteParserState` now exposes `params` and `query` (`TypedParams`);
-  - `RouteParserState.queryParameters` is removed;
+- Simplified route parser API by introducing typed param views:
+  - parser state now uses `RouteState` with `params` and `query`
+    (`TypedParams`);
+  - raw query access now goes through `RouteState.location.uri.queryParameters`;
   - use `required()/decode()/$int()/$double()/$enum()` helpers on
     `state.params` / `state.query`.
 - Removed timeline-related runtime APIs (`UnrouterStateTimelineEntry`,

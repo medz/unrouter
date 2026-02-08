@@ -1,6 +1,6 @@
 # jaspr_unrouter
 
-Jaspr adapter package for `unrouter`.
+Jaspr adapter for `unrouter`.
 
 ## Install
 
@@ -8,90 +8,22 @@ Jaspr adapter package for `unrouter`.
 dart pub add jaspr_unrouter
 ```
 
-## Entrypoints
+## Entrypoint
 
-- `package:jaspr_unrouter/jaspr_unrouter.dart`: Jaspr adapter API
+- `package:jaspr_unrouter/jaspr_unrouter.dart`
 
-## Current scope
+## What this package adds
 
-- Reuses `unrouter` core route resolution/runtime semantics.
-- Exposes Jaspr `Unrouter` component for mounting/runtime binding.
-- Provides Jaspr-flavored route definitions (`route`, `routeWithLoader`) with
-  component builders.
-- Provides shell helpers (`branch`, `shell`, `ShellState`) aligned with
-  `flutter_unrouter` branch navigation semantics.
-- Provides `context.unrouter` / `context.unrouterAs<T>()` navigation helpers.
-- Keeps adapter scope thin and does not duplicate core runtime algorithms.
+- Jaspr `Unrouter` component runtime binding
+- Jaspr component route builders
+- `UnrouterScope` and `BuildContext` extensions
+- `UnrouterLink` declarative link component
+- Shell UI binding using core shell runtime (`ShellState`)
 
-## Runtime binding
+Route matching, guards, redirects, loader execution, and runtime controller
+semantics come from `unrouter`.
 
-```dart
-import 'package:jaspr/jaspr.dart';
-import 'package:jaspr_unrouter/jaspr_unrouter.dart';
-
-final router = Unrouter<AppRoute>(
-  routes: [
-    route<HomeRoute>(
-      path: '/',
-      parse: (_) => const HomeRoute(),
-      builder: (_, __) => const Component.text('home'),
-    ),
-  ],
-);
-
-runApp(router);
-```
-
-`resolveInitialRoute` defaults to `false` (same as `flutter_unrouter`).
-When `onError` is not provided, runtime errors are rethrown with stack trace.
-
-Navigation from a component:
-
-```dart
-context.unrouterAs<AppRoute>().push(const HomeRoute());
-context.unrouterAs<AppRoute>().go(const HomeRoute());
-context.unrouterAs<AppRoute>().back();
-```
-
-Declarative link:
-
-```dart
-import 'package:jaspr/dom.dart';
-
-UnrouterLink<HomeRoute>(
-  route: const HomeRoute(),
-  children: [span([text('Home')])],
-)
-```
-
-Pure Dart usage (without mounting component router):
-
-```dart
-import 'package:jaspr/jaspr.dart';
-import 'package:jaspr_unrouter/jaspr_unrouter.dart';
-import 'package:unrouter/unrouter.dart' as core;
-import 'package:unstory/unstory.dart';
-
-final coreRouter = core.Unrouter<AppRoute>(
-  routes: [
-    route<HomeRoute>(
-      path: '/',
-      parse: (_) => const HomeRoute(),
-      builder: (_, __) => const Component.text('home'),
-    ),
-  ],
-);
-
-final controller = UnrouterController<AppRoute>(
-  router: coreRouter,
-  history: MemoryHistory(),
-);
-await controller.idle;
-print(controller.state.resolution); // matched / unmatched / ...
-controller.dispose();
-```
-
-## Example
+## Quick start
 
 ```dart
 import 'package:jaspr/jaspr.dart';
@@ -108,18 +40,47 @@ final class HomeRoute extends AppRoute {
   Uri toUri() => Uri(path: '/');
 }
 
-void main() async {
-  final router = Unrouter<AppRoute>(
-    routes: [
-      route<HomeRoute>(
-        path: '/',
-        parse: (_) => const HomeRoute(),
-        builder: (_, __) => const Component.text('home'),
-      ),
-    ],
+void main() {
+  runApp(
+    Unrouter<AppRoute>(
+      routes: <RouteRecord<AppRoute>>[
+        route<HomeRoute>(
+          path: '/',
+          parse: (_) => const HomeRoute(),
+          builder: (_, __) => const Component.text('home'),
+        ),
+      ],
+    ),
   );
-
-  final result = await router.resolve(Uri(path: '/'));
-  print(result.isMatched);
 }
+```
+
+## Route records
+
+Adapter route record surface:
+
+- `RouteDefinition<T>` for non-loader routes
+- `DataRouteDefinition<T, L>` for loader routes
+- `RouteRecord<T>` as adapter record contract
+
+`dataRoute<T, L>()` returns `DataRouteDefinition<T, L>`.
+
+## Runtime access in components
+
+```dart
+final controller = context.unrouterAs<AppRoute>();
+controller.go(const HomeRoute());
+controller.push<void>(const HomeRoute());
+controller.back();
+```
+
+## Declarative links
+
+```dart
+import 'package:jaspr/dom.dart';
+
+UnrouterLink<HomeRoute>(
+  route: const HomeRoute(),
+  children: [span([text('Home')])],
+)
 ```

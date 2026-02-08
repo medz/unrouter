@@ -16,7 +16,7 @@ typedef RouteWidgetBuilder<T extends RouteData> =
     Widget Function(BuildContext context, T route);
 
 /// Builds a route widget with resolved loader data.
-typedef RouteLoadedWidgetBuilder<T extends RouteData, L> =
+typedef DataRouteWidgetBuilder<T extends RouteData, L> =
     Widget Function(BuildContext context, T route, L data);
 
 /// Shell frame builder used by [shell].
@@ -106,14 +106,14 @@ class RouteDefinition<T extends RouteData> extends core.RouteDefinition<T>
 }
 
 /// Route definition that resolves typed loader data before build.
-class LoadedRouteDefinition<T extends RouteData, L>
+class DataRouteDefinition<T extends RouteData, L>
     extends core.DataRouteDefinition<T, L>
     implements RouteRecord<T> {
-  LoadedRouteDefinition({
+  DataRouteDefinition({
     required super.path,
     required super.parse,
     required super.loader,
-    required RouteLoadedWidgetBuilder<T, L> builder,
+    required DataRouteWidgetBuilder<T, L> builder,
     super.name,
     super.guards = const [],
     super.redirect,
@@ -123,7 +123,7 @@ class LoadedRouteDefinition<T extends RouteData, L>
     this.reverseTransitionDuration = Duration.zero,
   }) : _builder = builder;
 
-  final RouteLoadedWidgetBuilder<T, L> _builder;
+  final DataRouteWidgetBuilder<T, L> _builder;
   final RoutePageBuilder? pageBuilder;
   final RouteTransitionBuilder? transitionBuilder;
   final Duration transitionDuration;
@@ -189,12 +189,12 @@ RouteDefinition<T> route<T extends RouteData>({
   );
 }
 
-/// Creates a [LoadedRouteDefinition].
-LoadedRouteDefinition<T, L> dataRoute<T extends RouteData, L>({
+/// Creates a [DataRouteDefinition].
+DataRouteDefinition<T, L> dataRoute<T extends RouteData, L>({
   required String path,
   required RouteParser<T> parse,
   required DataLoader<T, L> loader,
-  required RouteLoadedWidgetBuilder<T, L> builder,
+  required DataRouteWidgetBuilder<T, L> builder,
   String? name,
   List<RouteGuard<T>> guards = const [],
   RouteRedirect<T>? redirect,
@@ -203,7 +203,7 @@ LoadedRouteDefinition<T, L> dataRoute<T extends RouteData, L>({
   Duration transitionDuration = Duration.zero,
   Duration reverseTransitionDuration = Duration.zero,
 }) {
-  return LoadedRouteDefinition<T, L>(
+  return DataRouteDefinition<T, L>(
     path: path,
     parse: parse,
     loader: loader,

@@ -1,19 +1,15 @@
-# unrouter documentation
+# unrouter docs
 
-This folder contains user-facing guides and reference notes for `unrouter`.
+This folder documents the current workspace API surface (`pub/*`), not legacy
+state-machine era APIs.
 
 ## Guides
 
-- [Getting started](getting_started.md): choose `unrouter` (pure Dart) or
-  `flutter_unrouter` (Flutter adapter) and bootstrap a typed router.
-- [Core routing guide](core_routing.md): route definitions, guards, redirects,
-  loaders, and branch metadata.
-- [Runtime controller guide](runtime_controller.md): shared navigation/runtime
-  APIs in core and adapter packages.
-- [Router benchmarking](router_benchmarking.md): behavior parity and performance
-  comparison workflow.
+- [Getting started](getting_started.md)
+- [Core routing](core_routing.md)
+- [Runtime controller](runtime_controller.md)
+- [Router benchmarking](router_benchmarking.md)
 
-## Reference contracts
+## Historical notes
 
-- [State envelope](state_envelope.md): shell restoration `history.state` format
-  and compatibility.
+- [State envelope (removed)](state_envelope.md)
