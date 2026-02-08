@@ -179,6 +179,7 @@ class UnrouterRouter<R extends RouteData> extends StatefulComponent {
 class _UnrouterRouterState<R extends RouteData> extends State<UnrouterRouter<R>>
     with PreloadStateMixin<UnrouterRouter<R>> {
   UnrouterController<R>? _controller;
+  UnrouterController<RouteData>? _scopeController;
   StreamSubscription<core.UnrouterStateSnapshot<R>>? _stateSubscription;
   late RouteResolution<R> _resolution;
 
@@ -254,12 +255,13 @@ class _UnrouterRouterState<R extends RouteData> extends State<UnrouterRouter<R>>
   @override
   Component build(BuildContext context) {
     final controller = _controller;
-    if (controller == null) {
+    final scopeController = _scopeController;
+    if (controller == null || scopeController == null) {
       return const Component.empty();
     }
 
     return UnrouterScope(
-      controller: controller.cast<RouteData>(),
+      controller: scopeController,
       child: _buildFromResolution(context),
     );
   }
@@ -275,6 +277,7 @@ class _UnrouterRouterState<R extends RouteData> extends State<UnrouterRouter<R>>
       resolveInitialRoute: component.resolveInitialRoute,
       disposeHistory: historyPlan.disposeHistory,
     );
+    _scopeController = _controller!.cast<RouteData>();
     _resolution = _controller!.resolution;
   }
 
@@ -315,6 +318,7 @@ class _UnrouterRouterState<R extends RouteData> extends State<UnrouterRouter<R>>
     _stateSubscription = null;
     _controller?.dispose();
     _controller = null;
+    _scopeController = null;
   }
 
   Component _buildFromResolution(BuildContext context) {
