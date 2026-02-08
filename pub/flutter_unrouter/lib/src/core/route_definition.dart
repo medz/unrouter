@@ -16,11 +16,9 @@ import 'package:unrouter/unrouter.dart'
         RouteParserState,
         RouteRecord,
         RouteRedirect,
-        ShellBranchDescriptor,
-        ShellCoordinator,
-        ShellHistoryStateRequest,
-        ShellNavigationEvent;
-import 'package:unstory/unstory.dart';
+        ShellBranch,
+        ShellRuntimeBinding,
+        branch;
 
 import '../runtime/navigation.dart';
 

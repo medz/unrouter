@@ -1,22 +1,6 @@
 part of 'route_definition.dart';
 
-/// A branch in a shell route tree.
-class ShellBranch<R extends RouteData> {
-  ShellBranch({
-    required List<RouteRecord<R>> routes,
-    required Uri initialLocation,
-    this.name,
-  }) : assert(
-         routes.isNotEmpty,
-         'A shell branch must define at least one route.',
-       ),
-       routes = List<RouteRecord<R>>.unmodifiable(routes),
-       initialLocation = _normalizeShellLocation(initialLocation);
-
-  final List<RouteRecord<R>> routes;
-  final Uri initialLocation;
-  final String? name;
-}
+typedef ShellBranch<R extends RouteData> = unrouter_core.ShellBranch<R>;
 
 /// Creates a [ShellBranch].
 ShellBranch<R> branch<R extends RouteData>({
@@ -24,8 +8,8 @@ ShellBranch<R> branch<R extends RouteData>({
   required Uri initialLocation,
   String? name,
 }) {
-  return ShellBranch<R>(
-    routes: routes,
+  return unrouter_core.branch<R>(
+    routes: routes.cast<unrouter_core.RouteRecord<R>>(),
     initialLocation: initialLocation,
     name: name,
   );
@@ -115,14 +99,17 @@ List<RouteRecord<R>> shell<R extends RouteData>({
 }) {
   assert(branches.isNotEmpty, 'shell() requires at least one branch.');
   final immutableBranches = List<ShellBranch<R>>.unmodifiable(branches);
-  final runtime = _ShellRuntime<R>(immutableBranches);
+  final runtime = unrouter_core.ShellRuntimeBinding<R>(
+    branches: immutableBranches,
+  );
   final wrapped = <RouteRecord<R>>[];
   for (var i = 0; i < immutableBranches.length; i++) {
     final branch = immutableBranches[i];
     for (final record in branch.routes) {
+      final adapterRecord = _asAdapterRouteRecord(record);
       wrapped.add(
         _ShellRouteRecord<R>(
-          record: record,
+          record: adapterRecord,
           runtime: runtime,
           shellBuilder: builder,
           branchIndex: i,
@@ -138,7 +125,7 @@ class _ShellRouteRecord<R extends RouteData>
     implements RouteRecord<R>, ShellRouteRecordHost<R> {
   _ShellRouteRecord({
     required RouteRecord<R> record,
-    required _ShellRuntime<R> runtime,
+    required unrouter_core.ShellRuntimeBinding<R> runtime,
     required ShellBuilder<R> shellBuilder,
     required int branchIndex,
     String? shellName,
@@ -149,7 +136,7 @@ class _ShellRouteRecord<R extends RouteData>
        _shellName = shellName;
 
   final RouteRecord<R> _record;
-  final _ShellRuntime<R> _runtime;
+  final unrouter_core.ShellRuntimeBinding<R> _runtime;
   final ShellBuilder<R> _shellBuilder;
   final int _branchIndex;
   final String? _shellName;
@@ -222,7 +209,10 @@ class _ShellRouteRecord<R extends RouteData>
     );
     controller.setHistoryStateComposer((request) {
       return _runtime.composeHistoryState(
-        request: request,
+        uri: request.uri,
+        action: request.action,
+        state: request.state,
+        currentState: request.currentState,
         activeBranchIndex: _branchIndex,
       );
     });
@@ -263,91 +253,15 @@ class _ShellRouteRecord<R extends RouteData>
   }
 }
 
-class _ShellRuntime<R extends RouteData> {
-  _ShellRuntime(this.branches)
-    : _coordinator = unrouter_core.ShellCoordinator(
-        branches: List<unrouter_core.ShellBranchDescriptor>.generate(
-          branches.length,
-          (index) {
-            final branch = branches[index];
-            return unrouter_core.ShellBranchDescriptor(
-              index: index,
-              name: branch.name,
-              initialLocation: branch.initialLocation,
-              routePatterns: branch.routes
-                  .map<String>((route) => route.path)
-                  .toList(growable: false),
-            );
-          },
-        ),
-      );
-
-  final List<ShellBranch<R>> branches;
-  final unrouter_core.ShellCoordinator _coordinator;
-
-  void restoreFromState(Object? state) {
-    _coordinator.restoreFromState(state);
+RouteRecord<R> _asAdapterRouteRecord<R extends RouteData>(
+  unrouter_core.RouteRecord<R> record,
+) {
+  if (record case RouteRecord<R> adapterRecord) {
+    return adapterRecord;
   }
-
-  Object? composeHistoryState({
-    required UnrouterHistoryStateRequest request,
-    required int activeBranchIndex,
-  }) {
-    return _coordinator.composeHistoryState(
-      request: unrouter_core.ShellHistoryStateRequest(
-        uri: request.uri,
-        action: request.action,
-        state: request.state,
-        currentState: request.currentState,
-      ),
-      activeBranchIndex: activeBranchIndex,
-    );
-  }
-
-  void recordNavigation({
-    required int branchIndex,
-    required Uri uri,
-    required HistoryAction action,
-    required int? delta,
-    required int? historyIndex,
-  }) {
-    _coordinator.recordNavigation(
-      branchIndex: branchIndex,
-      event: unrouter_core.ShellNavigationEvent(
-        uri: uri,
-        action: action,
-        delta: delta,
-        historyIndex: historyIndex,
-      ),
-    );
-  }
-
-  Uri resolveTargetUri(int branchIndex, {required bool initialLocation}) {
-    return _coordinator.resolveBranchTarget(
-      branchIndex,
-      initialLocation: initialLocation,
-    );
-  }
-
-  List<Uri> currentBranchHistory(int branchIndex) {
-    return _coordinator.currentBranchHistory(branchIndex);
-  }
-
-  bool canPopBranch(int branchIndex) {
-    return _coordinator.canPopBranch(branchIndex);
-  }
-
-  Uri? popBranch(int branchIndex) {
-    return _coordinator.popBranch(branchIndex);
-  }
-}
-
-Uri _normalizeShellLocation(Uri uri) {
-  if (uri.path.isEmpty) {
-    return uri.replace(path: '/');
-  }
-  if (!uri.path.startsWith('/')) {
-    return uri.replace(path: '/${uri.path}');
-  }
-  return uri;
+  throw StateError(
+    'Shell branch route "${record.path}" does not implement flutter '
+    'RouteRecord. Build shell routes with flutter_unrouter route()/'
+    'routeWithLoader().',
+  );
 }

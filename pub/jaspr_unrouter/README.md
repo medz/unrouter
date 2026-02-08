@@ -19,6 +19,8 @@ dart pub add jaspr_unrouter
 - Exposes `CoreUnrouter` for pure Dart/controller-only scenarios.
 - Provides Jaspr-flavored route definitions (`route`, `routeWithLoader`) with
   component builders.
+- Provides shell helpers (`branch`, `shell`, `ShellState`) aligned with
+  `flutter_unrouter` branch navigation semantics.
 - Provides `context.unrouter` / `context.unrouterAs<T>()` navigation helpers.
 - Keeps adapter scope thin and does not duplicate core runtime algorithms.
 

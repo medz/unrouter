@@ -8,7 +8,7 @@ void main() {
       'lib/src/core/route_definition_shell.dart',
     ).readAsStringSync();
 
-    expect(source.contains('unrouter_core.ShellCoordinator'), isTrue);
+    expect(source.contains('unrouter_core.ShellRuntimeBinding'), isTrue);
 
     const forbiddenTokens = <String>[
       '_UnrouterStateEnvelope',

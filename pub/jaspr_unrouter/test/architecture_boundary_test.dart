@@ -23,6 +23,11 @@ void main() {
       reason: 'runtime binding should directly use core controller runtime.',
     );
     expect(
+      runtime.contains('setShellBranchResolvers('),
+      isTrue,
+      reason: 'runtime binding should wire shell branch resolvers from core.',
+    );
+    expect(
       runtime.contains('class Unrouter<'),
       isTrue,
       reason: 'adapter runtime should expose a direct Unrouter component.',

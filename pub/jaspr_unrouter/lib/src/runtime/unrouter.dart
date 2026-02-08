@@ -159,6 +159,10 @@ class _UnrouterState<R extends RouteData> extends State<Unrouter<R>>
         }
         setState(() {
           _resolution = controller.resolution;
+          final routeRecord = component.routeRecordOf(_resolution.record);
+          if (routeRecord is! ShellRouteRecordHost<R>) {
+            _controller?.clearHistoryStateComposer();
+          }
         });
       });
     }
@@ -194,6 +198,10 @@ class _UnrouterState<R extends RouteData> extends State<Unrouter<R>>
         }
         setState(() {
           _resolution = controller.resolution;
+          final routeRecord = component.routeRecordOf(_resolution.record);
+          if (routeRecord is! ShellRouteRecordHost<R>) {
+            _controller?.clearHistoryStateComposer();
+          }
         });
       });
     }
@@ -230,6 +238,10 @@ class _UnrouterState<R extends RouteData> extends State<Unrouter<R>>
       history: historyPlan.history,
       resolveInitialRoute: component.resolveInitialRoute,
       disposeHistory: historyPlan.disposeHistory,
+    );
+    _controller!.setShellBranchResolvers(
+      resolveTarget: _resolveShellBranchTarget,
+      popTarget: _popShellBranchTarget,
     );
     _scopeController = _controller!.cast<RouteData>();
     _resolution = _controller!.resolution;
@@ -294,11 +306,12 @@ class _UnrouterState<R extends RouteData> extends State<Unrouter<R>>
         return blockedBuilder(context, resolution.uri);
       }
 
-      return _buildError(
-        context,
-        StateError('Route blocked for "${resolution.uri}".'),
-        StackTrace.current,
-      );
+      final unknownBuilder = component.unknown;
+      if (unknownBuilder != null) {
+        return unknownBuilder(context, resolution.uri);
+      }
+
+      return Component.text('No route matches ${resolution.uri.path}');
     }
 
     if (resolution.isMatched) {
@@ -327,6 +340,29 @@ class _UnrouterState<R extends RouteData> extends State<Unrouter<R>>
     }
 
     return Component.text('No route matches ${resolution.uri.path}');
+  }
+
+  Uri? _resolveShellBranchTarget(int index, {required bool initialLocation}) {
+    final activeRecord = _activeRouteRecord;
+    if (activeRecord case ShellRouteRecordHost<R> shellHost) {
+      return shellHost.resolveBranchTarget(
+        index,
+        initialLocation: initialLocation,
+      );
+    }
+    return null;
+  }
+
+  Uri? _popShellBranchTarget() {
+    final activeRecord = _activeRouteRecord;
+    if (activeRecord case ShellRouteRecordHost<R> shellHost) {
+      return shellHost.popBranch();
+    }
+    return null;
+  }
+
+  RouteRecord<R>? get _activeRouteRecord {
+    return component.routeRecordOf(_resolution.record);
   }
 
   Component _buildError(

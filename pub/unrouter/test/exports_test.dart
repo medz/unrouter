@@ -8,5 +8,6 @@ void main() {
     expect(unrouter.UnrouterResolutionState.values, isNotEmpty);
     expect(unrouter.UnrouterController, isNotNull);
     expect(unrouter.ShellCoordinator, isNotNull);
+    expect(unrouter.ShellRuntimeBinding, isNotNull);
   });
 }

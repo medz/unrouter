@@ -13,6 +13,9 @@ void main() {
     expect(unrouter.UnrouterScope, isNotNull);
     expect(unrouter.UnrouterLink, isNotNull);
     expect(unrouter.UnrouterLinkMode.values, isNotEmpty);
+    expect(unrouter.ShellState, isNotNull);
+    expect(unrouter.branch, isNotNull);
+    expect(unrouter.shell, isNotNull);
   });
 
   test('adapter route records can be resolved through core router', () async {

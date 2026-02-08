@@ -113,6 +113,10 @@ coordinator.recordNavigation(
 );
 ```
 
+For adapter authors, `ShellRuntimeBinding` is also available to bridge
+`ShellBranch` trees with `UnrouterController` history callbacks while keeping
+rendering logic in adapter packages.
+
 ## Flutter usage
 
 For Flutter apps, use `flutter_unrouter` instead:
