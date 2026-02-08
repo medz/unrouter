@@ -10,6 +10,7 @@ void main() {
     expect(unrouter.Unrouter, isNotNull);
     expect(unrouter.UnrouterRouter, isNotNull);
     expect(unrouter.UnrouterController, isNotNull);
+    expect(unrouter.UnrouterScope, isNotNull);
   });
 
   test('adapter router wraps core route records and resolve', () async {

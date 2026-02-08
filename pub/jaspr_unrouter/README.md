@@ -17,7 +17,7 @@ dart pub add jaspr_unrouter
 - Reuses `unrouter` core route resolution/runtime semantics.
 - Provides Jaspr-flavored route definitions (`route`, `routeWithLoader`) with
   component builders.
-- Provides `UnrouterRouter` to mount routes via `jaspr_router`.
+- Provides `UnrouterRouter` driven by core `UnrouterController` state.
 - Provides `context.unrouter` / `context.unrouterAs<T>()` navigation helpers.
 - Keeps adapter scope thin and does not duplicate core runtime algorithms.
 
@@ -50,11 +50,14 @@ context.unrouterAs<AppRoute>().go(const HomeRoute());
 context.unrouterAs<AppRoute>().back();
 ```
 
-## Current limitations
+Pure Dart usage (without mounting component router):
 
-- `routeWithLoader` rendering is not implemented in Jaspr runtime binding yet.
-- Guard `block()` fallback semantics are currently mapped to adapter-level
-  blocked UI handling and do not fully match Flutter runtime behavior.
+```dart
+final controller = router.createController();
+await controller.idle;
+print(controller.state.resolution); // matched / unmatched / ...
+controller.dispose();
+```
 
 ## Example
 
