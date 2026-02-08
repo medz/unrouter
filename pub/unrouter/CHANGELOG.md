@@ -24,8 +24,6 @@
 - Added platform-agnostic shell coordination runtime for adapter reuse.
 - Promoted shell runtime contracts (`ShellState`, `ShellRouteRecordHost`) to
   core API so adapters can share one shell state model.
-- Added `ShellRouteRecordBinding` base class so adapter packages can reuse
-  shell record forwarding logic instead of duplicating it.
 - Added `buildShellRouteRecords` helper so adapters can reuse branch flattening
   and shell runtime wiring with only adapter-specific wrapping logic.
 - Added `requireShellRouteRecord` helper so adapters can share shell record cast
@@ -45,6 +43,8 @@
   branch-stack coordination in `ShellCoordinator`.
 - Removed `ShellRuntimeBinding`; shell wrappers now share one
   `ShellCoordinator` directly.
+- Removed `ShellRouteRecordBinding`; adapters now implement
+  `ShellRouteRecordHost` directly and compose `ShellCoordinator`.
 - Simplified `RouteParserState` parser API by introducing typed param views:
   - `RouteParserState` now exposes `params` and `query` (`TypedParams`);
   - `RouteParserState.queryParameters` is removed;

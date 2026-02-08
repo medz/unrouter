@@ -177,16 +177,55 @@ List<RouteRecord<R>> shell<R extends RouteData>({
 }
 
 class _ShellRouteRecord<R extends RouteData>
-    extends ShellRouteRecordBinding<R, RouteRecord<R>>
-    implements RouteRecord<R> {
+    implements RouteRecord<R>, ShellRouteRecordHost {
   _ShellRouteRecord({
-    required super.record,
-    required super.coordinator,
-    required super.branchIndex,
+    required this.record,
+    required this.coordinator,
+    required this.branchIndex,
     required ShellBuilder<R> shellBuilder,
   }) : _shellBuilder = shellBuilder;
 
+  final RouteRecord<R> record;
+  final ShellCoordinator<R> coordinator;
+  final int branchIndex;
   final ShellBuilder<R> _shellBuilder;
+
+  @override
+  String get path => record.path;
+
+  @override
+  String? get name => record.name;
+
+  @override
+  RouteParser<R> get parse => record.parse;
+
+  @override
+  Future<Uri?> runRedirect(RouteContext<RouteData> context) {
+    return record.runRedirect(context);
+  }
+
+  @override
+  Future<RouteGuardResult> runGuards(RouteContext<RouteData> context) {
+    return record.runGuards(context);
+  }
+
+  @override
+  Uri resolveBranchTarget(int index, {bool initialLocation = false}) {
+    return coordinator.resolveBranchTarget(
+      index,
+      initialLocation: initialLocation,
+    );
+  }
+
+  @override
+  bool canPopBranch() {
+    return coordinator.canPopBranch(branchIndex);
+  }
+
+  @override
+  Uri? popBranch() {
+    return coordinator.popBranch(branchIndex);
+  }
 
   @override
   Component build(BuildContext context, RouteData route, Object? loaderData) {
@@ -194,16 +233,20 @@ class _ShellRouteRecord<R extends RouteData>
     final controller = context.unrouter;
     final snapshot = controller.state;
     final currentUri = snapshot.uri;
-    recordShellNavigation(
+    coordinator.recordNavigation(
+      branchIndex: branchIndex,
       uri: currentUri,
       action: snapshot.lastAction,
       delta: snapshot.lastDelta,
       historyIndex: snapshot.historyIndex,
     );
 
-    final shellState = createShellState(
+    final shellState = ShellState<R>(
+      activeBranchIndex: branchIndex,
+      branches: coordinator.branches,
       currentUri: currentUri,
-      goBranch:
+      currentBranchHistory: coordinator.currentBranchHistory(branchIndex),
+      onGoBranch:
           (
             index, {
             required initialLocation,
@@ -217,8 +260,8 @@ class _ShellRouteRecord<R extends RouteData>
               result: result,
             );
           },
-      canPopBranch: canPopBranch,
-      popBranch: ([result]) => controller.popBranch(result),
+      onPopBranch: ([result]) => controller.popBranch(result),
+      onCanPopBranch: canPopBranch,
     );
 
     return _shellBuilder(context, shellState, child);

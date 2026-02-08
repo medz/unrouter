@@ -77,7 +77,8 @@ void main() {
       routeDefs.contains('abstract interface class ShellRouteRecordHost<'),
       isFalse,
     );
-    expect(routeDefs.contains('extends ShellRouteRecordBinding<'), isTrue);
+    expect(routeDefs.contains('ShellRouteRecordBinding<'), isFalse);
+    expect(routeDefs.contains('ShellRouteRecordHost'), isTrue);
     expect(routeDefs.contains('buildShellRouteRecords<'), isTrue);
     expect(routeDefs.contains('_asAdapterRouteRecord'), isFalse);
   });
