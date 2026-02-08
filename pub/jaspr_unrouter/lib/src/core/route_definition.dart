@@ -161,26 +161,26 @@ List<RouteRecord<R>> shell<R extends RouteData>({
   required List<ShellBranch<R>> branches,
   String? name,
 }) {
-  assert(branches.isNotEmpty, 'shell() requires at least one branch.');
-  final immutableBranches = List<ShellBranch<R>>.unmodifiable(branches);
-  final runtime = ShellRuntimeBinding<R>(branches: immutableBranches);
-  final wrapped = <RouteRecord<R>>[];
-  for (var i = 0; i < immutableBranches.length; i++) {
-    final branch = immutableBranches[i];
-    for (final record in branch.routes) {
-      final adapterRecord = _asAdapterRouteRecord(record);
-      wrapped.add(
-        _ShellRouteRecord<R>(
-          record: adapterRecord,
-          runtime: runtime,
-          shellBuilder: builder,
-          branchIndex: i,
-          shellName: name,
-        ),
-      );
-    }
-  }
-  return wrapped;
+  return buildShellRouteRecords<R, RouteRecord<R>, RouteRecord<R>>(
+    branches: branches,
+    shellName: name,
+    resolveRecord: _asAdapterRouteRecord,
+    wrapRecord:
+        ({
+          required RouteRecord<R> record,
+          required ShellRuntimeBinding<R> runtime,
+          required int branchIndex,
+          String? shellName,
+        }) {
+          return _ShellRouteRecord<R>(
+            record: record,
+            runtime: runtime,
+            shellBuilder: builder,
+            branchIndex: branchIndex,
+            shellName: shellName,
+          );
+        },
+  );
 }
 
 class _ShellRouteRecord<R extends RouteData>

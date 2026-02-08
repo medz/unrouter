@@ -91,6 +91,61 @@ class ShellRuntimeBinding<R extends RouteData> {
   }
 }
 
+/// Resolves a shell branch route record to an adapter-specific record type.
+typedef ShellRouteRecordResolver<
+  R extends RouteData,
+  TAdapterRecord extends RouteRecord<R>
+> = TAdapterRecord Function(RouteRecord<R> record);
+
+/// Wraps a resolved adapter route record into a shell-aware route record.
+typedef ShellRouteRecordWrapper<
+  R extends RouteData,
+  TAdapterRecord extends RouteRecord<R>,
+  TWrappedRecord extends RouteRecord<R>
+> =
+    TWrappedRecord Function({
+      required TAdapterRecord record,
+      required ShellRuntimeBinding<R> runtime,
+      required int branchIndex,
+      String? shellName,
+    });
+
+/// Builds shell-aware wrapped route records for adapter packages.
+///
+/// This helper owns branch flattening and shared runtime construction so
+/// adapter packages only provide record resolution and wrapping behavior.
+List<TWrappedRecord> buildShellRouteRecords<
+  R extends RouteData,
+  TAdapterRecord extends RouteRecord<R>,
+  TWrappedRecord extends RouteRecord<R>
+>({
+  required List<ShellBranch<R>> branches,
+  String? shellName,
+  required ShellRouteRecordResolver<R, TAdapterRecord> resolveRecord,
+  required ShellRouteRecordWrapper<R, TAdapterRecord, TWrappedRecord>
+  wrapRecord,
+}) {
+  assert(branches.isNotEmpty, 'shell() requires at least one branch.');
+  final immutableBranches = List<ShellBranch<R>>.unmodifiable(branches);
+  final runtime = ShellRuntimeBinding<R>(branches: immutableBranches);
+  final wrapped = <TWrappedRecord>[];
+  for (var i = 0; i < immutableBranches.length; i++) {
+    final branch = immutableBranches[i];
+    for (final record in branch.routes) {
+      final adapterRecord = resolveRecord(record);
+      wrapped.add(
+        wrapRecord(
+          record: adapterRecord,
+          runtime: runtime,
+          branchIndex: i,
+          shellName: shellName,
+        ),
+      );
+    }
+  }
+  return wrapped;
+}
+
 /// Shared base for adapter shell route wrappers.
 ///
 /// Adapter packages can extend this type and only implement rendering concerns.

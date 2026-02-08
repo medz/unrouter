@@ -56,6 +56,7 @@ void main() {
       isFalse,
     );
     expect(source.contains('extends ShellRouteRecordBinding<'), isTrue);
+    expect(source.contains('buildShellRouteRecords<'), isTrue);
   });
 
   test('controller binding reuses core controller type', () {

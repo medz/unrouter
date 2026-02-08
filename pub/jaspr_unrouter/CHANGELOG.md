@@ -13,6 +13,8 @@
   `ShellRouteRecordHost`) and reused core contracts from `unrouter`.
 - Reworked shell route wrapper implementation to extend core
   `ShellRouteRecordBinding`, reducing adapter-side forwarding duplication.
+- Reworked `shell()` assembly to reuse core `buildShellRouteRecords`, removing
+  adapter-local branch flattening/runtime wiring templates.
 - Removed redundant adapter typedef indirection in route definition/runtime
   API and switched to direct core type usage.
 - Removed adapter-local `RouteData` re-export shim file; adapter now references
