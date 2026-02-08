@@ -58,7 +58,7 @@ void main() {
             guards: <RouteGuard<SecureRoute>>[
               (_) => signedIn
                   ? RouteGuardResult.allow()
-                  : RouteGuardResult.redirect(Uri(path: '/login')),
+                  : RouteGuardResult.redirect(uri: Uri(path: '/login')),
             ],
           ),
         ],

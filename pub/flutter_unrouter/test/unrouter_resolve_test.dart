@@ -140,7 +140,9 @@ void main() {
           route<PrivateRoute>(
             path: '/private',
             parse: (_) => const PrivateRoute(),
-            guards: [(_) => RouteGuardResult.redirect(Uri(path: '/login'))],
+            guards: [
+              (_) => RouteGuardResult.redirect(uri: Uri(path: '/login')),
+            ],
             builder: (_, _) => const SizedBox.shrink(),
           ),
           route<LoginRoute>(

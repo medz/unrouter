@@ -74,17 +74,17 @@ final class _TestRecord implements RouteRecord<_AppRoute> {
   _AppRoute parse(RouteParserState state) => _AppRoute(path);
 
   @override
-  Future<RouteGuardResult> runGuards(RouteHookContext<RouteData> context) {
+  Future<RouteGuardResult> runGuards(RouteContext<RouteData> context) {
     return Future<RouteGuardResult>.value(RouteGuardResult.allow());
   }
 
   @override
-  Future<Object?> load(RouteHookContext<RouteData> context) {
+  Future<Object?> load(RouteContext<RouteData> context) {
     return Future<Object?>.value(null);
   }
 
   @override
-  Future<Uri?> runRedirect(RouteHookContext<RouteData> context) {
+  Future<Uri?> runRedirect(RouteContext<RouteData> context) {
     return Future<Uri?>.value(null);
   }
 }
@@ -112,17 +112,17 @@ final class _WrappedRecord implements RouteRecord<_AppRoute> {
   _AppRoute parse(RouteParserState state) => record.parse(state);
 
   @override
-  Future<RouteGuardResult> runGuards(RouteHookContext<RouteData> context) {
+  Future<RouteGuardResult> runGuards(RouteContext<RouteData> context) {
     return record.runGuards(context);
   }
 
   @override
-  Future<Object?> load(RouteHookContext<RouteData> context) {
+  Future<Object?> load(RouteContext<RouteData> context) {
     return record.load(context);
   }
 
   @override
-  Future<Uri?> runRedirect(RouteHookContext<RouteData> context) {
+  Future<Uri?> runRedirect(RouteContext<RouteData> context) {
     return record.runRedirect(context);
   }
 }

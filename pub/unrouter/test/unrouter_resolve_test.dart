@@ -83,7 +83,9 @@ void main() {
           route<PrivateRoute>(
             path: '/private',
             parse: (_) => const PrivateRoute(),
-            guards: [(_) => RouteGuardResult.redirect(Uri(path: '/login'))],
+            guards: [
+              (_) => RouteGuardResult.redirect(uri: Uri(path: '/login')),
+            ],
           ),
           route<LoginRoute>(path: '/login', parse: (_) => const LoginRoute()),
         ],

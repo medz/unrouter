@@ -211,17 +211,17 @@ abstract class ShellRouteRecordBinding<
   R parse(RouteParserState state) => record.parse(state);
 
   @override
-  Future<Uri?> runRedirect(RouteHookContext<RouteData> context) {
+  Future<Uri?> runRedirect(RouteContext<RouteData> context) {
     return record.runRedirect(context);
   }
 
   @override
-  Future<RouteGuardResult> runGuards(RouteHookContext<RouteData> context) {
+  Future<RouteGuardResult> runGuards(RouteContext<RouteData> context) {
     return record.runGuards(context);
   }
 
   @override
-  Future<Object?> load(RouteHookContext<RouteData> context) {
+  Future<Object?> load(RouteContext<RouteData> context) {
     return record.load(context);
   }
 

@@ -69,7 +69,7 @@ class Unrouter<R extends RouteData> {
       );
     }
 
-    final context = RouteHookContext<RouteData>(
+    final context = RouteContext<RouteData>(
       uri: normalizedUri,
       route: route,
       signal: signal,
@@ -90,7 +90,7 @@ class Unrouter<R extends RouteData> {
       final guardResult = await matched.data.runGuards(context);
       signal.throwIfCancelled();
       if (guardResult.isRedirect) {
-        final target = guardResult.redirectUri;
+        final target = guardResult.uri;
         if (target == null) {
           return RouteResolution.error(
             uri: normalizedUri,

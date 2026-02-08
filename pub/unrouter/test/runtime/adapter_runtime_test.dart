@@ -165,17 +165,15 @@ class _RouteRecord implements RouteRecord<_AppRoute> {
   _AppRoute parse(RouteParserState state) => _AppRoute(path);
 
   @override
-  Future<Uri?> runRedirect(RouteHookContext<RouteData> context) async => null;
+  Future<Uri?> runRedirect(RouteContext<RouteData> context) async => null;
 
   @override
-  Future<RouteGuardResult> runGuards(
-    RouteHookContext<RouteData> context,
-  ) async {
+  Future<RouteGuardResult> runGuards(RouteContext<RouteData> context) async {
     return RouteGuardResult.allow();
   }
 
   @override
-  Future<Object?> load(RouteHookContext<RouteData> context) async => null;
+  Future<Object?> load(RouteContext<RouteData> context) async => null;
 }
 
 final class _ShellRecord extends _RouteRecord

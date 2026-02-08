@@ -40,7 +40,7 @@ Unrouter<AppRoute> _createRouter() {
               return RouteGuardResult.allow();
             }
             return RouteGuardResult.redirect(
-              LoginRoute(from: context.uri.toString()).toUri(),
+              uri: LoginRoute(from: context.uri.toString()).toUri(),
             );
           },
         ],

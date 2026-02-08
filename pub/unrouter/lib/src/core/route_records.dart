@@ -7,17 +7,13 @@ import 'route_parser.dart';
 /// Parses a matched [RouteParserState] into a typed route object.
 typedef RouteParser<T extends RouteData> = T Function(RouteParserState state);
 
-/// Route guard that can allow, block, or redirect navigation.
-typedef RouteGuard<T extends RouteData> =
-    FutureOr<RouteGuardResult> Function(RouteHookContext<T> context);
-
 /// Route-level redirect resolver.
 typedef RouteRedirect<T extends RouteData> =
-    FutureOr<Uri?> Function(RouteHookContext<T> context);
+    FutureOr<Uri?> Function(RouteContext<T> context);
 
 /// Asynchronous loader executed during route resolution.
 typedef RouteLoader<T extends RouteData, L> =
-    FutureOr<L> Function(RouteHookContext<T> context);
+    FutureOr<L> Function(RouteContext<T> context);
 
 abstract interface class RouteRecord<T extends RouteData> {
   String get path;
@@ -26,11 +22,11 @@ abstract interface class RouteRecord<T extends RouteData> {
 
   T parse(RouteParserState state);
 
-  Future<Uri?> runRedirect(RouteHookContext<RouteData> context);
+  Future<Uri?> runRedirect(RouteContext<RouteData> context);
 
-  Future<RouteGuardResult> runGuards(RouteHookContext<RouteData> context);
+  Future<RouteGuardResult> runGuards(RouteContext<RouteData> context);
 
-  Future<Object?> load(RouteHookContext<RouteData> context);
+  Future<Object?> load(RouteContext<RouteData> context);
 }
 
 /// Route definition without asynchronous loader data.
@@ -58,7 +54,7 @@ class RouteDefinition<T extends RouteData> implements RouteRecord<T> {
   T parse(RouteParserState state) => _parse(state);
 
   @override
-  Future<Uri?> runRedirect(RouteHookContext<RouteData> context) async {
+  Future<Uri?> runRedirect(RouteContext<RouteData> context) async {
     final resolver = redirect;
     if (resolver == null) {
       return null;
@@ -71,12 +67,12 @@ class RouteDefinition<T extends RouteData> implements RouteRecord<T> {
   }
 
   @override
-  Future<RouteGuardResult> runGuards(RouteHookContext<RouteData> context) {
+  Future<RouteGuardResult> runGuards(RouteContext<RouteData> context) {
     return runRouteGuards(_guards, context.cast<T>());
   }
 
   @override
-  Future<Object?> load(RouteHookContext<RouteData> context) async => null;
+  Future<Object?> load(RouteContext<RouteData> context) async => null;
 }
 
 /// Route definition that resolves typed loader data before completion.
@@ -107,7 +103,7 @@ class LoadedRouteDefinition<T extends RouteData, L> implements RouteRecord<T> {
   T parse(RouteParserState state) => _parse(state);
 
   @override
-  Future<Uri?> runRedirect(RouteHookContext<RouteData> context) async {
+  Future<Uri?> runRedirect(RouteContext<RouteData> context) async {
     final resolver = redirect;
     if (resolver == null) {
       return null;
@@ -120,12 +116,12 @@ class LoadedRouteDefinition<T extends RouteData, L> implements RouteRecord<T> {
   }
 
   @override
-  Future<RouteGuardResult> runGuards(RouteHookContext<RouteData> context) {
+  Future<RouteGuardResult> runGuards(RouteContext<RouteData> context) {
     return runRouteGuards(_guards, context.cast<T>());
   }
 
   @override
-  Future<Object?> load(RouteHookContext<RouteData> context) async {
+  Future<Object?> load(RouteContext<RouteData> context) async {
     final typedContext = context.cast<T>();
     context.signal.throwIfCancelled();
     final data = await _loader(typedContext);

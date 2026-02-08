@@ -2,31 +2,30 @@ import 'dart:async';
 
 import 'route_data.dart';
 
+typedef RouteGuard<T extends RouteData> =
+    FutureOr<RouteGuardResult> Function(RouteContext<T> context);
+
 /// Executes route guards in order and returns the first non-allow result.
 Future<RouteGuardResult> runRouteGuards<T extends RouteData>(
-  List<FutureOr<RouteGuardResult> Function(RouteHookContext<T> context)> guards,
-  RouteHookContext<T> context,
+  List<RouteGuard<T>> guards,
+  RouteContext<T> context,
 ) async {
-  if (guards.isEmpty) {
-    return RouteGuardResult.allow();
-  }
-
+  if (guards.isEmpty) return const .allow();
   for (final guard in guards) {
     context.signal.throwIfCancelled();
+
     final result = await guard(context);
     context.signal.throwIfCancelled();
 
-    if (!result.isAllowed) {
-      return result;
-    }
+    if (!result.isAllowed) return result;
   }
 
-  return RouteGuardResult.allow();
+  return const .allow();
 }
 
 /// Context passed to guards, redirects, and loaders.
-class RouteHookContext<T extends RouteData> {
-  const RouteHookContext({
+class RouteContext<T extends RouteData> {
+  const RouteContext({
     required this.uri,
     required this.route,
     required this.signal,
@@ -36,8 +35,8 @@ class RouteHookContext<T extends RouteData> {
   final T route;
   final RouteExecutionSignal signal;
 
-  RouteHookContext<S> cast<S extends RouteData>() {
-    return RouteHookContext<S>(uri: uri, route: route as S, signal: signal);
+  RouteContext<S> cast<S extends RouteData>() {
+    return RouteContext<S>(uri: uri, route: route as S, signal: signal);
   }
 }
 
@@ -73,38 +72,19 @@ class RouteExecutionCancelledException implements Exception {
 enum RouteGuardResultType { allow, block, redirect }
 
 /// Guard decision used by route resolution.
-class RouteGuardResult {
-  const RouteGuardResult._(this.type, [this.redirectUri]);
+final class RouteGuardResult {
+  const RouteGuardResult.allow() : type = .allow, uri = null;
+  const RouteGuardResult.block() : type = .block, uri = null;
 
-  static const RouteGuardResult _allow = RouteGuardResult._(
-    RouteGuardResultType.allow,
-  );
-  static const RouteGuardResult _block = RouteGuardResult._(
-    RouteGuardResultType.block,
-  );
+  RouteGuardResult.redirect({Uri? uri, RouteData? route})
+    : assert(route != null || uri != null),
+      type = .redirect,
+      uri = uri ?? route?.toUri();
 
   final RouteGuardResultType type;
-  final Uri? redirectUri;
+  final Uri? uri;
 
   bool get isAllowed => type == RouteGuardResultType.allow;
-
   bool get isBlocked => type == RouteGuardResultType.block;
-
   bool get isRedirect => type == RouteGuardResultType.redirect;
-
-  /// Allows the request to continue.
-  static RouteGuardResult allow() => _allow;
-
-  /// Blocks the request and keeps the current location.
-  static RouteGuardResult block() => _block;
-
-  /// Redirects to the provided [uri].
-  factory RouteGuardResult.redirect(Uri uri) {
-    return RouteGuardResult._(RouteGuardResultType.redirect, uri);
-  }
-
-  /// Redirects to a typed [RouteData] target.
-  factory RouteGuardResult.redirectTo(RouteData route) {
-    return RouteGuardResult.redirect(route.toUri());
-  }
 }
