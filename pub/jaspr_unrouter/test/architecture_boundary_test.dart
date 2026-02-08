@@ -22,5 +22,15 @@ void main() {
       isTrue,
       reason: 'runtime binding should directly use core controller runtime.',
     );
+    expect(
+      runtime.contains('class Unrouter<'),
+      isTrue,
+      reason: 'adapter runtime should expose a direct Unrouter component.',
+    );
+    expect(
+      runtime.contains('class UnrouterRouter<'),
+      isFalse,
+      reason: 'legacy UnrouterRouter wrapper should be removed.',
+    );
   });
 }

@@ -2,8 +2,15 @@ import 'dart:async';
 
 import 'package:jaspr/jaspr.dart';
 import 'package:unrouter/unrouter.dart'
+    show
+        RedirectDiagnosticsCallback,
+        RedirectLoopPolicy,
+        RouteExecutionSignal,
+        RouteNeverCancelledSignal;
+import 'package:unrouter/unrouter.dart'
     as core
     show
+        RouteRecord,
         RouteResolution,
         RouteResolutionType,
         Unrouter,
@@ -15,14 +22,15 @@ import '../core/route_data.dart';
 import '../core/route_definition.dart';
 import 'navigation.dart';
 
+typedef _CoreRouteRecord<T extends RouteData> = core.RouteRecord<T>;
 typedef _CoreRouteResolution<R extends RouteData> = core.RouteResolution<R>;
 typedef _CoreRouteResolutionType = core.RouteResolutionType;
 typedef _CoreUnrouter<R extends RouteData> = core.Unrouter<R>;
 typedef _CoreUnrouterController<R extends RouteData> =
     core.UnrouterController<R>;
 
-/// Core router type reused directly by adapter.
-typedef Unrouter<R extends RouteData> = _CoreUnrouter<R>;
+/// Pure Dart core router type exported for controller-only usage.
+typedef CoreUnrouter<R extends RouteData> = _CoreUnrouter<R>;
 
 typedef RouteResolutionType = _CoreRouteResolutionType;
 typedef RouteResolution<R extends RouteData> = _CoreRouteResolution<R>;
@@ -41,27 +49,55 @@ typedef RouteErrorBuilder =
 /// Builds fallback UI while route resolution is pending.
 typedef RouteLoadingBuilder = Component Function(BuildContext context, Uri uri);
 
-/// Jaspr component that mounts a core [Unrouter] and renders from core runtime
-/// state. Adapter package only handles platform binding + rendering.
-class UnrouterRouter<R extends RouteData> extends StatefulComponent {
-  const UnrouterRouter({
-    required this.router,
+/// Jaspr adapter router component.
+///
+/// Mirrors Flutter adapter ergonomics: configure routes and runtime options in
+/// one place, while `unrouter` core continues to own route semantics.
+class Unrouter<R extends RouteData> extends StatefulComponent {
+  Unrouter({
+    required List<RouteRecord<R>> routes,
     this.unknown,
     this.onError,
     this.loading,
     this.blocked,
+    this.maxRedirectHops = 8,
+    this.redirectLoopPolicy = RedirectLoopPolicy.error,
+    this.onRedirectDiagnostics,
     this.history,
     this.base,
     this.strategy = HistoryStrategy.browser,
     this.resolveInitialRoute = true,
     super.key,
-  });
+  }) : assert(routes.isNotEmpty, 'Unrouter routes must not be empty.'),
+       assert(
+         maxRedirectHops > 0,
+         'Unrouter maxRedirectHops must be greater than zero.',
+       ),
+       routes = List<RouteRecord<R>>.unmodifiable(routes),
+       _core = _CoreUnrouter<R>(
+         routes: routes.cast<_CoreRouteRecord<R>>(),
+         maxRedirectHops: maxRedirectHops,
+         redirectLoopPolicy: redirectLoopPolicy,
+         onRedirectDiagnostics: onRedirectDiagnostics,
+       );
 
-  final Unrouter<R> router;
+  /// Immutable route table consumed by the matcher.
+  final List<RouteRecord<R>> routes;
+  final _CoreUnrouter<R> _core;
+
   final UnknownRouteBuilder? unknown;
   final RouteErrorBuilder? onError;
   final RouteLoadingBuilder? loading;
   final UnknownRouteBuilder? blocked;
+
+  /// Redirect hop limit used to prevent infinite redirect chains.
+  final int maxRedirectHops;
+
+  /// Policy used when redirect loops are detected.
+  final RedirectLoopPolicy redirectLoopPolicy;
+
+  /// Callback invoked when redirect safety checks emit diagnostics.
+  final RedirectDiagnosticsCallback? onRedirectDiagnostics;
 
   /// Optional history override for this mounted router instance.
   final History? history;
@@ -75,12 +111,29 @@ class UnrouterRouter<R extends RouteData> extends StatefulComponent {
   /// Whether runtime resolves the initial location when mounted.
   final bool resolveInitialRoute;
 
+  /// Resolves [uri] through the core router.
+  Future<RouteResolution<R>> resolve(
+    Uri uri, {
+    RouteExecutionSignal signal = const RouteNeverCancelledSignal(),
+  }) {
+    return _core.resolve(uri, signal: signal);
+  }
+
+  /// Exposes pure core router for controller-only scenarios.
+  CoreUnrouter<R> get coreRouter {
+    return _core;
+  }
+
+  RouteRecord<R>? routeRecordOf(core.RouteRecord<R>? record) {
+    return record is RouteRecord<R> ? record : null;
+  }
+
   @override
-  State<UnrouterRouter<R>> createState() => _UnrouterRouterState<R>();
+  State<Unrouter<R>> createState() => _UnrouterState<R>();
 }
 
-class _UnrouterRouterState<R extends RouteData> extends State<UnrouterRouter<R>>
-    with PreloadStateMixin<UnrouterRouter<R>> {
+class _UnrouterState<R extends RouteData> extends State<Unrouter<R>>
+    with PreloadStateMixin<Unrouter<R>> {
   _CoreUnrouterController<R>? _controller;
   _CoreUnrouterController<RouteData>? _scopeController;
   StreamSubscription<core.UnrouterStateSnapshot<R>>? _stateSubscription;
@@ -120,10 +173,13 @@ class _UnrouterRouterState<R extends RouteData> extends State<UnrouterRouter<R>>
   }
 
   @override
-  void didUpdateComponent(covariant UnrouterRouter<R> oldComponent) {
+  void didUpdateComponent(covariant Unrouter<R> oldComponent) {
     super.didUpdateComponent(oldComponent);
     final shouldRecreateController =
-        oldComponent.router != component.router ||
+        oldComponent.routes != component.routes ||
+        oldComponent.maxRedirectHops != component.maxRedirectHops ||
+        oldComponent.redirectLoopPolicy != component.redirectLoopPolicy ||
+        oldComponent.onRedirectDiagnostics != component.onRedirectDiagnostics ||
         oldComponent.history != component.history ||
         oldComponent.base != component.base ||
         oldComponent.strategy != component.strategy ||
@@ -178,7 +234,7 @@ class _UnrouterRouterState<R extends RouteData> extends State<UnrouterRouter<R>>
 
     final historyPlan = _resolveHistory();
     _controller = _CoreUnrouterController<R>(
-      router: component.router,
+      router: component.coreRouter,
       history: historyPlan.history,
       resolveInitialRoute: component.resolveInitialRoute,
       disposeHistory: historyPlan.disposeHistory,
@@ -254,8 +310,8 @@ class _UnrouterRouterState<R extends RouteData> extends State<UnrouterRouter<R>>
     }
 
     if (resolution.isMatched) {
-      final record = resolution.record;
-      if (record is! RouteRecord<R>) {
+      final record = component.routeRecordOf(resolution.record);
+      if (record == null) {
         return _buildError(
           context,
           StateError(

@@ -6,7 +6,7 @@ import 'package:unstory/unstory.dart';
 void main() {
   test('controller follows guard redirects', () async {
     var signedIn = false;
-    final router = Unrouter<AppRoute>(
+    final router = CoreUnrouter<AppRoute>(
       routes: <RouteRecord<AppRoute>>[
         route<HomeRoute>(
           path: '/',
@@ -51,7 +51,7 @@ void main() {
   });
 
   test('blocked route falls back when a route is already committed', () async {
-    final router = Unrouter<AppRoute>(
+    final router = CoreUnrouter<AppRoute>(
       routes: <RouteRecord<AppRoute>>[
         route<HomeRoute>(
           path: '/',
@@ -83,7 +83,7 @@ void main() {
   });
 
   test('loader data is produced by core runtime controller', () async {
-    final router = Unrouter<AppRoute>(
+    final router = CoreUnrouter<AppRoute>(
       routes: <RouteRecord<AppRoute>>[
         routeWithLoader<ProfileRoute, String>(
           path: '/profile',

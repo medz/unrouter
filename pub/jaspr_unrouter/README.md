@@ -15,10 +15,10 @@ dart pub add jaspr_unrouter
 ## Current scope
 
 - Reuses `unrouter` core route resolution/runtime semantics.
-- Reuses core `Unrouter` and core `UnrouterController` directly.
+- Exposes Jaspr `Unrouter` component for mounting/runtime binding.
+- Exposes `CoreUnrouter` for pure Dart/controller-only scenarios.
 - Provides Jaspr-flavored route definitions (`route`, `routeWithLoader`) with
   component builders.
-- Provides `UnrouterRouter` driven by core `UnrouterController` state.
 - Provides `context.unrouter` / `context.unrouterAs<T>()` navigation helpers.
 - Keeps adapter scope thin and does not duplicate core runtime algorithms.
 
@@ -38,9 +38,7 @@ final router = Unrouter<AppRoute>(
   ],
 );
 
-runApp(
-  UnrouterRouter<AppRoute>(router: router),
-);
+runApp(router);
 ```
 
 Navigation from a component:
@@ -65,10 +63,22 @@ UnrouterLink<HomeRoute>(
 Pure Dart usage (without mounting component router):
 
 ```dart
+import 'package:jaspr/jaspr.dart';
+import 'package:jaspr_unrouter/jaspr_unrouter.dart';
 import 'package:unstory/unstory.dart';
 
+final coreRouter = CoreUnrouter<AppRoute>(
+  routes: [
+    route<HomeRoute>(
+      path: '/',
+      parse: (_) => const HomeRoute(),
+      builder: (_, __) => const Component.text('home'),
+    ),
+  ],
+);
+
 final controller = UnrouterController<AppRoute>(
-  router: router,
+  router: coreRouter,
   history: MemoryHistory(),
 );
 await controller.idle;
@@ -104,7 +114,7 @@ void main() async {
     ],
   );
 
-  final result = await router.resolve(Uri(path: '/'));
+  final result = await router.coreRouter.resolve(Uri(path: '/'));
   print(result.isMatched);
 }
 ```

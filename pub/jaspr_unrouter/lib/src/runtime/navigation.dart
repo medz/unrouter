@@ -25,7 +25,7 @@ class UnrouterScope extends InheritedComponent {
 
     throw StateError(
       'UnrouterScope was not found in context. '
-      'No UnrouterRouter is available above this BuildContext.',
+      'No Unrouter is available above this BuildContext.',
     );
   }
 

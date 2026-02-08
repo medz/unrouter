@@ -8,7 +8,7 @@ void main() {
     expect(unrouter.UnrouterResolutionState.values, isNotEmpty);
     expect(unrouter.UnrouterStateSnapshot, isNotNull);
     expect(unrouter.Unrouter, isNotNull);
-    expect(unrouter.UnrouterRouter, isNotNull);
+    expect(unrouter.CoreUnrouter, isNotNull);
     expect(unrouter.UnrouterController, isNotNull);
     expect(unrouter.UnrouterScope, isNotNull);
     expect(unrouter.UnrouterLink, isNotNull);
@@ -16,7 +16,7 @@ void main() {
   });
 
   test('adapter route records can be resolved through core router', () async {
-    final router = unrouter.Unrouter<AppRoute>(
+    final router = unrouter.CoreUnrouter<AppRoute>(
       routes: <unrouter.RouteRecord<AppRoute>>[
         unrouter.route<HomeRoute>(
           path: '/',
@@ -33,7 +33,7 @@ void main() {
   });
 
   test('router config can mount into jaspr router component', () {
-    final router = unrouter.Unrouter<AppRoute>(
+    final mounted = unrouter.Unrouter<AppRoute>(
       routes: <unrouter.RouteRecord<AppRoute>>[
         unrouter.route<HomeRoute>(
           path: '/',
@@ -42,8 +42,6 @@ void main() {
         ),
       ],
     );
-
-    final mounted = unrouter.UnrouterRouter<AppRoute>(router: router);
     expect(mounted, isA<Component>());
   });
 
