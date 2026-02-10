@@ -10,17 +10,18 @@ dart pub add nocterm_unrouter
 
 ## Entrypoint
 
-- `package:nocterm_unrouter/nocterm_unrouter.dart`
+```dart
+import 'package:nocterm_unrouter/nocterm_unrouter.dart';
+```
 
-## What this package adds
+## What this adapter adds
 
-- Nocterm `Unrouter` component runtime binding
-- Nocterm component route builders
-- `UnrouterScope` and `BuildContext` extensions
-- Shell UI binding using core shell runtime (`ShellState`)
+- `Unrouter<R>` as a Nocterm `StatefulComponent`
+- Nocterm route records with component builders
+- `UnrouterScope` and `BuildContext` helpers
+- Shell composition helpers (`branch()` + `shell()`)
 
-Route matching, guards, redirects, loader execution, and runtime controller
-semantics come from `unrouter`.
+Core route semantics are provided by `unrouter`.
 
 ## Quick start
 
@@ -41,37 +42,45 @@ final class HomeRoute extends AppRoute {
 
 Future<void> main() async {
   await runApp(
-    Unrouter<AppRoute>(
-      routes: <RouteRecord<AppRoute>>[
-        route<HomeRoute>(
-          path: '/',
-          parse: (_) => const HomeRoute(),
-          builder: (_, __) => const Text('home'),
-        ),
-      ],
+    NoctermApp(
+      title: 'Demo',
+      child: Unrouter<AppRoute>(
+        routes: <RouteRecord<AppRoute>>[
+          route<HomeRoute>(
+            path: '/',
+            parse: (_) => const HomeRoute(),
+            builder: (_, __) => const Text('Home'),
+          ),
+        ],
+      ),
     ),
   );
 }
 ```
-
-## Route records
-
-Adapter route record surface:
-
-- `RouteDefinition<T>` for non-loader routes
-- `DataRouteDefinition<T, L>` for loader routes
-- `RouteRecord<T>` as adapter record contract
-
-`dataRoute<T, L>()` returns `DataRouteDefinition<T, L>`.
 
 ## Runtime access in components
 
 ```dart
 final controller = context.unrouterAs<AppRoute>();
 controller.go(const HomeRoute());
-controller.push<void>(const HomeRoute());
-controller.back();
 ```
+
+## Fallback builders
+
+`Unrouter` supports:
+
+- `unknown(BuildContext, Uri)`
+- `blocked(BuildContext, Uri)`
+- `loading(BuildContext, Uri)`
+- `onError(BuildContext, Object, StackTrace)`
+
+`resolveInitialRoute` defaults to `true` in Nocterm adapter.
+
+## Keyboard-first shell apps
+
+Nocterm adapter works well with `Focusable` and key bindings to drive
+`controller.go`, `controller.back`, `shellState.goBranch`, and
+`shellState.popBranch`.
 
 ## Example
 
@@ -81,6 +90,6 @@ dart pub get
 dart run bin/main.dart
 ```
 
-The `example/` app is a complete keyboard-first storefront TUI with shell
-branches, typed parsing, data loaders, guard redirect/block behavior, and typed
-push/pop result flow.
+Example source:
+
+- `example/bin/main.dart`

@@ -10,23 +10,25 @@ dart pub add jaspr_unrouter
 
 ## Entrypoint
 
-- `package:jaspr_unrouter/jaspr_unrouter.dart`
+```dart
+import 'package:jaspr_unrouter/jaspr_unrouter.dart';
+```
 
-## What this package adds
+## What this adapter adds
 
-- Jaspr `Unrouter` component runtime binding
-- Jaspr component route builders
-- `UnrouterScope` and `BuildContext` extensions
-- `UnrouterLink` declarative link component
-- Shell UI binding using core shell runtime (`ShellState`)
+- `Unrouter<R>` as a Jaspr `StatefulComponent`
+- Jaspr route records with component builders
+- `UnrouterScope` and `BuildContext` helpers
+- `UnrouterLink` for declarative typed navigation
+- Shell composition helpers (`branch()` + `shell()`)
 
-Route matching, guards, redirects, loader execution, and runtime controller
-semantics come from `unrouter`.
+Core route semantics are provided by `unrouter`.
 
 ## Quick start
 
 ```dart
 import 'package:jaspr/jaspr.dart';
+import 'package:jaspr/server.dart';
 import 'package:jaspr_unrouter/jaspr_unrouter.dart';
 
 sealed class AppRoute implements RouteData {
@@ -41,13 +43,15 @@ final class HomeRoute extends AppRoute {
 }
 
 void main() {
+  Jaspr.initializeApp();
+
   runApp(
     Unrouter<AppRoute>(
       routes: <RouteRecord<AppRoute>>[
         route<HomeRoute>(
           path: '/',
           parse: (_) => const HomeRoute(),
-          builder: (_, __) => const Component.text('home'),
+          builder: (_, __) => const Component.text('Home'),
         ),
       ],
     ),
@@ -55,35 +59,32 @@ void main() {
 }
 ```
 
-## Route records
-
-Adapter route record surface:
-
-- `RouteDefinition<T>` for non-loader routes
-- `DataRouteDefinition<T, L>` for loader routes
-- `RouteRecord<T>` as adapter record contract
-
-`dataRoute<T, L>()` returns `DataRouteDefinition<T, L>`.
-
 ## Runtime access in components
 
 ```dart
 final controller = context.unrouterAs<AppRoute>();
 controller.go(const HomeRoute());
-controller.push<void>(const HomeRoute());
-controller.back();
 ```
 
 ## Declarative links
 
 ```dart
-import 'package:jaspr/dom.dart';
-
 UnrouterLink<HomeRoute>(
   route: const HomeRoute(),
-  children: [span([text('Home')])],
+  children: const <Component>[Component.text('Go home')],
 )
 ```
+
+## Fallback builders
+
+`Unrouter` supports:
+
+- `unknown(BuildContext, Uri)`
+- `blocked(BuildContext, Uri)`
+- `loading(BuildContext, Uri)`
+- `onError(BuildContext, Object, StackTrace)`
+
+`resolveInitialRoute` defaults to `true` in Jaspr adapter.
 
 ## Example
 
@@ -93,6 +94,6 @@ dart pub get
 dart run lib/main.dart
 ```
 
-The `example/` app is a complete storefront demo with polished UI, shell
-branches, typed route parsing, data loaders, guard redirect/block behavior, and
-typed push/pop result flow.
+Example source:
+
+- `example/lib/main.dart`

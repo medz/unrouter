@@ -10,17 +10,19 @@ flutter pub add flutter_unrouter
 
 ## Entrypoint
 
-- `package:flutter_unrouter/flutter_unrouter.dart`
+```dart
+import 'package:flutter_unrouter/flutter_unrouter.dart';
+```
 
-## What this package adds
+## What this adapter adds
 
-- Flutter `RouterConfig` integration (`Unrouter`)
-- Flutter route builders/pages/transitions
+- `Unrouter<R>` implementing `RouterConfig<HistoryLocation>`
+- Flutter route records with widget/page/transition builders
 - `UnrouterScope` and `BuildContext` extensions (`context.unrouter`)
-- Shell UI binding on top of core shell runtime (`ShellState`)
+- Shell composition helpers for branch-based UI
 
-Route matching, guards, redirects, loader execution, and runtime controller
-semantics still come from `unrouter`.
+Core semantics (matching, guards, redirects, loaders, state model) are still
+owned by `unrouter`.
 
 ## Quick start
 
@@ -45,7 +47,7 @@ void main() {
       route<HomeRoute>(
         path: '/',
         parse: (_) => const HomeRoute(),
-        builder: (_, __) => const Text('Home'),
+        builder: (_, __) => const Scaffold(body: Center(child: Text('Home'))),
       ),
     ],
   );
@@ -56,29 +58,41 @@ void main() {
 
 ## Route records
 
-Adapter route record surface:
+- `RouteDefinition<T>` via `route<T>()`
+- `DataRouteDefinition<T, L>` via `dataRoute<T, L>()`
+- Optional per-route page configuration:
+  - `pageBuilder`
+  - `transitionBuilder`
+  - `transitionDuration`
+  - `reverseTransitionDuration`
 
-- `RouteDefinition<T>` for non-loader routes
-- `DataRouteDefinition<T, L>` for loader routes
-- `RouteRecord<T>` as adapter record contract
-
-`dataRoute<T, L>()` returns `DataRouteDefinition<T, L>`.
-
-## Runtime access
+## Runtime access in widgets
 
 ```dart
 final controller = context.unrouterAs<AppRoute>();
 controller.go(const HomeRoute());
-controller.push<void>(const HomeRoute());
-controller.back();
 ```
 
-Optional `Unrouter` builders:
+Also available:
+
+- `context.unrouter` (untyped)
+- `controller.stateListenable` for `ValueListenable<StateSnapshot<T>>`
+
+## Fallback builders
+
+`Unrouter` supports optional fallback UI:
 
 - `unknown(BuildContext, Uri)`
-- `blocked(BuildContext, Uri)` (falls back to `unknown` when absent)
+- `blocked(BuildContext, Uri)`
 - `loading(BuildContext, Uri)`
 - `onError(BuildContext, Object, StackTrace)`
+
+`resolveInitialRoute` defaults to `false` in Flutter adapter.
+
+## Shell routing
+
+Use `branch()` + `shell()` to compose branch-aware UI while sharing one
+controller/runtime state.
 
 ## Example
 
@@ -88,5 +102,6 @@ flutter pub get
 flutter run -d chrome
 ```
 
-The example is a full storefront demo with shell navigation, loader routes,
-typed push/pop results, guard redirect/block flows, and polished UI styling.
+Example source:
+
+- `example/lib/main.dart`
