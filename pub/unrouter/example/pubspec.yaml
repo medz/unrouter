@@ -8,4 +8,4 @@ environment:
   sdk: ^3.10.0
 
 dependencies:
-  unrouter: ^0.9.0
+  unrouter: ^0.10.0
