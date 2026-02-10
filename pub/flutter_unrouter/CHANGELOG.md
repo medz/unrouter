@@ -2,68 +2,9 @@
 
 ### Added
 
-- Initial Flutter adapter package split from `unrouter`.
-- Preserved Flutter-first API naming and behavior (`Unrouter`, `route`,
-  `context.unrouter`, shell navigation).
-- Added package-local Flutter example and widget test suite.
-- Removed state-machine-oriented public API surface and kept controller API
-  focused on runtime navigation/state.
-- Removed timeline-related runtime APIs (`stateTimeline`,
-  `clearStateTimeline`, `stateTimelineLimit`).
-- Reworked `UnrouterController` to directly reuse the `unrouter` core runtime
-  controller with Flutter listenable extension, removing adapter runtime
-  wrapper duplication.
-- Added `blocked` fallback builder on `Unrouter` to align fallback API naming
-  with `jaspr_unrouter`.
-- Removed adapter-local `RouteData` re-export shim file and referenced core
-  `RouteData` directly across runtime/core modules.
-- Reworked route definition records to inherit core `RouteDefinition` /
-  `DataRouteDefinition` so parse/guard/redirect/loader semantics stay owned
-  by `unrouter`.
-- Reworked shell branch-stack runtime to use `unrouter` core shell runtime,
-  removing duplicated stack algorithms.
-- Removed adapter-local shell contract definitions (`ShellState`,
-  `ShellRouteRecordHost`) and reused core contracts from `unrouter`.
-- Reworked shell route wrapper implementation to directly implement
-  `ShellRouteRecordHost` and compose `ShellCoordinator`.
-- Reworked `shell()` assembly to reuse core `buildShellRouteRecords`, removing
-  adapter-local branch flattening/runtime wiring templates.
-- Shell-wrapped `DataRouteDefinition` now forwards loader execution through the
-  core route loader hook, so loader data is preserved in shell branches.
-- Reworked shell route record casting to reuse core `requireShellRouteRecord`,
-  removing adapter-local cast/validation duplication.
-- Reworked runtime delegate resolution branching and controller-sync behavior to
-  reuse core adapter runtime helpers (`resolveRouteResolution`,
-  `syncControllerResolution`, `castRouteRecord`, `castShellRouteRecordHost`).
-- Aligned pending-state builder signature with `jaspr_unrouter` by changing
-  `loading` to `Widget Function(BuildContext context, Uri uri)`.
-- Aligned blocked fallback flow with `jaspr_unrouter`: when `blocked` is not
-  provided, runtime now falls back to `unknown` before default page.
-- Removed adapter alias typedef wrappers and direct shim accessors
-  (`RouteRecord.core`, `CoreUnrouter`, `typedef UnrouterController = ...`) so
-  adapter internals use core types directly.
-- Added shell runtime widget tests for branch switching and
-  `popBranch` pending-result completion.
-- Reworked `example/` into a complete storefront-style demo with shell
-  branches, loader routes, typed push/pop result flow, and guard
-  redirect/block scenarios in a polished UI.
-
-### Changed
-
-- Synced to `unrouter` parser helper renames:
-  - parser state now uses `RouteState` (`params` + `query` as `TypedParams`);
-  - route parsing now uses typed helpers on `state.params` / `state.query`
-    (`required()/decode()/$int()/$double()/$enum()`).
-- Synced shell API slimming from `unrouter`:
-  - removed `name` parameters from adapter `branch()` / `shell()`;
-  - shell-wrapped route records now keep route-level `name` values directly
-    (no shell-name prefixing).
-- Simplified route-record contracts:
-  - adapter `RouteRecord` now extends core `RouteRecord` and only adds
-    Flutter rendering methods;
-  - shell wrapper records now extend adapter `RouteRecord` instead of
-    re-declaring core route semantics.
-- Aligned adapter naming with core route records:
-  - renamed adapter loaded-route record type to `DataRouteDefinition`;
-  - renamed loaded-route widget builder typedef to
-    `DataRouteWidgetBuilder`.
+- Initial Flutter adapter package for `unrouter`.
+- Inherited core `Unrouter` directly to keep the adapter runtime lean.
+- Added a complete Flutter example covering shell navigation, guards,
+  redirects, loader routes, and typed push/pop flows.
+- Added functional runtime/widget tests for route-information sync, scope
+  helpers, delegate fallbacks, and shell branch behavior.
