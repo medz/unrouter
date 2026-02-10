@@ -8,3 +8,8 @@
   redirects, loaders, and typed navigation flows.
 - Added functional runtime tests for scope/controller access, navigation
   behavior, fallback rendering, and lifecycle updates.
+
+### Changed
+
+- Default runtime error handling now renders a fallback error component when
+  `onError` is not provided, instead of rethrowing into the Nocterm framework.

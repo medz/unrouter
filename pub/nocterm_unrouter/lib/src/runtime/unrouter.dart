@@ -263,7 +263,7 @@ class _UnrouterState<R extends RouteData> extends State<Unrouter<R>> {
       return fallback(context, error, stackTrace);
     }
 
-    Error.throwWithStackTrace(error, stackTrace);
+    return Text('Route resolution error: $error');
   }
 }
 

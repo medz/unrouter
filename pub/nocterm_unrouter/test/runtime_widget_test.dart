@@ -178,9 +178,7 @@ void main() {
     },
   );
 
-  test(
-    'without onError parser failures surface in terminal error output',
-    () async {
+  test('without onError parser failures render default error component', () async {
       final tester = await NoctermTester.create();
       addTearDown(tester.dispose);
 
@@ -203,6 +201,7 @@ void main() {
 
       await tester.pumpComponent(router);
       await _pumpFew(tester);
+      expect(tester.terminalState, containsText('Route resolution error:'));
       expect(tester.terminalState, containsText('FormatException'));
     },
   );
