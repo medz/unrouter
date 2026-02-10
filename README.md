@@ -51,16 +51,16 @@ Manual checks:
 
 ```bash
 # Core (pure Dart)
-cd pub/unrouter/example && dart run bin/main.dart
+(cd pub/unrouter/example && dart run bin/main.dart)
 
 # Flutter
-cd pub/flutter_unrouter/example && flutter run -d chrome
+(cd pub/flutter_unrouter/example && flutter run -d chrome)
 
 # Jaspr
-cd pub/jaspr_unrouter/example && dart run lib/main.dart
+(cd pub/jaspr_unrouter/example && dart run lib/main.dart)
 
 # Nocterm
-cd pub/nocterm_unrouter/example && dart run bin/main.dart
+(cd pub/nocterm_unrouter/example && dart run bin/main.dart)
 ```
 
 ## Package docs

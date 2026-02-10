@@ -86,13 +86,12 @@ Example:
 ```dart
 parse: (state) {
   final id = state.params.$int('id');
-  final includeDraft = state.query.containsKey('draft')
-      ? state.query.decode<bool>('draft', (raw) {
+  final includeDraft = state.query.containsKey('draft') &&
+      state.query.decode<bool>('draft', (raw) {
           if (raw == '1') return true;
           if (raw == '0') return false;
           return null;
-        })
-      : false;
+        }) == true;
 
   if (includeDraft) {
     // custom branch for query-driven parsing
@@ -118,8 +117,14 @@ final controller = UnrouterController<AppRoute>(
 
 await controller.idle;
 controller.go(const HomeRoute());
-final qty = await controller.push<int>(const ProductRoute(id: 42));
-controller.pop<int>(2);
+final pendingQty = controller.push<int>(const ProductRoute(id: 42));
+
+// In real UI flows, pop is called from the pushed route.
+Future<void>.microtask(() {
+  controller.pop<int>(2);
+});
+
+final qty = await pendingQty;
 
 print(qty); // 2
 controller.dispose();

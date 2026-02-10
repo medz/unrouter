@@ -77,9 +77,14 @@ final class RouteGuardResult {
   const RouteGuardResult.block() : type = .block, uri = null;
 
   RouteGuardResult.redirect({Uri? uri, RouteData? route})
-    : assert(route != null || uri != null),
-      type = .redirect,
-      uri = uri ?? route?.toUri();
+    : type = .redirect,
+      uri = uri ?? route?.toUri() {
+    if (this.uri == null) {
+      throw ArgumentError(
+        'RouteGuardResult.redirect requires either uri or route.',
+      );
+    }
+  }
 
   final RouteGuardResultType type;
   final Uri? uri;

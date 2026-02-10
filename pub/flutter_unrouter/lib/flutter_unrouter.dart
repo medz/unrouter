@@ -1,4 +1,4 @@
-/// Core `unrouter` API.
+/// Flutter adapter API for `unrouter`.
 ///
 /// Import this entrypoint for typed route definitions, router configuration,
 /// and widget-level navigation access.

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:unrouter/unrouter.dart';
@@ -47,34 +49,38 @@ extension UnrouterControllerListenableExtension<R extends RouteData>
 
 class _ControllerStateListenable<R extends RouteData>
     implements ValueListenable<StateSnapshot<R>> {
-  _ControllerStateListenable(this._controller) : _value = _controller.state {
-    _controller.states.listen((snapshot) {
-      _value = snapshot;
-      if (_listeners.isEmpty) {
-        return;
-      }
-      final listeners = List<VoidCallback>.of(_listeners);
-      for (final listener in listeners) {
-        listener();
-      }
-    });
-  }
+  _ControllerStateListenable(this._controller);
 
   final UnrouterController<R> _controller;
   final List<VoidCallback> _listeners = <VoidCallback>[];
-  StateSnapshot<R> _value;
+  StreamSubscription<StateSnapshot<R>>? _subscription;
 
   @override
-  StateSnapshot<R> get value => _value;
+  StateSnapshot<R> get value => _controller.state;
 
   @override
   void addListener(VoidCallback listener) {
     _listeners.add(listener);
+    _subscription ??= _controller.states.listen((_) {
+      if (_listeners.isEmpty) {
+        return;
+      }
+      final listeners = List<VoidCallback>.of(_listeners);
+      for (final current in listeners) {
+        current();
+      }
+    });
   }
 
   @override
   void removeListener(VoidCallback listener) {
     _listeners.remove(listener);
+    if (_listeners.isNotEmpty) {
+      return;
+    }
+    final subscription = _subscription;
+    _subscription = null;
+    unawaited(subscription?.cancel());
   }
 }
 

@@ -701,7 +701,6 @@ class CartScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    route;
     final controller = context.unrouterAs<AppRoute>();
 
     return ListView(

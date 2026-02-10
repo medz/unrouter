@@ -89,7 +89,7 @@ Unrouter<AppRoute> createRouter({StoreSession? session}) {
                 path: '/cart',
                 parse: (_) => const CartRoute(),
                 loader: (context) => _loadCart(context, activeSession),
-                builder: (_, route, data) => CartPage(route: route, data: data),
+                builder: (_, __, data) => CartPage(data: data),
               ),
               dataRoute<CheckoutRoute, CheckoutSummary>(
                 path: '/checkout',
@@ -385,18 +385,6 @@ class TerminalShell extends StatelessComponent {
       return false;
     }
 
-    if (route is LoginRoute) {
-      if (key == LogicalKey.enter) {
-        _completeLogin(controller: controller, route: route);
-        return true;
-      }
-      if (key == LogicalKey.escape) {
-        controller.go(const DiscoverRoute());
-        return true;
-      }
-      return false;
-    }
-
     return false;
   }
 
@@ -567,15 +555,12 @@ class QuantityPickerPage extends StatelessComponent {
 }
 
 class CartPage extends StatelessComponent {
-  const CartPage({super.key, required this.route, required this.data});
-
-  final CartRoute route;
+  const CartPage({super.key, required this.data});
   final CartSummary data;
 
   @override
   Component build(BuildContext context) {
     final theme = TuiTheme.of(context);
-    route;
 
     return _panel(
       title: 'Cart',

@@ -13,7 +13,6 @@ Complete terminal (TUI) storefront demo for `nocterm_unrouter`, including:
 ## Run
 
 ```bash
-cd example
 dart pub get
 dart run bin/main.dart
 dart test

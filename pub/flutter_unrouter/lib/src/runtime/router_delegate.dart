@@ -37,7 +37,21 @@ class UnrouterDelegate<R extends RouteData>
     };
     _controller.stateListenable.addListener(_stateListener);
 
-    unawaited(_controller.sync(initial.uri, state: initial.state));
+    unawaited(
+      _controller.sync(initial.uri, state: initial.state).catchError((
+        Object error,
+        StackTrace stackTrace,
+      ) {
+        FlutterError.reportError(
+          FlutterErrorDetails(
+            exception: error,
+            stack: stackTrace,
+            library: 'flutter_unrouter',
+            context: ErrorDescription('while syncing initial route'),
+          ),
+        );
+      }),
+    );
   }
 
   final runtime.Unrouter<R> config;

@@ -19,6 +19,7 @@ void main() {
       resolveInitialRoute: false,
     );
     addTearDown(controller.dispose);
+    final scopeController = controller.cast<core.RouteData>();
 
     core.UnrouterController<core.RouteData>? untyped;
     core.UnrouterController<AppRoute>? typed;
@@ -27,7 +28,7 @@ void main() {
       Directionality(
         textDirection: TextDirection.ltr,
         child: UnrouterScope(
-          controller: controller.cast<core.RouteData>(),
+          controller: scopeController,
           child: Builder(
             builder: (context) {
               untyped = context.unrouter;
@@ -41,7 +42,8 @@ void main() {
 
     expect(untyped, isNotNull);
     expect(typed, isNotNull);
-    expect(untyped, same(controller.cast<core.RouteData>()));
+    expect(untyped, same(scopeController));
+    expect(untyped?.href(const AppRoute('/home')), '/home');
     expect(typed?.href(const AppRoute('/home')), '/home');
   });
 
