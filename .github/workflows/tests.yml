@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 jobs:
-  test:
+  workspace-checks:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -18,11 +18,11 @@ jobs:
         with:
           channel: stable
 
-      - name: Install dependencies
+      - name: Install workspace dependencies
         run: flutter pub get
 
-      - name: Analyze
-        run: flutter analyze
+      - name: Analyze workspace packages
+        run: flutter analyze pub
 
-      - name: Test
-        run: flutter test
+      - name: Test workspace packages
+        run: flutter test pub

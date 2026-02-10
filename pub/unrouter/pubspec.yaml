@@ -1,0 +1,25 @@
+name: unrouter
+description: Platform-agnostic URL-first typed router core for Dart.
+version: 0.9.0
+repository: https://github.com/medz/unrouter
+homepage: https://github.com/medz/unrouter
+issue_tracker: https://github.com/medz/unrouter/issues
+documentation: https://github.com/medz/unrouter/tree/main/pub/unrouter
+topics:
+  - dart
+  - router
+  - navigation
+  - routing
+  - typed
+resolution: workspace
+
+environment:
+  sdk: ^3.10.0
+
+dependencies:
+  roux: ^0.1.1
+  unstory: ^0.1.1
+
+dev_dependencies:
+  lints: ^6.0.0
+  test: ^1.26.3

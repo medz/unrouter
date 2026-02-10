@@ -1,0 +1,112 @@
+import 'package:test/test.dart';
+import 'package:unrouter/unrouter.dart';
+import 'package:unstory/unstory.dart';
+
+void main() {
+  test('tracks branch stack and supports pop within active branch', () {
+    final coordinator = ShellCoordinator<AppRoute>(branches: _branches());
+
+    coordinator.recordNavigation(
+      branchIndex: 0,
+      uri: Uri(path: '/feed'),
+      action: HistoryAction.replace,
+      delta: null,
+      historyIndex: 0,
+    );
+    coordinator.recordNavigation(
+      branchIndex: 0,
+      uri: Uri(path: '/feed/details/1'),
+      action: HistoryAction.push,
+      delta: null,
+      historyIndex: 1,
+    );
+
+    expect(coordinator.canPopBranch(0), isTrue);
+    expect(coordinator.currentBranchHistory(0), <Uri>[
+      Uri(path: '/feed'),
+      Uri(path: '/feed/details/1'),
+    ]);
+    expect(coordinator.popBranch(0), Uri(path: '/feed'));
+    expect(coordinator.currentBranchHistory(0), <Uri>[
+      Uri(path: '/feed'),
+      Uri(path: '/feed/details/1'),
+    ]);
+  });
+
+  test('resolveBranchTarget uses stack top and supports reset to initial', () {
+    final coordinator = ShellCoordinator<AppRoute>(branches: _branches());
+
+    coordinator.recordNavigation(
+      branchIndex: 1,
+      uri: Uri(path: '/settings'),
+      action: HistoryAction.replace,
+      delta: null,
+      historyIndex: 0,
+    );
+    coordinator.recordNavigation(
+      branchIndex: 1,
+      uri: Uri(path: '/settings/details/profile'),
+      action: HistoryAction.push,
+      delta: null,
+      historyIndex: 1,
+    );
+
+    expect(
+      coordinator.resolveBranchTarget(1, initialLocation: false),
+      Uri(path: '/settings/details/profile'),
+    );
+    expect(
+      coordinator.resolveBranchTarget(1, initialLocation: true),
+      Uri(path: '/settings'),
+    );
+  });
+}
+
+List<ShellBranch<AppRoute>> _branches() {
+  return <ShellBranch<AppRoute>>[
+    branch<AppRoute>(
+      initialLocation: Uri(path: '/feed'),
+      routes: <RouteRecord<AppRoute>>[
+        route<FeedRoute>(path: '/feed', parse: (_) => const FeedRoute()),
+        route<FeedDetailRoute>(
+          path: '/feed/details/:id',
+          parse: (_) => const FeedDetailRoute(),
+        ),
+      ],
+    ),
+    branch<AppRoute>(
+      initialLocation: Uri(path: '/settings'),
+      routes: <RouteRecord<AppRoute>>[
+        route<SettingsRoute>(
+          path: '/settings',
+          parse: (_) => const SettingsRoute(),
+        ),
+      ],
+    ),
+  ];
+}
+
+sealed class AppRoute implements RouteData {
+  const AppRoute();
+}
+
+final class FeedRoute extends AppRoute {
+  const FeedRoute();
+
+  @override
+  Uri toUri() => Uri(path: '/feed');
+}
+
+final class FeedDetailRoute extends AppRoute {
+  const FeedDetailRoute();
+
+  @override
+  Uri toUri() => Uri(path: '/feed/details/1');
+}
+
+final class SettingsRoute extends AppRoute {
+  const SettingsRoute();
+
+  @override
+  Uri toUri() => Uri(path: '/settings');
+}

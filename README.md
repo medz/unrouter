@@ -1,94 +1,71 @@
-# unrouter
+# Unrouter
 
-A URL-first typed router for Flutter.
+[![CI](https://github.com/medz/unrouter/actions/workflows/tests.yml/badge.svg)](https://github.com/medz/unrouter/actions/workflows/tests.yml)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/medz/unrouter/blob/main/LICENSE)
+[![Dart SDK](https://img.shields.io/badge/dart-%3E%3D3.10.0-0175C2.svg)](https://dart.dev)
+[![pub workspace](https://img.shields.io/badge/pub%20workspace-4%20packages-6f42c1.svg)](https://dart.dev/tools/pub/workspaces)
 
-## Why unrouter
+`unrouter` is a typed, URL-first routing ecosystem for Dart runtimes.
 
-- Typed route objects via `RouteData`
-- Route matching powered by `roux`
-- Browser history integration via `unstory`
-- Core API by default with an optional machine layer
+## Packages
 
-## Install
+| Package                | Role                                                         |
+| ---------------------- | ------------------------------------------------------------ |
+| `pub/unrouter`         | Platform-agnostic core router and runtime controller.        |
+| `pub/flutter_unrouter` | Flutter adapter (`RouterConfig`, pages, shell UI binding).   |
+| `pub/jaspr_unrouter`   | Jaspr adapter (`StatefulComponent` router + `UnrouterLink`). |
+| `pub/nocterm_unrouter` | Nocterm adapter for terminal/TUI navigation.                 |
 
-```bash
-flutter pub add unrouter
-```
+## Architecture
 
-## Entrypoints
+- Core (`unrouter`) owns route matching, typed parsing, guards, redirects,
+  loaders, and runtime state.
+- Adapters map core resolution to framework UI trees and provide
+  framework-specific helpers.
+- Shell routing coordination is shared by core and reused by all adapters.
 
-- `package:unrouter/unrouter.dart`: core routing API
-- `package:unrouter/machine.dart`: machine commands
-
-Import `unrouter.dart` explicitly. Other entrypoints do not re-export core APIs.
-
-## Quick start
-
-```dart
-import 'package:flutter/material.dart';
-import 'package:unrouter/unrouter.dart';
-
-sealed class AppRoute implements RouteData {
-  const AppRoute();
-}
-
-final class HomeRoute extends AppRoute {
-  const HomeRoute();
-  @override
-  Uri toUri() => Uri(path: '/');
-}
-
-final class UserRoute extends AppRoute {
-  const UserRoute(this.id);
-  final int id;
-  @override
-  Uri toUri() => Uri(path: '/users/$id');
-}
-
-void main() {
-  final router = Unrouter<AppRoute>(
-    routes: [
-      route<HomeRoute>(
-        path: '/',
-        parse: (_) => const HomeRoute(),
-        builder: (_, __) => const Text('Home'),
-      ),
-      route<UserRoute>(
-        path: '/users/:id',
-        parse: (state) => UserRoute(state.pathInt('id')),
-        builder: (_, route) => Text('User ${route.id}'),
-      ),
-    ],
-    unknown: (_, uri) => Text('404 ${uri.path}'),
-  );
-
-  runApp(MaterialApp.router(routerConfig: router));
-}
-```
-
-## Navigation
-
-```dart
-context.unrouter.go(const HomeRoute());
-context.unrouter.push(const UserRoute(42));
-context.unrouter.replace(const UserRoute(7));
-final int? result = await context.unrouter.push<int>(const UserRoute(42));
-context.unrouter.pop(7);
-```
-
-## Example app
+## Workspace setup
 
 ```bash
-cd example
-flutter pub get
-flutter run -d chrome
+dart pub get
+dart pub workspace list
 ```
 
-## Docs
+## Verify all packages
 
-- Overview: `doc/README.md`
-- Getting started: `doc/getting_started.md`
-- Core routing: `doc/core_routing.md`
-- Machine API: `doc/machine_api.md`
-- Contracts: `doc/state_envelope.md`
-- Benchmark guide: `doc/router_benchmarking.md`
+```bash
+flutter analyze pub
+flutter test pub
+```
+
+Manual checks:
+
+```bash
+(cd pub/unrouter && dart analyze && dart test)
+(cd pub/flutter_unrouter && flutter analyze && flutter test)
+(cd pub/jaspr_unrouter && dart analyze && dart test)
+(cd pub/nocterm_unrouter && dart analyze && dart test)
+```
+
+## Run examples
+
+```bash
+# Core (pure Dart)
+(cd pub/unrouter/example && dart run bin/main.dart)
+
+# Flutter
+(cd pub/flutter_unrouter/example && flutter run -d chrome)
+
+# Jaspr
+(cd pub/jaspr_unrouter/example && dart run lib/main.dart)
+
+# Nocterm
+(cd pub/nocterm_unrouter/example && dart run bin/main.dart)
+```
+
+## Package docs
+
+- `pub/unrouter/README.md`
+- `pub/flutter_unrouter/README.md`
+- `pub/jaspr_unrouter/README.md`
+- `pub/nocterm_unrouter/README.md`
