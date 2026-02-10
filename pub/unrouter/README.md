@@ -104,3 +104,13 @@ Core provides shell contracts and helpers for adapter packages:
 
 For Flutter usage, install `flutter_unrouter`. For Jaspr usage, install
 `jaspr_unrouter`.
+
+## Complete Dart example
+
+See `/example/bin/main.dart` for a full pure Dart scenario that covers:
+
+- typed parser helpers (`params/query`)
+- redirect + guard + block flows
+- loader routes with typed data
+- `UnrouterController` navigation and state stream
+- redirect diagnostics

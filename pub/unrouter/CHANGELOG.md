@@ -58,6 +58,9 @@
 - Removed legacy state-machine internals and kept only platform-agnostic route
   resolution plus runtime state snapshot types in `unrouter`.
 - Replaced Flutter example and tests with pure Dart equivalents.
+- Expanded core pure Dart example into a full end-to-end scenario covering
+  typed params/query parsing, redirect/guard/block flows, loader routes,
+  controller navigation, state stream observation, and redirect diagnostics.
 
 ## 0.9.0
 
