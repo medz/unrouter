@@ -5,7 +5,7 @@
 [![Dart SDK](https://img.shields.io/badge/dart-%3E%3D3.10.0-0175C2.svg)](https://dart.dev)
 [![pub workspace](https://img.shields.io/badge/pub%20workspace-4%20packages-6f42c1.svg)](https://dart.dev/tools/pub/workspaces)
 
-`unrouter` is a typed, URL-first routing ecosystem for Dart runtimes..
+`unrouter` is a typed, URL-first routing ecosystem for Dart runtimes.
 
 ## Packages
 
@@ -34,7 +34,8 @@ dart pub workspace list
 ## Verify all packages
 
 ```bash
-./tool/workspace_check.sh
+flutter analyze pub
+flutter test pub
 ```
 
 Manual checks:

@@ -17,13 +17,13 @@ void main() {
       ),
       resolveInitialRoute: true,
       publishPendingState: true,
-      loading: (_, __) => const Text('loading', key: Key('loading')),
+      loading: (_, _) => const Text('loading', key: Key('loading')),
       routes: <RouteRecord<AppRoute>>[
         dataRoute<SlowRoute, String>(
           path: '/slow',
           parse: (_) => const SlowRoute(),
           loader: (_) => loader.future,
-          builder: (_, __, data) =>
+          builder: (_, _, data) =>
               Text('loaded:$data', key: const Key('done')),
         ),
       ],
@@ -51,7 +51,7 @@ void main() {
         initialIndex: 0,
       ),
       resolveInitialRoute: true,
-      onError: (_, error, __) {
+      onError: (_, error, _) {
         return Text('error:${error.runtimeType}', key: const Key('error'));
       },
       routes: <RouteRecord<AppRoute>>[
@@ -61,7 +61,7 @@ void main() {
             final id = int.parse(state.params.required('id'));
             return UserRoute(id: id);
           },
-          builder: (_, __) => const SizedBox.shrink(),
+          builder: (_, _) => const SizedBox.shrink(),
         ),
       ],
     );
@@ -84,7 +84,7 @@ void main() {
         route<HomeRoute>(
           path: '/home',
           parse: (_) => const HomeRoute(),
-          builder: (_, __) => const SizedBox.shrink(),
+          builder: (_, _) => const SizedBox.shrink(),
         ),
       ],
     );

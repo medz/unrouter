@@ -2,10 +2,10 @@ name: unrouter_example
 description: Pure Dart example for unrouter core.
 publish_to: none
 version: 1.0.0
+resolution: workspace
 
 environment:
   sdk: ^3.10.0
 
 dependencies:
-  unrouter:
-    path: ..
+  unrouter: ^0.9.0

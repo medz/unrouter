@@ -6,6 +6,10 @@ environment:
 
 workspace:
   - pub/unrouter
+  - pub/unrouter/example
   - pub/flutter_unrouter
+  - pub/flutter_unrouter/example
   - pub/jaspr_unrouter
+  - pub/jaspr_unrouter/example
   - pub/nocterm_unrouter
+  - pub/nocterm_unrouter/example

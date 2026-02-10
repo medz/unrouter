@@ -7,32 +7,7 @@ on:
     branches: [main]
 
 jobs:
-  test-unrouter-core:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2.21.0
-        with:
-          channel: stable
-
-      - name: Install workspace dependencies
-        run: dart pub get
-
-      - name: Analyze unrouter core
-        run: |
-          cd pub/unrouter
-          dart pub get
-          dart analyze
-
-      - name: Test unrouter core
-        run: |
-          cd pub/unrouter
-          dart test
-
-  test-flutter-unrouter:
+  workspace-checks:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -46,38 +21,8 @@ jobs:
       - name: Install workspace dependencies
         run: flutter pub get
 
-      - name: Analyze flutter_unrouter
-        run: |
-          cd pub/flutter_unrouter
-          flutter pub get
-          flutter analyze
+      - name: Analyze workspace packages
+        run: flutter analyze pub
 
-      - name: Test flutter_unrouter
-        run: |
-          cd pub/flutter_unrouter
-          flutter test
-
-  test-jaspr-unrouter:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2.21.0
-        with:
-          channel: stable
-
-      - name: Install workspace dependencies
-        run: dart pub get
-
-      - name: Analyze jaspr_unrouter
-        run: |
-          cd pub/jaspr_unrouter
-          dart pub get
-          dart analyze
-
-      - name: Test jaspr_unrouter
-        run: |
-          cd pub/jaspr_unrouter
-          dart test
+      - name: Test workspace packages
+        run: flutter test pub

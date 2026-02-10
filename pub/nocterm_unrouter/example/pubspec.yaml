@@ -2,19 +2,15 @@ name: nocterm_unrouter_example
 description: Complete terminal storefront example for nocterm_unrouter.
 publish_to: 'none'
 version: 1.0.0+1
+resolution: workspace
 
 environment:
   sdk: ^3.10.0
 
 dependencies:
   nocterm: ^0.5.0
-  nocterm_unrouter:
-    path: ..
+  nocterm_unrouter: ^0.1.0
 
 dev_dependencies:
   lints: ^6.0.0
   test: ^1.26.3
-
-dependency_overrides:
-  unrouter:
-    path: ../../unrouter
