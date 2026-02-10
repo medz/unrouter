@@ -28,52 +28,44 @@ typedef RouteLoadingBuilder = Component Function(BuildContext context, Uri uri);
 ///
 /// Mirrors Flutter adapter ergonomics: configure routes and runtime options in
 /// one place, while `unrouter` core continues to own route semantics.
-class Unrouter<R extends RouteData> extends StatefulComponent {
+class Unrouter<R extends RouteData> extends core.Unrouter<R>
+    implements StatefulComponent {
   Unrouter({
     required List<RouteRecord<R>> routes,
     this.unknown,
     this.onError,
     this.loading,
     this.blocked,
-    this.maxRedirectHops = 8,
-    this.redirectLoopPolicy = RedirectLoopPolicy.error,
-    this.onRedirectDiagnostics,
+    int maxRedirectHops = 8,
+    RedirectLoopPolicy redirectLoopPolicy = RedirectLoopPolicy.error,
+    RedirectDiagnosticsCallback? onRedirectDiagnostics,
     this.history,
     this.base,
     this.strategy = HistoryStrategy.browser,
     this.resolveInitialRoute = false,
     this.publishPendingState = false,
-    super.key,
+    Key? key,
   }) : assert(routes.isNotEmpty, 'Unrouter routes must not be empty.'),
        assert(
          maxRedirectHops > 0,
          'Unrouter maxRedirectHops must be greater than zero.',
        ),
-       routes = List<RouteRecord<R>>.unmodifiable(routes),
-       _core = core.Unrouter<R>(
-         routes: routes.cast(),
+       _key = key,
+       super(
+         routes: routes.cast<core.RouteRecord<R>>(),
          maxRedirectHops: maxRedirectHops,
          redirectLoopPolicy: redirectLoopPolicy,
          onRedirectDiagnostics: onRedirectDiagnostics,
        );
 
-  /// Immutable route table consumed by the matcher.
-  final List<RouteRecord<R>> routes;
-  final core.Unrouter<R> _core;
+  final Key? _key;
+  @override
+  Key? get key => _key;
 
   final UnknownRouteBuilder? unknown;
   final RouteErrorBuilder? onError;
   final RouteLoadingBuilder? loading;
   final UnknownRouteBuilder? blocked;
-
-  /// Redirect hop limit used to prevent infinite redirect chains.
-  final int maxRedirectHops;
-
-  /// Policy used when redirect loops are detected.
-  final RedirectLoopPolicy redirectLoopPolicy;
-
-  /// Callback invoked when redirect safety checks emit diagnostics.
-  final RedirectDiagnosticsCallback? onRedirectDiagnostics;
 
   /// Optional history override for this mounted router instance.
   final History? history;
@@ -90,13 +82,8 @@ class Unrouter<R extends RouteData> extends StatefulComponent {
   /// Whether pending route resolution snapshots are published to listeners.
   final bool publishPendingState;
 
-  /// Resolves [uri] through the core router.
-  Future<RouteResolution<R>> resolve(
-    Uri uri, {
-    RouteExecutionSignal signal = const RouteNeverCancelledSignal(),
-  }) {
-    return _core.resolve(uri, signal: signal);
-  }
+  @override
+  Element createElement() => StatefulElement(this);
 
   @override
   State<Unrouter<R>> createState() => _UnrouterState<R>();
@@ -205,7 +192,7 @@ class _UnrouterState<R extends RouteData> extends State<Unrouter<R>>
 
     final historyPlan = _resolveHistory();
     _controller = core.UnrouterController<R>(
-      router: component._core,
+      router: component,
       history: historyPlan.history,
       resolveInitialRoute: component.resolveInitialRoute,
       publishPendingState: component.publishPendingState,

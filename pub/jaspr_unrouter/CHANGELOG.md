@@ -31,6 +31,8 @@
 
 ### Changed
 
+- `Unrouter` now extends core `Unrouter` and implements Jaspr
+  `StatefulComponent`, removing adapter-local core forwarding state.
 - Synced to `unrouter` parser helper renames:
   - parser state now uses `RouteState` (`params` + `query` as `TypedParams`);
   - route parsing now uses typed helpers on `state.params` / `state.query`

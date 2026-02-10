@@ -12,6 +12,8 @@
 
 ### Changed
 
+- `Unrouter` now extends core `Unrouter` and implements Nocterm
+  `StatefulComponent`, removing adapter-local core forwarding state.
 - Adapter runtime uses core `UnrouterController` directly.
 - Adapter shell assembly reuses core `buildShellRouteRecords` and
   `requireShellRouteRecord`.
