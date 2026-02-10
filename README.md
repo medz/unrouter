@@ -1,5 +1,10 @@
 # unrouter workspace
 
+[![CI](https://github.com/medz/unrouter/actions/workflows/tests.yml/badge.svg)](https://github.com/medz/unrouter/actions/workflows/tests.yml)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/medz/unrouter/blob/main/LICENSE)
+[![Dart SDK](https://img.shields.io/badge/dart-%3E%3D3.10.0-0175C2.svg)](https://dart.dev)
+[![pub workspace](https://img.shields.io/badge/pub%20workspace-4%20packages-6f42c1.svg)](https://dart.dev/tools/pub/workspaces)
+
 `unrouter` is a typed, URL-first routing ecosystem for Dart runtimes.
 This repository is a `pub workspace` containing one core package and three
 platform adapters.

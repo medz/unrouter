@@ -1,5 +1,10 @@
 # nocterm_unrouter
 
+[![Status](https://img.shields.io/badge/status-unreleased-lightgrey.svg)](https://github.com/medz/unrouter/tree/main/pub/nocterm_unrouter)
+[![CI](https://github.com/medz/unrouter/actions/workflows/tests.yml/badge.svg)](https://github.com/medz/unrouter/actions/workflows/tests.yml)
+[![Adapter](https://img.shields.io/badge/adapter-nocterm-5A4FCF.svg)](https://pub.dev/packages/nocterm)
+[![Dart SDK](https://img.shields.io/badge/dart-%3E%3D3.10.0-0175C2.svg)](https://dart.dev)
+
 Nocterm adapter for `unrouter`.
 
 ## Install

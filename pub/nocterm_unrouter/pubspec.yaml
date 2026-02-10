@@ -1,12 +1,16 @@
 name: nocterm_unrouter
-description: Nocterm adapter package for unrouter.
+description: Nocterm adapter for the unrouter typed routing core.
 version: 0.1.0
 repository: https://github.com/medz/unrouter
+homepage: https://github.com/medz/unrouter
+issue_tracker: https://github.com/medz/unrouter/issues
+documentation: https://github.com/medz/unrouter/tree/main/pub/nocterm_unrouter
 topics:
   - nocterm
   - router
   - navigation
   - routing
+  - typed
 resolution: workspace
 
 environment:

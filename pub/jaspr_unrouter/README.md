@@ -1,5 +1,10 @@
 # jaspr_unrouter
 
+[![Status](https://img.shields.io/badge/status-unreleased-lightgrey.svg)](https://github.com/medz/unrouter/tree/main/pub/jaspr_unrouter)
+[![CI](https://github.com/medz/unrouter/actions/workflows/tests.yml/badge.svg)](https://github.com/medz/unrouter/actions/workflows/tests.yml)
+[![Adapter](https://img.shields.io/badge/adapter-jaspr-1E88E5.svg)](https://jaspr.site)
+[![Dart SDK](https://img.shields.io/badge/dart-%3E%3D3.10.0-0175C2.svg)](https://dart.dev)
+
 Jaspr adapter for `unrouter`.
 
 ## Install

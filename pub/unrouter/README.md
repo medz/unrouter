@@ -1,5 +1,10 @@
 # unrouter
 
+[![pub package](https://img.shields.io/pub/v/unrouter.svg)](https://pub.dev/packages/unrouter)
+[![pub points](https://img.shields.io/pub/points/unrouter)](https://pub.dev/packages/unrouter/score)
+[![CI](https://github.com/medz/unrouter/actions/workflows/tests.yml/badge.svg)](https://github.com/medz/unrouter/actions/workflows/tests.yml)
+[![Dart SDK](https://img.shields.io/badge/dart-%3E%3D3.10.0-0175C2.svg)](https://dart.dev)
+
 Platform-agnostic, URL-first typed router core for Dart.
 
 ## Install

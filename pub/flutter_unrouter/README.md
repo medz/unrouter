@@ -1,5 +1,10 @@
 # flutter_unrouter
 
+[![Status](https://img.shields.io/badge/status-unreleased-lightgrey.svg)](https://github.com/medz/unrouter/tree/main/pub/flutter_unrouter)
+[![CI](https://github.com/medz/unrouter/actions/workflows/tests.yml/badge.svg)](https://github.com/medz/unrouter/actions/workflows/tests.yml)
+[![Platform](https://img.shields.io/badge/platform-flutter-02569B.svg)](https://flutter.dev)
+[![Dart SDK](https://img.shields.io/badge/dart-%3E%3D3.10.0-0175C2.svg)](https://dart.dev)
+
 Flutter adapter for `unrouter`.
 
 ## Install
