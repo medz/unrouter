@@ -36,5 +36,6 @@ echo "==> Resolving workspace dependencies"
 run_dart_package_checks "pub/unrouter"
 run_flutter_package_checks "pub/flutter_unrouter"
 run_dart_package_checks "pub/jaspr_unrouter"
+run_dart_package_checks "pub/nocterm_unrouter"
 
 echo "==> Workspace checks passed"

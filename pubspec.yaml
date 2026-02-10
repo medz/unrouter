@@ -8,3 +8,4 @@ workspace:
   - pub/unrouter
   - pub/flutter_unrouter
   - pub/jaspr_unrouter
+  - pub/nocterm_unrouter
