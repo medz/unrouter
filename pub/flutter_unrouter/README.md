@@ -87,3 +87,6 @@ cd pub/flutter_unrouter/example
 flutter pub get
 flutter run -d chrome
 ```
+
+The example is a full storefront demo with shell navigation, loader routes,
+typed push/pop results, guard redirect/block flows, and polished UI styling.

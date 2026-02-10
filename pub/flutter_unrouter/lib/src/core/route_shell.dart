@@ -82,6 +82,11 @@ class _ShellRouteRecord<R extends RouteData> extends RouteRecord<R>
   }
 
   @override
+  Future<Object?> runLoader(RouteContext<RouteData> context) {
+    return record.runLoader(context);
+  }
+
+  @override
   Uri resolveBranchTarget(int index, {bool initialLocation = false}) {
     return coordinator.resolveBranchTarget(
       index,

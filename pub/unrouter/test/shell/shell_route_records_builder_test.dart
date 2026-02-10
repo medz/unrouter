@@ -79,6 +79,11 @@ final class _TestRecord implements RouteRecord<_AppRoute> {
   Future<Uri?> runRedirect(RouteContext<RouteData> context) {
     return Future<Uri?>.value(null);
   }
+
+  @override
+  Future<Object?> runLoader(RouteContext<RouteData> context) {
+    return Future<Object?>.value(null);
+  }
 }
 
 final class _WrappedRecord implements RouteRecord<_AppRoute> {
@@ -109,5 +114,10 @@ final class _WrappedRecord implements RouteRecord<_AppRoute> {
   @override
   Future<Uri?> runRedirect(RouteContext<RouteData> context) {
     return record.runRedirect(context);
+  }
+
+  @override
+  Future<Object?> runLoader(RouteContext<RouteData> context) {
+    return record.runLoader(context);
   }
 }

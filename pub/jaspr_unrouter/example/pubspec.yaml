@@ -1,0 +1,19 @@
+name: jaspr_unrouter_example
+description: Complete storefront example for jaspr_unrouter.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.10.0
+
+dependencies:
+  jaspr: ^0.22.2
+  jaspr_unrouter:
+    path: ..
+
+dev_dependencies:
+  lints: ^6.0.0
+
+dependency_overrides:
+  unrouter:
+    path: ../../unrouter

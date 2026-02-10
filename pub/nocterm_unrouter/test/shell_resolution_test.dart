@@ -46,6 +46,32 @@ void main() {
     expect(settingsResult.record, isA<unrouter.RouteRecord<AppRoute>>());
     expect(settingsResult.record?.name, 'settings');
   });
+
+  test('shell route wrappers keep loader execution for data routes', () async {
+    final routes = <unrouter.RouteRecord<AppRoute>>[
+      ...unrouter.shell<AppRoute>(
+        branches: <unrouter.ShellBranch<AppRoute>>[
+          unrouter.branch<AppRoute>(
+            initialLocation: Uri(path: '/feed-data'),
+            routes: <unrouter.RouteRecord<AppRoute>>[
+              unrouter.dataRoute<FeedDataRoute, String>(
+                path: '/feed-data',
+                parse: (_) => const FeedDataRoute(),
+                loader: (_) => 'feed:loaded',
+                builder: (_, __, data) => Text(data),
+              ),
+            ],
+          ),
+        ],
+        builder: (_, __, child) => child,
+      ),
+    ];
+    final router = core.Unrouter<AppRoute>(routes: routes);
+
+    final result = await router.resolve(Uri(path: '/feed-data'));
+    expect(result.isMatched, isTrue);
+    expect(result.loaderData, 'feed:loaded');
+  });
 }
 
 sealed class AppRoute implements unrouter.RouteData {
@@ -64,4 +90,11 @@ final class SettingsRoute extends AppRoute {
 
   @override
   Uri toUri() => Uri(path: '/settings');
+}
+
+final class FeedDataRoute extends AppRoute {
+  const FeedDataRoute();
+
+  @override
+  Uri toUri() => Uri(path: '/feed-data');
 }

@@ -184,6 +184,38 @@ void main() {
       expect(result.loaderData, 'profile:7');
     });
 
+    test('returns loader data for shell-wrapped loaded routes', () async {
+      final router = Unrouter<AppRoute>(
+        history: MemoryHistory(),
+        routes: [
+          ...shell<AppRoute>(
+            branches: <ShellBranch<AppRoute>>[
+              branch<AppRoute>(
+                initialLocation: Uri(path: '/shell-feed'),
+                routes: <RouteRecord<AppRoute>>[
+                  dataRoute<ShellDataRoute, String>(
+                    path: '/shell-feed',
+                    parse: (_) => const ShellDataRoute(),
+                    loader: (_) => 'shell:feed',
+                    builder: (_, _, data) => Text(data),
+                  ),
+                ],
+              ),
+            ],
+            builder: (_, _, child) => child,
+          ),
+        ],
+      );
+
+      final result = await router.resolve(
+        Uri(path: '/shell-feed'),
+        signal: const RouteNeverCancelledSignal(),
+      );
+
+      expect(result.isMatched, isTrue);
+      expect(result.loaderData, 'shell:feed');
+    });
+
     test(
       'throws cancellation when signal becomes cancelled during loader',
       () async {
@@ -316,6 +348,13 @@ final class SlowRoute extends AppRoute {
 
   @override
   Uri toUri() => Uri(path: '/slow');
+}
+
+final class ShellDataRoute extends AppRoute {
+  const ShellDataRoute();
+
+  @override
+  Uri toUri() => Uri(path: '/shell-feed');
 }
 
 enum UserTab { posts, likes }

@@ -84,3 +84,15 @@ UnrouterLink<HomeRoute>(
   children: [span([text('Home')])],
 )
 ```
+
+## Example
+
+```bash
+cd pub/jaspr_unrouter/example
+dart pub get
+dart run lib/main.dart
+```
+
+The `example/` app is a complete storefront demo with polished UI, shell
+branches, typed route parsing, data loaders, guard redirect/block behavior, and
+typed push/pop result flow.

@@ -1,6 +1,7 @@
-# unrouter_example
+# flutter_unrouter storefront example
 
-Runnable reference app for the slimmed `unrouter` API.
+A full Flutter reference app for `flutter_unrouter` with a polished visual style
+and production-like navigation flows.
 
 ## Run
 
@@ -9,17 +10,24 @@ flutter pub get
 flutter run -d chrome
 ```
 
+## What this demo covers
+
+- shell navigation with two branches (`Explore` and `Wallet`)
+- typed query parsing (`/catalog?tab=...`)
+- typed param parsing (`/products/:id`)
+- async loader routes with `dataRoute<T, L>()`
+- typed push/pop result flow (product quantity return)
+- guard redirect to login for checkout
+- guard block fallback when cart is empty
+- runtime state usage through `context.unrouterAs<T>()`
+- custom fallback UIs for loading / unknown / blocked / error
+
 ## Route map
 
-- `/`: home page
-- `/users/:id`: typed push result demo
-- `/settings`: basic navigation demo
-- `/secure`: guard-protected route
-- `/login?from=...`: redirect target for secure guard
-
-## Core capabilities covered
-
-- Typed routes via `RouteData` + `route<T>()`
-- `context.unrouter` navigation: `go`, `push`, `back`, `pop`
-- Typed push result delivery (`push<T>()` + `pop(result)`)
-- Guard + redirect flow with sign-in continuation
+- `/` dashboard
+- `/catalog?tab=...` catalog lanes
+- `/products/:id?panel=...` product detail (loader)
+- `/cart` cart summary (loader)
+- `/profile` session panel
+- `/checkout` guarded checkout (loader)
+- `/login?from=...` guard redirect target

@@ -28,6 +28,11 @@
   and shell runtime wiring with only adapter-specific wrapping logic.
 - Added `requireShellRouteRecord` helper so adapters can share shell record cast
   validation/error handling instead of duplicating it.
+- Route records now expose a unified loader hook (`runLoader`), so shell
+  wrappers can forward loader execution without depending on concrete route
+  definition types.
+- Fixed route resolution for shell-wrapped data routes: loader data is now
+  produced correctly instead of being dropped as `null`.
 - Added adapter runtime helpers (`resolveRouteResolution`,
   `syncControllerResolution`, `castRouteRecord`, `castShellRouteRecordHost`)
   so platform packages can share resolution dispatch and runtime synchronization.

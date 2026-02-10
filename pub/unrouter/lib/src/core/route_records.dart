@@ -24,6 +24,7 @@ abstract class RouteRecord<T extends RouteData> {
 
   Future<Uri?> runRedirect(RouteContext<RouteData> context);
   Future<RouteGuardResult> runGuards(RouteContext<RouteData> context);
+  Future<Object?> runLoader(RouteContext<RouteData> context);
 }
 
 /// Route definition without asynchronous loader data.
@@ -56,6 +57,12 @@ class RouteDefinition<T extends RouteData> extends RouteRecord<T> {
   Future<RouteGuardResult> runGuards(RouteContext<RouteData> context) {
     return runRouteGuards(guards, context.cast<T>());
   }
+
+  @override
+  Future<Object?> runLoader(RouteContext<RouteData> context) async {
+    context.signal.throwIfCancelled();
+    return null;
+  }
 }
 
 /// Route definition that resolves typed loader data before completion.
@@ -78,6 +85,11 @@ class DataRouteDefinition<T extends RouteData, L> extends RouteDefinition<T> {
     } finally {
       context.signal.throwIfCancelled();
     }
+  }
+
+  @override
+  Future<Object?> runLoader(RouteContext<RouteData> context) {
+    return load(context);
   }
 }
 

@@ -109,11 +109,8 @@ class Unrouter<R extends RouteData> {
         return RouteResolution.blocked(normalizedUri);
       }
 
-      Object? loaderData;
-      final record = matched.data;
-      if (record case DataRouteDefinition<R, Object?> dataRoute) {
-        loaderData = await dataRoute.load(context);
-      }
+      signal.throwIfCancelled();
+      final loaderData = await matched.data.runLoader(context);
       signal.throwIfCancelled();
 
       return RouteResolution.matched(

@@ -15,6 +15,8 @@
   `ShellRouteRecordHost` and compose `ShellCoordinator`.
 - Reworked `shell()` assembly to reuse core `buildShellRouteRecords`, removing
   adapter-local branch flattening/runtime wiring templates.
+- Shell-wrapped `DataRouteDefinition` now forwards loader execution through the
+  core route loader hook, so loader data is preserved in shell branches.
 - Reworked shell route record casting to reuse core `requireShellRouteRecord`,
   removing adapter-local cast/validation duplication.
 - Reworked runtime resolution branching and controller-sync behavior to reuse
@@ -28,6 +30,8 @@
   API and switched to direct core type usage.
 - Removed adapter-local `RouteData` re-export shim file; adapter now references
   core `RouteData` directly.
+- Added a complete polished `example/` storefront demo covering shell branches,
+  loader routes, guard redirect/block flows, and typed push/pop result flow.
 
 ### Changed
 

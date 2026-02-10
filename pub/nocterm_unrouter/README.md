@@ -72,3 +72,15 @@ controller.go(const HomeRoute());
 controller.push<void>(const HomeRoute());
 controller.back();
 ```
+
+## Example
+
+```bash
+cd pub/nocterm_unrouter/example
+dart pub get
+dart run bin/main.dart
+```
+
+The `example/` app is a complete keyboard-first storefront TUI with shell
+branches, typed parsing, data loaders, guard redirect/block behavior, and typed
+push/pop result flow.
