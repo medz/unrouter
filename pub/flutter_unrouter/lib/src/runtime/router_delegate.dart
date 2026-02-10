@@ -63,6 +63,8 @@ class UnrouterDelegate<R extends RouteData>
   late final VoidCallback _stateListener;
 
   int _pageRevision = 0;
+  int _suppressedDidRemoveCount = 0;
+  String? _currentPageIdentity;
 
   @override
   final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -98,6 +100,13 @@ class UnrouterDelegate<R extends RouteData>
 
   @override
   Future<void> setNewRoutePath(HistoryLocation configuration) {
+    final state = _controller.state;
+    if (configuration.uri == state.uri &&
+        configuration.state == state.historyState &&
+        state.resolution != RouteResolutionType.pending) {
+      return _controller.idle;
+    }
+
     return _controller.sync(configuration.uri, state: configuration.state);
   }
 
@@ -177,7 +186,14 @@ class UnrouterDelegate<R extends RouteData>
   }
 
   Page<void> _buildNavigatorPage(Widget pageChild) {
-    final pageKey = ValueKey<String>('${_resolution.uri}::$_pageRevision');
+    final pageIdentity = '${_resolution.uri}::$_pageRevision';
+    final previousIdentity = _currentPageIdentity;
+    if (previousIdentity != null && previousIdentity != pageIdentity) {
+      _suppressedDidRemoveCount += 1;
+    }
+    _currentPageIdentity = pageIdentity;
+
+    final pageKey = ValueKey<String>(pageIdentity);
     final pageName = _resolution.uri.toString();
     final scopedChild = UnrouterScope(
       controller: _scopeController,
@@ -197,6 +213,11 @@ class UnrouterDelegate<R extends RouteData>
   }
 
   void _onDidRemovePage(Page<Object?> page) {
+    if (_suppressedDidRemoveCount > 0) {
+      _suppressedDidRemoveCount -= 1;
+      return;
+    }
+
     if (_routeInformationProvider.canGoBack) {
       _routeInformationProvider.back();
     }

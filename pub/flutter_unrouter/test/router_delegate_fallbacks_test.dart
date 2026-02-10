@@ -23,8 +23,7 @@ void main() {
           path: '/slow',
           parse: (_) => const SlowRoute(),
           loader: (_) => loader.future,
-          builder: (_, _, data) =>
-              Text('loaded:$data', key: const Key('done')),
+          builder: (_, _, data) => Text('loaded:$data', key: const Key('done')),
         ),
       ],
     );
@@ -94,6 +93,73 @@ void main() {
 
     expect(find.text('No route matches /404'), findsOneWidget);
   });
+
+  testWidgets('syncing same uri does not trigger unintended back', (
+    tester,
+  ) async {
+    var loaderVersion = 0;
+    final router = Unrouter<AppRoute>(
+      history: MemoryHistory(
+        initialEntries: <HistoryLocation>[HistoryLocation(Uri(path: '/home'))],
+        initialIndex: 0,
+      ),
+      resolveInitialRoute: true,
+      publishPendingState: true,
+      routes: <RouteRecord<AppRoute>>[
+        route<HomeRoute>(
+          path: '/home',
+          parse: (_) => const HomeRoute(),
+          builder: (context, _) {
+            return FilledButton(
+              key: const Key('go-counter'),
+              onPressed: () {
+                context.unrouter.pushUri(Uri(path: '/counter'));
+              },
+              child: const Text('go counter'),
+            );
+          },
+        ),
+        dataRoute<CounterRoute, int>(
+          path: '/counter',
+          parse: (_) => const CounterRoute(),
+          loader: (_) async => ++loaderVersion,
+          builder: (context, _, data) {
+            return Column(
+              children: <Widget>[
+                Text('counter:$data', key: const Key('counter-value')),
+                FilledButton(
+                  key: const Key('counter-refresh'),
+                  onPressed: () async {
+                    await context.unrouter.sync(Uri(path: '/counter'));
+                  },
+                  child: const Text('refresh'),
+                ),
+              ],
+            );
+          },
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('go-counter')), findsOneWidget);
+    expect(router.routeInformationProvider.value.uri.path, '/home');
+
+    await tester.tap(find.byKey(const Key('go-counter')));
+    await tester.pumpAndSettle();
+
+    expect(router.routeInformationProvider.value.uri.path, '/counter');
+    expect(find.text('counter:1'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('counter-refresh')));
+    await tester.pumpAndSettle();
+
+    expect(router.routeInformationProvider.value.uri.path, '/counter');
+    expect(find.text('counter:2'), findsOneWidget);
+    expect(find.byKey(const Key('go-counter')), findsNothing);
+  });
 }
 
 sealed class AppRoute implements RouteData {
@@ -112,6 +178,13 @@ final class SlowRoute extends AppRoute {
 
   @override
   Uri toUri() => Uri(path: '/slow');
+}
+
+final class CounterRoute extends AppRoute {
+  const CounterRoute();
+
+  @override
+  Uri toUri() => Uri(path: '/counter');
 }
 
 final class UserRoute extends AppRoute {

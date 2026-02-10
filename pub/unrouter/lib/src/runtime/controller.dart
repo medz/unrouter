@@ -230,13 +230,15 @@ class UnrouterController<R extends RouteData> {
 
     final request = _resolve(uri, state: state);
     _resolvingUri = uri;
-    _resolvingFuture = request.whenComplete(() {
-      if (identical(_resolvingFuture, request)) {
+    late final Future<void> resolvingFuture;
+    resolvingFuture = request.whenComplete(() {
+      if (identical(_resolvingFuture, resolvingFuture)) {
         _resolvingUri = null;
         _resolvingFuture = null;
       }
     });
-    return _resolvingFuture!;
+    _resolvingFuture = resolvingFuture;
+    return resolvingFuture;
   }
 
   /// Disposes controller resources.
