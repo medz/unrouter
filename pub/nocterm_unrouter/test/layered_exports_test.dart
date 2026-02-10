@@ -46,7 +46,7 @@ void main() {
     expect(mounted, isA<Component>());
   });
 
-  test('component defaults resolveInitialRoute to false', () {
+  test('component defaults resolveInitialRoute to true', () {
     final mounted = unrouter.Unrouter<AppRoute>(
       routes: <unrouter.RouteRecord<AppRoute>>[
         unrouter.route<HomeRoute>(
@@ -57,7 +57,7 @@ void main() {
       ],
     );
 
-    expect(mounted.resolveInitialRoute, isFalse);
+    expect(mounted.resolveInitialRoute, isTrue);
   });
 }
 

@@ -51,6 +51,30 @@ void main() {
     expect(find.byKey(const Key('checkout-title')), findsOneWidget);
   });
 
+  testWidgets('login continue from checkout target routes to cart when empty', (
+    tester,
+  ) async {
+    await tester.pumpWidget(AtelierExampleApp());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('shell-go-cart')));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('cart-go-checkout')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('login-sign-in-continue')), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('login-sign-in-continue')));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('No items yet. Add one from the catalog.'),
+      findsOneWidget,
+    );
+    expect(find.byKey(const Key('checkout-title')), findsNothing);
+  });
+
   testWidgets(
     'empty signed-in cart keeps user on cart after blocked checkout',
     (tester) async {

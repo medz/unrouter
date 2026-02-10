@@ -4,7 +4,7 @@ import 'package:nocterm/nocterm.dart';
 import 'package:nocterm_unrouter/nocterm_unrouter.dart';
 
 final StoreSession _session = StoreSession();
-final Unrouter<AppRoute> _router = _createRouter();
+final Unrouter<AppRoute> _router = createRouter();
 
 Future<void> main() async {
   _session.reset();
@@ -19,7 +19,8 @@ Future<void> main() async {
   );
 }
 
-Unrouter<AppRoute> _createRouter() {
+Unrouter<AppRoute> createRouter({StoreSession? session}) {
+  final activeSession = session ?? _session;
   return Unrouter<AppRoute>(
     routes: <RouteRecord<AppRoute>>[
       route<RootRoute>(
@@ -87,7 +88,7 @@ Unrouter<AppRoute> _createRouter() {
               dataRoute<CartRoute, CartSummary>(
                 path: '/cart',
                 parse: (_) => const CartRoute(),
-                loader: _loadCart,
+                loader: (context) => _loadCart(context, activeSession),
                 builder: (_, route, data) => CartPage(route: route, data: data),
               ),
               dataRoute<CheckoutRoute, CheckoutSummary>(
@@ -95,18 +96,18 @@ Unrouter<AppRoute> _createRouter() {
                 parse: (_) => const CheckoutRoute(),
                 guards: <RouteGuard<CheckoutRoute>>[
                   (context) {
-                    if (!_session.isSignedIn) {
+                    if (!activeSession.isSignedIn) {
                       return RouteGuardResult.redirect(
                         route: LoginRoute(from: context.uri.toString()),
                       );
                     }
-                    if (_session.itemCount == 0) {
+                    if (activeSession.itemCount == 0) {
                       return const RouteGuardResult.block();
                     }
                     return const RouteGuardResult.allow();
                   },
                 ],
-                loader: _loadCheckout,
+                loader: (context) => _loadCheckout(context, activeSession),
                 builder: (_, __, data) => CheckoutPage(data: data),
               ),
             ],
@@ -131,6 +132,7 @@ Unrouter<AppRoute> _createRouter() {
         FallbackPage(title: 'Loading', detail: 'Resolving ${uri.path} ...'),
     onError: (_, error, __) =>
         FallbackPage(title: 'Router error', detail: error.toString()),
+    resolveInitialRoute: true,
   );
 }
 
@@ -252,7 +254,15 @@ class TerminalShell extends StatelessComponent {
       if (shellState.popBranch()) {
         return true;
       }
-      return controller.back();
+      if (controller.back()) {
+        return true;
+      }
+      final fallback = _fallbackBackRoute(controller.route);
+      if (fallback != null) {
+        controller.go(fallback);
+        return true;
+      }
+      return false;
     }
 
     final route = controller.route;
@@ -377,11 +387,7 @@ class TerminalShell extends StatelessComponent {
 
     if (route is LoginRoute) {
       if (key == LogicalKey.enter) {
-        _session.signIn();
-        final target = route.from == null
-            ? const CartRoute().toUri()
-            : (Uri.tryParse(route.from!) ?? const CartRoute().toUri());
-        controller.goUri(target);
+        _completeLogin(controller: controller, route: route);
         return true;
       }
       if (key == LogicalKey.escape) {
@@ -392,6 +398,18 @@ class TerminalShell extends StatelessComponent {
     }
 
     return false;
+  }
+
+  AppRoute? _fallbackBackRoute(AppRoute? route) {
+    return switch (route) {
+      QuantityRoute r => ProductRoute(id: r.id),
+      ProductRoute _ => const CatalogRoute(tab: CatalogTab.featured),
+      CatalogRoute _ => const DiscoverRoute(),
+      CheckoutRoute _ => const CartRoute(),
+      CartRoute _ => const DiscoverRoute(),
+      DiscoverRoute _ => null,
+      _ => const DiscoverRoute(),
+    };
   }
 }
 
@@ -629,25 +647,41 @@ class LoginPage extends StatelessComponent {
   @override
   Component build(BuildContext context) {
     final theme = TuiTheme.of(context);
+    final controller = context.unrouterAs<AppRoute>();
 
-    return _panel(
-      title: 'Login required',
-      color: theme.surface.withOpacity(0.9),
-      children: <Component>[
-        Text(
-          'Checkout requires authentication in this demo.',
-          style: TextStyle(color: theme.onSurface),
-        ),
-        Text(
-          'Return target: ${route.from ?? '/cart'}',
-          style: TextStyle(color: theme.outline),
-        ),
-        const SizedBox(height: 1),
-        Text(
-          'Keys: [Enter] Sign in and continue  [Esc] Explore',
-          style: TextStyle(color: theme.primary),
-        ),
-      ],
+    return Focusable(
+      focused: true,
+      onKeyEvent: (event) {
+        if (event.logicalKey == LogicalKey.enter) {
+          _completeLogin(controller: controller, route: route);
+          return true;
+        }
+        if (event.logicalKey == LogicalKey.escape ||
+            event.logicalKey == LogicalKey.keyB) {
+          controller.go(const DiscoverRoute());
+          return true;
+        }
+        return false;
+      },
+      child: _panel(
+        title: 'Login required',
+        color: theme.surface.withOpacity(0.9),
+        children: <Component>[
+          Text(
+            'Checkout requires authentication in this demo.',
+            style: TextStyle(color: theme.onSurface),
+          ),
+          Text(
+            'Return target: ${route.from ?? '/cart'}',
+            style: TextStyle(color: theme.outline),
+          ),
+          const SizedBox(height: 1),
+          Text(
+            'Keys: [Enter] Sign in and continue  [Esc] Explore',
+            style: TextStyle(color: theme.primary),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -662,19 +696,51 @@ class FallbackPage extends StatelessComponent {
   Component build(BuildContext context) {
     final theme = TuiTheme.of(context);
 
-    return _panel(
-      title: title,
-      color: theme.surface.withOpacity(0.9),
-      children: <Component>[
-        Text(detail, style: TextStyle(color: theme.error)),
-        const SizedBox(height: 1),
-        Text(
-          'Press [H] to jump back to Discover.',
-          style: TextStyle(color: theme.outline),
-        ),
-      ],
+    return Focusable(
+      focused: true,
+      onKeyEvent: (event) {
+        if (event.logicalKey == LogicalKey.keyH ||
+            event.logicalKey == LogicalKey.keyB ||
+            event.logicalKey == LogicalKey.escape) {
+          try {
+            context.unrouterAs<AppRoute>().go(const DiscoverRoute());
+            return true;
+          } on StateError {
+            return false;
+          }
+        }
+        return false;
+      },
+      child: _panel(
+        title: title,
+        color: theme.surface.withOpacity(0.9),
+        children: <Component>[
+          Text(detail, style: TextStyle(color: theme.error)),
+          const SizedBox(height: 1),
+          Text(
+            'Press [H] to jump back to Discover.',
+            style: TextStyle(color: theme.outline),
+          ),
+        ],
+      ),
     );
   }
+}
+
+void _completeLogin({
+  required UnrouterController<AppRoute> controller,
+  required LoginRoute route,
+}) {
+  _session.signIn();
+  final target = route.from == null
+      ? const CartRoute().toUri()
+      : (Uri.tryParse(route.from!) ?? const CartRoute().toUri());
+  if (target.path == '/checkout' && _session.itemCount == 0) {
+    _session.note('Checkout requires cart items first');
+    controller.go(const CartRoute());
+    return;
+  }
+  controller.goUri(target);
 }
 
 Component _panel({
@@ -738,7 +804,10 @@ Future<ProductDetails> _loadProduct(RouteContext<ProductRoute> context) async {
   return product;
 }
 
-Future<CartSummary> _loadCart(RouteContext<CartRoute> context) async {
+Future<CartSummary> _loadCart(
+  RouteContext<CartRoute> context,
+  StoreSession session,
+) async {
   context.signal.throwIfCancelled();
   await Future<void>.delayed(const Duration(milliseconds: 70));
   context.signal.throwIfCancelled();
@@ -747,7 +816,7 @@ Future<CartSummary> _loadCart(RouteContext<CartRoute> context) async {
   var itemCount = 0;
   var totalCents = 0;
 
-  for (final entry in _session.cartEntries) {
+  for (final entry in session.cartEntries) {
     final product = _catalog[entry.key];
     if (product == null) {
       continue;
@@ -778,6 +847,7 @@ Future<CartSummary> _loadCart(RouteContext<CartRoute> context) async {
 
 Future<CheckoutSummary> _loadCheckout(
   RouteContext<CheckoutRoute> context,
+  StoreSession session,
 ) async {
   context.signal.throwIfCancelled();
   await Future<void>.delayed(const Duration(milliseconds: 90));
@@ -785,7 +855,7 @@ Future<CheckoutSummary> _loadCheckout(
 
   var itemCount = 0;
   var totalCents = 0;
-  for (final entry in _session.cartEntries) {
+  for (final entry in session.cartEntries) {
     final product = _catalog[entry.key];
     if (product == null) {
       continue;

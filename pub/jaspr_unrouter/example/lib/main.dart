@@ -6,7 +6,7 @@ import 'package:jaspr_unrouter/jaspr_unrouter.dart';
 
 final StoreSession _session = StoreSession();
 
-final Unrouter<AppRoute> _router = _createRouter();
+final Unrouter<AppRoute> _router = createRouter();
 
 final List<dom.StyleRule> _styles = <dom.StyleRule>[
   dom.css('*').styles(raw: <String, String>{'box-sizing': 'border-box'}),
@@ -375,13 +375,27 @@ class StorefrontApp extends StatelessComponent {
   }
 }
 
-Unrouter<AppRoute> _createRouter() {
+Unrouter<AppRoute> createRouter({StoreSession? session}) {
+  final activeSession = session ?? _session;
   return Unrouter<AppRoute>(
     routes: <RouteRecord<AppRoute>>[
       route<RootRoute>(
         path: '/',
         parse: (_) => const RootRoute(),
         redirect: (_) => const DiscoverRoute().toUri(),
+        builder: (_, __) => const Component.empty(),
+      ),
+      route<ActionRoute>(
+        path: '/action/:intent',
+        parse: (state) => ActionRoute(
+          intent: state.params.$enum('intent', ActionRouteIntent.values),
+          next: state.query['next'],
+          id: state.query.containsKey('id') ? state.query.$int('id') : null,
+          qty: state.query.containsKey('qty') ? state.query.$int('qty') : null,
+        ),
+        redirect: (context) {
+          return _resolveActionRedirect(context.route, activeSession);
+        },
         builder: (_, __) => const Component.empty(),
       ),
       ...shell<AppRoute>(
@@ -443,7 +457,7 @@ Unrouter<AppRoute> _createRouter() {
               dataRoute<CartRoute, CartSummary>(
                 path: '/cart',
                 parse: (_) => const CartRoute(),
-                loader: _loadCart,
+                loader: (context) => _loadCart(context, activeSession),
                 builder: (_, route, data) => CartPage(route: route, data: data),
               ),
               dataRoute<CheckoutRoute, CheckoutSummary>(
@@ -451,18 +465,18 @@ Unrouter<AppRoute> _createRouter() {
                 parse: (_) => const CheckoutRoute(),
                 guards: <RouteGuard<CheckoutRoute>>[
                   (context) {
-                    if (!_session.isSignedIn) {
+                    if (!activeSession.isSignedIn) {
                       return RouteGuardResult.redirect(
                         route: LoginRoute(from: context.uri.toString()),
                       );
                     }
-                    if (_session.itemCount == 0) {
+                    if (activeSession.itemCount == 0) {
                       return const RouteGuardResult.block();
                     }
                     return const RouteGuardResult.allow();
                   },
                 ],
-                loader: _loadCheckout,
+                loader: (context) => _loadCheckout(context, activeSession),
                 builder: (_, __, data) => CheckoutPage(data: data),
               ),
             ],
@@ -499,6 +513,7 @@ Unrouter<AppRoute> _createRouter() {
         detail: error.toString(),
       );
     },
+    resolveInitialRoute: true,
   );
 }
 
@@ -512,54 +527,52 @@ class ShellChrome extends StatelessComponent {
   Component build(BuildContext context) {
     final controller = context.unrouterAs<AppRoute>();
 
-    return ListenableBuilder(
-      listenable: _session,
-      builder: (context) {
-        return dom.div(<Component>[
-          dom.header(<Component>[
-            dom.div(<Component>[
-              dom.div(<Component>[
-                Component.text('Atelier Commerce'),
-              ], classes: 'brand'),
-              dom.div(<Component>[
-                Component.text(controller.state.uri.toString()),
-              ], classes: 'uri-chip'),
-            ], classes: 'topbar-row'),
-            dom.div(<Component>[
-              _chipButton(
-                label: 'Explore',
-                active: shellState.activeBranchIndex == 0,
-                onClick: () => shellState.goBranch(0),
-              ),
-              _chipButton(
-                label: 'Wallet',
-                active: shellState.activeBranchIndex == 1,
-                onClick: () => shellState.goBranch(1),
-              ),
-              _chipButton(
-                label: _session.isSignedIn ? 'Sign out' : 'Sign in',
-                ghost: true,
-                onClick: _session.toggleAuth,
-              ),
-            ], classes: 'chip-row'),
-            dom.div(<Component>[
-              _statusPill('Items ${_session.itemCount}', warm: false),
-              _statusPill(
-                _session.isSignedIn ? 'Signed in' : 'Guest mode',
-                warm: !_session.isSignedIn,
-              ),
-              _statusPill(_session.status, warm: false, note: true),
-            ], classes: 'status-row'),
-          ], classes: 'topbar'),
-          dom.main_(<Component>[child], classes: 'surface'),
-          dom.p(<Component>[
-            Component.text(
-              'Demo coverage: shell branches, redirects, guard block, data loader, typed push/pop result.',
+    return dom.div(<Component>[
+      dom.header(<Component>[
+        dom.div(<Component>[
+          dom.div(<Component>[
+            Component.text('Atelier Commerce'),
+          ], classes: 'brand'),
+          dom.div(<Component>[
+            Component.text(controller.state.uri.toString()),
+          ], classes: 'uri-chip'),
+        ], classes: 'topbar-row'),
+        dom.div(<Component>[
+          _chipButton(
+            label: 'Explore',
+            active: shellState.activeBranchIndex == 0,
+            route: const DiscoverRoute(),
+          ),
+          _chipButton(
+            label: 'Wallet',
+            active: shellState.activeBranchIndex == 1,
+            route: const CartRoute(),
+          ),
+          _chipButton(
+            label: _session.isSignedIn ? 'Sign out' : 'Sign in',
+            ghost: true,
+            route: ActionRoute(
+              intent: ActionRouteIntent.toggleAuth,
+              next: controller.state.uri.toString(),
             ),
-          ], classes: 'hint'),
-        ], classes: 'shell-root');
-      },
-    );
+          ),
+        ], classes: 'chip-row'),
+        dom.div(<Component>[
+          _statusPill('Items ${_session.itemCount}', warm: false),
+          _statusPill(
+            _session.isSignedIn ? 'Signed in' : 'Guest mode',
+            warm: !_session.isSignedIn,
+          ),
+          _statusPill(_session.status, warm: false, note: true),
+        ], classes: 'status-row'),
+      ], classes: 'topbar'),
+      dom.main_(<Component>[child], classes: 'surface'),
+      dom.p(<Component>[
+        Component.text(
+          'Demo coverage: shell branches, redirects, guard block, data loader, typed push/pop result.',
+        ),
+      ], classes: 'hint'),
+    ], classes: 'shell-root');
   }
 }
 
@@ -568,7 +581,6 @@ class DiscoverPage extends StatelessComponent {
 
   @override
   Component build(BuildContext context) {
-    final controller = context.unrouterAs<AppRoute>();
     final featured = _productsByTab(CatalogTab.featured);
 
     return dom.section(<Component>[
@@ -585,22 +597,13 @@ class DiscoverPage extends StatelessComponent {
           _button(
             label: 'Browse catalog',
             primary: true,
-            onClick: () {
-              controller.go(const CatalogRoute(tab: CatalogTab.studio));
-            },
+            route: const CatalogRoute(tab: CatalogTab.studio),
           ),
           _button(
             label: 'Open legacy /p/102',
-            onClick: () {
-              controller.go(const LegacyProductRoute(id: 102));
-            },
+            route: const LegacyProductRoute(id: 102),
           ),
-          _button(
-            label: 'Go to cart',
-            onClick: () {
-              controller.go(const CartRoute());
-            },
-          ),
+          _button(label: 'Go to cart', route: const CartRoute()),
         ], classes: 'btn-row'),
       ], classes: 'hero'),
       dom.div(<Component>[
@@ -633,7 +636,6 @@ class CatalogPage extends StatelessComponent {
 
   @override
   Component build(BuildContext context) {
-    final controller = context.unrouterAs<AppRoute>();
     final products = _productsByTab(route.tab);
 
     return dom.section(<Component>[
@@ -651,9 +653,7 @@ class CatalogPage extends StatelessComponent {
             _chipButton(
               label: _catalogTabLabel(tab),
               active: route.tab == tab,
-              onClick: () {
-                controller.go(CatalogRoute(tab: tab));
-              },
+              route: CatalogRoute(tab: tab),
             ),
         ], classes: 'chip-row'),
       ], classes: 'hero'),
@@ -709,8 +709,6 @@ class ProductPage extends StatelessComponent {
 
   @override
   Component build(BuildContext context) {
-    final controller = context.unrouterAs<AppRoute>();
-
     return dom.section(<Component>[
       dom.div(<Component>[
         dom.h2(<Component>[Component.text(data.title)], classes: 'title'),
@@ -723,9 +721,7 @@ class ProductPage extends StatelessComponent {
             _chipButton(
               label: _panelLabel(panel),
               active: route.panel == panel,
-              onClick: () {
-                controller.go(ProductRoute(id: route.id, panel: panel));
-              },
+              route: ProductRoute(id: route.id, panel: panel),
             ),
         ], classes: 'chip-row'),
       ], classes: 'hero'),
@@ -753,31 +749,20 @@ class ProductPage extends StatelessComponent {
             _button(
               label: 'Add one',
               primary: true,
-              onClick: () {
-                _session.addItem(route.id, qty: 1);
-                controller.go(const CartRoute());
-              },
+              route: ActionRoute(
+                intent: ActionRouteIntent.addItem,
+                id: route.id,
+                qty: 1,
+                next: const CartRoute().toUri().toString(),
+              ),
             ),
             _button(
               label: 'Choose quantity',
-              onClick: () {
-                unawaited(
-                  controller.push<int>(QuantityRoute(id: route.id)).then((qty) {
-                    if (qty == null) {
-                      _session.note('Quantity chooser cancelled');
-                      return;
-                    }
-                    _session.addItem(route.id, qty: qty);
-                    controller.go(const CartRoute());
-                  }),
-                );
-              },
+              route: QuantityRoute(id: route.id),
             ),
             _button(
               label: 'Back to catalog',
-              onClick: () {
-                controller.go(const CatalogRoute(tab: CatalogTab.featured));
-              },
+              route: const CatalogRoute(tab: CatalogTab.featured),
             ),
           ], classes: 'btn-row'),
         ], classes: 'card'),
@@ -793,7 +778,6 @@ class QuantityPickerPage extends StatelessComponent {
 
   @override
   Component build(BuildContext context) {
-    final controller = context.unrouterAs<AppRoute>();
     final title = _catalog[route.id]?.title ?? 'Product ${route.id}';
 
     return dom.section(<Component>[
@@ -807,11 +791,18 @@ class QuantityPickerPage extends StatelessComponent {
             _button(
               label: '$amount ×',
               primary: amount == 2,
-              onClick: () {
-                controller.pop<int>(amount);
-              },
+              route: ActionRoute(
+                intent: ActionRouteIntent.addItem,
+                id: route.id,
+                qty: amount,
+                next: const CartRoute().toUri().toString(),
+              ),
             ),
-          _button(label: 'Cancel', danger: true, onClick: controller.back),
+          _button(
+            label: 'Cancel',
+            danger: true,
+            route: ProductRoute(id: route.id),
+          ),
         ], classes: 'btn-row'),
       ], classes: 'card'),
     ], classes: 'page');
@@ -826,7 +817,6 @@ class CartPage extends StatelessComponent {
 
   @override
   Component build(BuildContext context) {
-    final controller = context.unrouterAs<AppRoute>();
     route;
 
     return dom.section(<Component>[
@@ -854,9 +844,7 @@ class CartPage extends StatelessComponent {
           _button(
             label: 'Browse catalog',
             primary: true,
-            onClick: () {
-              controller.go(const CatalogRoute(tab: CatalogTab.featured));
-            },
+            route: const CatalogRoute(tab: CatalogTab.featured),
           ),
         ], classes: 'card')
       else
@@ -879,20 +867,14 @@ class CartPage extends StatelessComponent {
             ], classes: 'line-item'),
         ], classes: 'page'),
       dom.div(<Component>[
-        _button(
-          label: 'Checkout',
-          primary: true,
-          onClick: () {
-            controller.go(const CheckoutRoute());
-          },
-        ),
+        _button(label: 'Checkout', primary: true, route: const CheckoutRoute()),
         _button(
           label: 'Clear cart',
           danger: true,
-          onClick: () {
-            _session.clearCart(reason: 'Cart cleared from wallet view');
-            controller.go(const CartRoute());
-          },
+          route: ActionRoute(
+            intent: ActionRouteIntent.clearCart,
+            next: const CartRoute().toUri().toString(),
+          ),
         ),
       ], classes: 'btn-row'),
     ], classes: 'page');
@@ -906,8 +888,6 @@ class CheckoutPage extends StatelessComponent {
 
   @override
   Component build(BuildContext context) {
-    final controller = context.unrouterAs<AppRoute>();
-
     return dom.section(<Component>[
       dom.article(<Component>[
         dom.h2(<Component>[Component.text('Checkout')], classes: 'title'),
@@ -925,17 +905,12 @@ class CheckoutPage extends StatelessComponent {
           _button(
             label: 'Pay now',
             primary: true,
-            onClick: () {
-              _session.clearCart(reason: 'Order confirmed. Payment captured.');
-              controller.go(const DiscoverRoute());
-            },
+            route: ActionRoute(
+              intent: ActionRouteIntent.pay,
+              next: const DiscoverRoute().toUri().toString(),
+            ),
           ),
-          _button(
-            label: 'Back to cart',
-            onClick: () {
-              controller.go(const CartRoute());
-            },
-          ),
+          _button(label: 'Back to cart', route: const CartRoute()),
         ], classes: 'btn-row'),
       ], classes: 'card'),
     ], classes: 'page');
@@ -949,7 +924,6 @@ class LoginPage extends StatelessComponent {
 
   @override
   Component build(BuildContext context) {
-    final controller = context.unrouterAs<AppRoute>();
     final target = route.from == null
         ? const CartRoute().toUri()
         : (Uri.tryParse(route.from!) ?? const CartRoute().toUri());
@@ -971,17 +945,12 @@ class LoginPage extends StatelessComponent {
           _button(
             label: 'Sign in and continue',
             primary: true,
-            onClick: () {
-              _session.signIn();
-              controller.goUri(target);
-            },
+            route: ActionRoute(
+              intent: ActionRouteIntent.signIn,
+              next: target.toString(),
+            ),
           ),
-          _button(
-            label: 'Back to explore',
-            onClick: () {
-              controller.go(const DiscoverRoute());
-            },
-          ),
+          _button(label: 'Back to explore', route: const DiscoverRoute()),
         ], classes: 'btn-row'),
       ], classes: 'card'),
     ], classes: 'page');
@@ -996,8 +965,6 @@ class FallbackPage extends StatelessComponent {
 
   @override
   Component build(BuildContext context) {
-    final controller = context.unrouterAs<AppRoute>();
-
     return dom.section(<Component>[
       dom.article(<Component>[
         dom.h2(<Component>[Component.text(title)], classes: 'title'),
@@ -1005,9 +972,7 @@ class FallbackPage extends StatelessComponent {
         _button(
           label: 'Go to discover',
           primary: true,
-          onClick: () {
-            controller.go(const DiscoverRoute());
-          },
+          route: const DiscoverRoute(),
         ),
       ], classes: 'fallback'),
     ], classes: 'page');
@@ -1031,7 +996,7 @@ Component _statusPill(String label, {required bool warm, bool note = false}) {
 
 Component _chipButton({
   required String label,
-  required VoidCallback onClick,
+  required AppRoute route,
   bool active = false,
   bool ghost = false,
 }) {
@@ -1043,17 +1008,16 @@ Component _chipButton({
     classes.write(' chip-ghost');
   }
 
-  return dom.button(
-    <Component>[Component.text(label)],
-    type: dom.ButtonType.button,
+  return UnrouterLink<AppRoute>(
+    route: route,
     classes: classes.toString(),
-    onClick: onClick,
+    children: <Component>[Component.text(label)],
   );
 }
 
 Component _button({
   required String label,
-  required VoidCallback onClick,
+  required AppRoute route,
   bool primary = false,
   bool danger = false,
 }) {
@@ -1065,11 +1029,10 @@ Component _button({
     classes.write(' btn-danger');
   }
 
-  return dom.button(
-    <Component>[Component.text(label)],
-    type: dom.ButtonType.button,
+  return UnrouterLink<AppRoute>(
+    route: route,
     classes: classes.toString(),
-    onClick: onClick,
+    children: <Component>[Component.text(label)],
   );
 }
 
@@ -1083,7 +1046,10 @@ Future<ProductDetails> _loadProduct(RouteContext<ProductRoute> context) async {
   return product;
 }
 
-Future<CartSummary> _loadCart(RouteContext<CartRoute> context) async {
+Future<CartSummary> _loadCart(
+  RouteContext<CartRoute> context,
+  StoreSession session,
+) async {
   context.signal.throwIfCancelled();
   await Future<void>.delayed(const Duration(milliseconds: 90));
   context.signal.throwIfCancelled();
@@ -1092,7 +1058,7 @@ Future<CartSummary> _loadCart(RouteContext<CartRoute> context) async {
   var totalCents = 0;
   var totalItems = 0;
 
-  for (final entry in _session.cartEntries) {
+  for (final entry in session.cartEntries) {
     final product = _catalog[entry.key];
     if (product == null) {
       continue;
@@ -1121,6 +1087,7 @@ Future<CartSummary> _loadCart(RouteContext<CartRoute> context) async {
 
 Future<CheckoutSummary> _loadCheckout(
   RouteContext<CheckoutRoute> context,
+  StoreSession session,
 ) async {
   context.signal.throwIfCancelled();
   await Future<void>.delayed(const Duration(milliseconds: 110));
@@ -1128,7 +1095,7 @@ Future<CheckoutSummary> _loadCheckout(
 
   var totalCents = 0;
   var itemCount = 0;
-  for (final entry in _session.cartEntries) {
+  for (final entry in session.cartEntries) {
     final product = _catalog[entry.key];
     if (product == null) {
       continue;
@@ -1180,6 +1147,55 @@ String _panelCopy(ProductPanel panel, ProductDetails product) {
     ProductPanel.reviews =>
       'Loved by operators who prefer tactile feedback with calm acoustics.',
   };
+}
+
+Uri _resolveActionRedirect(ActionRoute route, StoreSession session) {
+  final defaultNext = const DiscoverRoute().toUri();
+  final next = _normalizeLocalUri(route.next, fallback: defaultNext);
+
+  switch (route.intent) {
+    case ActionRouteIntent.toggleAuth:
+      session.toggleAuth();
+      return next;
+    case ActionRouteIntent.addItem:
+      final id = route.id;
+      final qty = route.qty;
+      if (id != null && qty != null && qty > 0) {
+        session.addItem(id, qty: qty);
+      }
+      return next;
+    case ActionRouteIntent.clearCart:
+      session.clearCart(reason: 'Cart cleared from wallet view');
+      return next;
+    case ActionRouteIntent.pay:
+      session.clearCart(reason: 'Order confirmed. Payment captured.');
+      return next;
+    case ActionRouteIntent.signIn:
+      session.signIn();
+      if (next.path == '/checkout' && session.itemCount == 0) {
+        session.note('Checkout requires cart items first');
+        return const CartRoute().toUri();
+      }
+      return next;
+  }
+}
+
+Uri _normalizeLocalUri(String? raw, {required Uri fallback}) {
+  if (raw == null) {
+    return fallback;
+  }
+  final parsed = Uri.tryParse(raw);
+  if (parsed == null || parsed.hasScheme || parsed.hasAuthority) {
+    return fallback;
+  }
+  if (parsed.path.isEmpty) {
+    return Uri(
+      path: fallback.path,
+      query: parsed.hasQuery ? parsed.query : fallback.query,
+      fragment: parsed.hasFragment ? parsed.fragment : fallback.fragment,
+    );
+  }
+  return parsed;
 }
 
 sealed class AppRoute implements RouteData {
@@ -1272,6 +1288,30 @@ final class LoginRoute extends AppRoute {
     return Uri(path: '/login', queryParameters: query);
   }
 }
+
+final class ActionRoute extends AppRoute {
+  const ActionRoute({required this.intent, this.next, this.id, this.qty});
+
+  final ActionRouteIntent intent;
+  final String? next;
+  final int? id;
+  final int? qty;
+
+  @override
+  Uri toUri() {
+    final query = <String, String>{
+      if (next != null) 'next': next!,
+      if (id != null) 'id': '$id',
+      if (qty != null) 'qty': '$qty',
+    };
+    return Uri(
+      path: '/action/${intent.name}',
+      queryParameters: query.isEmpty ? null : query,
+    );
+  }
+}
+
+enum ActionRouteIntent { toggleAuth, addItem, clearCart, pay, signIn }
 
 enum CatalogTab { featured, studio, essentials }
 

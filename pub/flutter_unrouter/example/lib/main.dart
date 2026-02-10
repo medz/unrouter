@@ -855,6 +855,11 @@ class LoginScreen extends StatelessWidget {
                     context.unrouter.go(const DashboardRoute());
                     return;
                   }
+                  if (target.path == '/checkout' && _session.itemCount == 0) {
+                    _eventFeed.value = 'Checkout requires cart items first';
+                    context.unrouter.go(const CartRoute());
+                    return;
+                  }
                   context.unrouter.goUri(target);
                 },
                 child: const Text('Sign in and continue'),

@@ -16,4 +16,5 @@ Complete storefront demo for `jaspr_unrouter`, including:
 cd example
 dart pub get
 dart run lib/main.dart
+dart test
 ```

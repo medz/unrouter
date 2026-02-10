@@ -42,7 +42,7 @@ class Unrouter<R extends RouteData> extends core.Unrouter<R>
     this.history,
     this.base,
     this.strategy = HistoryStrategy.browser,
-    this.resolveInitialRoute = false,
+    this.resolveInitialRoute = true,
     this.publishPendingState = false,
     Key? key,
   }) : assert(routes.isNotEmpty, 'Unrouter routes must not be empty.'),
@@ -181,7 +181,9 @@ class _UnrouterState<R extends RouteData> extends State<Unrouter<R>>
 
     return UnrouterScope(
       controller: scopeController,
-      child: _buildFromResolution(context),
+      child: Builder(
+        builder: (innerContext) => _buildFromResolution(innerContext),
+      ),
     );
   }
 
