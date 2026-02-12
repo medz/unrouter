@@ -2,6 +2,8 @@
 .idea
 .vscode
 .dart_tool
+.codex
+.claude
 
 pubspec.lock
 build
