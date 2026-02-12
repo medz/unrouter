@@ -20,7 +20,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  roux: ^0.1.1
+  roux: ^0.2.0
   unstory: ^0.1.1
   unrouter: ^0.10.0
 

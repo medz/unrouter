@@ -22,11 +22,23 @@ class Unrouter<R extends RouteData> {
          'Unrouter maxRedirectHops must be greater than zero.',
        ),
        routes = List<RouteRecord<R>>.unmodifiable(routes),
-       _matcher = _createMatcher(routes);
+       _matcher = (() {
+         final routeMap = <String, RouteRecord<R>>{};
+         for (final route in routes) {
+           if (routeMap.containsKey(route.path)) {
+             throw FormatException(
+               'Duplicate route pattern conflicts with existing route: '
+               '${route.path}',
+             );
+           }
+           routeMap[route.path] = route;
+         }
+         return Router<RouteRecord<R>>(routes: routeMap);
+       })();
 
   /// Immutable route table consumed by the matcher.
   final List<RouteRecord<R>> routes;
-  final RouterContext<RouteRecord<R>> _matcher;
+  final Router<RouteRecord<R>> _matcher;
 
   /// Redirect hop limit used to prevent infinite redirect chains.
   final int maxRedirectHops;
@@ -44,7 +56,7 @@ class Unrouter<R extends RouteData> {
   }) async {
     final normalizedUri = _normalizeUri(uri);
     final lookupPath = _normalizeLookupPath(normalizedUri.path);
-    final matched = findRoute<RouteRecord<R>>(_matcher, null, lookupPath);
+    final matched = _matcher.match(lookupPath);
     if (matched == null) {
       return RouteResolution.unmatched(normalizedUri);
     }
@@ -128,16 +140,6 @@ class Unrouter<R extends RouteData> {
         stackTrace: stackTrace,
       );
     }
-  }
-
-  static RouterContext<RouteRecord<R>> _createMatcher<R extends RouteData>(
-    List<RouteRecord<R>> routes,
-  ) {
-    final matcher = createRouter<RouteRecord<R>>(caseSensitive: true);
-    for (final route in routes) {
-      addRoute<RouteRecord<R>>(matcher, null, route.path, route);
-    }
-    return matcher;
   }
 
   static Uri _normalizeUri(Uri uri) {
