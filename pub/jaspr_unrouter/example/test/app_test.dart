@@ -1,6 +1,5 @@
 import 'package:test/test.dart';
-
-import '../lib/main.dart' as demo;
+import 'package:jaspr_unrouter_example/main.dart' as demo;
 
 void main() {
   test('root route redirects to discover', () async {
