@@ -21,4 +21,5 @@ dependencies:
   unstory: ^0.1.1
 
 dev_dependencies:
+  lints: ^6.0.0
   test: ^1.26.3
