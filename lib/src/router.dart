@@ -38,7 +38,7 @@ Router createRouter({
   History? history,
   HistoryStrategy strategy = HistoryStrategy.browser,
 }) {
-  final router = RouterImpl(
+  final router = _RouterImpl(
     history: createHistory(base: normalizePath([base]), strategy: strategy),
     aliases: roux.Router(),
     views: roux.Router(),
@@ -149,8 +149,8 @@ extension on Inlet {
   }
 }
 
-class RouterImpl implements Router {
-  const RouterImpl({
+class _RouterImpl implements Router {
+  const _RouterImpl({
     required this.history,
     required this.aliases,
     required this.views,
