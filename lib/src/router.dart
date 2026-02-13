@@ -5,6 +5,7 @@ import 'package:roux/roux.dart' as roux;
 
 import 'inlet.dart';
 import 'middleware.dart';
+import 'utils.dart';
 
 abstract interface class Router {
   Iterable<Inlet> get routes;
@@ -60,10 +61,10 @@ extension on Inlet {
   Map<String, String> makeAliasRoutes() {
     final routes = <String, String>{};
     void collect(Inlet route, String parentPath) {
-      final fullPath = _normalizePath([parentPath, route.path]);
+      final fullPath = normalizePath([parentPath, route.path]);
       final name = route.name;
       if (name case final alias? when alias.isNotEmpty) {
-        final key = _normalizePath([alias]);
+        final key = normalizePath([alias]);
         final previous = routes[key];
         if (previous != null && previous != fullPath) {
           throw StateError('Duplicate route alias "$alias".');
@@ -85,25 +86,4 @@ extension on Inlet {
   ]) {
     throw UnimplementedError();
   }
-}
-
-String _normalizePath(Iterable<String> paths) {
-  final segments = <String>[];
-  for (final path in paths) {
-    if (path.isEmpty) {
-      continue;
-    }
-
-    for (final segment in path.split('/')) {
-      if (segment.isEmpty) {
-        continue;
-      }
-      segments.add(segment);
-    }
-  }
-
-  if (segments.isEmpty) {
-    return '/';
-  }
-  return '/${segments.join('/')}';
 }
