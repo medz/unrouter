@@ -1,5 +1,8 @@
-name: unrouter
+name: unrouter_example
+description: unrouter prototype example
 publish_to: none
+
+version: 1.0.0+1
 
 environment:
   sdk: ^3.10.0
@@ -7,11 +10,13 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  oref: ^2.8.0
-  roux: ^0.2.0
-  unstory: ^0.1.1
+  unrouter:
+    path: ..
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
