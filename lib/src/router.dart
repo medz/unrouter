@@ -90,7 +90,7 @@ extension on Inlet {
     ) {
       final path = normalizePath([parent, route.path]);
       final views = <ViewBuilder>[...?parentViews, route.view];
-      final middlewareChain = <Middleware>[
+      final middleware = <Middleware>[
         ...?parentMiddleware,
         ...route.middleware,
       ];
@@ -99,10 +99,7 @@ extension on Inlet {
       if (previous != null) {
         if (!_isSameOrNonStrictPrefix(previous.views, views)) {
           throw StateError('Duplicate route views "$path".');
-        } else if (!_isSameOrNonStrictPrefix(
-          previous.middleware,
-          middlewareChain,
-        )) {
+        } else if (!_isSameOrNonStrictPrefix(previous.middleware, middleware)) {
           throw StateError('Duplicate route middleware "$path".');
         }
       }
@@ -113,12 +110,12 @@ extension on Inlet {
       });
       routes[path] = RouteRecord(
         views: views,
-        middleware: middlewareChain,
+        middleware: middleware,
         meta: meta,
       );
 
       for (final child in route.children) {
-        collect(child, path, views, middlewareChain, meta);
+        collect(child, path, views, middleware, meta);
       }
     }
 
