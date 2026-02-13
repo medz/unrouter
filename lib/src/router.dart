@@ -1,4 +1,3 @@
-import 'package:flutter/widgets.dart';
 import 'package:ht/ht.dart';
 import 'package:unstory/unstory.dart';
 import 'package:roux/roux.dart' as roux;
@@ -54,8 +53,30 @@ Router createRouter({
 }
 
 extension on Inlet {
-  Map<String, Iterable<ValueGetter<Widget>>> makeViewRoutes() {
-    return {};
+  Map<String, Iterable<ViewBuilder>> makeViewRoutes() {
+    final routes = <String, Iterable<ViewBuilder>>{};
+
+    void collect(
+      Inlet route,
+      String parentPath,
+      Iterable<ViewBuilder> parentViews,
+    ) {
+      final fullPath = normalizePath([parentPath, route.path]);
+      final views = <ViewBuilder>[...parentViews, route.view];
+
+      final previous = routes[fullPath];
+      if (previous != null && !_isSameOrNonStrictPrefix(previous, views)) {
+        throw StateError('Duplicate view route "$fullPath".');
+      }
+      routes[fullPath] = views;
+
+      for (final child in route.children) {
+        collect(child, fullPath, views);
+      }
+    }
+
+    collect(this, '/', const []);
+    return routes;
   }
 
   Map<String, String> makeAliasRoutes() {
@@ -84,6 +105,45 @@ extension on Inlet {
   Map<String, Iterable<Middleware>> makeMiddlewareRoutes([
     Iterable<Middleware>? global,
   ]) {
-    throw UnimplementedError();
+    final routes = <String, Iterable<Middleware>>{};
+
+    void collect(
+      Inlet route,
+      String parentPath,
+      Iterable<Middleware>? parentMiddleware,
+    ) {
+      final fullPath = normalizePath([parentPath, route.path]);
+      final middlewareChain = <Middleware>[
+        ...?parentMiddleware,
+        ...route.middleware,
+      ];
+
+      final previous = routes[fullPath];
+      if (previous != null &&
+          !_isSameOrNonStrictPrefix(previous, middlewareChain)) {
+        throw StateError('Duplicate middleware route "$fullPath".');
+      }
+      routes[fullPath] = middlewareChain;
+
+      for (final child in route.children) {
+        collect(child, fullPath, middlewareChain);
+      }
+    }
+
+    collect(this, '/', global);
+    return routes;
   }
+}
+
+bool _isSameOrNonStrictPrefix<T>(Iterable<T> parent, Iterable<T> child) {
+  if (child.length < parent.length) {
+    return false;
+  }
+
+  for (var i = 0; i < parent.length; i++) {
+    if (parent.elementAtOrNull(i) != child.elementAtOrNull(i)) {
+      return false;
+    }
+  }
+  return true;
 }
