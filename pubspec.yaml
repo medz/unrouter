@@ -7,6 +7,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  ht: ^0.2.0
   oref: ^2.8.0
   roux: ^0.2.0
   unstory: ^0.1.1
