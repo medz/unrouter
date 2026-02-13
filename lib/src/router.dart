@@ -7,10 +7,11 @@ import 'middleware.dart';
 import 'utils.dart';
 
 abstract interface class Router {
-  Iterable<Inlet> get routes;
-  Iterable<Middleware> get middleware;
-  History get history;
   String get base;
+  History get history;
+  roux.Router get aliases;
+  roux.Router get views;
+  roux.Router get middleware;
 
   void go(int delta);
   void forward();
@@ -133,17 +134,17 @@ extension on Inlet {
     collect(this, '/', global);
     return routes;
   }
-}
 
-bool _isSameOrNonStrictPrefix<T>(Iterable<T> parent, Iterable<T> child) {
-  if (child.length < parent.length) {
-    return false;
-  }
-
-  for (var i = 0; i < parent.length; i++) {
-    if (parent.elementAtOrNull(i) != child.elementAtOrNull(i)) {
+  bool _isSameOrNonStrictPrefix<T>(Iterable<T> parent, Iterable<T> child) {
+    if (child.length < parent.length) {
       return false;
     }
+
+    for (var i = 0; i < parent.length; i++) {
+      if (parent.elementAtOrNull(i) != child.elementAtOrNull(i)) {
+        return false;
+      }
+    }
+    return true;
   }
-  return true;
 }
