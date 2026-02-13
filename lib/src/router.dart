@@ -1,16 +1,16 @@
 import 'package:ht/ht.dart';
-import 'package:unstory/unstory.dart';
 import 'package:roux/roux.dart' as roux;
+import 'package:unstory/unstory.dart';
 
 import 'inlet.dart';
 import 'middleware.dart';
+import 'route_record.dart';
 import 'utils.dart';
 
 abstract interface class Router {
   History get history;
-  roux.Router get aliases;
-  roux.Router get views;
-  roux.Router get middleware;
+  roux.Router<String> get aliases;
+  roux.Router<RouteRecord> get matcher;
 
   void go(int delta);
   void forward();
@@ -39,47 +39,22 @@ Router createRouter({
   HistoryStrategy strategy = HistoryStrategy.browser,
 }) {
   final router = _RouterImpl(
-    history: createHistory(base: normalizePath([base]), strategy: strategy),
-    aliases: roux.Router(),
-    views: roux.Router(),
-    middleware: roux.Router(),
+    history:
+        history ??
+        createHistory(base: normalizePath([base]), strategy: strategy),
+    aliases: roux.Router<String>(),
+    matcher: roux.Router<RouteRecord>(),
   );
+  final globalMiddleware = middleware ?? const <Middleware>[];
   for (final route in routes) {
     router.aliases.addAll(route.makeAliasRoutes());
-    router.views.addAll(route.makeViewRoutes());
-    router.middleware.addAll(route.makeMiddlewareRoutes(middleware));
+    router.matcher.addAll(route.makeRouteRecords(globalMiddleware));
   }
 
   return router;
 }
 
 extension on Inlet {
-  Map<String, Iterable<ViewBuilder>> makeViewRoutes() {
-    final routes = <String, Iterable<ViewBuilder>>{};
-
-    void collect(
-      Inlet route,
-      String parentPath,
-      Iterable<ViewBuilder> parentViews,
-    ) {
-      final fullPath = normalizePath([parentPath, route.path]);
-      final views = <ViewBuilder>[...parentViews, route.view];
-
-      final previous = routes[fullPath];
-      if (previous != null && !_isSameOrNonStrictPrefix(previous, views)) {
-        throw StateError('Duplicate view route "$fullPath".');
-      }
-      routes[fullPath] = views;
-
-      for (final child in route.children) {
-        collect(child, fullPath, views);
-      }
-    }
-
-    collect(this, '/', const []);
-    return routes;
-  }
-
   Map<String, String> makeAliasRoutes() {
     final routes = <String, String>{};
     void collect(Inlet route, String parentPath) {
@@ -103,71 +78,83 @@ extension on Inlet {
     return routes;
   }
 
-  Map<String, Iterable<Middleware>> makeMiddlewareRoutes([
-    Iterable<Middleware>? global,
-  ]) {
-    final routes = <String, Iterable<Middleware>>{};
+  Map<String, RouteRecord> makeRouteRecords([Iterable<Middleware>? global]) {
+    final routes = <String, RouteRecord>{};
 
     void collect(
       Inlet route,
-      String parentPath,
+      String parent,
+      Iterable<ViewBuilder>? parentViews,
       Iterable<Middleware>? parentMiddleware,
+      Map<String, Object?>? parentMeta,
     ) {
-      final fullPath = normalizePath([parentPath, route.path]);
+      final path = normalizePath([parent, route.path]);
+      final views = <ViewBuilder>[...?parentViews, route.view];
       final middlewareChain = <Middleware>[
         ...?parentMiddleware,
         ...route.middleware,
       ];
 
-      final previous = routes[fullPath];
-      if (previous != null &&
-          !_isSameOrNonStrictPrefix(previous, middlewareChain)) {
-        throw StateError('Duplicate middleware route "$fullPath".');
+      final previous = routes[path];
+      if (previous != null) {
+        if (!_isSameOrNonStrictPrefix(previous.views, views)) {
+          throw StateError('Duplicate route views "$path".');
+        } else if (!_isSameOrNonStrictPrefix(
+          previous.middleware,
+          middlewareChain,
+        )) {
+          throw StateError('Duplicate route middleware "$path".');
+        }
       }
-      routes[fullPath] = middlewareChain;
+
+      final meta = Map<String, Object?>.unmodifiable({
+        ...?parentMeta,
+        ...?route.meta,
+      });
+      routes[path] = RouteRecord(
+        views: views,
+        middleware: middlewareChain,
+        meta: meta,
+      );
 
       for (final child in route.children) {
-        collect(child, fullPath, middlewareChain);
+        collect(child, path, views, middlewareChain, meta);
       }
     }
 
-    collect(this, '/', global);
+    collect(this, '/', null, global, null);
     return routes;
   }
+}
 
-  bool _isSameOrNonStrictPrefix<T>(Iterable<T> parent, Iterable<T> child) {
-    if (child.length < parent.length) {
+bool _isSameOrNonStrictPrefix<T>(Iterable<T> parent, Iterable<T> child) {
+  if (child.length < parent.length) {
+    return false;
+  }
+
+  for (var i = 0; i < parent.length; i++) {
+    if (child.elementAtOrNull(i) != child.elementAtOrNull(i)) {
       return false;
     }
-
-    for (var i = 0; i < parent.length; i++) {
-      if (parent.elementAtOrNull(i) != child.elementAtOrNull(i)) {
-        return false;
-      }
-    }
-    return true;
   }
+  return true;
 }
 
 class _RouterImpl implements Router {
   const _RouterImpl({
     required this.history,
     required this.aliases,
-    required this.views,
-    required this.middleware,
+    required this.matcher,
   });
 
   @override
   final History history;
 
   @override
-  final roux.Router aliases;
+  final roux.Router<String> aliases;
 
   @override
-  final roux.Router views;
-
-  @override
-  final roux.Router middleware;
+  final roux.Router<RouteRecord> matcher;
 
   @override
   void back() => history.back();

@@ -4,7 +4,7 @@ import 'middleware.dart';
 
 typedef ViewBuilder = ValueGetter<Widget>;
 
-class Inlet<T> {
+class Inlet {
   const Inlet({
     required this.view,
     this.name,
@@ -16,7 +16,7 @@ class Inlet<T> {
 
   final String? name;
   final String path;
-  final T? meta;
+  final Map<String, Object?>? meta;
   final ViewBuilder view;
   final Iterable<Inlet> children;
   final Iterable<Middleware> middleware;
