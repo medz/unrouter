@@ -18,12 +18,20 @@ RouterConfig<HistoryLocation> createRouterConfig(Router router) {
     routeInformationProvider: PlatformRouteInformationProvider(
       initialRouteInformation: info,
     ),
+    // TODO: backButtonDispatcher
   );
 }
 
 final class _RouteInformationParser
     extends RouteInformationParser<HistoryLocation> {
   const _RouteInformationParser();
+
+  @override
+  Future<HistoryLocation> parseRouteInformation(
+    RouteInformation routeInformation,
+  ) async {
+    return .new(routeInformation.uri, routeInformation.state);
+  }
 }
 
 class _RouterDelegate extends RouterDelegate<HistoryLocation> {
