@@ -130,7 +130,7 @@ bool _isSameOrNonStrictPrefix<T>(Iterable<T> parent, Iterable<T> child) {
   }
 
   for (var i = 0; i < parent.length; i++) {
-    if (child.elementAtOrNull(i) != child.elementAtOrNull(i)) {
+    if (parent.elementAtOrNull(i) != child.elementAtOrNull(i)) {
       return false;
     }
   }
