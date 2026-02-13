@@ -7,7 +7,6 @@ import 'middleware.dart';
 import 'utils.dart';
 
 abstract interface class Router {
-  String get base;
   History get history;
   roux.Router get aliases;
   roux.Router get views;
@@ -39,18 +38,19 @@ Router createRouter({
   History? history,
   HistoryStrategy strategy = HistoryStrategy.browser,
 }) {
-  final aliasesMatcher = roux.Router();
-  final viewsMatcher = roux.Router();
-  final middlewareMatcher = roux.Router();
+  final router = RouterImpl(
+    history: createHistory(base: normalizePath([base]), strategy: strategy),
+    aliases: roux.Router(),
+    views: roux.Router(),
+    middleware: roux.Router(),
+  );
   for (final route in routes) {
-    aliasesMatcher.addAll(route.makeAliasRoutes());
-    viewsMatcher.addAll(route.makeViewRoutes());
-    middlewareMatcher.addAll(route.makeMiddlewareRoutes(middleware));
+    router.aliases.addAll(route.makeAliasRoutes());
+    router.views.addAll(route.makeViewRoutes());
+    router.middleware.addAll(route.makeMiddlewareRoutes(middleware));
   }
 
-  history ??= createHistory(base: base, strategy: strategy);
-
-  throw UnimplementedError();
+  return router;
 }
 
 extension on Inlet {
@@ -146,5 +146,63 @@ extension on Inlet {
       }
     }
     return true;
+  }
+}
+
+class RouterImpl implements Router {
+  const RouterImpl({
+    required this.history,
+    required this.aliases,
+    required this.views,
+    required this.middleware,
+  });
+
+  @override
+  final History history;
+
+  @override
+  final roux.Router aliases;
+
+  @override
+  final roux.Router views;
+
+  @override
+  final roux.Router middleware;
+
+  @override
+  void back() {
+    // TODO: implement back
+  }
+
+  @override
+  void forward() {
+    // TODO: implement forward
+  }
+
+  @override
+  void go(int delta) {
+    // TODO: implement go
+  }
+
+  @override
+  Future<void> push<T>(
+    String pathOrName, {
+    Map<String, String>? params,
+    URLSearchParams? query,
+    T? state,
+  }) {
+    // TODO: implement push
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> replace<T>(
+    String pathOrName, {
+    Map<String, String>? params,
+    URLSearchParams? query,
+    T? state,
+  }) {
+    // TODO: implement replace
+    throw UnimplementedError();
   }
 }
