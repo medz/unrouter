@@ -170,19 +170,13 @@ class _RouterImpl implements Router {
   final roux.Router middleware;
 
   @override
-  void back() {
-    // TODO: implement back
-  }
+  void back() => history.back();
 
   @override
-  void forward() {
-    // TODO: implement forward
-  }
+  void forward() => history.forward();
 
   @override
-  void go(int delta) {
-    // TODO: implement go
-  }
+  void go(int delta) => history.go(delta, triggerListeners: true);
 
   @override
   Future<void> push<T>(
