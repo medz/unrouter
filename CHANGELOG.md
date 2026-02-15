@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
-## 0.11.0 - 2026-02-15
+## 0.11.0
 
 Changes since `unrouter-v0.10.0` (2026-02-11), based on PR [#36](https://github.com/medz/unrouter/pull/36).
 
