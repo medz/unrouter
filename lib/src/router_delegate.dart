@@ -25,6 +25,15 @@ RouterConfig<HistoryLocation> createRouterConfig(Unrouter router) {
   );
 }
 
+Unrouter useRouter(BuildContext context) {
+  final flutter.Router(:routerDelegate) = .of(context);
+  if (routerDelegate case _RouterDelegate(:final router)) {
+    return router;
+  }
+
+  throw FlutterError('Router is not an instance of Unrouter');
+}
+
 class _BackButtonDispatcher extends RootBackButtonDispatcher {
   Future<bool>? _inFlightPop;
 
@@ -235,13 +244,4 @@ class _RouterDelegate extends RouterDelegate<HistoryLocation>
     currentLocation = current;
     notifyListeners();
   }
-}
-
-Unrouter useRouter(BuildContext context) {
-  final flutter.Router(:routerDelegate) = .of(context);
-  if (routerDelegate case _RouterDelegate(:final router)) {
-    return router;
-  }
-
-  throw FlutterError('Router is not an instance of Unrouter');
 }

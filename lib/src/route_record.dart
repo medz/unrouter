@@ -1,5 +1,5 @@
-import 'inlet.dart';
 import 'guard.dart';
+import 'inlet.dart';
 
 final class RouteRecord {
   const RouteRecord({required this.views, required this.guards, this.meta});
