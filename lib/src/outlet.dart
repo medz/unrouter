@@ -15,12 +15,15 @@ import 'inlet.dart';
 ///     return Column(
 ///       children: const [
 ///         Text('Users layout'),
-///         Outlet(),
+///         const Outlet(),
 ///       ],
 ///     );
 ///   }
 /// }
 /// ```
+///
+/// Prefer `const Outlet()` when no runtime arguments are needed so static child
+/// trees can keep deeper nodes from being rebuilt unnecessarily.
 class Outlet extends StatelessWidget {
   /// Creates an outlet widget.
   const Outlet({super.key});

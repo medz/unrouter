@@ -57,7 +57,10 @@ void main() {
 
     testWidgets('throws when used outside OutletScope', (tester) async {
       await tester.pumpWidget(
-        const Directionality(textDirection: TextDirection.ltr, child: Outlet()),
+        const Directionality(
+          textDirection: TextDirection.ltr,
+          child: const Outlet(),
+        ),
       );
 
       final error = tester.takeException();
