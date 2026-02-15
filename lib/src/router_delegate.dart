@@ -2,8 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/widgets.dart' hide Router;
 import 'package:flutter/widgets.dart' as flutter show Router;
+import 'package:ht/ht.dart';
 import 'package:unstory/unstory.dart';
 
+import 'outlet.dart';
+import 'route_params.dart';
+import 'route_scope.dart';
 import 'router.dart';
 
 RouterConfig<HistoryLocation> createRouterConfig(Unrouter router) {
@@ -60,10 +64,15 @@ final class _HistoryRouteInformationProvider extends RouteInformationProvider
   _HistoryRouteInformationProvider({
     required this.router,
     required RouteInformation initialRouteInformation,
-  }) : _value = initialRouteInformation;
+  }) : _value = initialRouteInformation {
+    _routerListenable?.addListener(_didLocationChange);
+  }
 
   final Unrouter router;
   RouteInformation _value;
+  late final Listenable? _routerListenable = router is Listenable
+      ? router as Listenable
+      : null;
 
   @override
   RouteInformation get value {
@@ -119,6 +128,7 @@ final class _HistoryRouteInformationProvider extends RouteInformationProvider
 
   @override
   void dispose() {
+    _routerListenable?.removeListener(_didLocationChange);
     if (hasListeners) {
       WidgetsBinding.instance.removeObserver(this);
     }
@@ -128,26 +138,69 @@ final class _HistoryRouteInformationProvider extends RouteInformationProvider
   bool _isSameRouteInformation(RouteInformation a, RouteInformation b) {
     return a.uri == b.uri && a.state == b.state;
   }
+
+  void _didLocationChange() {
+    final location = router.history.location;
+    final latest = RouteInformation(uri: location.uri, state: location.state);
+    if (_isSameRouteInformation(_value, latest)) return;
+
+    _value = latest;
+    notifyListeners();
+  }
 }
 
 class _RouterDelegate extends RouterDelegate<HistoryLocation>
     with ChangeNotifier {
-  _RouterDelegate(this.router);
+  _RouterDelegate(this.router) : currentLocation = router.history.location {
+    if (routerListenable case final listenable?) {
+      listenable.addListener(_didLocationChange);
+    } else {
+      removeHistoryListener = router.history.listen(
+        (_) => _didLocationChange(),
+      );
+    }
+  }
 
   final Unrouter router;
-  HistoryLocation? from;
+  late final Listenable? routerListenable = router is Listenable
+      ? router as Listenable
+      : null;
+  void Function()? removeHistoryListener;
+  HistoryLocation currentLocation;
+  HistoryLocation? fromLocation;
 
   @override
   HistoryLocation get currentConfiguration => router.history.location;
 
   @override
   Widget build(BuildContext context) {
-    throw UnimplementedError();
+    final location = router.history.location;
+    final match = router.matcher.match(location.path);
+    if (match == null) {
+      throw FlutterError('No route matched "${location.path}".');
+    }
+
+    final route = match.data;
+    final views = route.views;
+    final iterator = views.iterator;
+    if (!iterator.moveNext()) {
+      throw FlutterError('No views found for route "${location.path}".');
+    }
+    final firstView = iterator.current;
+
+    return RouteScopeProvider(
+      route: route,
+      params: RouteParams(match.params ?? const <String, String>{}),
+      location: location,
+      query: URLSearchParams(location.query),
+      fromLocation: fromLocation,
+      child: OutletScope(views: views, depth: 1, child: firstView.call()),
+    );
   }
 
   @override
   Future<bool> popRoute() async {
-    throw UnimplementedError();
+    return router.pop();
   }
 
   @override
@@ -162,6 +215,25 @@ class _RouterDelegate extends RouterDelegate<HistoryLocation>
       configuration.uri.toString(),
       state: configuration.state,
     );
+  }
+
+  @override
+  void dispose() {
+    routerListenable?.removeListener(_didLocationChange);
+    removeHistoryListener?.call();
+    super.dispose();
+  }
+
+  void _didLocationChange() {
+    final current = router.history.location;
+    if (currentLocation.uri == current.uri &&
+        currentLocation.state == current.state) {
+      return;
+    }
+
+    fromLocation = currentLocation;
+    currentLocation = current;
+    notifyListeners();
   }
 }
 

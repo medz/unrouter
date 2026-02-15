@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 
-import 'middleware.dart';
+import 'guard.dart';
 
 typedef ViewBuilder = ValueGetter<Widget>;
 
@@ -11,7 +11,7 @@ class Inlet {
     this.meta,
     this.path = '/',
     this.children = const [],
-    this.middleware = const [],
+    this.guards = const [],
   });
 
   final String? name;
@@ -19,5 +19,5 @@ class Inlet {
   final Map<String, Object?>? meta;
   final ViewBuilder view;
   final Iterable<Inlet> children;
-  final Iterable<Middleware> middleware;
+  final Iterable<Guard> guards;
 }
