@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oref/oref.dart';
@@ -31,11 +33,12 @@ void main() {
     testWidgets('starts with defaults and resolves to success', (tester) async {
       AsyncData<int>? latest;
       final statuses = <AsyncStatus>[];
+      final completer = Completer<int>();
 
-      final loader = defineDataLoader<int>((_) async {
-        await Future<void>.delayed(const Duration(milliseconds: 10));
-        return 42;
-      }, defaults: () => 10);
+      final loader = defineDataLoader<int>(
+        (_) => completer.future,
+        defaults: () => 10,
+      );
 
       await tester.pumpWidget(
         Directionality(
@@ -54,12 +57,17 @@ void main() {
       expect(latest!.status, anyOf([AsyncStatus.idle, AsyncStatus.pending]));
       expect(latest!.data, 10);
 
-      await tester.pump(const Duration(milliseconds: 30));
+      await tester.pump();
+      expect(latest!.status, AsyncStatus.pending);
+      expect(latest!.data, 10);
+
+      completer.complete(42);
+      await tester.pump();
+      await tester.pump();
 
       expect(latest!.status, AsyncStatus.success);
       expect(latest!.data, 42);
-      expect(statuses, contains(AsyncStatus.idle));
-      expect(statuses, contains(AsyncStatus.success));
+      expect(statuses, containsAll([AsyncStatus.pending, AsyncStatus.success]));
     });
 
     testWidgets('handles error state', (tester) async {

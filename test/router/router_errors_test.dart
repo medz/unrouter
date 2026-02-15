@@ -58,8 +58,7 @@ void main() {
     });
 
     test('throws on duplicate route guards conflict', () {
-      final first = defineGuard((_) => const GuardResult.allow());
-      final second = defineGuard((_) => const GuardResult.allow());
+      final allow = defineGuard((_) => const GuardResult.allow());
       expect(
         () => createRouter(
           routes: [
@@ -67,8 +66,8 @@ void main() {
               path: '/',
               view: emptyView,
               children: [
-                Inlet(path: 'same', view: emptyView, guards: [first]),
-                Inlet(path: 'same', view: emptyView, guards: [second]),
+                Inlet(path: 'same', view: emptyView),
+                Inlet(path: 'same', view: emptyView, guards: [allow]),
               ],
             ),
           ],

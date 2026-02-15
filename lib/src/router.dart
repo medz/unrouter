@@ -107,9 +107,15 @@ extension on Inlet {
 
       final previous = routes[path];
       if (previous != null) {
-        if (!_isSameOrNonStrictPrefix(previous.views, views)) {
+        final viewRelation = _relation(previous.views, views);
+        if (viewRelation == _SequenceRelation.incompatible) {
           throw StateError('Duplicate route views "$path".');
-        } else if (!_isSameOrNonStrictPrefix(previous.guards, guards)) {
+        }
+
+        final guardRelation = _relation(previous.guards, guards);
+        if (guardRelation == _SequenceRelation.incompatible ||
+            (viewRelation == _SequenceRelation.same &&
+                guardRelation == _SequenceRelation.strictPrefix)) {
           throw StateError('Duplicate route guards "$path".');
         }
       }
@@ -129,16 +135,25 @@ extension on Inlet {
     return routes;
   }
 
-  bool _isSameOrNonStrictPrefix<T>(Iterable<T> parent, Iterable<T> child) {
-    if (child.length < parent.length) return false;
-    for (var i = 0; i < parent.length; i++) {
-      if (parent.elementAtOrNull(i) != child.elementAtOrNull(i)) {
-        return false;
+  _SequenceRelation _relation<T>(Iterable<T> previous, Iterable<T> next) {
+    if (next.length < previous.length) {
+      return _SequenceRelation.incompatible;
+    }
+
+    for (var i = 0; i < previous.length; i++) {
+      if (previous.elementAtOrNull(i) != next.elementAtOrNull(i)) {
+        return _SequenceRelation.incompatible;
       }
     }
-    return true;
+
+    if (next.length == previous.length) {
+      return _SequenceRelation.same;
+    }
+    return _SequenceRelation.strictPrefix;
   }
 }
+
+enum _SequenceRelation { same, strictPrefix, incompatible }
 
 class _RouterImpl extends ChangeNotifier implements Unrouter {
   _RouterImpl({
