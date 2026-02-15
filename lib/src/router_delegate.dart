@@ -187,14 +187,14 @@ class _RouterDelegate extends RouterDelegate<HistoryLocation>
     final location = router.history.location;
     final match = router.matcher.match(location.path);
     if (match == null) {
-      throw FlutterError('No route matched "${location.path}".');
+      throw FlutterError('No route matched path "${location.path}".');
     }
 
     final route = match.data;
     final views = route.views;
     final iterator = views.iterator;
     if (!iterator.moveNext()) {
-      throw FlutterError('No views found for route "${location.path}".');
+      throw FlutterError('No views found for matched path "${location.path}".');
     }
     final firstView = iterator.current;
 

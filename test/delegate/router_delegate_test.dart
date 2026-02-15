@@ -109,7 +109,7 @@ void main() {
       await pumpRouterApp(tester, router);
       final error = tester.takeException();
       expect(error, isA<FlutterError>());
-      expect(error.toString(), contains('No route matched'));
+      expect(error.toString(), contains('No route matched path'));
     });
 
     test('popRoute delegates to router.pop', () async {

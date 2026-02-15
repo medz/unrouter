@@ -36,7 +36,7 @@ class OutletScope extends InheritedWidget {
     final scope = context.dependOnInheritedWidgetOfExactType<OutletScope>();
     if (scope != null) return scope;
 
-    throw FlutterError('Outlet must be used inside a router view.');
+    throw FlutterError('Outlet must be used inside a routed view.');
   }
 
   @override

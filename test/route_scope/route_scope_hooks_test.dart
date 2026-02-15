@@ -73,7 +73,10 @@ void main() {
 
       final error = tester.takeException();
       expect(error, isA<FlutterError>());
-      expect(error.toString(), contains('Unrouter query not found'));
+      expect(
+        error.toString(),
+        contains('Unrouter query is unavailable in this BuildContext'),
+      );
     });
 
     testWidgets('throws when route state type does not match', (tester) async {
@@ -99,7 +102,10 @@ void main() {
 
       final error = tester.takeException();
       expect(error, isA<FlutterError>());
-      expect(error.toString(), contains('Unrouter state not found'));
+      expect(
+        error.toString(),
+        contains('Unrouter state is unavailable in this BuildContext'),
+      );
     });
 
     testWidgets('updates hook values after location changes', (tester) async {

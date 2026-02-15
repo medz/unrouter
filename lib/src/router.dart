@@ -308,13 +308,13 @@ class _RouterImpl extends ChangeNotifier implements Unrouter {
     }
 
     if (!parsed.path.startsWith('/')) {
-      throw StateError('Route "$pathOrName" was not found as a route name.');
+      throw StateError('Route name "$pathOrName" was not found.');
     }
     if (params case final values? when values.isNotEmpty) {
       throw ArgumentError.value(
         params,
         'params',
-        'Path navigation does not accept route params.',
+        'Path navigation does not accept params.',
       );
     }
 
@@ -342,7 +342,7 @@ class _RouterImpl extends ChangeNotifier implements Unrouter {
     );
     final match = matcher.match(uri.path);
     if (match == null) {
-      throw StateError('No route matched "${uri.path}".');
+      throw StateError('No route matched path "${uri.path}".');
     }
 
     return _NavigationTarget(

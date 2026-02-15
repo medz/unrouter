@@ -89,7 +89,7 @@ void main() {
       );
       expect(
         router.push('missing-name'),
-        throwsWith<StateError>('was not found as a route name'),
+        throwsWith<StateError>('Route name "missing-name" was not found'),
       );
     });
 
@@ -102,9 +102,7 @@ void main() {
       );
       expect(
         router.push('/a', params: {'id': '1'}),
-        throwsWith<ArgumentError>(
-          'Path navigation does not accept route params',
-        ),
+        throwsWith<ArgumentError>('Path navigation does not accept params'),
       );
     });
 
@@ -114,7 +112,7 @@ void main() {
       );
       expect(
         router.push('/missing'),
-        throwsWith<StateError>('No route matched'),
+        throwsWith<StateError>('No route matched path'),
       );
     });
 

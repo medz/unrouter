@@ -64,7 +64,7 @@ void main() {
       expect(error, isA<FlutterError>());
       expect(
         error.toString(),
-        contains('Outlet must be used inside a router view'),
+        contains('Outlet must be used inside a routed view'),
       );
     });
   });

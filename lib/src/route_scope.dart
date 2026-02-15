@@ -25,7 +25,9 @@ T useRouteState<T>(BuildContext context) {
   final RouteScopeProvider(:location) = .of(context, RouteScope.state);
   return switch (location.state) {
     T state => state,
-    _ => throw FlutterError('Unrouter state not found in the context'),
+    _ => throw FlutterError(
+      'Unrouter state is unavailable in this BuildContext.',
+    ),
   };
 }
 
@@ -65,7 +67,9 @@ class RouteScopeProvider extends InheritedModel<RouteScope> {
       aspect: scope,
     );
     if (model != null) return model;
-    throw FlutterError('Unrouter ${scope.name} not found in the context');
+    throw FlutterError(
+      'Unrouter ${scope.name} is unavailable in this BuildContext.',
+    );
   }
 
   @override
