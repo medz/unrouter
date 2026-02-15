@@ -4,8 +4,8 @@ import 'package:unrouter/unrouter.dart';
 
 import '../support/fakes.dart';
 
-class _OutletShell extends StatelessWidget {
-  const _OutletShell({super.key});
+class _OutletLayout extends StatelessWidget {
+  const _OutletLayout({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +29,7 @@ void main() {
         Directionality(
           textDirection: TextDirection.ltr,
           child: OutletScope(
-            views: [_OutletShell.new, _LeafView.new],
+            views: [_OutletLayout.new, _LeafView.new],
             depth: 0,
             child: const Outlet(),
           ),

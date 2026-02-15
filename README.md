@@ -62,7 +62,7 @@ final router = createRouter(
     Inlet(name: 'login', path: '/login', view: LoginView.new),
     Inlet(
       path: '/workspace',
-      view: WorkspaceShellView.new,
+      view: WorkspaceLayoutView.new,
       children: [
         Inlet(name: 'workspaceHome', path: '', view: DashboardView.new),
         Inlet(name: 'profile', path: 'users/:id', view: ProfileView.new),
@@ -74,7 +74,7 @@ final router = createRouter(
 );
 ```
 
-`routes` supports multiple top-level `Inlet`s. Use a single parent `Inlet` with `Outlet` only when pages share the same shell layout.
+`routes` supports multiple top-level `Inlet`s. Use a single parent `Inlet` with `Outlet` only when pages share the same layout.
 For concise route definitions, prefer constructor tear-offs such as `MyView.new`.
 
 ### Bootstrap the App
@@ -97,8 +97,8 @@ class MyApp extends StatelessWidget {
 ### Render Nested Views with `Outlet`
 
 ```dart
-class ShellView extends StatelessWidget {
-  const ShellView();
+class LayoutView extends StatelessWidget {
+  const LayoutView();
 
   @override
   Widget build(BuildContext context) {
@@ -234,8 +234,8 @@ Meta is merged from parent to child routes.
 
 ```dart
 Inlet(
-  view: Shell.new,
-  meta: const {'layout': 'shell'},
+  view: Layout.new,
+  meta: const {'layout': 'dashboard'},
   children: [
     Inlet(
       path: 'admin',

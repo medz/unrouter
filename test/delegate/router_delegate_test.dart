@@ -5,8 +5,8 @@ import 'package:unrouter/unrouter.dart';
 import '../support/fakes.dart';
 import '../support/test_app.dart';
 
-class _NestedShell extends StatelessWidget {
-  const _NestedShell({super.key});
+class _NestedLayout extends StatelessWidget {
+  const _NestedLayout({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -87,7 +87,7 @@ void main() {
         routes: [
           Inlet(
             path: '/',
-            view: _NestedShell.new,
+            view: _NestedLayout.new,
             children: [Inlet(path: 'child', view: _ChildPage.new)],
           ),
         ],
