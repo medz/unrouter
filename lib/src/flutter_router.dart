@@ -13,7 +13,7 @@ import 'route_params.dart';
 import 'route_scope.dart';
 import 'router.dart';
 
-RouterConfig<HistoryLocation> createRouterConfig(Router router) {
+RouterConfig<HistoryLocation> createRouterConfig(Unrouter router) {
   final location = router.history.location;
   final info = RouteInformation(uri: location.uri, state: location.state);
 
@@ -58,10 +58,7 @@ final class _RouteInformationParser
 
   @override
   RouteInformation? restoreRouteInformation(HistoryLocation configuration) {
-    return RouteInformation(
-      uri: configuration.uri,
-      state: configuration.state,
-    );
+    return RouteInformation(uri: configuration.uri, state: configuration.state);
   }
 }
 
@@ -74,7 +71,7 @@ final class _HistoryRouteInformationProvider extends RouteInformationProvider
     router.addListener(_syncFromRouter);
   }
 
-  final Router router;
+  final Unrouter router;
   RouteInformation _value;
 
   @override
@@ -89,7 +86,9 @@ final class _HistoryRouteInformationProvider extends RouteInformationProvider
   }
 
   @override
-  Future<bool> didPushRouteInformation(RouteInformation routeInformation) async {
+  Future<bool> didPushRouteInformation(
+    RouteInformation routeInformation,
+  ) async {
     if (_isSameRouteInformation(_value, routeInformation)) {
       return true;
     }
@@ -145,7 +144,8 @@ class _RouterDelegate extends RouterDelegate<HistoryLocation>
     router.addListener(_handleRouterChange);
   }
 
-  final Router router;
+  final Unrouter router;
+  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
   HistoryLocation _configuration;
   HistoryLocation? _fromLocation;
 
@@ -155,20 +155,31 @@ class _RouterDelegate extends RouterDelegate<HistoryLocation>
   @override
   Widget build(BuildContext context) {
     final result = router.matcher.match(currentConfiguration.path);
-    if (result == null) {
-      return const SizedBox.shrink();
-    }
-
-    return RouteScopeProvider(
-      route: result.data,
-      params: RouteParams(result.params ?? const {}),
-      location: currentConfiguration,
-      fromLocation: _fromLocation,
-      query: URLSearchParams(currentConfiguration.uri.query),
-      child: makeRouterView(
-        result.data.views,
-        middleware: result.data.middleware,
+    final content = switch (result) {
+      null => const SizedBox.shrink(),
+      final match => RouteScopeProvider(
+        route: match.data,
+        params: RouteParams(match.params ?? const {}),
+        location: currentConfiguration,
+        fromLocation: _fromLocation,
+        query: URLSearchParams(currentConfiguration.uri.query),
+        child: makeRouterView(
+          match.data.views,
+          middleware: match.data.middleware,
+        ),
       ),
+    };
+
+    return Navigator(
+      key: _navigatorKey,
+      pages: [
+        _RouterPage(
+          key: const ValueKey('unrouter-root-page'),
+          name: currentConfiguration.path,
+          child: content,
+        ),
+      ],
+      onDidRemovePage: (_) {},
     );
   }
 
@@ -195,6 +206,11 @@ class _RouterDelegate extends RouterDelegate<HistoryLocation>
 
   @override
   Future<bool> popRoute() async {
+    final navigator = _navigatorKey.currentState;
+    if (navigator != null && await navigator.maybePop()) {
+      return true;
+    }
+
     final index = router.history.index ?? 0;
     if (index <= 0) {
       return false;
@@ -236,7 +252,61 @@ class _RouterDelegate extends RouterDelegate<HistoryLocation>
   }
 }
 
-Router useRouter(BuildContext context) {
+class _RouterPage extends Page<void> {
+  const _RouterPage({required this.child, required super.key, super.name});
+
+  final Widget child;
+
+  @override
+  Route<void> createRoute(BuildContext context) {
+    return _RouterPageRoute(this);
+  }
+}
+
+class _RouterPageRoute extends PageRoute<void> {
+  _RouterPageRoute(_RouterPage page) : super(settings: page);
+
+  _RouterPage get _page => settings as _RouterPage;
+
+  @override
+  Color? get barrierColor => null;
+
+  @override
+  String? get barrierLabel => null;
+
+  @override
+  bool get maintainState => true;
+
+  @override
+  bool get opaque => true;
+
+  @override
+  Duration get transitionDuration => Duration.zero;
+
+  @override
+  Duration get reverseTransitionDuration => Duration.zero;
+
+  @override
+  Widget buildPage(
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+  ) {
+    return _page.child;
+  }
+
+  @override
+  Widget buildTransitions(
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    return child;
+  }
+}
+
+Unrouter useRouter(BuildContext context) {
   final flutter.Router(:routerDelegate) = .of(context);
   if (routerDelegate case _RouterDelegate(:final router)) {
     return router;

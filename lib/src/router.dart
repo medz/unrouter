@@ -8,9 +8,8 @@ import 'middleware.dart';
 import 'route_record.dart';
 import 'utils.dart';
 
-abstract interface class Router implements Listenable {
+abstract interface class Unrouter implements Listenable {
   History get history;
-  roux.Router<String> get aliases;
   roux.Router<RouteRecord> get matcher;
 
   void go(int delta);
@@ -34,7 +33,7 @@ abstract interface class Router implements Listenable {
   void dispose();
 }
 
-Router createRouter({
+Unrouter createRouter({
   required Iterable<Inlet> routes,
   Iterable<Middleware>? middleware,
   String base = '/',
@@ -140,7 +139,7 @@ bool _isSameOrNonStrictPrefix<T>(Iterable<T> parent, Iterable<T> child) {
   return true;
 }
 
-class _RouterImpl extends ChangeNotifier implements Router {
+class _RouterImpl extends ChangeNotifier implements Unrouter {
   _RouterImpl({
     required this.history,
     required this.aliases,
@@ -152,7 +151,6 @@ class _RouterImpl extends ChangeNotifier implements Router {
   @override
   final History history;
 
-  @override
   final roux.Router<String> aliases;
 
   @override
@@ -226,7 +224,10 @@ class _RouterImpl extends ChangeNotifier implements Router {
       }
 
       final resolvedQuery = query?.toString() ?? parsed.query;
-      return parsed.replace(path: path, query: resolvedQuery);
+      return parsed.replace(
+        path: path,
+        query: resolvedQuery.isEmpty ? null : resolvedQuery,
+      );
     }
 
     final alias = aliases.match(normalizePath([pathOrName]));
@@ -240,7 +241,13 @@ class _RouterImpl extends ChangeNotifier implements Router {
       throw StateError('Resolved route "$path" not found.');
     }
 
-    return Uri(path: path, query: query?.toString());
+    final resolvedQuery = query?.toString();
+    return Uri(
+      path: path,
+      query: resolvedQuery == null || resolvedQuery.isEmpty
+          ? null
+          : resolvedQuery,
+    );
   }
 
   bool _isAbsolutePath(String location) => location.startsWith('/');
