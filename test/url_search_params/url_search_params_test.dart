@@ -37,6 +37,19 @@ void main() {
       final value = params.decode<int>('id', int.parse);
       expect(value, 42);
     });
+
+    test('does not double decode values from query string source', () {
+      final params = URLSearchParams('name=hello%2520world');
+      final value = params.decode<String>('name', (value) => value);
+      expect(value, 'hello%20world');
+    });
+
+    test('clone preserves decode behavior from query string source', () {
+      final params = URLSearchParams('name=hello%2520world');
+      final cloned = params.clone();
+      final value = cloned.decode<String>('name', (value) => value);
+      expect(value, 'hello%20world');
+    });
   });
 
   group(r'URLSearchParams.$int/$num/$double', () {

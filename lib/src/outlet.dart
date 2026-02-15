@@ -39,7 +39,7 @@ class Outlet extends StatelessWidget {
     return OutletScope(
       views: scope.views,
       depth: depth + 1,
-      child: _ViewHost(builder: scope.views.elementAt(depth)),
+      child: _ViewHost(builder: scope.views[depth]),
     );
   }
 }
@@ -62,7 +62,7 @@ class OutletScope extends InheritedWidget {
   });
 
   /// Ordered view builders for the matched route chain.
-  final Iterable<ViewBuilder> views;
+  final List<ViewBuilder> views;
 
   /// Zero-based depth for the next [Outlet] lookup.
   final int depth;

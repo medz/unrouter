@@ -140,6 +140,19 @@ void main() {
         ],
       );
       expect(limitedDepthRouter.push('/a'), throwsStateError);
+
+      final exactDepthRouter = createRouter(
+        maxRedirectDepth: 2,
+        guards: [chainedGuard],
+        routes: [
+          Inlet(path: '/', view: EmptyView.new),
+          Inlet(path: '/a', view: EmptyView.new),
+          Inlet(path: '/b', view: EmptyView.new),
+          Inlet(path: '/c', view: EmptyView.new),
+        ],
+      );
+      await exactDepthRouter.push('/a');
+      expect(exactDepthRouter.history.location.path, '/c');
     });
 
     test('applies guard on history pop and keeps view when blocked', () async {

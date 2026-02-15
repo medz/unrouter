@@ -10,10 +10,10 @@ final class RouteRecord {
   const RouteRecord({required this.views, required this.guards, this.meta});
 
   /// Ordered view builders from parent to child for the matched path.
-  final Iterable<ViewBuilder> views;
+  final List<ViewBuilder> views;
 
   /// Flattened guard chain in runtime evaluation order.
-  final Iterable<Guard> guards;
+  final List<Guard> guards;
 
   /// Merged metadata inherited from parent to child.
   final Map<String, Object?>? meta;

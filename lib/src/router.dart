@@ -229,13 +229,13 @@ extension on Inlet {
     return routes;
   }
 
-  _SequenceRelation _relation<T>(Iterable<T> previous, Iterable<T> next) {
+  _SequenceRelation _relation<T>(List<T> previous, List<T> next) {
     if (next.length < previous.length) {
       return _SequenceRelation.incompatible;
     }
 
     for (var i = 0; i < previous.length; i++) {
-      if (previous.elementAtOrNull(i) != next.elementAtOrNull(i)) {
+      if (previous[i] != next[i]) {
         return _SequenceRelation.incompatible;
       }
     }
@@ -551,12 +551,6 @@ class _RouterImpl extends ChangeNotifier implements Unrouter {
     var current = target;
     var redirects = 0;
     while (true) {
-      if (redirects > maxRedirectDepth) {
-        throw StateError(
-          'Guard redirect loop exceeded max depth $maxRedirectDepth.',
-        );
-      }
-
       final record = current.record;
       final guards = record?.guards ?? const <Guard>[];
       if (guards.isEmpty) {
@@ -587,6 +581,11 @@ class _RouterImpl extends ChangeNotifier implements Unrouter {
             :final query,
             :final state,
           ):
+            if (redirects >= maxRedirectDepth) {
+              throw StateError(
+                'Guard redirect loop exceeded max depth $maxRedirectDepth.',
+              );
+            }
             redirects += 1;
             current = _resolveNavigationTarget(
               pathOrName,

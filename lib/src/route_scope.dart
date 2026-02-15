@@ -165,8 +165,8 @@ class RouteScopeProvider extends InheritedModel<RouteScope> {
         location.uri != oldWidget.location.uri ||
         location.state != oldWidget.location.state ||
         fromLocation != oldWidget.fromLocation ||
-        params != oldWidget.params ||
-        query != oldWidget.query;
+        !mapEquals(params, oldWidget.params) ||
+        query.toString() != oldWidget.query.toString();
   }
 
   @override
@@ -177,7 +177,7 @@ class RouteScopeProvider extends InheritedModel<RouteScope> {
     return (dependencies.contains(RouteScope.meta) &&
             !mapEquals(oldWidget.route.meta, route.meta)) ||
         (dependencies.contains(RouteScope.params) &&
-            oldWidget.params != params) ||
+            !mapEquals(oldWidget.params, params)) ||
         (dependencies.contains(RouteScope.query) &&
             oldWidget.query.toString() != query.toString()) ||
         (dependencies.contains(RouteScope.uri) &&
