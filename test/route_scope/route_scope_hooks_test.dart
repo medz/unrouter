@@ -104,8 +104,32 @@ void main() {
       expect(error, isA<FlutterError>());
       expect(
         error.toString(),
-        contains('Unrouter state is unavailable in this BuildContext'),
+        contains('Unrouter state is of unexpected type'),
       );
+    });
+
+    testWidgets('returns null when route state is absent', (tester) async {
+      final location = HistoryLocation(Uri(path: '/users/42'));
+
+      await tester.pumpWidget(
+        Directionality(
+          textDirection: TextDirection.ltr,
+          child: RouteScopeProvider(
+            route: _record(),
+            params: const RouteParams({'id': '42'}),
+            location: location,
+            query: URLSearchParams(location.query),
+            child: Builder(
+              builder: (context) {
+                final state = useRouteState<String>(context);
+                return Text('state:${state ?? 'null'}');
+              },
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('state:null'), findsOneWidget);
     });
 
     testWidgets('updates hook values after location changes', (tester) async {

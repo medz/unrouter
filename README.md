@@ -288,7 +288,7 @@ router.go(1);
 | `useRouteParams(context)` | `RouteParams` | Matched `:param` values |
 | `useQuery(context)` | `URLSearchParams` | Parsed query string |
 | `useRouteMeta(context)` | `Map<String, Object?>` | Merged route metadata |
-| `useRouteState<T>(context)` | `T` | Typed navigation state |
+| `useRouteState<T>(context)` | `T?` | Typed navigation state |
 | `useRouteURI(context)` | `Uri` | Current route URI |
 | `useFromLocation(context)` | `HistoryLocation?` | Previous location |
 

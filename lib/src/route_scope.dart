@@ -60,15 +60,19 @@ HistoryLocation useLocation(BuildContext context) {
 
 /// Returns typed navigation state from the nearest route scope.
 ///
+/// Returns `null` when no state is attached to the current location.
+///
 /// Throws a [FlutterError] when no [RouteScopeProvider] is found above the
 /// current [BuildContext].
-/// Throws a [FlutterError] when state is absent or not assignable to `T`.
-T useRouteState<T>(BuildContext context) {
+/// Throws a [FlutterError] when state exists but is not assignable to `T`.
+T? useRouteState<T>(BuildContext context) {
   final RouteScopeProvider(:location) = .of(context, RouteScope.state);
   return switch (location.state) {
     T state => state,
-    _ => throw FlutterError(
-      'Unrouter state is unavailable in this BuildContext.',
+    null => null,
+    final other => throw FlutterError(
+      'Unrouter state is of unexpected type: '
+      'expected $T but got ${other.runtimeType}.',
     ),
   };
 }

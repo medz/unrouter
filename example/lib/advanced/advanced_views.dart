@@ -283,20 +283,13 @@ class AdvancedProfileDetailView extends StatelessWidget {
     final params = useRouteParams(context);
     final id = params.required('id');
 
-    Map<String, Object?>? state;
-    String stateError = 'none';
-    try {
-      state = useRouteState<Map<String, Object?>>(context);
-    } on FlutterError catch (error) {
-      stateError = error.message;
-    }
+    final state = useRouteState<Map<String, Object?>>(context);
 
     return ListView(
       children: [
         Text('Profile id: $id'),
         const SizedBox(height: 8),
         Text('Typed state: ${state ?? '<none>'}'),
-        if (state == null) Text('State error: $stateError'),
       ],
     );
   }
