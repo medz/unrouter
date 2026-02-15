@@ -1,4 +1,5 @@
 name: unrouter
+version: 0.11.0
 publish_to: none
 description: Declarative, guard-driven router for Flutter with nested routes and typed helpers.
 repository: https://github.com/medz/unrouter
