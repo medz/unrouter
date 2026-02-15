@@ -17,11 +17,11 @@ RouterConfig<HistoryLocation> createRouterConfig(Unrouter router) {
       router: router,
       initialRouteInformation: info,
     ),
-    backButtonDispatcher: UnrouterBackButtonDispatcher(),
+    backButtonDispatcher: _BackButtonDispatcher(),
   );
 }
 
-class UnrouterBackButtonDispatcher extends RootBackButtonDispatcher {
+class _BackButtonDispatcher extends RootBackButtonDispatcher {
   Future<bool>? _inFlightPop;
 
   @override
