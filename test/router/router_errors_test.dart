@@ -1,0 +1,174 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:unrouter/unrouter.dart';
+
+import '../support/fakes.dart';
+
+Matcher throwsWith<T extends Object>(String text) {
+  return throwsA(
+    isA<T>().having((error) => error.toString(), 'toString', contains(text)),
+  );
+}
+
+void main() {
+  group('router errors', () {
+    test('throws when maxRedirectDepth is not positive', () {
+      expect(
+        () => createRouter(
+          maxRedirectDepth: 0,
+          routes: [Inlet(path: '/', view: emptyView)],
+        ),
+        throwsWith<ArgumentError>('maxRedirectDepth must be greater than 0'),
+      );
+    });
+
+    test('throws on duplicate alias with different target paths', () {
+      expect(
+        () => createRouter(
+          routes: [
+            Inlet(
+              path: '/',
+              view: emptyView,
+              children: [
+                Inlet(name: 'same', path: 'a', view: emptyView),
+                Inlet(name: 'same', path: 'b', view: emptyView),
+              ],
+            ),
+          ],
+        ),
+        throwsWith<StateError>('Duplicate route alias'),
+      );
+    });
+
+    test('throws on duplicate route view conflict', () {
+      expect(
+        () => createRouter(
+          routes: [
+            Inlet(
+              path: '/',
+              view: emptyView,
+              children: [
+                Inlet(path: 'same', view: emptyView),
+                Inlet(path: 'same', view: altEmptyView),
+              ],
+            ),
+          ],
+        ),
+        throwsWith<StateError>('Duplicate route views'),
+      );
+    });
+
+    test('throws on duplicate route guards conflict', () {
+      final first = defineGuard((_) => const GuardResult.allow());
+      final second = defineGuard((_) => const GuardResult.allow());
+      expect(
+        () => createRouter(
+          routes: [
+            Inlet(
+              path: '/',
+              view: emptyView,
+              children: [
+                Inlet(path: 'same', view: emptyView, guards: [first]),
+                Inlet(path: 'same', view: emptyView, guards: [second]),
+              ],
+            ),
+          ],
+        ),
+        throwsWith<StateError>('Duplicate route guards'),
+      );
+    });
+
+    test('throws when pathOrName is empty', () {
+      final router = createRouter(
+        routes: [Inlet(path: '/', view: emptyView)],
+      );
+      expect(router.push(''), throwsWith<ArgumentError>('must not be empty'));
+    });
+
+    test('throws for unknown route name', () {
+      final router = createRouter(
+        routes: [Inlet(path: '/', view: emptyView)],
+      );
+      expect(
+        router.push('missing-name'),
+        throwsWith<StateError>('was not found as a route name'),
+      );
+    });
+
+    test('throws when path navigation receives params', () {
+      final router = createRouter(
+        routes: [
+          Inlet(path: '/', view: emptyView),
+          Inlet(path: '/a', view: emptyView),
+        ],
+      );
+      expect(
+        router.push('/a', params: {'id': '1'}),
+        throwsWith<ArgumentError>(
+          'Path navigation does not accept route params',
+        ),
+      );
+    });
+
+    test('throws when path has no route match', () {
+      final router = createRouter(
+        routes: [Inlet(path: '/', view: emptyView)],
+      );
+      expect(
+        router.push('/missing'),
+        throwsWith<StateError>('No route matched'),
+      );
+    });
+
+    test('throws when required param is missing', () {
+      final router = createRouter(
+        routes: [
+          Inlet(path: '/', view: emptyView),
+          Inlet(name: 'profile', path: '/users/:id', view: emptyView),
+        ],
+      );
+      expect(
+        router.push('profile'),
+        throwsWith<ArgumentError>('Missing required param "id"'),
+      );
+    });
+
+    test('throws when wildcard param is missing', () {
+      final router = createRouter(
+        routes: [
+          Inlet(path: '/', view: emptyView),
+          Inlet(name: 'docs', path: '/docs/*', view: emptyView),
+        ],
+      );
+      expect(
+        router.push('docs'),
+        throwsWith<ArgumentError>('Missing required param "wildcard"'),
+      );
+    });
+
+    test('throws when param contains slash', () {
+      final router = createRouter(
+        routes: [
+          Inlet(path: '/', view: emptyView),
+          Inlet(name: 'profile', path: '/users/:id', view: emptyView),
+        ],
+      );
+      expect(
+        router.push('profile', params: {'id': 'a/b'}),
+        throwsWith<ArgumentError>('must not contain "/"'),
+      );
+    });
+
+    test('throws when extra params are passed', () {
+      final router = createRouter(
+        routes: [
+          Inlet(path: '/', view: emptyView),
+          Inlet(name: 'profile', path: '/users/:id', view: emptyView),
+        ],
+      );
+      expect(
+        router.push('profile', params: {'id': '42', 'extra': 'x'}),
+        throwsWith<ArgumentError>('Unexpected params'),
+      );
+    });
+  });
+}
