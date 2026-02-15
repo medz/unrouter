@@ -43,7 +43,7 @@ flutter pub add unrouter
 ### Define Routes
 
 ```dart
-import 'package:flutter/material.dart' hide Router;
+import 'package:flutter/material.dart';
 import 'package:unrouter/unrouter.dart';
 
 final router = createRouter(

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show mapEquals;
 import 'package:flutter/widgets.dart';
 import 'package:ht/ht.dart';
 import 'package:unstory/unstory.dart';
@@ -40,7 +41,7 @@ class RouteScopeProvider extends InheritedModel<RouteScope> {
     Set<RouteScope> dependencies,
   ) {
     return (dependencies.contains(RouteScope.meta) &&
-            oldWidget.route.meta != route.meta) ||
+            !mapEquals(oldWidget.route.meta, route.meta)) ||
         (dependencies.contains(RouteScope.params) &&
             oldWidget.params != params) ||
         (dependencies.contains(RouteScope.query) &&
