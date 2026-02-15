@@ -7,8 +7,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/medz/unrouter/releases"><img src="https://img.shields.io/github/v/tag/medz/unrouter?label=version" alt="version"></a>
-  <a href="https://github.com/medz/unrouter/actions/workflows/tests.yml"><img src="https://github.com/medz/unrouter/actions/workflows/tests.yml/badge.svg" alt="tests"></a>
+  <a href="https://github.com/medz/unrouter/actions/workflows/test.yml"><img src="https://github.com/medz/unrouter/actions/workflows/test.yml/badge.svg" alt="Test"></a>
   <a href="https://dart.dev"><img src="https://img.shields.io/badge/dart-%3E%3D3.10.0-0175C2?logo=dart&logoColor=white" alt="dart"></a>
   <a href="https://flutter.dev"><img src="https://img.shields.io/badge/flutter-stable-02569B?logo=flutter&logoColor=white" alt="flutter"></a>
   <a href="https://pub.dev/packages/unrouter"><img src="https://img.shields.io/pub/v/unrouter.svg" alt="pub"></a>
