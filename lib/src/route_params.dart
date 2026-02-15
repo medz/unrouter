@@ -22,4 +22,20 @@ extension type const RouteParams(Map<String, String> _)
   double $double(String name) {
     return decode<double>(name, double.parse);
   }
+
+  T $enum<T extends Enum>(String name, Iterable<T> values) {
+    return decode<T>(name, (value) {
+      for (final item in values) {
+        if (item.name == value) {
+          return item;
+        }
+      }
+      throw ArgumentError.value(
+        value,
+        name,
+        'Invalid enum value "$value". Expected one of: '
+        '${values.map((item) => item.name).join(', ')}.',
+      );
+    });
+  }
 }

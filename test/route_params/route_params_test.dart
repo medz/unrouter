@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:unrouter/unrouter.dart';
 
+enum _Role { admin, member }
+
 void main() {
   group('RouteParams.required', () {
     test('returns value when key exists', () {
@@ -65,6 +67,41 @@ void main() {
     test(r'$double parses double from decoded value', () {
       const params = RouteParams({'value': '3%2E14'});
       expect(params.$double('value'), 3.14);
+    });
+  });
+
+  group(r'RouteParams.$enum', () {
+    test(r'$enum parses enum by decoded name', () {
+      const params = RouteParams({'role': 'ad%6Din'});
+      expect(params.$enum<_Role>('role', _Role.values), _Role.admin);
+    });
+
+    test(r'$enum throws ArgumentError for unknown value', () {
+      const params = RouteParams({'role': 'owner'});
+      expect(
+        () => params.$enum<_Role>('role', _Role.values),
+        throwsA(
+          isA<ArgumentError>().having(
+            (error) => error.toString(),
+            'toString',
+            contains('Expected one of: admin, member'),
+          ),
+        ),
+      );
+    });
+
+    test(r'$enum throws ArgumentError when key is missing', () {
+      const params = RouteParams({'id': '1'});
+      expect(
+        () => params.$enum<_Role>('role', _Role.values),
+        throwsA(
+          isA<ArgumentError>().having(
+            (error) => error.toString(),
+            'toString',
+            contains('Required parameter "role" not found'),
+          ),
+        ),
+      );
     });
   });
 }
