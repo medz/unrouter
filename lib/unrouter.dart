@@ -1,5 +1,3 @@
-export 'package:ht/ht.dart' show URLSearchParams;
-
 export 'src/data_loader.dart';
 export 'src/guard.dart';
 export 'src/inlet.dart';
@@ -10,3 +8,4 @@ export 'src/route_record.dart';
 export 'src/route_scope.dart';
 export 'src/router.dart';
 export 'src/router_delegate.dart';
+export 'src/url_search_params.dart';

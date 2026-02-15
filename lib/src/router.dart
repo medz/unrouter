@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:ht/ht.dart';
 import 'package:roux/roux.dart' as roux;
 import 'package:unstory/unstory.dart';
 
@@ -9,6 +8,7 @@ import 'guard.dart';
 import 'inlet.dart';
 import 'route_record.dart';
 import 'route_params.dart';
+import 'url_search_params.dart';
 import 'utils.dart';
 
 abstract interface class Unrouter {

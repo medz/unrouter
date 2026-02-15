@@ -1,9 +1,9 @@
 import 'dart:async';
 
-import 'package:ht/ht.dart';
 import 'package:unstory/unstory.dart';
 
 import 'route_params.dart';
+import 'url_search_params.dart';
 
 typedef Guard = FutureOr<GuardResult> Function(GuardContext context);
 
@@ -51,12 +51,7 @@ final class GuardBlock extends GuardResult {
 }
 
 final class GuardRedirect extends GuardResult {
-  const GuardRedirect(
-    this.pathOrName, {
-    this.params,
-    this.query,
-    this.state,
-  });
+  const GuardRedirect(this.pathOrName, {this.params, this.query, this.state});
 
   final String pathOrName;
   final Map<String, String>? params;
