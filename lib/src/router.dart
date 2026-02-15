@@ -11,15 +11,34 @@ import 'route_params.dart';
 import 'url_search_params.dart';
 import 'utils.dart';
 
+/// Public router contract used by Unrouter integrations.
 abstract interface class Unrouter {
+  /// Underlying history implementation.
   History get history;
+
+  /// Name-to-path matcher used for named navigation.
   roux.Router<String> get aliases;
+
+  /// Path-to-record matcher used for route resolution.
   roux.Router<RouteRecord> get matcher;
 
+  /// Navigates by relative history delta.
   void go(int delta);
+
+  /// Navigates one entry forward in history.
   void forward();
+
+  /// Navigates one entry backward in history.
   void back();
 
+  /// Pushes a new location resolved from [pathOrName].
+  ///
+  /// Resolution order is:
+  /// 1. Route name alias
+  /// 2. Absolute path
+  ///
+  /// When both inline query and [query] are provided, [query] overrides keys
+  /// with the same name.
   Future<void> push<T>(
     String pathOrName, {
     Map<String, String>? params,
@@ -27,6 +46,9 @@ abstract interface class Unrouter {
     T? state,
   });
 
+  /// Replaces the current location with [pathOrName].
+  ///
+  /// Uses the same resolution and query-merge rules as [push].
   Future<void> replace<T>(
     String pathOrName, {
     Map<String, String>? params,
@@ -34,9 +56,22 @@ abstract interface class Unrouter {
     T? state,
   });
 
+  /// Pops one history entry.
+  ///
+  /// Returns `false` when no previous entry exists.
   Future<bool> pop<T>([T? result]);
 }
 
+/// Creates a router instance with route matching, navigation, and guards.
+///
+/// [routes] defines the route tree.
+/// [guards] are global guards executed before route-level guards.
+/// [base] configures the history base path.
+/// [maxRedirectDepth] limits chained guard redirects.
+/// [history] can override the default history implementation.
+/// [strategy] selects browser/history strategy when [history] is omitted.
+///
+/// Throws an [ArgumentError] when [maxRedirectDepth] is less than `1`.
 Unrouter createRouter({
   required Iterable<Inlet> routes,
   Iterable<Guard>? guards,

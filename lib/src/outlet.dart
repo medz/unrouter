@@ -2,7 +2,9 @@ import 'package:flutter/widgets.dart';
 
 import 'inlet.dart';
 
+/// Renders the next matched view in the active nested route chain.
 class Outlet extends StatelessWidget {
+  /// Creates an outlet widget.
   const Outlet({super.key});
 
   @override
@@ -21,7 +23,9 @@ class Outlet extends StatelessWidget {
   }
 }
 
+/// Inherited scope used by [Outlet] to resolve nested views by depth.
 class OutletScope extends InheritedWidget {
+  /// Creates an outlet scope.
   const OutletScope({
     required super.child,
     required this.views,
@@ -29,9 +33,15 @@ class OutletScope extends InheritedWidget {
     super.key,
   });
 
+  /// Ordered view builders for the matched route chain.
   final Iterable<ViewBuilder> views;
+
+  /// Zero-based depth for the next [Outlet] lookup.
   final int depth;
 
+  /// Looks up the nearest [OutletScope] from [context].
+  ///
+  /// Throws a [FlutterError] when [Outlet] is used outside a routed view.
   static OutletScope of(BuildContext context) {
     final scope = context.dependOnInheritedWidgetOfExactType<OutletScope>();
     if (scope != null) return scope;

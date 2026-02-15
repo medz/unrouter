@@ -11,6 +11,10 @@ import 'route_scope.dart';
 import 'router.dart';
 import 'url_search_params.dart';
 
+/// Builds a Flutter [RouterConfig] from an [Unrouter] instance.
+///
+/// The returned config wires route information parsing, restoration, and back
+/// button dispatching to the underlying Unrouter history.
 RouterConfig<HistoryLocation> createRouterConfig(Unrouter router) {
   final location = router.history.location;
   final info = RouteInformation(uri: location.uri, state: location.state);
@@ -26,6 +30,9 @@ RouterConfig<HistoryLocation> createRouterConfig(Unrouter router) {
   );
 }
 
+/// Returns the nearest [Unrouter] instance from a Flutter [BuildContext].
+///
+/// Throws a [FlutterError] when the active RouterDelegate is not Unrouter.
 Unrouter useRouter(BuildContext context) {
   final flutter.Router(:routerDelegate) = .of(context);
   if (routerDelegate case _RouterDelegate(:final router)) {

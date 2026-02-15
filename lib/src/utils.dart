@@ -1,3 +1,7 @@
+/// Normalizes path fragments into a canonical absolute path.
+///
+/// Empty fragments and duplicate slashes are removed.
+/// Returns `'/'` when all fragments are empty.
 String normalizePath(Iterable<String> paths) {
   final segments = <String>[];
   for (final path in paths) {
