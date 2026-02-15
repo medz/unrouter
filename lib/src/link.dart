@@ -5,35 +5,41 @@ import 'package:flutter/widgets.dart';
 import 'router_delegate.dart';
 import 'url_search_params.dart';
 
-/// A clickable widget that triggers router navigation.
+/// A tappable widget that triggers Unrouter navigation.
+///
+/// [Link] is a lightweight Flutter widget alternative to imperative navigation
+/// calls from button handlers. It resolves [to] with the same rules as router
+/// navigation: route name first, then absolute path.
+///
+/// If [replace] is `true`, the tap uses `replace`; otherwise it uses `push`.
+///
+/// Example:
+/// ```dart
+/// Link(
+///   to: 'user',
+///   params: {'id': '42'},
+///   query: URLSearchParams('tab=profile'),
+///   child: const Text('Open profile'),
+/// )
+/// ```
+///
+/// See also:
+///
+///  * `Unrouter.push`, which performs imperative push navigation.
+///  * `Unrouter.replace`, which replaces the current history entry.
 class Link extends StatelessWidget {
-  /// Creates a navigation link widget.
+  /// Creates a navigation link.
+  ///
+  /// Set [enabled] to `false` to disable interaction while preserving [child].
   const Link({
-    /// Route name or absolute path to navigate to.
     required this.to,
-
-    /// Child widget used as the tap target.
     required this.child,
-
-    /// Optional params used when [to] resolves by route name.
     this.params,
-
-    /// Optional query params appended to the destination.
     this.query,
-
-    /// Optional navigation state forwarded to the destination.
     this.state,
-
-    /// Whether to use `replace` instead of `push`.
     this.replace = false,
-
-    /// Whether interaction is enabled.
     this.enabled = true,
-
-    /// Optional callback invoked before navigation is triggered.
     this.onTap,
-
-    /// Hit test behavior for the internal [GestureDetector].
     this.behavior = HitTestBehavior.deferToChild,
     super.key,
   });
@@ -41,25 +47,29 @@ class Link extends StatelessWidget {
   /// Route name or absolute path to navigate to.
   final String to;
 
-  /// Optional params used when [to] resolves by route name.
+  /// Params used when [to] resolves as a route name.
+  ///
+  /// This value is ignored for absolute-path navigation.
   final Map<String, String>? params;
 
-  /// Optional query params appended to the destination.
+  /// Query params merged into the destination URI.
+  ///
+  /// When both [to] and [query] provide the same key, [query] wins.
   final URLSearchParams? query;
 
-  /// Optional navigation state forwarded to the destination.
+  /// Navigation state forwarded to the destination history entry.
   final Object? state;
 
-  /// Whether to use `replace` instead of `push`.
+  /// Whether to use replace navigation instead of push navigation.
   final bool replace;
 
-  /// Whether interaction is enabled.
+  /// Whether tap interaction is enabled.
   final bool enabled;
 
-  /// Optional callback invoked before navigation is triggered.
+  /// Callback invoked before navigation is triggered.
   final VoidCallback? onTap;
 
-  /// Hit test behavior for the internal [GestureDetector].
+  /// Hit test behavior used by the internal [GestureDetector].
   final HitTestBehavior behavior;
 
   /// Child widget used as the tap target.

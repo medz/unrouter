@@ -13,8 +13,16 @@ import 'url_search_params.dart';
 
 /// Builds a Flutter [RouterConfig] from an [Unrouter] instance.
 ///
-/// The returned config wires route information parsing, restoration, and back
-/// button dispatching to the underlying Unrouter history.
+/// The returned config wires route parsing, route restoration, platform back
+/// handling, and route information reporting to the underlying history.
+///
+/// This is the recommended integration entry point for `MaterialApp.router`
+/// and `CupertinoApp.router`.
+///
+/// See also:
+///
+///  * `createRouter`, which creates the [Unrouter] instance.
+///  * `useRouter`, which reads the configured router from a [BuildContext].
 RouterConfig<HistoryLocation> createRouterConfig(Unrouter router) {
   final location = router.history.location;
   final info = RouteInformation(uri: location.uri, state: location.state);
@@ -32,7 +40,11 @@ RouterConfig<HistoryLocation> createRouterConfig(Unrouter router) {
 
 /// Returns the nearest [Unrouter] instance from a Flutter [BuildContext].
 ///
-/// Throws a [FlutterError] when the active RouterDelegate is not Unrouter.
+/// Throws a [FlutterError] when the active `RouterDelegate` is not backed by
+/// Unrouter.
+///
+/// This method is intended for widgets that need imperative navigation, such
+/// as custom buttons or gestures.
 Unrouter useRouter(BuildContext context) {
   final flutter.Router(:routerDelegate) = .of(context);
   if (routerDelegate case _RouterDelegate(:final router)) {

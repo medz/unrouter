@@ -3,6 +3,9 @@ import 'package:flutter/widgets.dart';
 import 'inlet.dart';
 
 /// Renders the next matched view in the active nested route chain.
+///
+/// Place [Outlet] inside a parent layout view to render child views declared
+/// by nested routes. Each [Outlet] consumes one depth level from [OutletScope].
 class Outlet extends StatelessWidget {
   /// Creates an outlet widget.
   const Outlet({super.key});
@@ -24,6 +27,9 @@ class Outlet extends StatelessWidget {
 }
 
 /// Inherited scope used by [Outlet] to resolve nested views by depth.
+///
+/// This scope is created by the router delegate and then advanced by each
+/// rendered [Outlet].
 class OutletScope extends InheritedWidget {
   /// Creates an outlet scope.
   const OutletScope({

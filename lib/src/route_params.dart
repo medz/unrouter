@@ -1,9 +1,12 @@
-/// Typed helpers over matched route params.
+/// Typed helpers for matched route params.
+///
+/// Route params are captured from a matched path pattern (for example `:id`
+/// or `*`) and exposed as a `Map<String, String>` with convenience decoders.
 extension type const RouteParams(Map<String, String> _)
     implements Map<String, String> {
-  /// Returns a required param value.
+  /// Returns the required raw param value for [name].
   ///
-  /// Throws an [ArgumentError] when [name] is missing.
+  /// Throws an [ArgumentError] if [name] is not present.
   String required(String name) {
     return switch (_[name]) {
       String value => value,
@@ -11,33 +14,52 @@ extension type const RouteParams(Map<String, String> _)
     };
   }
 
-  /// Decodes and transforms a required param value.
+  /// Decodes and transforms the required param value for [name].
   ///
-  /// The raw value is passed through [Uri.decodeComponent] before [fn].
-  /// Throws an [ArgumentError] when [name] is missing.
+  /// The raw value is first passed through [Uri.decodeComponent], then sent to
+  /// [fn] for conversion.
+  ///
+  /// Throws an [ArgumentError] if [name] is not present.
+  /// Any exception thrown by [fn] is rethrown to the caller.
+  ///
+  /// Example:
+  /// ```dart
+  /// final params = RouteParams({'id': '42', 'slug': 'hello%20world'});
+  /// final id = params.decode('id', int.parse); // 42
+  /// final slug = params.decode('slug', (value) => value); // hello world
+  /// ```
   T decode<T>(String name, T Function(String value) fn) {
     return fn(Uri.decodeComponent(required(name)));
   }
 
-  /// Parses a required param as `int`.
+  /// Parses the required param value for [name] as `int`.
+  ///
+  /// Throws an [ArgumentError] if [name] is not present.
+  /// Throws a [FormatException] if the decoded value is not a valid integer.
   int $int(String name) {
     return decode<int>(name, int.parse);
   }
 
-  /// Parses a required param as `num`.
+  /// Parses the required param value for [name] as `num`.
+  ///
+  /// Throws an [ArgumentError] if [name] is not present.
+  /// Throws a [FormatException] if the decoded value is not numeric.
   num $num(String name) {
     return decode<num>(name, num.parse);
   }
 
-  /// Parses a required param as `double`.
+  /// Parses the required param value for [name] as `double`.
+  ///
+  /// Throws an [ArgumentError] if [name] is not present.
+  /// Throws a [FormatException] if the decoded value is not a valid double.
   double $double(String name) {
     return decode<double>(name, double.parse);
   }
 
-  /// Parses a required param as an enum value by `Enum.name`.
+  /// Parses the required param value for [name] as an enum by `Enum.name`.
   ///
-  /// Throws an [ArgumentError] when [name] is missing or the value does not
-  /// match one of [values].
+  /// Throws an [ArgumentError] if [name] is not present.
+  /// Throws an [ArgumentError] if the decoded value does not match [values].
   T $enum<T extends Enum>(String name, Iterable<T> values) {
     return decode<T>(name, (value) {
       for (final item in values) {

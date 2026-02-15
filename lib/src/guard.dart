@@ -6,14 +6,22 @@ import 'route_params.dart';
 import 'url_search_params.dart';
 
 /// Evaluates whether a navigation attempt should continue.
+///
+/// Guards run during push/replace navigation and history pop navigation.
+/// They receive a [GuardContext] and must return one of the explicit
+/// [GuardResult] variants to allow, block, or redirect the attempt.
 typedef Guard = FutureOr<GuardResult> Function(GuardContext context);
 
 /// Returns the provided [guard] unchanged.
 ///
-/// This helper keeps guard declarations explicit and discoverable in code.
+/// This helper keeps guard declarations explicit and discoverable at callsites,
+/// especially when declaring route-level or global guard lists.
 Guard defineGuard(Guard guard) => guard;
 
-/// Immutable context passed to each [Guard] during navigation evaluation.
+/// Immutable navigation snapshot passed to each [Guard].
+///
+/// A new context is created for each evaluated destination, including redirected
+/// destinations in the same navigation flow.
 final class GuardContext {
   /// Creates a guard context for a single navigation attempt.
   const GuardContext({
@@ -26,13 +34,13 @@ final class GuardContext {
     required this.state,
   });
 
-  /// The last accepted location before this attempt.
+  /// The last accepted location before this evaluation.
   final HistoryLocation from;
 
   /// The candidate destination currently being evaluated.
   final HistoryLocation to;
 
-  /// The action that triggered this evaluation.
+  /// The history action that triggered this evaluation.
   final HistoryAction action;
 
   /// Route params resolved for [to].
@@ -48,29 +56,30 @@ final class GuardContext {
   final Object? state;
 }
 
-/// Represents the outcome of a guard evaluation.
+/// The outcome returned by a [Guard].
+///
+/// This sealed hierarchy is the only supported guard control flow.
+/// Throwing exceptions is treated as an error, not as navigation control.
 sealed class GuardResult {
   /// Creates a guard result.
   const GuardResult();
 
-  /// Allows navigation to continue.
+  /// Allows navigation to continue with the current destination.
   const factory GuardResult.allow() = GuardAllow;
 
   /// Blocks navigation and keeps the current location.
   const factory GuardResult.block() = GuardBlock;
 
   /// Redirects navigation to another route name or absolute path.
+  ///
+  /// The [pathOrName] target is resolved with the same rules as router
+  /// navigation APIs: route-name lookup first, then absolute-path resolution.
+  /// If [query] is provided, it overrides same-name keys from inline query
+  /// inside [pathOrName].
   const factory GuardResult.redirect(
-    /// Route name or absolute path used as the redirect target.
     String pathOrName, {
-
-    /// Optional params used when [pathOrName] resolves by route name.
     Map<String, String>? params,
-
-    /// Optional query that overrides existing keys on collision.
     URLSearchParams? query,
-
-    /// Optional state for the redirect destination.
     Object? state,
   }) = GuardRedirect;
 }
@@ -95,12 +104,14 @@ final class GuardRedirect extends GuardResult {
   /// Route name or absolute path used as the redirect target.
   final String pathOrName;
 
-  /// Optional params used for route-name redirects.
+  /// Params used when [pathOrName] resolves as a route name.
+  ///
+  /// This value is ignored when [pathOrName] resolves as an absolute path.
   final Map<String, String>? params;
 
-  /// Optional query that overrides existing keys on collision.
+  /// Query values that override same-name keys on collision.
   final URLSearchParams? query;
 
-  /// Optional state forwarded to the redirected location.
+  /// Navigation state forwarded to the redirected destination.
   final Object? state;
 }

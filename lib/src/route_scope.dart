@@ -7,6 +7,9 @@ import 'route_record.dart';
 import 'url_search_params.dart';
 
 /// Aspects used by [RouteScopeProvider] for selective rebuilds.
+///
+/// Each hook subscribes only to the aspect it needs so unrelated navigation
+/// updates do not trigger unnecessary widget rebuilds.
 enum RouteScope {
   /// Route metadata.
   meta,
@@ -31,24 +34,35 @@ enum RouteScope {
 }
 
 /// Returns merged route metadata from the nearest route scope.
+///
+/// Throws a [FlutterError] when no [RouteScopeProvider] is found above the
+/// current [BuildContext].
 Map<String, Object?> useRouteMeta(BuildContext context) {
   final route = RouteScopeProvider.of(context, RouteScope.meta).route;
   return route.meta ?? const {};
 }
 
 /// Returns matched route params from the nearest route scope.
+///
+/// Throws a [FlutterError] when no [RouteScopeProvider] is found above the
+/// current [BuildContext].
 RouteParams useRouteParams(BuildContext context) {
   return RouteScopeProvider.of(context, RouteScope.params).params;
 }
 
-/// Returns the current location (`uri + state`) from the nearest route scope.
+/// Returns the current location (`URI + state`) from the nearest route scope.
+///
+/// Throws a [FlutterError] when no [RouteScopeProvider] is found above the
+/// current [BuildContext].
 HistoryLocation useLocation(BuildContext context) {
   return RouteScopeProvider.of(context, RouteScope.location).location;
 }
 
 /// Returns typed navigation state from the nearest route scope.
 ///
-/// Throws a [FlutterError] when state is absent or not assignable to [T].
+/// Throws a [FlutterError] when no [RouteScopeProvider] is found above the
+/// current [BuildContext].
+/// Throws a [FlutterError] when state is absent or not assignable to `T`.
 T useRouteState<T>(BuildContext context) {
   final RouteScopeProvider(:location) = .of(context, RouteScope.state);
   return switch (location.state) {
@@ -60,22 +74,34 @@ T useRouteState<T>(BuildContext context) {
 }
 
 /// Returns the current URI from the nearest route scope.
+///
+/// Throws a [FlutterError] when no [RouteScopeProvider] is found above the
+/// current [BuildContext].
 Uri useRouteURI(BuildContext context) {
   final RouteScopeProvider(:location) = .of(context, RouteScope.uri);
   return location.uri;
 }
 
 /// Returns query params from the nearest route scope.
+///
+/// Throws a [FlutterError] when no [RouteScopeProvider] is found above the
+/// current [BuildContext].
 URLSearchParams useQuery(BuildContext context) {
   return RouteScopeProvider.of(context, RouteScope.query).query;
 }
 
 /// Returns the previous accepted location, if any.
+///
+/// Throws a [FlutterError] when no [RouteScopeProvider] is found above the
+/// current [BuildContext].
 HistoryLocation? useFromLocation(BuildContext context) {
   return RouteScopeProvider.of(context, RouteScope.from).fromLocation;
 }
 
 /// Inherited route scope used by route hooks and [Outlet].
+///
+/// This provider is injected by the router delegate for the currently matched
+/// route record and updated whenever the active location changes.
 class RouteScopeProvider extends InheritedModel<RouteScope> {
   /// Creates a route scope provider.
   const RouteScopeProvider({
@@ -97,7 +123,7 @@ class RouteScopeProvider extends InheritedModel<RouteScope> {
   /// Query params for the current route.
   final URLSearchParams query;
 
-  /// Current location (`uri + state`).
+  /// Current location (`URI + state`).
   final HistoryLocation location;
 
   /// Previous accepted location.

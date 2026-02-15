@@ -1,12 +1,3 @@
-/// A declarative, guard-driven router for Flutter applications.
-///
-/// This library exports:
-/// - Core router APIs: [Unrouter], [createRouter], [createRouterConfig]
-/// - Route declarations and rendering: [Inlet], [Outlet], [Link]
-/// - Guard APIs: [Guard], [GuardContext], [GuardResult], [defineGuard]
-/// - Route hooks and typed helpers: [useRouter], [useLocation],
-///   [useRouteParams], [useQuery], [useRouteMeta], [useRouteState],
-///   [useRouteURI], [useFromLocation], [RouteParams], [URLSearchParams]
 library;
 
 export 'src/data_loader.dart';

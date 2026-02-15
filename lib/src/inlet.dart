@@ -3,46 +3,49 @@ import 'package:flutter/widgets.dart';
 import 'guard.dart';
 
 /// Builds a widget for a matched route view.
+///
+/// The builder is expected to be side-effect free and to return the root widget
+/// for one segment in a nested view chain.
 typedef ViewBuilder = ValueGetter<Widget>;
 
 /// Declares a route node in the route tree.
+///
+/// Each inlet contributes one [path] segment and one [view]. Parent and child
+/// nodes compose into a full matched route chain.
 class Inlet {
   /// Creates a route declaration.
+  ///
+  /// Use [name] when this route should be addressable by route-name navigation.
+  /// Use [meta] to attach static metadata that is merged from parent to child.
   const Inlet({
-    /// View builder rendered when this route segment matches.
     required this.view,
-
-    /// Optional route name alias used by navigation APIs.
     this.name,
-
-    /// Optional route metadata merged from parent to child.
     this.meta,
-
-    /// Route segment pattern.
     this.path = '/',
-
-    /// Nested child routes.
     this.children = const [],
-
-    /// Guards evaluated for this route.
     this.guards = const [],
   });
 
-  /// Optional route name alias used by navigation APIs.
+  /// Route-name alias used by navigation APIs.
+  ///
+  /// When set, this route can be targeted by route-name `push`/`replace`
+  /// instead of an absolute path.
   final String? name;
 
-  /// Route segment pattern.
+  /// Route segment pattern for this node.
+  ///
+  /// The final path is composed from parent segments and this segment.
   final String path;
 
-  /// Optional route metadata merged from parent to child.
+  /// Route metadata merged from parent to child.
   final Map<String, Object?>? meta;
 
   /// View builder rendered when this route segment matches.
   final ViewBuilder view;
 
-  /// Nested child routes.
+  /// Child routes nested under this route segment.
   final Iterable<Inlet> children;
 
-  /// Guards evaluated for this route.
+  /// Guards evaluated after global guards for this route.
   final Iterable<Guard> guards;
 }

@@ -12,17 +12,24 @@ import 'url_search_params.dart';
 import 'utils.dart';
 
 /// Public router contract used by Unrouter integrations.
+///
+/// Implementations provide route matching, history coordination, and guard
+/// evaluation for both imperative navigation and browser history events.
 abstract interface class Unrouter {
   /// Underlying history implementation.
+  ///
+  /// This source of truth stores the current location and emits history events.
   History get history;
 
-  /// Name-to-path matcher used for named navigation.
+  /// Name-to-path matcher used for route-name navigation.
   roux.Router<String> get aliases;
 
   /// Path-to-record matcher used for route resolution.
   roux.Router<RouteRecord> get matcher;
 
-  /// Navigates by relative history delta.
+  /// Navigates by a relative history delta.
+  ///
+  /// This delegates directly to `history.go`.
   void go(int delta);
 
   /// Navigates one entry forward in history.
@@ -34,11 +41,15 @@ abstract interface class Unrouter {
   /// Pushes a new location resolved from [pathOrName].
   ///
   /// Resolution order is:
-  /// 1. Route name alias
-  /// 2. Absolute path
+  /// 1. Route name alias.
+  /// 2. Absolute path.
   ///
-  /// When both inline query and [query] are provided, [query] overrides keys
-  /// with the same name.
+  /// When both inline query and [query] are provided, [query] overrides
+  /// same-name keys.
+  ///
+  /// Throws an [ArgumentError] when required params are missing, params are
+  /// invalid for the target, or path navigation receives [params].
+  /// Throws a [StateError] when no route name/path can be resolved.
   Future<void> push<T>(
     String pathOrName, {
     Map<String, String>? params,
@@ -49,6 +60,8 @@ abstract interface class Unrouter {
   /// Replaces the current location with [pathOrName].
   ///
   /// Uses the same resolution and query-merge rules as [push].
+  ///
+  /// Throws the same error types as [push].
   Future<void> replace<T>(
     String pathOrName, {
     Map<String, String>? params,
@@ -64,14 +77,45 @@ abstract interface class Unrouter {
 
 /// Creates a router instance with route matching, navigation, and guards.
 ///
-/// [routes] defines the route tree.
-/// [guards] are global guards executed before route-level guards.
-/// [base] configures the history base path.
-/// [maxRedirectDepth] limits chained guard redirects.
-/// [history] can override the default history implementation.
-/// [strategy] selects browser/history strategy when [history] is omitted.
+/// [routes] defines the route tree. [guards] are global guards and run before
+/// route-level guards. [maxRedirectDepth] controls how many chained redirects
+/// are allowed before the router treats the flow as a redirect loop.
+///
+/// Route-name navigation resolves names before absolute paths. Query merging
+/// follows a "explicit overrides inline" rule across push, replace, and guard
+/// redirects.
+///
+/// If [history] is omitted, a history instance is created from [base] and
+/// [strategy].
+///
+/// Example:
+/// ```dart
+/// final router = createRouter(
+///   routes: [
+///     Inlet(
+///       name: 'home',
+///       path: '/',
+///       view: () => const HomeView(),
+///       children: [
+///         Inlet(
+///           name: 'user',
+///           path: '/users/:id',
+///           view: () => const UserView(),
+///         ),
+///       ],
+///     ),
+///   ],
+/// );
+///
+/// await router.push('user', params: {'id': '42'});
+/// ```
 ///
 /// Throws an [ArgumentError] when [maxRedirectDepth] is less than `1`.
+///
+/// See also:
+///
+///  * `createRouterConfig`, which adapts Unrouter to Flutter's Router API.
+///  * `Link`, which provides declarative tap-based navigation.
 Unrouter createRouter({
   required Iterable<Inlet> routes,
   Iterable<Guard>? guards,
