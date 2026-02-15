@@ -7,6 +7,10 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/medz/unrouter/releases"><img src="https://img.shields.io/github/v/tag/medz/unrouter?label=version" alt="version"></a>
+  <a href="https://github.com/medz/unrouter/actions/workflows/tests.yml"><img src="https://github.com/medz/unrouter/actions/workflows/tests.yml/badge.svg" alt="tests"></a>
+  <a href="https://dart.dev"><img src="https://img.shields.io/badge/dart-%3E%3D3.10.0-0175C2?logo=dart&logoColor=white" alt="dart"></a>
+  <a href="https://flutter.dev"><img src="https://img.shields.io/badge/flutter-stable-02569B?logo=flutter&logoColor=white" alt="flutter"></a>
   <a href="https://pub.dev/packages/unrouter"><img src="https://img.shields.io/pub/v/unrouter.svg" alt="pub"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="license"></a>
 </p>
@@ -274,7 +278,7 @@ Access route state reactively inside widgets. These functions subscribe to fine-
 
 | Hook                        | Returns                | Description                         |
 | --------------------------- | ---------------------- | ----------------------------------- |
-| `useRouter(context)`        | `Router`               | The router instance                 |
+| `useRouter(context)`        | `Unrouter`             | The router instance                 |
 | `useLocation(context)`      | `HistoryLocation`      | Current URI + state                 |
 | `useRouteParams(context)`   | `RouteParams`          | Matched `:param` values             |
 | `useQuery(context)`         | `URLSearchParams`      | Parsed query string                 |
@@ -288,7 +292,7 @@ Access route state reactively inside widgets. These functions subscribe to fine-
 ### `createRouter`
 
 ```dart
-Router createRouter({
+Unrouter createRouter({
   required Iterable<Inlet> routes,
   Iterable<Middleware>? middleware,
   String base = '/',
@@ -297,7 +301,7 @@ Router createRouter({
 })
 ```
 
-Creates a `Router` instance. The `Router` interface exposes:
+Creates an `Unrouter` instance. The `Unrouter` interface exposes:
 
 - `history` — Underlying `History` object
 - `push(pathOrName, {params, query, state})` — Push a new entry
@@ -308,7 +312,7 @@ Creates a `Router` instance. The `Router` interface exposes:
 ### `createRouterConfig`
 
 ```dart
-RouterConfig<HistoryLocation> createRouterConfig(Router router)
+RouterConfig<HistoryLocation> createRouterConfig(Unrouter unrouter)
 ```
 
 Creates a `RouterConfig` to pass to `MaterialApp.router(routerConfig: ...)`.
