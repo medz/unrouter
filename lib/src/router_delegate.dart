@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart' hide Router;
 import 'package:flutter/widgets.dart' as flutter show Router;
 import 'package:unstory/unstory.dart';
 
+import 'inlet.dart';
 import 'outlet.dart';
 import 'route_params.dart';
 import 'route_scope.dart';
@@ -203,7 +204,11 @@ class _RouterDelegate extends RouterDelegate<HistoryLocation>
       location: location,
       query: URLSearchParams(location.query),
       fromLocation: fromLocation,
-      child: OutletScope(views: views, depth: 1, child: firstView.call()),
+      child: OutletScope(
+        views: views,
+        depth: 1,
+        child: _ViewHost(builder: firstView),
+      ),
     );
   }
 
@@ -243,5 +248,31 @@ class _RouterDelegate extends RouterDelegate<HistoryLocation>
     fromLocation = currentLocation;
     currentLocation = current;
     notifyListeners();
+  }
+}
+
+class _ViewHost extends StatefulWidget {
+  const _ViewHost({required this.builder});
+
+  final ViewBuilder builder;
+
+  @override
+  State<_ViewHost> createState() => _ViewHostState();
+}
+
+class _ViewHostState extends State<_ViewHost> {
+  late Widget child = widget.builder.call();
+
+  @override
+  void didUpdateWidget(covariant _ViewHost oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.builder != widget.builder) {
+      child = widget.builder.call();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return child;
   }
 }

@@ -15,7 +15,7 @@ void main() {
       expect(
         () => createRouter(
           maxRedirectDepth: 0,
-          routes: [Inlet(path: '/', view: emptyView)],
+          routes: [Inlet(path: '/', view: EmptyView.new)],
         ),
         throwsWith<ArgumentError>('maxRedirectDepth must be greater than 0'),
       );
@@ -27,10 +27,10 @@ void main() {
           routes: [
             Inlet(
               path: '/',
-              view: emptyView,
+              view: EmptyView.new,
               children: [
-                Inlet(name: 'same', path: 'a', view: emptyView),
-                Inlet(name: 'same', path: 'b', view: emptyView),
+                Inlet(name: 'same', path: 'a', view: EmptyView.new),
+                Inlet(name: 'same', path: 'b', view: EmptyView.new),
               ],
             ),
           ],
@@ -45,10 +45,10 @@ void main() {
           routes: [
             Inlet(
               path: '/',
-              view: emptyView,
+              view: EmptyView.new,
               children: [
-                Inlet(path: 'same', view: emptyView),
-                Inlet(path: 'same', view: altEmptyView),
+                Inlet(path: 'same', view: EmptyView.new),
+                Inlet(path: 'same', view: AltEmptyView.new),
               ],
             ),
           ],
@@ -64,10 +64,10 @@ void main() {
           routes: [
             Inlet(
               path: '/',
-              view: emptyView,
+              view: EmptyView.new,
               children: [
-                Inlet(path: 'same', view: emptyView),
-                Inlet(path: 'same', view: emptyView, guards: [allow]),
+                Inlet(path: 'same', view: EmptyView.new),
+                Inlet(path: 'same', view: EmptyView.new, guards: [allow]),
               ],
             ),
           ],
@@ -78,14 +78,14 @@ void main() {
 
     test('throws when pathOrName is empty', () {
       final router = createRouter(
-        routes: [Inlet(path: '/', view: emptyView)],
+        routes: [Inlet(path: '/', view: EmptyView.new)],
       );
       expect(router.push(''), throwsWith<ArgumentError>('must not be empty'));
     });
 
     test('throws for unknown route name', () {
       final router = createRouter(
-        routes: [Inlet(path: '/', view: emptyView)],
+        routes: [Inlet(path: '/', view: EmptyView.new)],
       );
       expect(
         router.push('missing-name'),
@@ -96,8 +96,8 @@ void main() {
     test('throws when path navigation receives params', () {
       final router = createRouter(
         routes: [
-          Inlet(path: '/', view: emptyView),
-          Inlet(path: '/a', view: emptyView),
+          Inlet(path: '/', view: EmptyView.new),
+          Inlet(path: '/a', view: EmptyView.new),
         ],
       );
       expect(
@@ -110,7 +110,7 @@ void main() {
 
     test('throws when path has no route match', () {
       final router = createRouter(
-        routes: [Inlet(path: '/', view: emptyView)],
+        routes: [Inlet(path: '/', view: EmptyView.new)],
       );
       expect(
         router.push('/missing'),
@@ -121,8 +121,8 @@ void main() {
     test('throws when required param is missing', () {
       final router = createRouter(
         routes: [
-          Inlet(path: '/', view: emptyView),
-          Inlet(name: 'profile', path: '/users/:id', view: emptyView),
+          Inlet(path: '/', view: EmptyView.new),
+          Inlet(name: 'profile', path: '/users/:id', view: EmptyView.new),
         ],
       );
       expect(
@@ -134,8 +134,8 @@ void main() {
     test('throws when wildcard param is missing', () {
       final router = createRouter(
         routes: [
-          Inlet(path: '/', view: emptyView),
-          Inlet(name: 'docs', path: '/docs/*', view: emptyView),
+          Inlet(path: '/', view: EmptyView.new),
+          Inlet(name: 'docs', path: '/docs/*', view: EmptyView.new),
         ],
       );
       expect(
@@ -147,8 +147,8 @@ void main() {
     test('throws when param contains slash', () {
       final router = createRouter(
         routes: [
-          Inlet(path: '/', view: emptyView),
-          Inlet(name: 'profile', path: '/users/:id', view: emptyView),
+          Inlet(path: '/', view: EmptyView.new),
+          Inlet(name: 'profile', path: '/users/:id', view: EmptyView.new),
         ],
       );
       expect(
@@ -160,8 +160,8 @@ void main() {
     test('throws when extra params are passed', () {
       final router = createRouter(
         routes: [
-          Inlet(path: '/', view: emptyView),
-          Inlet(name: 'profile', path: '/users/:id', view: emptyView),
+          Inlet(path: '/', view: EmptyView.new),
+          Inlet(name: 'profile', path: '/users/:id', view: EmptyView.new),
         ],
       );
       expect(

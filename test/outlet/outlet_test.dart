@@ -4,6 +4,24 @@ import 'package:unrouter/unrouter.dart';
 
 import '../support/fakes.dart';
 
+class _OutletShell extends StatelessWidget {
+  const _OutletShell({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Outlet();
+  }
+}
+
+class _LeafView extends StatelessWidget {
+  const _LeafView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Text('Leaf View');
+  }
+}
+
 void main() {
   group('outlet', () {
     testWidgets('renders nested child view by depth', (tester) async {
@@ -11,7 +29,7 @@ void main() {
         Directionality(
           textDirection: TextDirection.ltr,
           child: OutletScope(
-            views: [() => const Outlet(), () => const Text('Leaf View')],
+            views: [_OutletShell.new, _LeafView.new],
             depth: 0,
             child: const Outlet(),
           ),
@@ -26,7 +44,7 @@ void main() {
         Directionality(
           textDirection: TextDirection.ltr,
           child: OutletScope(
-            views: [emptyView],
+            views: [EmptyView.new],
             depth: 1,
             child: const Outlet(),
           ),

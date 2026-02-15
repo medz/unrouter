@@ -5,17 +5,86 @@ import 'package:unrouter/unrouter.dart';
 import '../support/fakes.dart';
 import '../support/test_app.dart';
 
-Widget _profileView() {
-  return Builder(
-    builder: (context) {
-      final params = useRouteParams(context);
-      final query = useQuery(context);
-      final state = useRouteState<String>(context);
-      return Text(
-        'id:${params.required('id')};q:${query.get('q')};state:$state',
-      );
-    },
-  );
+class _DisabledLinkView extends StatelessWidget {
+  const _DisabledLinkView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Link(
+      to: '/next',
+      enabled: false,
+      child: Text('Disabled Link'),
+    );
+  }
+}
+
+class _ReplaceLinkView extends StatelessWidget {
+  const _ReplaceLinkView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Link(to: '/next', replace: true, child: Text('Replace Link'));
+  }
+}
+
+class _TapLinkView extends StatelessWidget {
+  const _TapLinkView({super.key});
+
+  static VoidCallback? onTap;
+
+  static void reset() {
+    onTap = null;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Link(to: '/next', onTap: onTap, child: const Text('Tap Link'));
+  }
+}
+
+class _ProfileLinkView extends StatelessWidget {
+  const _ProfileLinkView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Link(
+      to: 'profile',
+      params: const {'id': '42'},
+      query: URLSearchParams({'q': 'hello'}),
+      state: 'link-state',
+      child: const Text('Profile Link'),
+    );
+  }
+}
+
+class _RapidLinkView extends StatelessWidget {
+  const _RapidLinkView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Link(to: '/next', child: Text('Rapid Link'));
+  }
+}
+
+class _NextPageView extends StatelessWidget {
+  const _NextPageView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Text('Next Page');
+  }
+}
+
+class _ProfileView extends StatelessWidget {
+  const _ProfileView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final params = useRouteParams(context);
+    final query = useQuery(context);
+    final state = useRouteState<String>(context);
+    return Text('id:${params.required('id')};q:${query.get('q')};state:$state');
+  }
 }
 
 void main() {
@@ -23,15 +92,8 @@ void main() {
     testWidgets('does not navigate when enabled is false', (tester) async {
       final router = createRouter(
         routes: [
-          Inlet(
-            path: '/',
-            view: () => const Link(
-              to: '/next',
-              enabled: false,
-              child: Text('Disabled Link'),
-            ),
-          ),
-          Inlet(path: '/next', view: () => const Text('Next Page')),
+          Inlet(path: '/', view: _DisabledLinkView.new),
+          Inlet(path: '/next', view: _NextPageView.new),
         ],
       );
 
@@ -48,15 +110,8 @@ void main() {
       final router = createRouter(
         history: history,
         routes: [
-          Inlet(
-            path: '/',
-            view: () => const Link(
-              to: '/next',
-              replace: true,
-              child: Text('Replace Link'),
-            ),
-          ),
-          Inlet(path: '/next', view: () => const Text('Next Page')),
+          Inlet(path: '/', view: _ReplaceLinkView.new),
+          Inlet(path: '/next', view: _NextPageView.new),
         ],
       );
 
@@ -71,17 +126,13 @@ void main() {
 
     testWidgets('invokes onTap callback', (tester) async {
       var tapped = 0;
+      _TapLinkView.onTap = () => tapped += 1;
+      addTearDown(_TapLinkView.reset);
+
       final router = createRouter(
         routes: [
-          Inlet(
-            path: '/',
-            view: () => Link(
-              to: '/next',
-              onTap: () => tapped += 1,
-              child: const Text('Tap Link'),
-            ),
-          ),
-          Inlet(path: '/next', view: () => const Text('Next Page')),
+          Inlet(path: '/', view: _TapLinkView.new),
+          Inlet(path: '/next', view: _NextPageView.new),
         ],
       );
 
@@ -97,17 +148,8 @@ void main() {
     testWidgets('passes params query and state', (tester) async {
       final router = createRouter(
         routes: [
-          Inlet(
-            path: '/',
-            view: () => Link(
-              to: 'profile',
-              params: const {'id': '42'},
-              query: URLSearchParams({'q': 'hello'}),
-              state: 'link-state',
-              child: const Text('Profile Link'),
-            ),
-          ),
-          Inlet(name: 'profile', path: '/users/:id', view: _profileView),
+          Inlet(path: '/', view: _ProfileLinkView.new),
+          Inlet(name: 'profile', path: '/users/:id', view: _ProfileView.new),
         ],
       );
 
@@ -122,11 +164,8 @@ void main() {
     testWidgets('handles rapid clicks without exceptions', (tester) async {
       final router = createRouter(
         routes: [
-          Inlet(
-            path: '/',
-            view: () => const Link(to: '/next', child: Text('Rapid Link')),
-          ),
-          Inlet(path: '/next', view: () => const Text('Next Page')),
+          Inlet(path: '/', view: _RapidLinkView.new),
+          Inlet(path: '/next', view: _NextPageView.new),
         ],
       );
 

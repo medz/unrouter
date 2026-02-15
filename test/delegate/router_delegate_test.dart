@@ -5,19 +5,63 @@ import 'package:unrouter/unrouter.dart';
 import '../support/fakes.dart';
 import '../support/test_app.dart';
 
-Widget _nestedShell() => const Outlet();
+class _NestedShell extends StatelessWidget {
+  const _NestedShell({super.key});
 
-Widget _fromView() {
-  return Builder(
-    builder: (context) {
-      final from = useFromLocation(context);
-      return Text('from:${from?.path ?? 'null'}');
-    },
-  );
+  @override
+  Widget build(BuildContext context) {
+    return const Outlet();
+  }
 }
 
-class _SharedALayout extends StatelessWidget {
-  const _SharedALayout();
+class _ChildPage extends StatelessWidget {
+  const _ChildPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Text('Child Page');
+  }
+}
+
+class _HomePage extends StatelessWidget {
+  const _HomePage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Text('Home Page');
+  }
+}
+
+class _FromView extends StatelessWidget {
+  const _FromView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final from = useFromLocation(context);
+    return Text('from:${from?.path ?? 'null'}');
+  }
+}
+
+class _PageB extends StatelessWidget {
+  const _PageB({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Text('Page B');
+  }
+}
+
+class _PageC extends StatelessWidget {
+  const _PageC({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Text('Page C');
+  }
+}
+
+class _SharedANewLayout extends StatelessWidget {
+  const _SharedANewLayout();
 
   static int buildCount = 0;
 
@@ -27,7 +71,7 @@ class _SharedALayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    _SharedALayout.buildCount += 1;
+    _SharedANewLayout.buildCount += 1;
     return const Outlet();
   }
 }
@@ -43,10 +87,8 @@ void main() {
         routes: [
           Inlet(
             path: '/',
-            view: _nestedShell,
-            children: [
-              Inlet(path: 'child', view: () => const Text('Child Page')),
-            ],
+            view: _NestedShell.new,
+            children: [Inlet(path: 'child', view: _ChildPage.new)],
           ),
         ],
       );
@@ -59,7 +101,7 @@ void main() {
       final history = createMemoryHistory(['/missing']);
       final router = createRouter(
         history: history,
-        routes: [Inlet(path: '/', view: emptyView)],
+        routes: [Inlet(path: '/', view: EmptyView.new)],
       );
 
       await pumpRouterApp(tester, router);
@@ -73,8 +115,8 @@ void main() {
       final router = createRouter(
         history: history,
         routes: [
-          Inlet(path: '/', view: emptyView),
-          Inlet(path: '/next', view: emptyView),
+          Inlet(path: '/', view: EmptyView.new),
+          Inlet(path: '/next', view: EmptyView.new),
         ],
       );
 
@@ -89,8 +131,8 @@ void main() {
     testWidgets('updates fromLocation after navigation', (tester) async {
       final router = createRouter(
         routes: [
-          Inlet(path: '/', view: () => const Text('Home Page')),
-          Inlet(path: '/next', view: _fromView),
+          Inlet(path: '/', view: _HomePage.new),
+          Inlet(path: '/next', view: _FromView.new),
         ],
       );
 
@@ -104,20 +146,20 @@ void main() {
       expect(find.text('from:/'), findsOneWidget);
     });
 
-    testWidgets('shared /a layout is not remounted when switching children', (
+    testWidgets('shared /a layout does not rebuild on child switch', (
       tester,
     ) async {
-      _SharedALayout.resetCounters();
+      _SharedANewLayout.resetCounters();
       final history = createMemoryHistory(['/a/b']);
       final router = createRouter(
         history: history,
         routes: [
           Inlet(
             path: '/a',
-            view: () => const _SharedALayout(),
+            view: _SharedANewLayout.new,
             children: [
-              Inlet(path: 'b', view: () => const Text('Page B')),
-              Inlet(path: 'c', view: () => const Text('Page C')),
+              Inlet(path: 'b', view: _PageB.new),
+              Inlet(path: 'c', view: _PageC.new),
             ],
           ),
         ],
@@ -125,15 +167,15 @@ void main() {
 
       await pumpRouterApp(tester, router);
       expect(find.text('Page B'), findsOneWidget);
-      expect(_SharedALayout.buildCount, 1);
+      expect(_SharedANewLayout.buildCount, 1);
 
-      final buildsBeforeSwitch = _SharedALayout.buildCount;
+      final buildsBeforeSwitch = _SharedANewLayout.buildCount;
       await router.push('/a/c');
       await tester.pump();
       await tester.pump();
 
       expect(find.text('Page C'), findsOneWidget);
-      expect(_SharedALayout.buildCount, buildsBeforeSwitch);
+      expect(_SharedANewLayout.buildCount, buildsBeforeSwitch);
     });
   });
 }

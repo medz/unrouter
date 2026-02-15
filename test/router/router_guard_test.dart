@@ -1,9 +1,8 @@
-import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:unstory/unstory.dart';
 import 'package:unrouter/unrouter.dart';
 
-Widget _emptyView() => const SizedBox.shrink();
+import '../support/fakes.dart';
 
 Future<void> _flushQueue() async {
   await Future<void>.delayed(Duration.zero);
@@ -22,8 +21,8 @@ void main() {
       final router = createRouter(
         guards: [blockGuard],
         routes: [
-          Inlet(path: '/', view: _emptyView),
-          Inlet(path: '/private', view: _emptyView),
+          Inlet(path: '/', view: EmptyView.new),
+          Inlet(path: '/private', view: EmptyView.new),
         ],
       );
 
@@ -46,9 +45,9 @@ void main() {
         history: history,
         guards: [redirectGuard],
         routes: [
-          Inlet(path: '/', view: _emptyView),
-          Inlet(path: '/private', view: _emptyView),
-          Inlet(path: '/login', view: _emptyView),
+          Inlet(path: '/', view: EmptyView.new),
+          Inlet(path: '/private', view: EmptyView.new),
+          Inlet(path: '/login', view: EmptyView.new),
         ],
       );
 
@@ -76,9 +75,9 @@ void main() {
         history: history,
         guards: [redirectGuard],
         routes: [
-          Inlet(path: '/', view: _emptyView),
-          Inlet(path: '/private', view: _emptyView),
-          Inlet(name: 'profile', path: '/users/:id', view: _emptyView),
+          Inlet(path: '/', view: EmptyView.new),
+          Inlet(path: '/private', view: EmptyView.new),
+          Inlet(name: 'profile', path: '/users/:id', view: EmptyView.new),
         ],
       );
 
@@ -112,10 +111,10 @@ void main() {
       final chainRouter = createRouter(
         guards: [chainedGuard],
         routes: [
-          Inlet(path: '/', view: _emptyView),
-          Inlet(path: '/a', view: _emptyView),
-          Inlet(path: '/b', view: _emptyView),
-          Inlet(path: '/c', view: _emptyView),
+          Inlet(path: '/', view: EmptyView.new),
+          Inlet(path: '/a', view: EmptyView.new),
+          Inlet(path: '/b', view: EmptyView.new),
+          Inlet(path: '/c', view: EmptyView.new),
         ],
       );
       await chainRouter.push('/a');
@@ -124,8 +123,8 @@ void main() {
       final loopRouter = createRouter(
         guards: [loopGuard],
         routes: [
-          Inlet(path: '/', view: _emptyView),
-          Inlet(path: '/loop', view: _emptyView),
+          Inlet(path: '/', view: EmptyView.new),
+          Inlet(path: '/loop', view: EmptyView.new),
         ],
       );
       expect(loopRouter.push('/loop'), throwsStateError);
@@ -134,10 +133,10 @@ void main() {
         maxRedirectDepth: 1,
         guards: [chainedGuard],
         routes: [
-          Inlet(path: '/', view: _emptyView),
-          Inlet(path: '/a', view: _emptyView),
-          Inlet(path: '/b', view: _emptyView),
-          Inlet(path: '/c', view: _emptyView),
+          Inlet(path: '/', view: EmptyView.new),
+          Inlet(path: '/a', view: EmptyView.new),
+          Inlet(path: '/b', view: EmptyView.new),
+          Inlet(path: '/c', view: EmptyView.new),
         ],
       );
       expect(limitedDepthRouter.push('/a'), throwsStateError);
@@ -162,9 +161,9 @@ void main() {
         history: history,
         guards: [guard],
         routes: [
-          Inlet(path: '/', view: _emptyView),
-          Inlet(path: '/private', view: _emptyView),
-          Inlet(path: '/safe', view: _emptyView),
+          Inlet(path: '/', view: EmptyView.new),
+          Inlet(path: '/private', view: EmptyView.new),
+          Inlet(path: '/safe', view: EmptyView.new),
         ],
       );
 
@@ -192,10 +191,10 @@ void main() {
         history: history,
         guards: [guard],
         routes: [
-          Inlet(path: '/', view: _emptyView),
-          Inlet(path: '/private', view: _emptyView),
-          Inlet(path: '/safe', view: _emptyView),
-          Inlet(path: '/login', view: _emptyView),
+          Inlet(path: '/', view: EmptyView.new),
+          Inlet(path: '/private', view: EmptyView.new),
+          Inlet(path: '/safe', view: EmptyView.new),
+          Inlet(path: '/login', view: EmptyView.new),
         ],
       );
 

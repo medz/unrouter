@@ -1,18 +1,17 @@
-import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:unstory/unstory.dart';
 import 'package:unrouter/unrouter.dart';
 
-Widget _emptyView() => const SizedBox.shrink();
+import '../support/fakes.dart';
 
 void main() {
   group('router navigation', () {
     test('resolves route name first then falls back to path', () async {
       final router = createRouter(
         routes: [
-          Inlet(name: 'foo', path: '/bar', view: _emptyView),
-          Inlet(path: '/foo', view: _emptyView),
-          Inlet(path: '/foo-missing', view: _emptyView),
+          Inlet(name: 'foo', path: '/bar', view: EmptyView.new),
+          Inlet(path: '/foo', view: EmptyView.new),
+          Inlet(path: '/foo-missing', view: EmptyView.new),
         ],
       );
 
@@ -26,8 +25,8 @@ void main() {
     test('merges query and explicit query overrides same-name keys', () async {
       final router = createRouter(
         routes: [
-          Inlet(path: '/', view: _emptyView),
-          Inlet(path: '/search', view: _emptyView),
+          Inlet(path: '/', view: EmptyView.new),
+          Inlet(path: '/search', view: EmptyView.new),
         ],
       );
 
@@ -45,9 +44,9 @@ void main() {
     test('fills params and wildcard by route name', () async {
       final router = createRouter(
         routes: [
-          Inlet(path: '/', view: _emptyView),
-          Inlet(name: 'profile', path: '/users/:id', view: _emptyView),
-          Inlet(name: 'docs', path: '/docs/*', view: _emptyView),
+          Inlet(path: '/', view: EmptyView.new),
+          Inlet(name: 'profile', path: '/users/:id', view: EmptyView.new),
+          Inlet(name: 'docs', path: '/docs/*', view: EmptyView.new),
         ],
       );
 
@@ -65,9 +64,9 @@ void main() {
       final router = createRouter(
         history: history,
         routes: [
-          Inlet(path: '/', view: _emptyView),
-          Inlet(path: '/a', view: _emptyView),
-          Inlet(path: '/b', view: _emptyView),
+          Inlet(path: '/', view: EmptyView.new),
+          Inlet(path: '/a', view: EmptyView.new),
+          Inlet(path: '/b', view: EmptyView.new),
         ],
       );
 

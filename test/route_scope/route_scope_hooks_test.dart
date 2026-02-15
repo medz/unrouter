@@ -6,7 +6,11 @@ import 'package:unrouter/unrouter.dart';
 import '../support/fakes.dart';
 
 RouteRecord _record({Map<String, Object?>? meta}) {
-  return RouteRecord(views: [emptyView], guards: const <Guard>[], meta: meta);
+  return RouteRecord(
+    views: [EmptyView.new],
+    guards: const <Guard>[],
+    meta: meta,
+  );
 }
 
 void main() {

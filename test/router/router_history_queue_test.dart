@@ -24,10 +24,10 @@ void main() {
         history: history,
         guards: [guard],
         routes: [
-          Inlet(path: '/', view: emptyView),
-          Inlet(path: '/a', view: emptyView),
-          Inlet(path: '/b', view: emptyView),
-          Inlet(path: '/c', view: emptyView),
+          Inlet(path: '/', view: EmptyView.new),
+          Inlet(path: '/a', view: EmptyView.new),
+          Inlet(path: '/b', view: EmptyView.new),
+          Inlet(path: '/c', view: EmptyView.new),
         ],
       );
 
@@ -67,10 +67,10 @@ void main() {
         history: history,
         guards: [guard],
         routes: [
-          Inlet(path: '/', view: emptyView),
-          Inlet(path: '/a', view: emptyView),
-          Inlet(path: '/b', view: emptyView),
-          Inlet(path: '/c', view: emptyView),
+          Inlet(path: '/', view: EmptyView.new),
+          Inlet(path: '/a', view: EmptyView.new),
+          Inlet(path: '/b', view: EmptyView.new),
+          Inlet(path: '/c', view: EmptyView.new),
         ],
       );
 
@@ -107,11 +107,11 @@ void main() {
           history: history,
           guards: [guard],
           routes: [
-            Inlet(path: '/', view: emptyView),
-            Inlet(path: '/private', view: emptyView),
-            Inlet(path: '/legacy', view: emptyView),
-            Inlet(path: '/safe', view: emptyView),
-            Inlet(path: '/login', view: emptyView),
+            Inlet(path: '/', view: EmptyView.new),
+            Inlet(path: '/private', view: EmptyView.new),
+            Inlet(path: '/legacy', view: EmptyView.new),
+            Inlet(path: '/safe', view: EmptyView.new),
+            Inlet(path: '/login', view: EmptyView.new),
           ],
         );
 

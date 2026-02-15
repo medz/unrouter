@@ -75,6 +75,7 @@ final router = createRouter(
 ```
 
 `routes` supports multiple top-level `Inlet`s. Use a single parent `Inlet` with `Outlet` only when pages share the same shell layout.
+For concise route definitions, prefer constructor tear-offs such as `MyView.new`.
 
 ### Bootstrap the App
 
@@ -129,23 +130,11 @@ Inlet(
 | Property | Type | Description |
 | --- | --- | --- |
 | `path` | `String` | URL segment pattern. Defaults to `'/'` |
-| `view` | `ViewBuilder` | `() => Widget` factory |
+| `view` | `ViewBuilder` | `() => Widget` factory, typically `MyView.new` |
 | `name` | `String?` | Named alias for programmatic navigation |
 | `meta` | `Map<String, Object?>?` | Route metadata, merged with parent meta |
 | `guards` | `Iterable<Guard>` | Route-level guard chain |
 | `children` | `Iterable<Inlet>` | Nested child routes |
-
-#### Why `view` is a factory (`() => Widget`)
-
-`Inlet.view` is intentionally a zero-argument widget factory, not a widget instance.
-This keeps route definitions declarative while leaving widget lifecycle behavior explicit.
-
-For shared layout routes (for example `/a/b` and `/a/c` sharing `/a` with only `Outlet`):
-
-- `view: A.new` may rebuild `A` when switching child routes.
-- `view: () => const A()` allows Flutter to reuse the canonical const widget, so `A` can avoid rebuild in this case.
-
-Even when `A.new` rebuilds, it does not necessarily remount. If widget type/key are stable, Flutter updates the existing element/state.
 
 ### Guard
 

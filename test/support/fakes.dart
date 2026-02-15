@@ -1,9 +1,23 @@
 import 'package:flutter/widgets.dart';
 import 'package:unstory/unstory.dart';
 
-Widget emptyView() => const SizedBox.shrink();
-Widget altEmptyView() => const SizedBox();
-Widget textView(String value) => Text(value, textDirection: TextDirection.ltr);
+class EmptyView extends StatelessWidget {
+  const EmptyView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const SizedBox.shrink();
+  }
+}
+
+class AltEmptyView extends StatelessWidget {
+  const AltEmptyView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const SizedBox();
+  }
+}
 
 Future<void> flushAsyncQueue({
   Duration delay = const Duration(milliseconds: 20),
