@@ -10,7 +10,7 @@ class Inlet {
     this.name,
     this.meta,
     this.path = '/',
-    this.children = const {},
+    this.children = const [],
     this.middleware = const [],
   });
 
