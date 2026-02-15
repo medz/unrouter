@@ -5,7 +5,7 @@ import 'package:unrouter/unrouter.dart';
 import '../support/fakes.dart';
 
 void main() {
-  group('router navigation', () {
+  group('router navigation flow', () {
     test('resolves route name first then falls back to path', () async {
       final router = createRouter(
         routes: [
@@ -57,7 +57,7 @@ void main() {
       expect(router.history.location.path, '/docs/guide/getting-started');
     });
 
-    test('supports push, replace and pop flow', () async {
+    test('supports push/replace/pop navigation flow', () async {
       final history = MemoryHistory(
         initialEntries: [HistoryLocation(Uri(path: '/'))],
       );

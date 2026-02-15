@@ -97,7 +97,9 @@ void main() {
       expect(find.text('Child View'), findsOneWidget);
     });
 
-    testWidgets('throws when location has no matched route', (tester) async {
+    testWidgets('throws when location path has no matched route', (
+      tester,
+    ) async {
       final history = createMemoryHistory(['/missing']);
       final router = createRouter(
         history: history,

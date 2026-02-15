@@ -108,7 +108,7 @@ void main() {
       );
     });
 
-    test('throws when path has no route match', () {
+    test('throws when location path has no route match', () {
       final router = createRouter(
         routes: [Inlet(path: '/', view: EmptyView.new)],
       );

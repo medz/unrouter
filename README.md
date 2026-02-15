@@ -19,7 +19,7 @@
 ## Features
 
 - 🧩 **Nested Routes** — Define route trees with `Inlet` and render child views via `Outlet`
-- 🏷️ **Named Routes** — Navigate by name with params, query, and state
+- 🏷️ **Named Routes** — Navigate by route name with params, query, and state
 - 🛡️ **Guards** — Navigation-time guards for allow/block/redirect decisions
 - 📦 **Route Meta** — Attach arbitrary metadata to each route, inherited by children
 - 🔗 **Dynamic Params & Wildcards** — `:id` params and `*` catch-all segments
@@ -129,9 +129,9 @@ Inlet(
 
 | Property | Type | Description |
 | --- | --- | --- |
-| `path` | `String` | URL segment pattern. Defaults to `'/'` |
+| `path` | `String` | URI path segment pattern. Defaults to `'/'` |
 | `view` | `ViewBuilder` | `() => Widget` factory, typically `MyView.new` |
-| `name` | `String?` | Named alias for programmatic navigation |
+| `name` | `String?` | Route name alias for navigation APIs |
 | `meta` | `Map<String, Object?>?` | Route metadata, merged with parent meta |
 | `guards` | `Iterable<Guard>` | Route-level guard chain |
 | `children` | `Iterable<Inlet>` | Nested child routes |
@@ -165,7 +165,7 @@ Guard order is: **global → parent → child**.
 
 ### GuardContext
 
-`GuardContext` provides navigation context:
+`GuardContext` provides navigation details:
 
 - `from` / `to` (`HistoryLocation`)
 - `action` (`HistoryAction.push`, `.replace`, `.pop`)
@@ -203,7 +203,7 @@ await router.push(
 
 ### Link Component
 
-`Link` is a lightweight clickable navigation widget.
+`Link` is a lightweight widget that triggers navigation.
 
 ```dart
 Link(
@@ -269,7 +269,7 @@ router.go(1);
 | Hook | Returns | Description |
 | --- | --- | --- |
 | `useRouter(context)` | `Unrouter` | Router instance |
-| `useLocation(context)` | `HistoryLocation` | Current URI + state |
+| `useLocation(context)` | `HistoryLocation` | Current location (`uri + state`) |
 | `useRouteParams(context)` | `RouteParams` | Matched `:param` values |
 | `useQuery(context)` | `URLSearchParams` | Parsed query string |
 | `useRouteMeta(context)` | `Map<String, Object?>` | Merged route metadata |
