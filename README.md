@@ -74,7 +74,7 @@ final router = createRouter(
 );
 ```
 
-`routes` supports multiple top-level `Inlet`s. Use a single parent `Inlet` with `Outlet` only when pages share the same layout.
+`routes` supports multiple top-level `Inlet`s. Use a single parent `Inlet` with `Outlet` only when views share the same layout.
 For concise route definitions, prefer constructor tear-offs such as `MyView.new`.
 
 ### Bootstrap the App

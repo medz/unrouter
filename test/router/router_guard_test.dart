@@ -142,7 +142,7 @@ void main() {
       expect(limitedDepthRouter.push('/a'), throwsStateError);
     });
 
-    test('applies guard on history pop and keeps page when blocked', () async {
+    test('applies guard on history pop and keeps view when blocked', () async {
       final guard = defineGuard((context) {
         if (context.to.path == '/private') {
           return const GuardResult.block();

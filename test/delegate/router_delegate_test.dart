@@ -14,21 +14,21 @@ class _NestedLayout extends StatelessWidget {
   }
 }
 
-class _ChildPage extends StatelessWidget {
-  const _ChildPage({super.key});
+class _ChildView extends StatelessWidget {
+  const _ChildView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const Text('Child Page');
+    return const Text('Child View');
   }
 }
 
-class _HomePage extends StatelessWidget {
-  const _HomePage({super.key});
+class _HomeView extends StatelessWidget {
+  const _HomeView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const Text('Home Page');
+    return const Text('Home View');
   }
 }
 
@@ -42,21 +42,21 @@ class _FromView extends StatelessWidget {
   }
 }
 
-class _PageB extends StatelessWidget {
-  const _PageB({super.key});
+class _ViewB extends StatelessWidget {
+  const _ViewB({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const Text('Page B');
+    return const Text('View B');
   }
 }
 
-class _PageC extends StatelessWidget {
-  const _PageC({super.key});
+class _ViewC extends StatelessWidget {
+  const _ViewC({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const Text('Page C');
+    return const Text('View C');
   }
 }
 
@@ -88,13 +88,13 @@ void main() {
           Inlet(
             path: '/',
             view: _NestedLayout.new,
-            children: [Inlet(path: 'child', view: _ChildPage.new)],
+            children: [Inlet(path: 'child', view: _ChildView.new)],
           ),
         ],
       );
 
       await pumpRouterApp(tester, router);
-      expect(find.text('Child Page'), findsOneWidget);
+      expect(find.text('Child View'), findsOneWidget);
     });
 
     testWidgets('throws when location has no matched route', (tester) async {
@@ -131,13 +131,13 @@ void main() {
     testWidgets('updates fromLocation after navigation', (tester) async {
       final router = createRouter(
         routes: [
-          Inlet(path: '/', view: _HomePage.new),
+          Inlet(path: '/', view: _HomeView.new),
           Inlet(path: '/next', view: _FromView.new),
         ],
       );
 
       await pumpRouterApp(tester, router);
-      expect(find.text('Home Page'), findsOneWidget);
+      expect(find.text('Home View'), findsOneWidget);
 
       await router.push('/next');
       await tester.pump();
@@ -158,15 +158,15 @@ void main() {
             path: '/a',
             view: _SharedANewLayout.new,
             children: [
-              Inlet(path: 'b', view: _PageB.new),
-              Inlet(path: 'c', view: _PageC.new),
+              Inlet(path: 'b', view: _ViewB.new),
+              Inlet(path: 'c', view: _ViewC.new),
             ],
           ),
         ],
       );
 
       await pumpRouterApp(tester, router);
-      expect(find.text('Page B'), findsOneWidget);
+      expect(find.text('View B'), findsOneWidget);
       expect(_SharedANewLayout.buildCount, 1);
 
       final buildsBeforeSwitch = _SharedANewLayout.buildCount;
@@ -174,7 +174,7 @@ void main() {
       await tester.pump();
       await tester.pump();
 
-      expect(find.text('Page C'), findsOneWidget);
+      expect(find.text('View C'), findsOneWidget);
       expect(_SharedANewLayout.buildCount, buildsBeforeSwitch);
     });
   });

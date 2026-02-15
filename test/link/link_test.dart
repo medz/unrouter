@@ -66,12 +66,12 @@ class _RapidLinkView extends StatelessWidget {
   }
 }
 
-class _NextPageView extends StatelessWidget {
-  const _NextPageView({super.key});
+class _NextView extends StatelessWidget {
+  const _NextView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const Text('Next Page');
+    return const Text('Next View');
   }
 }
 
@@ -93,7 +93,7 @@ void main() {
       final router = createRouter(
         routes: [
           Inlet(path: '/', view: _DisabledLinkView.new),
-          Inlet(path: '/next', view: _NextPageView.new),
+          Inlet(path: '/next', view: _NextView.new),
         ],
       );
 
@@ -111,7 +111,7 @@ void main() {
         history: history,
         routes: [
           Inlet(path: '/', view: _ReplaceLinkView.new),
-          Inlet(path: '/next', view: _NextPageView.new),
+          Inlet(path: '/next', view: _NextView.new),
         ],
       );
 
@@ -132,7 +132,7 @@ void main() {
       final router = createRouter(
         routes: [
           Inlet(path: '/', view: _TapLinkView.new),
-          Inlet(path: '/next', view: _NextPageView.new),
+          Inlet(path: '/next', view: _NextView.new),
         ],
       );
 
@@ -165,7 +165,7 @@ void main() {
       final router = createRouter(
         routes: [
           Inlet(path: '/', view: _RapidLinkView.new),
-          Inlet(path: '/next', view: _NextPageView.new),
+          Inlet(path: '/next', view: _NextView.new),
         ],
       );
 
