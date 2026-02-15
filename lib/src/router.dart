@@ -16,21 +16,21 @@ abstract interface class Unrouter {
   void forward();
   void back();
 
-  Future<R> push<T, R>(
+  Future<void> push<T>(
     String pathOrName, {
     Map<String, String>? params,
     URLSearchParams? query,
     T? state,
   });
 
-  Future<R> replace<T, R>(
+  Future<void> replace<T>(
     String pathOrName, {
     Map<String, String>? params,
     URLSearchParams? query,
     T? state,
   });
 
-  Future<void> pop<T>([T? result]);
+  Future<bool> pop<T>([T? result]);
 }
 
 Unrouter createRouter({
@@ -122,19 +122,16 @@ extension on Inlet {
     collect(this, '/', null, global, null);
     return routes;
   }
-}
 
-bool _isSameOrNonStrictPrefix<T>(Iterable<T> parent, Iterable<T> child) {
-  if (child.length < parent.length) {
-    return false;
-  }
-
-  for (var i = 0; i < parent.length; i++) {
-    if (parent.elementAtOrNull(i) != child.elementAtOrNull(i)) {
-      return false;
+  bool _isSameOrNonStrictPrefix<T>(Iterable<T> parent, Iterable<T> child) {
+    if (child.length < parent.length) return false;
+    for (var i = 0; i < parent.length; i++) {
+      if (parent.elementAtOrNull(i) != child.elementAtOrNull(i)) {
+        return false;
+      }
     }
+    return true;
   }
-  return true;
 }
 
 class _RouterImpl implements Unrouter {
@@ -163,13 +160,13 @@ class _RouterImpl implements Unrouter {
   void go(int delta) => history.go(delta, triggerListeners: true);
 
   @override
-  Future<void> pop<T>([T? result]) {
+  Future<bool> pop<T>([T? result]) {
     // TODO: implement pop
     throw UnimplementedError();
   }
 
   @override
-  Future<R> push<T, R>(
+  Future<void> push<T>(
     String pathOrName, {
     Map<String, String>? params,
     URLSearchParams? query,
@@ -180,7 +177,7 @@ class _RouterImpl implements Unrouter {
   }
 
   @override
-  Future<R> replace<T, R>(
+  Future<void> replace<T>(
     String pathOrName, {
     Map<String, String>? params,
     URLSearchParams? query,
