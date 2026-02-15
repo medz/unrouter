@@ -42,7 +42,18 @@ class RouteScopeProvider extends InheritedModel<RouteScope> {
     return (dependencies.contains(RouteScope.meta) &&
             oldWidget.route.meta != route.meta) ||
         (dependencies.contains(RouteScope.params) &&
-            oldWidget.params != params);
+            oldWidget.params != params) ||
+        (dependencies.contains(RouteScope.query) &&
+            oldWidget.query.toString() != query.toString()) ||
+        (dependencies.contains(RouteScope.uri) &&
+            oldWidget.location.uri != location.uri) ||
+        (dependencies.contains(RouteScope.state) &&
+            oldWidget.location.state != location.state) ||
+        (dependencies.contains(RouteScope.location) &&
+            (oldWidget.location.uri != location.uri ||
+                oldWidget.location.state != location.state)) ||
+        (dependencies.contains(RouteScope.from) &&
+            oldWidget.fromLocation != fromLocation);
   }
 
   static RouteScopeProvider of(BuildContext context, RouteScope scope) {

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:ht/ht.dart';
 import 'package:roux/roux.dart' as roux;
 import 'package:unstory/unstory.dart';
@@ -7,7 +8,7 @@ import 'middleware.dart';
 import 'route_record.dart';
 import 'utils.dart';
 
-abstract interface class Router {
+abstract interface class Router implements Listenable {
   History get history;
   roux.Router<String> get aliases;
   roux.Router<RouteRecord> get matcher;
@@ -29,6 +30,8 @@ abstract interface class Router {
     URLSearchParams? query,
     T? state,
   });
+
+  void dispose();
 }
 
 Router createRouter({
@@ -137,12 +140,14 @@ bool _isSameOrNonStrictPrefix<T>(Iterable<T> parent, Iterable<T> child) {
   return true;
 }
 
-class _RouterImpl implements Router {
-  const _RouterImpl({
+class _RouterImpl extends ChangeNotifier implements Router {
+  _RouterImpl({
     required this.history,
     required this.aliases,
     required this.matcher,
-  });
+  }) : _lastLocation = history.location {
+    _unlistenHistory = history.listen(_handleHistoryChange);
+  }
 
   @override
   final History history;
@@ -152,6 +157,9 @@ class _RouterImpl implements Router {
 
   @override
   final roux.Router<RouteRecord> matcher;
+
+  HistoryLocation _lastLocation;
+  late final VoidCallback _unlistenHistory;
 
   @override
   void back() => history.back();
@@ -168,9 +176,15 @@ class _RouterImpl implements Router {
     Map<String, String>? params,
     URLSearchParams? query,
     T? state,
-  }) {
-    // TODO: implement push
-    throw UnimplementedError();
+  }) async {
+    final uri = _resolveNavigationTarget(
+      pathOrName,
+      params: params,
+      query: query,
+    );
+    final previous = _lastLocation;
+    history.push(uri, state: state);
+    _reportLocationChange(previous);
   }
 
   @override
@@ -179,8 +193,155 @@ class _RouterImpl implements Router {
     Map<String, String>? params,
     URLSearchParams? query,
     T? state,
+  }) async {
+    final uri = _resolveNavigationTarget(
+      pathOrName,
+      params: params,
+      query: query,
+    );
+    final previous = _lastLocation;
+    history.replace(uri, state: state);
+    _reportLocationChange(previous);
+  }
+
+  Uri _resolveNavigationTarget(
+    String pathOrName, {
+    Map<String, String>? params,
+    URLSearchParams? query,
   }) {
-    // TODO: implement replace
-    throw UnimplementedError();
+    if (_isAbsolutePath(pathOrName)) {
+      if (params case final incoming? when incoming.isNotEmpty) {
+        throw ArgumentError.value(
+          params,
+          'params',
+          'Path navigation does not accept route params.',
+        );
+      }
+
+      final parsed = Uri.parse(pathOrName);
+      final path = normalizePath([parsed.path]);
+      final match = matcher.match(path);
+      if (match == null) {
+        throw StateError('Route path "$pathOrName" not found.');
+      }
+
+      final resolvedQuery = query?.toString() ?? parsed.query;
+      return parsed.replace(path: path, query: resolvedQuery);
+    }
+
+    final alias = aliases.match(normalizePath([pathOrName]));
+    if (alias == null) {
+      throw StateError('Route name "$pathOrName" not found.');
+    }
+
+    final path = _fillRoutePattern(alias.data, params ?? const {});
+    final match = matcher.match(path);
+    if (match == null) {
+      throw StateError('Resolved route "$path" not found.');
+    }
+
+    return Uri(path: path, query: query?.toString());
+  }
+
+  bool _isAbsolutePath(String location) => location.startsWith('/');
+
+  String _fillRoutePattern(String pattern, Map<String, String> params) {
+    if (pattern == '/') {
+      if (params.isNotEmpty) {
+        throw ArgumentError.value(
+          params,
+          'params',
+          'Route "/" does not accept params.',
+        );
+      }
+      return '/';
+    }
+
+    final consumed = <String>{};
+    final segments = <String>[];
+    for (final segment in pattern.split('/')) {
+      if (segment.isEmpty) {
+        continue;
+      }
+
+      if (segment.startsWith(':')) {
+        final name = segment.substring(1);
+        if (name.isEmpty) {
+          throw StateError('Invalid route pattern "$pattern".');
+        }
+        final value = params[name];
+        if (value == null || value.isEmpty) {
+          throw ArgumentError.value(
+            params,
+            'params',
+            'Missing required param "$name".',
+          );
+        }
+        if (value.contains('/')) {
+          throw ArgumentError.value(
+            params,
+            'params',
+            'Param "$name" must not contain "/".',
+          );
+        }
+        consumed.add(name);
+        segments.add(value);
+        continue;
+      }
+
+      if (segment == '*') {
+        final value = params['wildcard'];
+        if (value == null) {
+          throw ArgumentError.value(
+            params,
+            'params',
+            'Missing required param "wildcard".',
+          );
+        }
+        consumed.add('wildcard');
+        segments.addAll(value.split('/').where((entry) => entry.isNotEmpty));
+        continue;
+      }
+
+      segments.add(segment);
+    }
+
+    final extras = params.keys.where((entry) => !consumed.contains(entry));
+    if (extras.isNotEmpty) {
+      throw ArgumentError.value(
+        params,
+        'params',
+        'Unexpected params: ${extras.join(', ')}.',
+      );
+    }
+
+    return normalizePath(segments);
+  }
+
+  void _handleHistoryChange(HistoryEvent event) {
+    _reportLocationChange(_lastLocation, next: event.location);
+  }
+
+  void _reportLocationChange(
+    HistoryLocation previous, {
+    HistoryLocation? next,
+  }) {
+    final current = next ?? history.location;
+    if (_isSameLocation(previous, current)) {
+      return;
+    }
+
+    _lastLocation = current;
+    notifyListeners();
+  }
+
+  bool _isSameLocation(HistoryLocation a, HistoryLocation b) {
+    return a.uri == b.uri && a.state == b.state;
+  }
+
+  @override
+  void dispose() {
+    _unlistenHistory();
+    super.dispose();
   }
 }
