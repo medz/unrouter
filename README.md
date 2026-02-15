@@ -110,6 +110,21 @@ class LayoutView extends StatelessWidget {
 }
 ```
 
+## Runnable Example
+
+Run the full example app:
+
+```bash
+cd example
+flutter pub get
+flutter run
+```
+
+Source entry points:
+
+- Quickstart: [`example/lib/quickstart/quickstart_app.dart`](example/lib/quickstart/quickstart_app.dart)
+- Advanced: [`example/lib/advanced/advanced_app.dart`](example/lib/advanced/advanced_app.dart)
+
 ## Core Concepts
 
 ### Inlet — Route Definition
