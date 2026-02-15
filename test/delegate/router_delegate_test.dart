@@ -16,6 +16,22 @@ Widget _fromView() {
   );
 }
 
+class _SharedALayout extends StatelessWidget {
+  const _SharedALayout();
+
+  static int buildCount = 0;
+
+  static void resetCounters() {
+    buildCount = 0;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    _SharedALayout.buildCount += 1;
+    return const Outlet();
+  }
+}
+
 void main() {
   group('router delegate', () {
     testWidgets('renders matched nested route through outlet chain', (
@@ -86,6 +102,38 @@ void main() {
       await tester.pump();
 
       expect(find.text('from:/'), findsOneWidget);
+    });
+
+    testWidgets('shared /a layout is not remounted when switching children', (
+      tester,
+    ) async {
+      _SharedALayout.resetCounters();
+      final history = createMemoryHistory(['/a/b']);
+      final router = createRouter(
+        history: history,
+        routes: [
+          Inlet(
+            path: '/a',
+            view: () => const _SharedALayout(),
+            children: [
+              Inlet(path: 'b', view: () => const Text('Page B')),
+              Inlet(path: 'c', view: () => const Text('Page C')),
+            ],
+          ),
+        ],
+      );
+
+      await pumpRouterApp(tester, router);
+      expect(find.text('Page B'), findsOneWidget);
+      expect(_SharedALayout.buildCount, 1);
+
+      final buildsBeforeSwitch = _SharedALayout.buildCount;
+      await router.push('/a/c');
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.text('Page C'), findsOneWidget);
+      expect(_SharedALayout.buildCount, buildsBeforeSwitch);
     });
   });
 }

@@ -135,6 +135,18 @@ Inlet(
 | `guards` | `Iterable<Guard>` | Route-level guard chain |
 | `children` | `Iterable<Inlet>` | Nested child routes |
 
+#### Why `view` is a factory (`() => Widget`)
+
+`Inlet.view` is intentionally a zero-argument widget factory, not a widget instance.
+This keeps route definitions declarative while leaving widget lifecycle behavior explicit.
+
+For shared layout routes (for example `/a/b` and `/a/c` sharing `/a` with only `Outlet`):
+
+- `view: A.new` may rebuild `A` when switching child routes.
+- `view: () => const A()` allows Flutter to reuse the canonical const widget, so `A` can avoid rebuild in this case.
+
+Even when `A.new` rebuilds, it does not necessarily remount. If widget type/key are stable, Flutter updates the existing element/state.
+
 ### Guard
 
 A guard runs **before navigation is committed** and returns one of three outcomes:
