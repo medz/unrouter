@@ -59,7 +59,7 @@ void main() {
       await tester.pumpWidget(
         const Directionality(
           textDirection: TextDirection.ltr,
-          child: const Outlet(),
+          child: Outlet(),
         ),
       );
 

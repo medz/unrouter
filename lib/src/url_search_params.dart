@@ -1,7 +1,5 @@
 import 'package:ht/ht.dart' as ht;
 
-final Expando<bool> _parsedFromString = Expando<bool>('parsedFromString');
-
 /// Typed helpers over `ht.URLSearchParams`.
 ///
 /// This extension type mirrors the native API while adding strict decoding and
@@ -12,17 +10,11 @@ extension type URLSearchParams._(ht.URLSearchParams _)
   ///
   /// [init] accepts the same forms as `ht.URLSearchParams`, such as a query
   /// string, a map-like object, or another params instance.
-  factory URLSearchParams([Object? init]) {
-    final params = URLSearchParams._(ht.URLSearchParams(init));
-    _parsedFromString[params._] = init is String;
-    return params;
-  }
+  URLSearchParams([Object? init]) : this._(ht.URLSearchParams(init));
 
   /// Returns a cloned instance with the same key-value pairs.
   URLSearchParams clone() {
-    final cloned = URLSearchParams._(_.clone());
-    _parsedFromString[cloned._] = _parsedFromString[_] ?? false;
-    return cloned;
+    return URLSearchParams._(_.clone());
   }
 
   /// Returns the required raw query value for [name].
@@ -37,11 +29,8 @@ extension type URLSearchParams._(ht.URLSearchParams _)
 
   /// Decodes and transforms the required query value for [name].
   ///
-  /// Values created from map-like initializers are first passed through
-  /// [Uri.decodeComponent], then sent to [fn] for conversion.
-  ///
-  /// Values created from a query-string initializer are already decoded by
-  /// `ht.URLSearchParams`, so this method forwards them to [fn] as-is.
+  /// The raw value is first passed through [Uri.decodeComponent], then sent to
+  /// [fn] for conversion.
   ///
   /// Throws an [ArgumentError] if [name] is not present.
   /// Any exception thrown by [fn] is rethrown to the caller.
@@ -53,11 +42,7 @@ extension type URLSearchParams._(ht.URLSearchParams _)
   /// final tab = query.decode('tab', (value) => value); // profile settings
   /// ```
   T decode<T>(String name, T Function(String value) fn) {
-    final raw = required(name);
-    final value = (_parsedFromString[_] ?? false)
-        ? raw
-        : Uri.decodeComponent(raw);
-    return fn(value);
+    return fn(Uri.decodeComponent(required(name)));
   }
 
   /// Parses the required query value for [name] as `int`.
