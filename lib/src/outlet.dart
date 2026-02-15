@@ -2,59 +2,45 @@ import 'package:flutter/widgets.dart';
 
 import 'inlet.dart';
 
-Widget buildOutletTree(Iterable<ViewBuilder> views) {
-  final routeViews = views.toList(growable: false);
-  if (routeViews.isEmpty) {
-    return const SizedBox.shrink();
-  }
-
-  return _OutletScope(
-    views: routeViews,
-    depth: 0,
-    child: const Outlet(),
-  );
-}
-
 class Outlet extends StatelessWidget {
   const Outlet({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final scope = _OutletScope.of(context);
+    final scope = OutletScope.of(context);
     final depth = scope.depth;
     if (depth >= scope.views.length) {
       return const SizedBox.shrink();
     }
 
-    return _OutletScope(
+    return OutletScope(
       views: scope.views,
       depth: depth + 1,
-      child: scope.views[depth](),
+      child: scope.views.elementAt(depth).call(),
     );
   }
 }
 
-class _OutletScope extends InheritedWidget {
-  const _OutletScope({
+class OutletScope extends InheritedWidget {
+  const OutletScope({
     required super.child,
     required this.views,
     required this.depth,
+    super.key,
   });
 
-  final List<ViewBuilder> views;
+  final Iterable<ViewBuilder> views;
   final int depth;
 
-  static _OutletScope of(BuildContext context) {
-    final scope = context.dependOnInheritedWidgetOfExactType<_OutletScope>();
-    if (scope != null) {
-      return scope;
-    }
+  static OutletScope of(BuildContext context) {
+    final scope = context.dependOnInheritedWidgetOfExactType<OutletScope>();
+    if (scope != null) return scope;
 
     throw FlutterError('Outlet must be used inside a router view.');
   }
 
   @override
-  bool updateShouldNotify(covariant _OutletScope oldWidget) {
+  bool updateShouldNotify(covariant OutletScope oldWidget) {
     return oldWidget.views != views || oldWidget.depth != depth;
   }
 }

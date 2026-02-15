@@ -306,12 +306,12 @@ Creates an `Unrouter` instance. The `Unrouter` interface exposes:
 - `push(pathOrName, {params, query, state})` — Push a new entry
 - `replace(pathOrName, {params, query, state})` — Replace current entry
 - `back()` / `forward()` / `go(delta)` — History traversal
-- Implements `Listenable` for change notifications
+- `history.listen(...)` — Pop navigation stream (`back`/`forward`/`go`)
 
 ### `createRouterConfig`
 
 ```dart
-RouterConfig<HistoryLocation> createRouterConfig(Unrouter unrouter)
+RouterConfig<HistoryLocation> createRouterConfig(Unrouter router)
 ```
 
 Creates a `RouterConfig` to pass to `MaterialApp.router(routerConfig: ...)`.

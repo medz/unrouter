@@ -1,16 +1,9 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart' hide Router;
 import 'package:flutter/widgets.dart' as flutter show Router;
-import 'package:ht/ht.dart';
-import 'package:unrouter/src/inlet.dart';
 import 'package:unstory/unstory.dart';
 
-import 'middleware.dart';
-import 'outlet.dart';
-import 'route_params.dart';
-import 'route_scope.dart';
 import 'router.dart';
 
 RouterConfig<HistoryLocation> createRouterConfig(Unrouter router) {
@@ -67,15 +60,20 @@ final class _HistoryRouteInformationProvider extends RouteInformationProvider
   _HistoryRouteInformationProvider({
     required this.router,
     required RouteInformation initialRouteInformation,
-  }) : _value = initialRouteInformation {
-    router.addListener(_syncFromRouter);
-  }
+  }) : _value = initialRouteInformation;
 
   final Unrouter router;
   RouteInformation _value;
 
   @override
-  RouteInformation get value => _value;
+  RouteInformation get value {
+    final location = router.history.location;
+    final latest = RouteInformation(uri: location.uri, state: location.state);
+    if (!_isSameRouteInformation(_value, latest)) {
+      _value = latest;
+    }
+    return _value;
+  }
 
   @override
   void routerReportsNewRouteInformation(
@@ -121,7 +119,6 @@ final class _HistoryRouteInformationProvider extends RouteInformationProvider
 
   @override
   void dispose() {
-    router.removeListener(_syncFromRouter);
     if (hasListeners) {
       WidgetsBinding.instance.removeObserver(this);
     }
@@ -131,93 +128,26 @@ final class _HistoryRouteInformationProvider extends RouteInformationProvider
   bool _isSameRouteInformation(RouteInformation a, RouteInformation b) {
     return a.uri == b.uri && a.state == b.state;
   }
-
-  void _syncFromRouter() {
-    final location = router.history.location;
-    _value = RouteInformation(uri: location.uri, state: location.state);
-  }
 }
 
 class _RouterDelegate extends RouterDelegate<HistoryLocation>
     with ChangeNotifier {
-  _RouterDelegate(this.router) : _configuration = router.history.location {
-    router.addListener(_handleRouterChange);
-  }
+  _RouterDelegate(this.router);
 
   final Unrouter router;
-  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
-  HistoryLocation _configuration;
-  HistoryLocation? _fromLocation;
+  HistoryLocation? from;
 
   @override
-  HistoryLocation get currentConfiguration => _configuration;
+  HistoryLocation get currentConfiguration => router.history.location;
 
   @override
   Widget build(BuildContext context) {
-    final result = router.matcher.match(currentConfiguration.path);
-    final content = switch (result) {
-      null => const SizedBox.shrink(),
-      final match => RouteScopeProvider(
-        route: match.data,
-        params: RouteParams(match.params ?? const {}),
-        location: currentConfiguration,
-        fromLocation: _fromLocation,
-        query: URLSearchParams(currentConfiguration.uri.query),
-        child: makeRouterView(
-          match.data.views,
-          middleware: match.data.middleware,
-        ),
-      ),
-    };
-
-    return Navigator(
-      key: _navigatorKey,
-      pages: [
-        _RouterPage(
-          key: const ValueKey('unrouter-root-page'),
-          name: currentConfiguration.path,
-          child: content,
-        ),
-      ],
-      onDidRemovePage: (_) {},
-    );
-  }
-
-  Widget makeRouterView(
-    Iterable<ViewBuilder> views, {
-    Iterable<Middleware> middleware = const [],
-  }) {
-    final routeView = buildOutletTree(views);
-    final chain = middleware.toList(growable: false);
-    if (chain.isEmpty) {
-      return routeView;
-    }
-
-    return _MiddlewareRunner(
-      middleware: chain,
-      token: Object.hash(
-        _configuration.uri.toString(),
-        _configuration.state,
-        chain.length,
-      ),
-      child: routeView,
-    );
+    throw UnimplementedError();
   }
 
   @override
   Future<bool> popRoute() async {
-    final navigator = _navigatorKey.currentState;
-    if (navigator != null && await navigator.maybePop()) {
-      return true;
-    }
-
-    final index = router.history.index ?? 0;
-    if (index <= 0) {
-      return false;
-    }
-
-    router.back();
-    return true;
+    throw UnimplementedError();
   }
 
   @override
@@ -233,77 +163,6 @@ class _RouterDelegate extends RouterDelegate<HistoryLocation>
       state: configuration.state,
     );
   }
-
-  void _handleRouterChange() {
-    final next = router.history.location;
-    if (next.uri == _configuration.uri && next.state == _configuration.state) {
-      return;
-    }
-
-    _fromLocation = _configuration;
-    _configuration = next;
-    notifyListeners();
-  }
-
-  @override
-  void dispose() {
-    router.removeListener(_handleRouterChange);
-    super.dispose();
-  }
-}
-
-class _RouterPage extends Page<void> {
-  const _RouterPage({required this.child, required super.key, super.name});
-
-  final Widget child;
-
-  @override
-  Route<void> createRoute(BuildContext context) {
-    return _RouterPageRoute(this);
-  }
-}
-
-class _RouterPageRoute extends PageRoute<void> {
-  _RouterPageRoute(_RouterPage page) : super(settings: page);
-
-  _RouterPage get _page => settings as _RouterPage;
-
-  @override
-  Color? get barrierColor => null;
-
-  @override
-  String? get barrierLabel => null;
-
-  @override
-  bool get maintainState => true;
-
-  @override
-  bool get opaque => true;
-
-  @override
-  Duration get transitionDuration => Duration.zero;
-
-  @override
-  Duration get reverseTransitionDuration => Duration.zero;
-
-  @override
-  Widget buildPage(
-    BuildContext context,
-    Animation<double> animation,
-    Animation<double> secondaryAnimation,
-  ) {
-    return _page.child;
-  }
-
-  @override
-  Widget buildTransitions(
-    BuildContext context,
-    Animation<double> animation,
-    Animation<double> secondaryAnimation,
-    Widget child,
-  ) {
-    return child;
-  }
 }
 
 Unrouter useRouter(BuildContext context) {
@@ -313,75 +172,4 @@ Unrouter useRouter(BuildContext context) {
   }
 
   throw FlutterError('Router is not an instance of Unrouter');
-}
-
-class _MiddlewareRunner extends StatefulWidget {
-  const _MiddlewareRunner({
-    required this.middleware,
-    required this.child,
-    required this.token,
-  });
-
-  final List<Middleware> middleware;
-  final Widget child;
-  final Object token;
-
-  @override
-  State<_MiddlewareRunner> createState() => _MiddlewareRunnerState();
-}
-
-class _MiddlewareRunnerState extends State<_MiddlewareRunner> {
-  Future<Widget>? _result;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _result = _run();
-  }
-
-  @override
-  void didUpdateWidget(covariant _MiddlewareRunner oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (!listEquals(oldWidget.middleware, widget.middleware) ||
-        oldWidget.token != widget.token ||
-        oldWidget.child != widget.child) {
-      _result = _run();
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final result = _result ??= _run();
-    return FutureBuilder<Widget>(
-      future: result,
-      builder: (context, snapshot) {
-        if (snapshot.hasError) {
-          return ErrorWidget(snapshot.error!);
-        }
-        return snapshot.data ?? const SizedBox.shrink();
-      },
-    );
-  }
-
-  Future<Widget> _run() {
-    return _runAt(0);
-  }
-
-  Future<Widget> _runAt(int index) {
-    if (index >= widget.middleware.length) {
-      return SynchronousFuture(widget.child);
-    }
-
-    final middleware = widget.middleware[index];
-    var called = false;
-    Future<Widget> next() {
-      if (called) {
-        throw StateError('Middleware next() called more than once.');
-      }
-      called = true;
-      return _runAt(index + 1);
-    }
-
-    return Future<Widget>.value(middleware(context, next));
-  }
 }
