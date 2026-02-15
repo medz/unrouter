@@ -6,12 +6,33 @@ import 'guard.dart';
 ///
 /// The builder is expected to be side-effect free and to return the root widget
 /// for one segment in a nested view chain.
+///
+/// Example:
+/// ```dart
+/// ViewBuilder view = HomeLayout.new;
+/// ```
 typedef ViewBuilder = ValueGetter<Widget>;
 
 /// Declares a route node in the route tree.
 ///
 /// Each inlet contributes one [path] segment and one [view]. Parent and child
 /// nodes compose into a full matched route chain.
+///
+/// Example:
+/// ```dart
+/// Inlet(
+///   name: 'home',
+///   path: '/',
+///   view: HomeLayout.new,
+///   children: [
+///     Inlet(
+///       name: 'users',
+///       path: '/users',
+///       view: UsersLayout.new,
+///     ),
+///   ],
+/// )
+/// ```
 class Inlet {
   /// Creates a route declaration.
   ///

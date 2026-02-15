@@ -19,6 +19,7 @@ import 'url_search_params.dart';
 ///   to: 'user',
 ///   params: {'id': '42'},
 ///   query: URLSearchParams('tab=profile'),
+///   state: const {'source': 'home'},
 ///   child: const Text('Open profile'),
 /// )
 /// ```

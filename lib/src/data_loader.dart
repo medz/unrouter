@@ -24,6 +24,14 @@ typedef DataFetcher<T> = FutureOr<T> Function(BuildContext context);
 ///
 /// Errors thrown by [fetcher] are captured by [AsyncData] and can be surfaced
 /// by the consumer.
+///
+/// Example:
+/// ```dart
+/// final userLoader = defineDataLoader<String>(
+///   (context) => fetchUserName(context),
+///   defaults: () => 'Guest',
+/// );
+/// ```
 DataLoader<T> defineDataLoader<T>(
   DataFetcher<T> fetcher, {
   ValueGetter<T?>? defaults,

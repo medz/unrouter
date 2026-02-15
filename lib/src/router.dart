@@ -50,6 +50,11 @@ abstract interface class Unrouter {
   /// Throws an [ArgumentError] when required params are missing, params are
   /// invalid for the target, or path navigation receives [params].
   /// Throws a [StateError] when no route name/path can be resolved.
+  ///
+  /// Example:
+  /// ```dart
+  /// await router.push('user', params: {'id': '42'});
+  /// ```
   Future<void> push<T>(
     String pathOrName, {
     Map<String, String>? params,
@@ -62,6 +67,11 @@ abstract interface class Unrouter {
   /// Uses the same resolution and query-merge rules as [push].
   ///
   /// Throws the same error types as [push].
+  ///
+  /// Example:
+  /// ```dart
+  /// await router.replace('/settings', state: {'from': 'deep-link'});
+  /// ```
   Future<void> replace<T>(
     String pathOrName, {
     Map<String, String>? params,
@@ -72,6 +82,11 @@ abstract interface class Unrouter {
   /// Pops one history entry.
   ///
   /// Returns `false` when no previous entry exists.
+  ///
+  /// Example:
+  /// ```dart
+  /// final popped = await router.pop<String>();
+  /// ```
   Future<bool> pop<T>([T? result]);
 }
 
@@ -95,12 +110,12 @@ abstract interface class Unrouter {
 ///     Inlet(
 ///       name: 'home',
 ///       path: '/',
-///       view: () => const HomeView(),
+///       view: HomeView.new,
 ///       children: [
 ///         Inlet(
 ///           name: 'user',
 ///           path: '/users/:id',
-///           view: () => const UserView(),
+///           view: UserView.new,
 ///         ),
 ///       ],
 ///     ),

@@ -19,6 +19,18 @@ import 'url_search_params.dart';
 /// This is the recommended integration entry point for `MaterialApp.router`
 /// and `CupertinoApp.router`.
 ///
+/// Example:
+/// ```dart
+/// final router = createRouter(routes: routes, guards: []);
+/// final routerConfig = createRouterConfig(router);
+///
+/// MaterialApp.router(
+///   routeInformationParser: routerConfig.routeInformationParser,
+///   routerDelegate: routerConfig.routerDelegate,
+///   routeInformationProvider: routerConfig.routeInformationProvider,
+/// );
+/// ```
+///
 /// See also:
 ///
 ///  * `createRouter`, which creates the [Unrouter] instance.
@@ -45,6 +57,12 @@ RouterConfig<HistoryLocation> createRouterConfig(Unrouter router) {
 ///
 /// This method is intended for widgets that need imperative navigation, such
 /// as custom buttons or gestures.
+///
+/// Example:
+/// ```dart
+/// final router = useRouter(context);
+/// await router.push('/settings');
+/// ```
 Unrouter useRouter(BuildContext context) {
   final flutter.Router(:routerDelegate) = .of(context);
   if (routerDelegate case _RouterDelegate(:final router)) {

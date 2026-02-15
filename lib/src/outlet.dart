@@ -6,6 +6,21 @@ import 'inlet.dart';
 ///
 /// Place [Outlet] inside a parent layout view to render child views declared
 /// by nested routes. Each [Outlet] consumes one depth level from [OutletScope].
+///
+/// Example:
+/// ```dart
+/// class UsersLayout extends StatelessWidget {
+///   @override
+///   Widget build(BuildContext context) {
+///     return Column(
+///       children: const [
+///         Text('Users layout'),
+///         Outlet(),
+///       ],
+///     );
+///   }
+/// }
+/// ```
 class Outlet extends StatelessWidget {
   /// Creates an outlet widget.
   const Outlet({super.key});
@@ -30,6 +45,10 @@ class Outlet extends StatelessWidget {
 ///
 /// This scope is created by the router delegate and then advanced by each
 /// rendered [Outlet].
+///
+/// See also:
+///
+///  * [Outlet], which reads from [OutletScope] and advances depth.
 class OutletScope extends InheritedWidget {
   /// Creates an outlet scope.
   const OutletScope({

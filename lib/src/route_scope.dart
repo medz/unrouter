@@ -102,6 +102,18 @@ HistoryLocation? useFromLocation(BuildContext context) {
 ///
 /// This provider is injected by the router delegate for the currently matched
 /// route record and updated whenever the active location changes.
+///
+/// Example:
+/// ```dart
+/// class UserPage extends StatelessWidget {
+///   @override
+///   Widget build(BuildContext context) {
+///     final params = useRouteParams(context);
+///     final id = params.required('id');
+///     return Text('User $id');
+///   }
+/// }
+/// ```
 class RouteScopeProvider extends InheritedModel<RouteScope> {
   /// Creates a route scope provider.
   const RouteScopeProvider({

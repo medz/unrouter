@@ -10,12 +10,26 @@ import 'url_search_params.dart';
 /// Guards run during push/replace navigation and history pop navigation.
 /// They receive a [GuardContext] and must return one of the explicit
 /// [GuardResult] variants to allow, block, or redirect the attempt.
+///
+/// Example:
+/// ```dart
+/// final loggedInGuard = defineGuard((context) {
+///   if (context.to.path == '/signin') return const GuardResult.allow();
+///   return isSignedIn
+///       ? const GuardResult.allow()
+///       : GuardResult.redirect('/signin');
+/// });
+/// ```
 typedef Guard = FutureOr<GuardResult> Function(GuardContext context);
 
 /// Returns the provided [guard] unchanged.
 ///
 /// This helper keeps guard declarations explicit and discoverable at callsites,
 /// especially when declaring route-level or global guard lists.
+///
+/// See also:
+///
+///  * [GuardResult], the complete guard control-flow result set.
 Guard defineGuard(Guard guard) => guard;
 
 /// Immutable navigation snapshot passed to each [Guard].
@@ -87,18 +101,36 @@ sealed class GuardResult {
 /// A [GuardResult] that permits navigation.
 final class GuardAllow extends GuardResult {
   /// Creates an allow result.
+  ///
+  /// Example:
+  /// ```dart
+  /// return const GuardResult.allow();
+  /// ```
   const GuardAllow();
 }
 
 /// A [GuardResult] that denies navigation.
 final class GuardBlock extends GuardResult {
   /// Creates a block result.
+  ///
+  /// Example:
+  /// ```dart
+  /// return const GuardResult.block();
+  /// ```
   const GuardBlock();
 }
 
 /// A [GuardResult] that requests navigation redirection.
 final class GuardRedirect extends GuardResult {
   /// Creates a redirect result.
+  ///
+  /// Example:
+  /// ```dart
+  /// return GuardResult.redirect(
+  ///   '/signin',
+  ///   query: URLSearchParams('redirect=/dashboard'),
+  /// );
+  /// ```
   const GuardRedirect(this.pathOrName, {this.params, this.query, this.state});
 
   /// Route name or absolute path used as the redirect target.
