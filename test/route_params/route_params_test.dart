@@ -50,4 +50,21 @@ void main() {
       );
     });
   });
+
+  group('RouteParams.$int/$num/$double', () {
+    test(r'$int parses int from decoded value', () {
+      const params = RouteParams({'id': '%2B42'});
+      expect(params.$int('id'), 42);
+    });
+
+    test(r'$num parses num from decoded value', () {
+      const params = RouteParams({'value': '1%2E5'});
+      expect(params.$num('value'), 1.5);
+    });
+
+    test(r'$double parses double from decoded value', () {
+      const params = RouteParams({'value': '3%2E14'});
+      expect(params.$double('value'), 3.14);
+    });
+  });
 }
