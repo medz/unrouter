@@ -6,7 +6,7 @@ Runnable Flutter example app for `unrouter`, with two scenarios in one project.
 
 ```bash
 flutter pub get
-flutter run
+flutter run -d chrome
 ```
 
 ## Scenarios

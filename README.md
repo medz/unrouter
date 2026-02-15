@@ -117,7 +117,7 @@ Run the full example app:
 ```bash
 cd example
 flutter pub get
-flutter run
+flutter run -d chrome
 ```
 
 Source entry points:

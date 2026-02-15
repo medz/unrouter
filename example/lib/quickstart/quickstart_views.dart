@@ -41,9 +41,11 @@ class QuickstartHomeView extends StatelessWidget {
         const SizedBox(height: 16),
         Link(
           to: 'about',
-          child: FilledButton(
-            onPressed: null,
-            child: const Text('Open static view with Link'),
+          child: IgnorePointer(
+            child: FilledButton(
+              onPressed: () {},
+              child: const Text('Open static view with Link'),
+            ),
           ),
         ),
         const SizedBox(height: 10),
@@ -74,9 +76,11 @@ class QuickstartAboutView extends StatelessWidget {
         const SizedBox(height: 16),
         Link(
           to: 'home',
-          child: FilledButton(
-            onPressed: null,
-            child: const Text('Back to home by name'),
+          child: IgnorePointer(
+            child: FilledButton(
+              onPressed: () {},
+              child: const Text('Back to home by name'),
+            ),
           ),
         ),
       ],
@@ -102,9 +106,11 @@ class QuickstartProfileView extends StatelessWidget {
         const SizedBox(height: 16),
         Link(
           to: 'home',
-          child: FilledButton(
-            onPressed: null,
-            child: const Text('Back to home'),
+          child: IgnorePointer(
+            child: FilledButton(
+              onPressed: () {},
+              child: const Text('Back to home'),
+            ),
           ),
         ),
       ],
