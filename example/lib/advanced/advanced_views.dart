@@ -10,7 +10,7 @@ class AdvancedSignInView extends StatelessWidget {
   Widget build(BuildContext context) {
     final query = useQuery(context);
     final router = useRouter(context);
-    final from = query.get('from') ?? '/app';
+    final from = query.get('from') ?? '/advanced/app';
 
     return Scaffold(
       appBar: AppBar(title: const Text('Advanced - Sign In')),
@@ -55,12 +55,11 @@ class AdvancedRootLayoutView extends StatelessWidget {
         title: const Text('Advanced Example'),
         actions: [
           IconButton(
-            onPressed: () => Navigator.of(context).maybePop(),
+            onPressed: () => router.replace('/'),
             icon: const Icon(Icons.close),
-            tooltip: 'Close example',
           ),
           TextButton(
-            onPressed: () => router.replace('/signin'),
+            onPressed: () => router.replace('signin'),
             child: const Text('Sign out'),
           ),
         ],
@@ -107,7 +106,10 @@ class _NavLink extends StatelessWidget {
         to: to,
         params: params,
         query: URLSearchParams('auth=1'),
-        child: FilledButton.tonal(onPressed: null, child: Text(label)),
+        behavior: HitTestBehavior.opaque,
+        child: IgnorePointer(
+          child: FilledButton.tonal(onPressed: () {}, child: Text(label)),
+        ),
       ),
     );
   }
@@ -130,7 +132,7 @@ class AdvancedDashboardView extends StatelessWidget {
         const SizedBox(height: 8),
         FilledButton(
           onPressed: () {
-            router.push('/app');
+            router.push('/advanced/app');
           },
           child: const Text('Try protected path without auth (redirect)'),
         ),
@@ -138,19 +140,25 @@ class AdvancedDashboardView extends StatelessWidget {
         Link(
           to: 'reports',
           query: URLSearchParams('auth=1&blocked=1'),
-          child: FilledButton.tonal(
-            onPressed: null,
-            child: const Text('Try reports with blocked=1 (block)'),
+          behavior: HitTestBehavior.opaque,
+          child: IgnorePointer(
+            child: FilledButton.tonal(
+              onPressed: () {},
+              child: const Text('Try reports with blocked=1 (block)'),
+            ),
           ),
         ),
         const SizedBox(height: 8),
         Link(
           to: 'admin',
           query: URLSearchParams('auth=1'),
-          child: FilledButton.tonal(
-            onPressed: null,
-            child: const Text(
-              'Try admin without role (redirect by route guard)',
+          behavior: HitTestBehavior.opaque,
+          child: IgnorePointer(
+            child: FilledButton.tonal(
+              onPressed: () {},
+              child: const Text(
+                'Try admin without role (redirect by route guard)',
+              ),
             ),
           ),
         ),
@@ -158,9 +166,12 @@ class AdvancedDashboardView extends StatelessWidget {
         Link(
           to: 'admin',
           query: URLSearchParams('auth=1&role=admin'),
-          child: FilledButton.tonal(
-            onPressed: null,
-            child: const Text('Open admin with role=admin (allow)'),
+          behavior: HitTestBehavior.opaque,
+          child: IgnorePointer(
+            child: FilledButton.tonal(
+              onPressed: () {},
+              child: const Text('Open admin with role=admin (allow)'),
+            ),
           ),
         ),
         const SizedBox(height: 16),
@@ -169,7 +180,7 @@ class AdvancedDashboardView extends StatelessWidget {
         FilledButton(
           onPressed: () {
             router.push(
-              '/app/search?q=old&page=1&auth=1',
+              '/advanced/app/search?q=old&page=1&auth=1',
               query: URLSearchParams({'q': 'flutter'}),
             );
           },
@@ -189,13 +200,16 @@ class AdvancedDashboardView extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Link(
-          to: '/app/search?q=old&page=1&auth=1',
+          to: '/advanced/app/search?q=old&page=1&auth=1',
           query: URLSearchParams({'q': 'from-link'}),
           replace: true,
           onTap: () => linkTapCount.value += 1,
-          child: FilledButton.tonal(
-            onPressed: null,
-            child: const Text('Link replace + onTap + query override'),
+          behavior: HitTestBehavior.opaque,
+          child: IgnorePointer(
+            child: FilledButton.tonal(
+              onPressed: () {},
+              child: const Text('Link replace + onTap + query override'),
+            ),
           ),
         ),
         const SizedBox(height: 8),
@@ -203,9 +217,11 @@ class AdvancedDashboardView extends StatelessWidget {
           to: 'reports',
           enabled: false,
           query: URLSearchParams('auth=1'),
-          child: FilledButton.tonal(
-            onPressed: null,
-            child: const Text('Disabled Link(enabled: false)'),
+          child: IgnorePointer(
+            child: FilledButton.tonal(
+              onPressed: () {},
+              child: const Text('Disabled Link(enabled: false)'),
+            ),
           ),
         ),
         const SizedBox(height: 8),

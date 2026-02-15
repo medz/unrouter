@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-
-import '../advanced/advanced_app.dart';
-import '../quickstart/quickstart_app.dart';
+import 'package:unrouter/unrouter.dart';
 
 class ExampleHomeView extends StatelessWidget {
   const ExampleHomeView({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final router = useRouter(context);
+
     return Scaffold(
       appBar: AppBar(title: const Text('Unrouter Examples')),
       body: ListView(
@@ -20,7 +20,7 @@ class ExampleHomeView extends StatelessWidget {
           const SizedBox(height: 12),
           const Text(
             'Both examples use constructor tear-offs for route views (XxxView.new) '
-            'and prefer const Outlet() in layouts.',
+            'and run in a single shared router.',
           ),
           const SizedBox(height: 20),
           _ExampleCard(
@@ -30,9 +30,7 @@ class ExampleHomeView extends StatelessWidget {
                 'with static and dynamic routes.',
             actionLabel: 'Open Quickstart',
             onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute<void>(builder: (_) => const QuickstartApp()),
-              );
+              router.push('/quickstart');
             },
           ),
           const SizedBox(height: 12),
@@ -43,9 +41,7 @@ class ExampleHomeView extends StatelessWidget {
                 'query override, state, Link options, nested layouts, and DataLoader.',
             actionLabel: 'Open Advanced',
             onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute<void>(builder: (_) => const AdvancedApp()),
-              );
+              router.push('/advanced');
             },
           ),
         ],

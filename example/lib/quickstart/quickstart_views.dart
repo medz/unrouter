@@ -6,14 +6,15 @@ class QuickstartLayoutView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final router = useRouter(context);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Quickstart'),
         actions: [
           IconButton(
-            onPressed: () => Navigator.of(context).maybePop(),
+            onPressed: () => router.replace('/'),
             icon: const Icon(Icons.close),
-            tooltip: 'Close example',
           ),
         ],
       ),
@@ -41,6 +42,7 @@ class QuickstartHomeView extends StatelessWidget {
         const SizedBox(height: 16),
         Link(
           to: 'about',
+          behavior: HitTestBehavior.opaque,
           child: IgnorePointer(
             child: FilledButton(
               onPressed: () {},
@@ -66,6 +68,7 @@ class QuickstartAboutView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final location = useLocation(context);
+    final router = useRouter(context);
 
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -74,14 +77,10 @@ class QuickstartAboutView extends StatelessWidget {
         const SizedBox(height: 8),
         Text('Current location: ${location.uri}'),
         const SizedBox(height: 16),
-        Link(
-          to: 'home',
-          child: IgnorePointer(
-            child: FilledButton(
-              onPressed: () {},
-              child: const Text('Back to home by name'),
-            ),
-          ),
+        FilledButton(
+          key: const ValueKey<String>('quickstart-about-back'),
+          onPressed: () => router.back(),
+          child: const Text('Back'),
         ),
       ],
     );
@@ -95,6 +94,7 @@ class QuickstartProfileView extends StatelessWidget {
   Widget build(BuildContext context) {
     final params = useRouteParams(context);
     final location = useLocation(context);
+    final router = useRouter(context);
     final id = params.required('id');
 
     return ListView(
@@ -104,14 +104,10 @@ class QuickstartProfileView extends StatelessWidget {
         const SizedBox(height: 8),
         Text('Current location: ${location.uri}'),
         const SizedBox(height: 16),
-        Link(
-          to: 'home',
-          child: IgnorePointer(
-            child: FilledButton(
-              onPressed: () {},
-              child: const Text('Back to home'),
-            ),
-          ),
+        FilledButton(
+          key: const ValueKey<String>('quickstart-profile-back'),
+          onPressed: () => router.back(),
+          child: const Text('Back'),
         ),
       ],
     );
