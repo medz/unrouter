@@ -222,8 +222,7 @@ class _RouterDelegate extends RouterDelegate<HistoryLocation>
   @override
   Widget build(BuildContext context) {
     final location = router.history.location;
-    final matches = router.matcher.matchAll(location.path);
-    final match = matches.isEmpty ? null : matches.last;
+    final match = router.matcher.match(location.path);
     if (match == null) {
       throw FlutterError('No route matched path "${location.path}".');
     }
