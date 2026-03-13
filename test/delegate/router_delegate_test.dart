@@ -134,10 +134,7 @@ void main() {
         history: history,
         routes: [
           Inlet(path: '/', view: _HomeView.new),
-          Inlet(
-            path: '/docs/**:wildcard',
-            view: _WildcardView.new,
-          ),
+          Inlet(path: '/docs/**:wildcard', view: _WildcardView.new),
         ],
       );
 

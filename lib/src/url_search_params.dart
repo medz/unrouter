@@ -14,7 +14,7 @@ extension type URLSearchParams._(ht.URLSearchParams _)
 
   /// Returns a cloned instance with the same key-value pairs.
   URLSearchParams clone() {
-    return URLSearchParams._(_.clone());
+    return URLSearchParams(_);
   }
 
   /// Returns the required raw query value for [name].

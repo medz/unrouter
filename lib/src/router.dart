@@ -150,16 +150,25 @@ Unrouter createRouter({
   final router = _RouterImpl(
     history: history,
     aliases: roux.Router<String>(),
-    matcher: roux.Router<RouteRecord>(),
+    matcher: roux.Router<RouteRecord>(
+      duplicatePolicy: roux.DuplicatePolicy.append,
+    ),
     maxRedirectDepth: maxRedirectDepth,
   );
+  final routeEntries = <_CollectedRouteRecord>[];
   for (final route in routes) {
     router.aliases.addAll(route.makeAliasRoutes());
-    router.matcher.addAll(route.makeRouteRecords(guards));
+    routeEntries.addAll(route.makeRouteRecords(guards));
+  }
+  _validateRouteRecords(routeEntries);
+  for (final entry in routeEntries) {
+    router.matcher.add(entry.path, entry.record);
   }
 
   return router;
 }
+
+typedef _CollectedRouteRecord = ({String path, RouteRecord record});
 
 extension on Inlet {
   Map<String, String> makeAliasRoutes() {
@@ -185,8 +194,8 @@ extension on Inlet {
     return routes;
   }
 
-  Map<String, RouteRecord> makeRouteRecords([Iterable<Guard>? global]) {
-    final routes = <String, RouteRecord>{};
+  List<_CollectedRouteRecord> makeRouteRecords([Iterable<Guard>? global]) {
+    final routes = <_CollectedRouteRecord>[];
 
     void collect(
       Inlet route,
@@ -199,26 +208,14 @@ extension on Inlet {
       final views = <ViewBuilder>[...?parentViews, route.view];
       final guards = <Guard>[...?parentGuards, ...route.guards];
 
-      final previous = routes[path];
-      if (previous != null) {
-        final viewRelation = _relation(previous.views, views);
-        if (viewRelation == _SequenceRelation.incompatible) {
-          throw StateError('Duplicate route views "$path".');
-        }
-
-        final guardRelation = _relation(previous.guards, guards);
-        if (guardRelation == _SequenceRelation.incompatible ||
-            (viewRelation == _SequenceRelation.same &&
-                guardRelation == _SequenceRelation.strictPrefix)) {
-          throw StateError('Duplicate route guards "$path".');
-        }
-      }
-
       final meta = Map<String, Object?>.unmodifiable({
         ...?parentMeta,
         ...?route.meta,
       });
-      routes[path] = RouteRecord(views: views, guards: guards, meta: meta);
+      routes.add((
+        path: path,
+        record: RouteRecord(views: views, guards: guards, meta: meta),
+      ));
 
       for (final child in route.children) {
         collect(child, path, views, guards, meta);
@@ -228,26 +225,45 @@ extension on Inlet {
     collect(this, '/', null, global, null);
     return routes;
   }
+}
 
-  _SequenceRelation _relation<T>(List<T> previous, List<T> next) {
-    if (next.length < previous.length) {
-      return _SequenceRelation.incompatible;
-    }
+void _validateRouteRecords(Iterable<_CollectedRouteRecord> entries) {
+  final grouped = <String, List<RouteRecord>>{};
+  for (final entry in entries) {
+    (grouped[entry.path] ??= <RouteRecord>[]).add(entry.record);
+  }
 
-    for (var i = 0; i < previous.length; i++) {
-      if (previous[i] != next[i]) {
-        return _SequenceRelation.incompatible;
+  for (final group in grouped.entries) {
+    final path = group.key;
+    final records = group.value;
+    for (var i = 1; i < records.length; i++) {
+      final previous = records[i - 1];
+      final current = records[i];
+
+      if (!_isPrefix(previous.views, current.views)) {
+        throw StateError('Duplicate route views "$path".');
+      }
+      if (!_isPrefix(previous.guards, current.guards) ||
+          (listEquals(previous.views, current.views) &&
+              previous.guards.length < current.guards.length)) {
+        throw StateError('Duplicate route guards "$path".');
       }
     }
-
-    if (next.length == previous.length) {
-      return _SequenceRelation.same;
-    }
-    return _SequenceRelation.strictPrefix;
   }
 }
 
-enum _SequenceRelation { same, strictPrefix, incompatible }
+bool _isPrefix<T>(List<T> previous, List<T> next) {
+  if (next.length < previous.length) {
+    return false;
+  }
+
+  for (var i = 0; i < previous.length; i++) {
+    if (previous[i] != next[i]) {
+      return false;
+    }
+  }
+  return true;
+}
 
 class _RouterImpl extends ChangeNotifier implements Unrouter {
   _RouterImpl({
@@ -434,7 +450,7 @@ class _RouterImpl extends ChangeNotifier implements Unrouter {
       query: mergedQuery.isEmpty ? null : mergedQuery,
       fragment: fragment.isEmpty ? null : fragment,
     );
-    final match = matcher.match(uri.path);
+    final match = _matchRoute(uri.path);
     if (match == null) {
       throw StateError('No route matched path "${uri.path}".');
     }
@@ -511,16 +527,20 @@ class _RouterImpl extends ChangeNotifier implements Unrouter {
         continue;
       }
 
-      if (segment == '*') {
-        final wildcard = params['wildcard'];
+      if (segment == '*' || segment == '**' || segment.startsWith('**:')) {
+        final name = switch (segment) {
+          '**' || '*' => 'wildcard',
+          _ => segment.substring(3),
+        };
+        final wildcard = params[name];
         if (wildcard == null) {
           throw ArgumentError.value(
             params,
             'params',
-            'Missing required param "wildcard".',
+            'Missing required param "$name".',
           );
         }
-        consumed.add('wildcard');
+        consumed.add(name);
         for (final part in wildcard.split('/')) {
           if (part.isEmpty) continue;
           segments.add(Uri.encodeComponent(part));
@@ -656,7 +676,7 @@ class _RouterImpl extends ChangeNotifier implements Unrouter {
   }
 
   _NavigationTarget? _targetFromHistory(HistoryLocation location) {
-    final match = matcher.match(location.path);
+    final match = _matchRoute(location.path);
     if (match == null) {
       return null;
     }
@@ -685,6 +705,14 @@ class _RouterImpl extends ChangeNotifier implements Unrouter {
 
   bool _isSameLocation(HistoryLocation a, HistoryLocation b) {
     return a.uri == b.uri && a.state == b.state;
+  }
+
+  roux.RouteMatch<RouteRecord>? _matchRoute(String path) {
+    final matches = matcher.matchAll(path);
+    if (matches.isEmpty) {
+      return null;
+    }
+    return matches.last;
   }
 }
 
