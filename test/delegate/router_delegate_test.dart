@@ -23,6 +23,16 @@ class _ChildView extends StatelessWidget {
   }
 }
 
+class _WildcardView extends StatelessWidget {
+  const _WildcardView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final params = useRouteParams(context);
+    return Text('wildcard:${params.required('wildcard')}');
+  }
+}
+
 class _HomeView extends StatelessWidget {
   const _HomeView({super.key});
 
@@ -95,6 +105,44 @@ void main() {
 
       await pumpRouterApp(tester, router);
       expect(find.text('Child View'), findsOneWidget);
+    });
+
+    testWidgets('renders index child route when parent and child share path', (
+      tester,
+    ) async {
+      final history = createMemoryHistory(['/']);
+      final router = createRouter(
+        history: history,
+        routes: [
+          Inlet(
+            path: '/',
+            view: _NestedLayout.new,
+            children: [Inlet(path: '/', view: _ChildView.new)],
+          ),
+        ],
+      );
+
+      await pumpRouterApp(tester, router);
+      expect(find.text('Child View'), findsOneWidget);
+    });
+
+    testWidgets('exposes remainder wildcard params from direct matches', (
+      tester,
+    ) async {
+      final history = createMemoryHistory(['/docs/guide/getting-started']);
+      final router = createRouter(
+        history: history,
+        routes: [
+          Inlet(path: '/', view: _HomeView.new),
+          Inlet(
+            path: '/docs/**:wildcard',
+            view: _WildcardView.new,
+          ),
+        ],
+      );
+
+      await pumpRouterApp(tester, router);
+      expect(find.text('wildcard:guide/getting-started'), findsOneWidget);
     });
 
     testWidgets('throws when location path has no matched route', (

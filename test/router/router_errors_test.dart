@@ -133,7 +133,11 @@ void main() {
       final router = createRouter(
         routes: [
           Inlet(path: '/', view: EmptyView.new),
-          Inlet(name: 'docs', path: '/docs/*', view: EmptyView.new),
+          Inlet(
+            name: 'docs',
+            path: '/docs/**:wildcard',
+            view: EmptyView.new,
+          ),
         ],
       );
       expect(
