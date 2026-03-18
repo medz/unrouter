@@ -516,6 +516,11 @@ class _RouterImpl extends ChangeNotifier implements Unrouter {
           '**' || '*' => 'wildcard',
           _ => segment.substring(3),
         };
+        if (name.isEmpty) {
+          throw StateError(
+            'Invalid route pattern: wildcard name cannot be empty in "$pattern".',
+          );
+        }
         final wildcard = params[name];
         if (wildcard == null) {
           throw ArgumentError.value(
@@ -523,6 +528,18 @@ class _RouterImpl extends ChangeNotifier implements Unrouter {
             'params',
             'Missing required param "$name".',
           );
+        }
+        if (segment == '*') {
+          if (wildcard.isEmpty || wildcard.contains('/')) {
+            throw ArgumentError.value(
+              params,
+              'params',
+              'Single-segment wildcard "$name" must not be empty or contain "/".',
+            );
+          }
+          consumed.add(name);
+          segments.add(Uri.encodeComponent(wildcard));
+          continue;
         }
         consumed.add(name);
         for (final part in wildcard.split('/')) {

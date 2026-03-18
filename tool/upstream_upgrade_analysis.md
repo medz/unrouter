@@ -23,8 +23,8 @@
 - Used only through `roux.Router<T>` creation and `match(...)`.
 - `unrouter` currently compensates for older router limitations by:
   - flattening nested routes into a unique `RouteRecord` per full path
-  - manually rejecting incompatible duplicate paths
-  - manually expanding route-name wildcard params during reverse routing
+  - rejecting incompatible duplicate paths manually
+  - expanding route-name wildcard params manually during reverse routing
 
 ## Risk Areas
 

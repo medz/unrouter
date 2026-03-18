@@ -18,7 +18,7 @@
   registrations in insertion order.
 - Parameter-name drift is still rejected even when duplicates are appended.
 
-## `ht 0.3.0`
+### `ht 0.3.0`
 
 - The package moved to host-backed implementations for fetch-style primitives.
 - `URLSearchParams` remains available and still supports the operations used by
