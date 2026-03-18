@@ -133,12 +133,27 @@ void main() {
       final router = createRouter(
         routes: [
           Inlet(path: '/', view: EmptyView.new),
-          Inlet(name: 'docs', path: '/docs/*', view: EmptyView.new),
+          Inlet(name: 'docs', path: '/docs/**:wildcard', view: EmptyView.new),
         ],
       );
       expect(
         router.push('docs'),
         throwsWith<ArgumentError>('Missing required param "wildcard"'),
+      );
+    });
+
+    test('throws when single-segment wildcard contains slash', () {
+      final router = createRouter(
+        routes: [
+          Inlet(path: '/', view: EmptyView.new),
+          Inlet(name: 'file', path: '/files/*', view: EmptyView.new),
+        ],
+      );
+      expect(
+        router.push('file', params: {'wildcard': 'guide/getting-started'}),
+        throwsWith<ArgumentError>(
+          'Single-segment wildcard "wildcard" must not be empty or contain "/"',
+        ),
       );
     });
 

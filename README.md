@@ -22,7 +22,7 @@
 - 🏷️ **Named Routes** — Navigate by route name with params, query, and state
 - 🛡️ **Guards** — Navigation-time guards for allow/block/redirect decisions
 - 📦 **Route Meta** — Attach arbitrary metadata to each route, inherited by children
-- 🔗 **Dynamic Params & Wildcards** — `:id` params and `*` catch-all segments
+- 🔗 **Dynamic Params & Wildcards** — `:id` params, `*` single-segment wildcards, and `**:name` remainder segments
 - 🔍 **Query Params** — First-class `URLSearchParams` support
 - 📍 **History API** — `push`, `replace`, `pop`, `back`, `forward`, `go(delta)`
 - ⚡ **Reactive Hooks** — `useRouter`, `useLocation`, `useRouteParams`, `useQuery`, `useRouteMeta`, `useRouteState`, `useFromLocation`
@@ -69,7 +69,7 @@ final router = createRouter(
         Inlet(name: 'search', path: 'search', view: SearchView.new),
       ],
     ),
-    Inlet(name: 'docs', path: '/docs/*', view: DocsView.new),
+    Inlet(name: 'docs', path: '/docs/**:wildcard', view: DocsView.new),
   ],
 );
 ```

@@ -45,10 +45,14 @@ void main() {
       final router = createRouter(
         routes: [
           Inlet(path: '/', view: EmptyView.new),
+          Inlet(name: 'file', path: '/files/*', view: EmptyView.new),
           Inlet(name: 'profile', path: '/users/:id', view: EmptyView.new),
-          Inlet(name: 'docs', path: '/docs/*', view: EmptyView.new),
+          Inlet(name: 'docs', path: '/docs/**:wildcard', view: EmptyView.new),
         ],
       );
+
+      await router.push('file', params: {'wildcard': 'guide'});
+      expect(router.history.location.path, '/files/guide');
 
       await router.push('profile', params: {'id': '42'});
       expect(router.history.location.path, '/users/42');
