@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_unrouter/flutter_unrouter.dart';
 import 'package:oref/oref.dart';
-import 'package:unrouter/unrouter.dart';
 
 class _LoaderProbe<T> extends StatelessWidget {
   const _LoaderProbe({required this.loader, required this.onData});

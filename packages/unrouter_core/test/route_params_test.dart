@@ -1,5 +1,5 @@
-import 'package:flutter_test/flutter_test.dart';
-import 'package:unrouter/unrouter.dart';
+import 'package:test/test.dart';
+import 'package:unrouter_core/unrouter_core.dart';
 
 enum _Role { admin, member }
 

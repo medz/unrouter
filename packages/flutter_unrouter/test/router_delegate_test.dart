@@ -1,19 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_unrouter/flutter_unrouter.dart';
-import 'package:unstory/unstory.dart';
 
-class EmptyView extends StatelessWidget {
-  const EmptyView({super.key});
+import 'support/fakes.dart';
+import 'support/test_app.dart';
 
-  @override
-  Widget build(BuildContext context) {
-    return const SizedBox.shrink();
-  }
-}
-
-class NestedLayout extends StatelessWidget {
-  const NestedLayout({super.key});
+class _NestedLayout extends StatelessWidget {
+  const _NestedLayout({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -21,8 +14,8 @@ class NestedLayout extends StatelessWidget {
   }
 }
 
-class ChildView extends StatelessWidget {
-  const ChildView({super.key});
+class _ChildView extends StatelessWidget {
+  const _ChildView({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -30,8 +23,18 @@ class ChildView extends StatelessWidget {
   }
 }
 
-class HomeView extends StatelessWidget {
-  const HomeView({super.key});
+class _WildcardView extends StatelessWidget {
+  const _WildcardView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final params = useRouteParams(context);
+    return Text('wildcard:${params.required('wildcard')}');
+  }
+}
+
+class _HomeView extends StatelessWidget {
+  const _HomeView({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -39,8 +42,8 @@ class HomeView extends StatelessWidget {
   }
 }
 
-class FromView extends StatelessWidget {
-  const FromView({super.key});
+class _FromView extends StatelessWidget {
+  const _FromView({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -49,19 +52,38 @@ class FromView extends StatelessWidget {
   }
 }
 
-MemoryHistory createMemoryHistory(List<String> paths, {int? initialIndex}) {
-  return MemoryHistory(
-    initialEntries: paths
-        .map((path) => HistoryLocation(Uri(path: path)))
-        .toList(growable: false),
-    initialIndex: initialIndex,
-  );
+class _ViewB extends StatelessWidget {
+  const _ViewB({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Text('View B');
+  }
 }
 
-Future<void> pumpRouterApp(WidgetTester tester, Unrouter router) async {
-  await tester.pumpWidget(
-    MaterialApp.router(routerConfig: createRouterConfig(router)),
-  );
+class _ViewC extends StatelessWidget {
+  const _ViewC({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Text('View C');
+  }
+}
+
+class _SharedANewLayout extends StatelessWidget {
+  const _SharedANewLayout();
+
+  static int buildCount = 0;
+
+  static void resetCounters() {
+    buildCount = 0;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    _SharedANewLayout.buildCount += 1;
+    return const Outlet();
+  }
 }
 
 void main() {
@@ -75,8 +97,8 @@ void main() {
         routes: [
           Inlet(
             path: '/',
-            view: NestedLayout.new,
-            children: [Inlet(path: 'child', view: ChildView.new)],
+            view: _NestedLayout.new,
+            children: [Inlet(path: 'child', view: _ChildView.new)],
           ),
         ],
       );
@@ -85,11 +107,79 @@ void main() {
       expect(find.text('Child View'), findsOneWidget);
     });
 
+    testWidgets('renders index child route when parent and child share path', (
+      tester,
+    ) async {
+      final history = createMemoryHistory(['/']);
+      final router = createRouter(
+        history: history,
+        routes: [
+          Inlet(
+            path: '/',
+            view: _NestedLayout.new,
+            children: [Inlet(path: '/', view: _ChildView.new)],
+          ),
+        ],
+      );
+
+      await pumpRouterApp(tester, router);
+      expect(find.text('Child View'), findsOneWidget);
+    });
+
+    testWidgets('exposes remainder wildcard params from direct matches', (
+      tester,
+    ) async {
+      final history = createMemoryHistory(['/docs/guide/getting-started']);
+      final router = createRouter(
+        history: history,
+        routes: [
+          Inlet(path: '/', view: _HomeView.new),
+          Inlet(path: '/docs/**:wildcard', view: _WildcardView.new),
+        ],
+      );
+
+      await pumpRouterApp(tester, router);
+      expect(find.text('wildcard:guide/getting-started'), findsOneWidget);
+    });
+
+    testWidgets('throws when location path has no matched route', (
+      tester,
+    ) async {
+      final history = createMemoryHistory(['/missing']);
+      final router = createRouter(
+        history: history,
+        routes: [Inlet(path: '/', view: EmptyView.new)],
+      );
+
+      await pumpRouterApp(tester, router);
+      final error = tester.takeException();
+      expect(error, isA<FlutterError>());
+      expect(error.toString(), contains('No route matched path'));
+    });
+
+    test('popRoute delegates to router.pop', () async {
+      final history = createMemoryHistory(['/', '/next'], initialIndex: 1);
+      final router = createRouter(
+        history: history,
+        routes: [
+          Inlet(path: '/', view: EmptyView.new),
+          Inlet(path: '/next', view: EmptyView.new),
+        ],
+      );
+
+      final config = createRouterConfig(router);
+      final popped = await config.routerDelegate.popRoute();
+
+      expect(popped, isTrue);
+      await flushAsyncQueue();
+      expect(router.history.location.path, '/');
+    });
+
     testWidgets('updates fromLocation after navigation', (tester) async {
       final router = createRouter(
         routes: [
-          Inlet(path: '/', view: HomeView.new),
-          Inlet(path: '/next', view: FromView.new),
+          Inlet(path: '/', view: _HomeView.new),
+          Inlet(path: '/next', view: _FromView.new),
         ],
       );
 
@@ -101,6 +191,38 @@ void main() {
       await tester.pump();
 
       expect(find.text('from:/'), findsOneWidget);
+    });
+
+    testWidgets('shared /a layout does not rebuild on child switch', (
+      tester,
+    ) async {
+      _SharedANewLayout.resetCounters();
+      final history = createMemoryHistory(['/a/b']);
+      final router = createRouter(
+        history: history,
+        routes: [
+          Inlet(
+            path: '/a',
+            view: _SharedANewLayout.new,
+            children: [
+              Inlet(path: 'b', view: _ViewB.new),
+              Inlet(path: 'c', view: _ViewC.new),
+            ],
+          ),
+        ],
+      );
+
+      await pumpRouterApp(tester, router);
+      expect(find.text('View B'), findsOneWidget);
+      expect(_SharedANewLayout.buildCount, 1);
+
+      final buildsBeforeSwitch = _SharedANewLayout.buildCount;
+      await router.push('/a/c');
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.text('View C'), findsOneWidget);
+      expect(_SharedANewLayout.buildCount, buildsBeforeSwitch);
     });
   });
 }

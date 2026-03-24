@@ -26,8 +26,4 @@ dependencies:
   unrouter_core: ^0.1.0
 
 dev_dependencies:
-  flutter_test:
-    sdk: flutter
   flutter_lints: ^6.0.0
-  oref: ^2.8.0
-  unstory: ^0.1.1

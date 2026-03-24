@@ -19,7 +19,7 @@ jobs:
       - run: dart pub get
       - run: dart pub workspace list
 
-  flutter-packages:
+  flutter-analyze:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -36,6 +36,21 @@ jobs:
       - run: dart pub get
       - run: flutter analyze
         working-directory: ${{ matrix.package }}
+
+  flutter-test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        package:
+          - packages/flutter_unrouter
+          - packages/unrouter/example
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - run: dart pub get
       - run: flutter test
         working-directory: ${{ matrix.package }}
 

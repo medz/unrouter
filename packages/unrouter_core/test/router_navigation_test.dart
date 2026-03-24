@@ -2,7 +2,7 @@ import 'package:test/test.dart';
 import 'package:unstory/unstory.dart';
 import 'package:unrouter_core/unrouter_core.dart';
 
-Object emptyView() => Object();
+import 'support/fakes.dart';
 
 void main() {
   group('router navigation flow', () {
@@ -61,7 +61,7 @@ void main() {
       expect(router.history.location.path, '/docs/guide/getting-started');
     });
 
-    test('supports push replace and pop navigation flow', () async {
+    test('supports push/replace/pop navigation flow', () async {
       final history = MemoryHistory(
         initialEntries: [HistoryLocation(Uri(path: '/'))],
       );

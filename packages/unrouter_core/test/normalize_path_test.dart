@@ -1,5 +1,5 @@
-import 'package:flutter_test/flutter_test.dart';
-import 'package:unrouter/src/utils.dart';
+import 'package:test/test.dart';
+import 'package:unrouter_core/src/utils.dart';
 
 void main() {
   group('normalizePath', () {
