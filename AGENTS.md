@@ -18,10 +18,11 @@ Unless the task is clearly docs-only or otherwise exempt, use this default execu
 Default command sequence, adjusted as needed for the task:
 
 ```bash
-dart test <targeted-tests>
-dart test
+dart test <targeted-tests>      # for pure Dart packages
+flutter test <targeted-tests>   # for Flutter packages
+flutter test packages
 dart format .
-dart analyze
+flutter analyze
 ```
 
 ## Notes
@@ -30,6 +31,8 @@ dart analyze
 - The red-to-green test step is important for behavior changes and bug fixes.
 - If a task is docs-only, release-only, or otherwise not test-driven by nature, choose a lighter process intentionally instead of forcing the default flow.
 - If formatting or analyzer scope can be narrowed safely, that is acceptable, but the final state should still be clean.
+- Root-level full test verification should use `flutter test packages` for the package suite in this workspace.
+- Example apps are not part of the default CI test matrix; only smoke-test examples when a change specifically affects them.
 
 ## Commit and PR Rules
 
