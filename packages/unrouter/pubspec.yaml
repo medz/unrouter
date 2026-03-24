@@ -1,6 +1,6 @@
 name: unrouter
-version: 0.12.0
-description: Routing toolkit with shared core plus Flutter and Nocterm adapters.
+version: 0.13.0
+description: Primary Unrouter package with Flutter, Nocterm, and shared core entrypoints.
 repository: https://github.com/medz/unrouter
 homepage: https://github.com/medz/unrouter
 issue_tracker: https://github.com/medz/unrouter/issues
