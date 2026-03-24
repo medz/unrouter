@@ -5,5 +5,9 @@ environment:
   sdk: ^3.11.0
 
 workspace:
-  - packages/*
-  - examples/*
+  - packages/unrouter
+  - packages/flutter_unrouter
+  - packages/unrouter_core
+  - packages/nocterm_unrouter
+  - examples/nocterm_example
+  - examples/flutter_example
