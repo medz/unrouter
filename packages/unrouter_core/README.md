@@ -1,6 +1,6 @@
 # Unrouter Core
 
-[![Test](https://github.com/medz/unrouter/actions/workflows/test.yml/badge.svg)](https://github.com/medz/unrouter/actions/workflows/test.yml)
+[![Test](https://github.com/medz/unrouter/actions/workflows/ci.yml/badge.svg)](https://github.com/medz/unrouter/actions/workflows/ci.yml)
 [![pub](https://img.shields.io/pub/v/unrouter_core.svg)](https://pub.dev/packages/unrouter_core)
 ![dart](https://img.shields.io/badge/dart-%3E%3D3.10.0-0175C2?logo=dart&logoColor=white)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
