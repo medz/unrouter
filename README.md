@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <strong>Declarative routing toolkit for Flutter and Nocterm.</strong>
+  <strong>⍨ Declarative, composable router for Dart/Flutter ecosystem apps.</strong>
 </p>
 
 ## What's Unrouter
