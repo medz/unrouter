@@ -217,4 +217,87 @@ void main() {
       expect(router.history.location.path, '/login');
     });
   });
+
+  group('history queue error handling', () {
+    test(
+      'reports error via errorReporter when guard throws during pop',
+      () async {
+        final errors = <Object>[];
+
+        final throwingGuard = defineGuard((context) {
+          if (context.to.path == '/throws') {
+            throw StateError('guard exploded');
+          }
+          return const GuardResult.allow();
+        });
+
+        final history = MemoryHistory(
+          initialEntries: [
+            HistoryLocation(Uri(path: '/')),
+            HistoryLocation(Uri(path: '/throws')),
+            HistoryLocation(Uri(path: '/safe')),
+          ],
+          initialIndex: 2,
+        );
+
+        final router = createRouter<Object>(
+          history: history,
+          guards: [throwingGuard],
+          routes: [
+            RouteNode(path: '/', view: emptyView),
+            RouteNode(path: '/throws', view: emptyView),
+            RouteNode(path: '/safe', view: emptyView),
+          ],
+          errorReporter: (error, _) => errors.add(error),
+        );
+
+        router.back();
+        await flushAsyncQueue();
+
+        expect(errors, hasLength(1));
+        expect(errors.first, isA<StateError>());
+      },
+    );
+
+    test(
+      'continues processing subsequent pop events after a guard throws',
+      () async {
+        final throwingGuard = defineGuard((context) {
+          if (context.to.path == '/throws') {
+            throw StateError('guard exploded');
+          }
+          return const GuardResult.allow();
+        });
+
+        final history = MemoryHistory(
+          initialEntries: [
+            HistoryLocation(Uri(path: '/')),
+            HistoryLocation(Uri(path: '/safe')),
+            HistoryLocation(Uri(path: '/throws')),
+            HistoryLocation(Uri(path: '/safe2')),
+          ],
+          initialIndex: 3,
+        );
+
+        final router = createRouter<Object>(
+          history: history,
+          guards: [throwingGuard],
+          routes: [
+            RouteNode(path: '/', view: emptyView),
+            RouteNode(path: '/safe', view: emptyView),
+            RouteNode(path: '/throws', view: emptyView),
+            RouteNode(path: '/safe2', view: emptyView),
+          ],
+          errorReporter: (_, _) {},
+        );
+
+        // Two consecutive pop events: first guard throws, second should be processed normally.
+        router.back(); // /safe2 → /throws (guard throws)
+        router.back(); // /throws → /safe (should be handled normally)
+        await flushAsyncQueue();
+
+        expect(router.history.location.path, '/safe');
+      },
+    );
+  });
 }
