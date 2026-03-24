@@ -1,32 +1,27 @@
 # Examples
 
-This workspace keeps runnable demos under `examples/`.
+Runnable apps for exploring Unrouter in real UI environments.
 
-## Flutter
+## Flutter Example
 
-- package: `examples/flutter_example`
-- adapter: `flutter_unrouter`
-- run:
+[`flutter_example`](flutter_example) shows how to use Unrouter in a Flutter
+app with nested layouts, route trees, and a larger demo structure.
 
 ```bash
 cd examples/flutter_example
-flutter pub get
 flutter run -d chrome
 ```
 
-## Nocterm
+## Nocterm Example
 
-- package: `examples/nocterm_example`
-- adapter: `nocterm_unrouter`
-- run:
+[`nocterm_example`](nocterm_example) shows how to use Unrouter in a Nocterm
+terminal app with nested routes, named navigation, params, query values, and
+back navigation.
 
 ```bash
 cd examples/nocterm_example
-dart pub get
 dart run
 ```
 
-## Notes
-
-- Each example package keeps its own source, tests, and pubspec.
-- The per-example `README.md` files are symlinked to this shared document.
+Each example keeps its own source, tests, and `pubspec.yaml`. The per-example
+`README.md` files are symlinked to this shared page.
