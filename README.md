@@ -1,27 +1,31 @@
-# Unrouter
+<p align="center">
+  <img src="assets/brand.svg" width="120" alt="unrouter" />
+</p>
 
-Declarative routing for Flutter and Nocterm, built on a shared Dart core.
+<p align="center">
+  <strong>Declarative routing toolkit for Flutter and Nocterm.</strong>
+</p>
+
+## What's Unrouter
 
 Unrouter provides nested route trees, named navigation, guards, route params,
-query helpers, and adapter-specific rendering for both widget apps and terminal
-UIs.
+query helpers, and adapter-specific rendering for both widget apps and terminal UIs.
 
 ## Packages
 
-| Package | Best for | Notes |
-| --- | --- | --- |
-| [`unrouter`](packages/unrouter/README.md) | Most apps | Primary brand package with the default Flutter import plus Nocterm and core entrypoints. |
-| [`flutter_unrouter`](packages/flutter_unrouter/README.md) | Direct Flutter integration | `MaterialApp.router`, `Outlet`, `Link`, and route hooks. |
-| [`nocterm_unrouter`](packages/nocterm_unrouter/README.md) | Terminal apps built with Nocterm | Nested routing with `UnrouterHost` and `Outlet`. |
-| [`unrouter_core`](packages/unrouter_core/README.md) | Shared routing logic | Matching, guards, params, query helpers, and history APIs. |
+| Package                                                   | Version                                                                                                | Best for                         | Notes                                                                                    |
+| --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ | -------------------------------- | ---------------------------------------------------------------------------------------- |
+| [`unrouter`](packages/unrouter/README.md)                 | [![pub](https://img.shields.io/pub/v/unrouter.svg)](https://pub.dev/packages/unrouter)                 | Most apps                        | Primary brand package with the default Flutter import plus Nocterm and core entrypoints. |
+| [`flutter_unrouter`](packages/flutter_unrouter/README.md) | [![pub](https://img.shields.io/pub/v/flutter_unrouter.svg)](https://pub.dev/packages/flutter_unrouter) | Direct Flutter integration       | `MaterialApp.router`, `Outlet`, `Link`, and route hooks.                                 |
+| [`nocterm_unrouter`](packages/nocterm_unrouter/README.md) | [![pub](https://img.shields.io/pub/v/nocterm_unrouter.svg)](https://pub.dev/packages/nocterm_unrouter) | Terminal apps built with Nocterm | Nested routing with `RouterView` and `Outlet`.                                           |
+| [`unrouter_core`](packages/unrouter_core/README.md)       | [![pub](https://img.shields.io/pub/v/unrouter_core.svg)](https://pub.dev/packages/unrouter_core)       | Shared routing logic             | Matching, guards, params, query helpers, and history APIs.                               |
 
 ## Which Package Should I Use?
 
 - Start with `unrouter` if you want the default brand package and the simplest public entrypoint.
 - Use `flutter_unrouter` if you only need the Flutter adapter.
 - Use `nocterm_unrouter` if you are building a Nocterm app.
-- Use `unrouter_core` if you are integrating the routing engine into another
-  renderer.
+- Use `unrouter_core` if you are integrating the routing engine into another renderer.
 
 ## Quick Start
 
@@ -63,8 +67,3 @@ flutter run -d chrome
 cd examples/nocterm_example
 dart run
 ```
-
-## Repository
-
-This repository is organized as a Dart pub workspace. The main package page for
-users lives at [`packages/unrouter/README.md`](packages/unrouter/README.md).

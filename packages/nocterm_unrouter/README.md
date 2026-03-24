@@ -4,7 +4,7 @@ Declarative nested routing for terminal apps built with Nocterm.
 
 `nocterm_unrouter` adapts `unrouter_core` to Nocterm components. It keeps
 Unrouter as the source of truth for page navigation while rendering the matched
-route chain with `UnrouterHost` and nested `Outlet` scopes.
+route chain with `RouterView` and nested `Outlet` scopes.
 
 If you want a single public dependency, use
 [unrouter](https://pub.dev/packages/unrouter) and import `package:unrouter/nocterm.dart`.
@@ -52,7 +52,7 @@ final Unrouter router = createRouter(
 );
 
 Future<void> main() async {
-  await runApp(NoctermApp(child: UnrouterHost(router: router)));
+  await runApp(NoctermApp(child: RouterView(router: router)));
 }
 
 class HomeView extends StatelessComponent {

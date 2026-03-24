@@ -110,7 +110,7 @@ class _ExampleAppState extends State<ExampleApp> {
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.all(1),
-                child: UnrouterHost(router: component.router),
+                child: RouterView(router: component.router),
               ),
             ),
           ],
@@ -174,7 +174,7 @@ class DocsIntroView extends StatelessComponent {
         const Text('Docs Intro'),
         const SizedBox(height: 1),
         Text('from:${from?.path ?? 'null'}'),
-        const Text('Nested rendering is handled by Outlet + UnrouterHost.'),
+        const Text('Nested rendering is handled by Outlet + RouterView.'),
       ],
     );
   }

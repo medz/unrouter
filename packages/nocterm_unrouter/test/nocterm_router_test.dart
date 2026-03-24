@@ -45,7 +45,7 @@ void main() {
       );
 
       await router.push('/child');
-      await tester.pumpComponent(UnrouterHost(router: router));
+      await tester.pumpComponent(RouterView(router: router));
 
       expect(tester.terminalState, containsText('Child View'));
 
@@ -57,7 +57,7 @@ void main() {
       );
 
       await wildcardRouter.push('/docs/guide/getting-started');
-      await tester.pumpComponent(UnrouterHost(router: wildcardRouter));
+      await tester.pumpComponent(RouterView(router: wildcardRouter));
 
       expect(
         tester.terminalState,

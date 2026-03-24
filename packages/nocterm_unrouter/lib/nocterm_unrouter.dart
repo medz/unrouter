@@ -18,4 +18,4 @@ export 'src/inlet.dart';
 export 'src/outlet.dart';
 export 'src/route_scope.dart';
 export 'src/router.dart';
-export 'src/unrouter_host.dart';
+export 'src/router_view.dart';
