@@ -9,13 +9,51 @@ on:
       - main
 
 jobs:
-  test:
+  workspace:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
-      - run: flutter pub get
+      - run: dart pub get
+      - run: dart pub workspace list
+
+  flutter-packages:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        package:
+          - packages/unrouter
+          - packages/flutter_unrouter
+          - packages/unrouter/example
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - run: dart pub get
       - run: flutter analyze
+        working-directory: ${{ matrix.package }}
       - run: flutter test
+        working-directory: ${{ matrix.package }}
+
+  dart-packages:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        package:
+          - packages/unrouter_core
+          - packages/nocterm_unrouter
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - run: dart pub get
+      - run: dart analyze
+        working-directory: ${{ matrix.package }}
+      - run: dart test
+        working-directory: ${{ matrix.package }}

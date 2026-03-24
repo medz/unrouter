@@ -1,0 +1,92 @@
+import 'package:test/test.dart';
+import 'package:unstory/unstory.dart';
+import 'package:unrouter_core/unrouter_core.dart';
+
+Object emptyView() => Object();
+
+void main() {
+  group('router navigation flow', () {
+    test('resolves route name first then falls back to path', () async {
+      final router = createRouter<Object>(
+        routes: [
+          RouteNode(name: 'foo', path: '/bar', view: emptyView),
+          RouteNode(path: '/foo', view: emptyView),
+          RouteNode(path: '/foo-missing', view: emptyView),
+        ],
+      );
+
+      await router.push('/foo');
+      expect(router.history.location.path, '/bar');
+
+      await router.push('/foo-missing');
+      expect(router.history.location.path, '/foo-missing');
+    });
+
+    test('merges query and explicit query overrides same-name keys', () async {
+      final router = createRouter<Object>(
+        routes: [
+          RouteNode(path: '/', view: emptyView),
+          RouteNode(path: '/search', view: emptyView),
+        ],
+      );
+
+      await router.push(
+        '/search?q=old&page=1',
+        query: URLSearchParams({'q': 'new', 'sort': 'desc'}),
+      );
+
+      final query = URLSearchParams(router.history.location.query);
+      expect(query.get('q'), 'new');
+      expect(query.get('page'), '1');
+      expect(query.get('sort'), 'desc');
+    });
+
+    test('fills params and wildcard by route name', () async {
+      final router = createRouter<Object>(
+        routes: [
+          RouteNode(path: '/', view: emptyView),
+          RouteNode(name: 'file', path: '/files/*', view: emptyView),
+          RouteNode(name: 'profile', path: '/users/:id', view: emptyView),
+          RouteNode(name: 'docs', path: '/docs/**:wildcard', view: emptyView),
+        ],
+      );
+
+      await router.push('file', params: {'wildcard': 'guide'});
+      expect(router.history.location.path, '/files/guide');
+
+      await router.push('profile', params: {'id': '42'});
+      expect(router.history.location.path, '/users/42');
+
+      await router.push('docs', params: {'wildcard': 'guide/getting-started'});
+      expect(router.history.location.path, '/docs/guide/getting-started');
+    });
+
+    test('supports push replace and pop navigation flow', () async {
+      final history = MemoryHistory(
+        initialEntries: [HistoryLocation(Uri(path: '/'))],
+      );
+      final router = createRouter<Object>(
+        history: history,
+        routes: [
+          RouteNode(path: '/', view: emptyView),
+          RouteNode(path: '/a', view: emptyView),
+          RouteNode(path: '/b', view: emptyView),
+        ],
+      );
+
+      await router.push('/a');
+      expect(router.history.location.path, '/a');
+      expect(router.history.index, 1);
+
+      await router.replace('/b');
+      expect(router.history.location.path, '/b');
+      expect(router.history.index, 1);
+
+      final popped = await router.pop();
+      expect(popped, isTrue);
+      await Future<void>.delayed(Duration.zero);
+      expect(router.history.location.path, '/');
+      expect(router.history.index, 0);
+    });
+  });
+}

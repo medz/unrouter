@@ -1,0 +1,33 @@
+name: unrouter
+version: 0.12.0
+description: Declarative, guard-driven router for Flutter with nested routes and typed helpers.
+repository: https://github.com/medz/unrouter
+homepage: https://github.com/medz/unrouter
+issue_tracker: https://github.com/medz/unrouter/issues
+documentation: https://pub.dev/documentation/unrouter/latest/
+topics:
+  - flutter
+  - router
+  - navigation
+  - guard
+  - history
+funding:
+  - https://github.com/sponsors/medz
+
+environment:
+  sdk: ^3.10.0
+
+resolution: workspace
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_unrouter: ^0.1.0
+  unrouter_core: ^0.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  oref: ^2.8.0
+  unstory: ^0.1.1
