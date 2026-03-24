@@ -5,7 +5,7 @@ import 'package:unstory/unstory.dart';
 
 import '../support/fakes.dart';
 
-RouteRecord<Widget> _record({Map<String, Object?>? meta}) {
+RouteRecord<Widget> _record({Map<String, Object?> meta = const {}}) {
   return RouteRecord<Widget>(
     views: [EmptyView.new],
     guards: const <Guard>[],
