@@ -58,7 +58,7 @@ MemoryHistory createMemoryHistory(List<String> paths, {int? initialIndex}) {
   );
 }
 
-Future<void> pumpRouterApp(WidgetTester tester, Unrouter<Widget> router) async {
+Future<void> pumpRouterApp(WidgetTester tester, Unrouter router) async {
   await tester.pumpWidget(
     MaterialApp.router(routerConfig: createRouterConfig(router)),
   );

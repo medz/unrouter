@@ -6,7 +6,7 @@ import 'quickstart/quickstart_app.dart';
 
 import 'home/example_home_view.dart';
 
-final Unrouter<Widget> exampleRouter = createRouter(
+final Unrouter exampleRouter = createRouter(
   routes: [
     Inlet(path: '/', view: ExampleHomeView.new),
     ...quickstartRoutes,
