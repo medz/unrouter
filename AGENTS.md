@@ -18,8 +18,8 @@ Unless the task is clearly docs-only or otherwise exempt, use this default execu
 Default command sequence, adjusted as needed for the task:
 
 ```bash
-dart test <targeted-tests>
-flutter test <targeted-tests>
+dart test <targeted-tests>      # for pure Dart packages
+flutter test <targeted-tests>   # for Flutter packages
 flutter test packages
 dart format .
 flutter analyze
