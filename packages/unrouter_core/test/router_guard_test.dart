@@ -291,9 +291,9 @@ void main() {
           errorReporter: (_, _) {},
         );
 
-        // 两个 pop 事件连续触发：第一个 guard 抛异常，第二个应正常处理
-        router.back(); // /safe2 → /throws（guard 抛异常）
-        router.back(); // /throws → /safe（应正常处理）
+        // Two consecutive pop events: first guard throws, second should be processed normally.
+        router.back(); // /safe2 → /throws (guard throws)
+        router.back(); // /throws → /safe (should be handled normally)
         await flushAsyncQueue();
 
         expect(router.history.location.path, '/safe');
