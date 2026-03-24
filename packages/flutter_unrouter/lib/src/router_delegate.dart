@@ -12,7 +12,7 @@ import 'package:unrouter_core/unrouter_core.dart'
     show RouteParams, URLSearchParams;
 
 /// Builds a Flutter [RouterConfig] from an [Unrouter] instance.
-RouterConfig<HistoryLocation> createRouterConfig(Unrouter<Widget> router) {
+RouterConfig<HistoryLocation> createRouterConfig(Unrouter router) {
   final location = router.history.location;
   final info = RouteInformation(uri: location.uri, state: location.state);
 
@@ -28,7 +28,7 @@ RouterConfig<HistoryLocation> createRouterConfig(Unrouter<Widget> router) {
 }
 
 /// Returns the nearest [Unrouter] instance from a Flutter [BuildContext].
-Unrouter<Widget> useRouter(BuildContext context) {
+Unrouter useRouter(BuildContext context) {
   final flutter.Router(:routerDelegate) = flutter.Router.of(context);
   if (routerDelegate case _RouterDelegate(:final router)) {
     return router;
@@ -80,7 +80,7 @@ final class _HistoryRouteInformationProvider extends RouteInformationProvider
     router.addListener(_didLocationChange);
   }
 
-  final Unrouter<Widget> router;
+  final Unrouter router;
   RouteInformation _value;
 
   @override
@@ -164,7 +164,7 @@ class _RouterDelegate extends RouterDelegate<HistoryLocation>
     router.addListener(_didLocationChange);
   }
 
-  final Unrouter<Widget> router;
+  final Unrouter router;
   HistoryLocation currentLocation;
   HistoryLocation? fromLocation;
 

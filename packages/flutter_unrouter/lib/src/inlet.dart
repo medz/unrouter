@@ -2,7 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:unrouter_core/unrouter_core.dart' as core;
 
 /// Builds a widget for a matched route view.
-typedef ViewBuilder = ValueGetter<Widget>;
+typedef ViewBuilder = core.ViewBuilder<Widget>;
 
 /// Flutter route declaration used by [createRouter].
 class Inlet extends core.RouteNode<Widget> {

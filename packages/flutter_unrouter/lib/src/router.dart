@@ -5,10 +5,10 @@ import 'package:unstory/unstory.dart';
 import 'inlet.dart';
 
 /// Flutter-specialized Unrouter type alias.
-typedef Unrouter<V> = core.Unrouter<V>;
+typedef Unrouter = core.Unrouter<Widget>;
 
 /// Creates a Flutter router backed by [core.createRouter].
-Unrouter<Widget> createRouter({
+Unrouter createRouter({
   required Iterable<Inlet> routes,
   Iterable<core.Guard>? guards,
   String base = '/',

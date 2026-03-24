@@ -5,10 +5,10 @@ import 'package:unstory/unstory.dart';
 import 'inlet.dart';
 
 /// Nocterm-specialized Unrouter type alias.
-typedef Unrouter<V> = core.Unrouter<V>;
+typedef Unrouter = core.Unrouter<Component>;
 
 /// Creates a Nocterm router backed by [core.createRouter].
-Unrouter<Component> createRouter({
+Unrouter createRouter({
   required Iterable<Inlet> routes,
   Iterable<core.Guard>? guards,
   String base = '/',

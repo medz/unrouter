@@ -2,7 +2,7 @@ import 'package:nocterm/nocterm.dart';
 import 'package:unrouter_core/unrouter_core.dart' as core;
 
 /// Builds a Nocterm component for a matched route segment.
-typedef ViewBuilder = Component Function();
+typedef ViewBuilder = core.ViewBuilder<Component>;
 
 /// Nocterm route declaration used by [createRouter].
 class Inlet extends core.RouteNode<Component> {

@@ -13,7 +13,7 @@ class UnrouterHost extends StatefulComponent {
   const UnrouterHost({required this.router, super.key});
 
   /// Router used as the source of truth for page navigation state.
-  final Unrouter<Component> router;
+  final Unrouter router;
 
   @override
   State<UnrouterHost> createState() => _UnrouterHostState();
