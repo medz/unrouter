@@ -1,50 +1,32 @@
-# flutter_unrouter
+# Flutter Unrouter
 
-Declarative nested routing for Flutter, powered by the shared Unrouter core.
+[![Test](https://github.com/medz/unrouter/actions/workflows/test.yml/badge.svg)](https://github.com/medz/unrouter/actions/workflows/test.yml)
+[![pub](https://img.shields.io/pub/v/flutter_unrouter.svg)](https://pub.dev/packages/flutter_unrouter)
+![dart](https://img.shields.io/badge/dart-%3E%3D3.10.0-0175C2?logo=dart&logoColor=white)
+![flutter](https://img.shields.io/badge/flutter-stable-02569B?logo=flutter&logoColor=white)
+[![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-`flutter_unrouter` adds a Flutter renderer on top of `unrouter_core`, with
-`MaterialApp.router` integration, nested `Outlet` rendering, route-scoped
-hooks, navigation guards, named routes, and query helpers.
+Routing for Flutter apps with nested screens, guards, params, query state, and
+named navigation.
 
-If you want a single public dependency, use
-[unrouter](https://pub.dev/packages/unrouter) and import `package:unrouter/unrouter.dart`
-or `package:unrouter/flutter.dart`.
+## Install
 
-## Features
-
-- Declare route trees with `Inlet`
-- Render nested layouts with `Outlet`
-- Navigate by path or route name
-- Use guards for redirects and access control
-- Read params, query values, state, and metadata from route scope
-- Integrate with Flutter's `Router` API through `createRouterConfig`
-
-## Usage
-
-Import the adapter directly:
-
-```dart
-import 'package:flutter_unrouter/flutter_unrouter.dart';
+```bash
+dart pub add flutter_unrouter
 ```
 
-Or use the umbrella package:
-
-```dart
-import 'package:unrouter/unrouter.dart';
-```
-
-## Minimal Example
+## Quick Start
 
 ```dart
 import 'package:flutter/material.dart';
 import 'package:flutter_unrouter/flutter_unrouter.dart';
 
-final Unrouter router = createRouter(
+final router = createRouter(
   routes: [
     Inlet(path: '/', view: HomePage.new),
     Inlet(
       path: '/settings',
-      view: SettingsLayout.new,
+      view: SettingsPage.new,
       children: [Inlet(path: 'profile', view: ProfilePage.new)],
     ),
   ],
@@ -63,8 +45,8 @@ class HomePage extends StatelessWidget {
   }
 }
 
-class SettingsLayout extends StatelessWidget {
-  const SettingsLayout({super.key});
+class SettingsPage extends StatelessWidget {
+  const SettingsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -82,8 +64,10 @@ class ProfilePage extends StatelessWidget {
 }
 ```
 
-## Example App
+Use this package when you want one route tree to drive both navigation and
+nested UI.
 
-See the
-[Flutter example app](https://github.com/medz/unrouter/tree/main/examples/flutter_example)
-for a runnable demo with quickstart and advanced examples.
+## Learn More
+
+- [Flutter example](https://github.com/medz/unrouter/tree/main/examples/flutter_example)
+- [unrouter](https://pub.dev/packages/unrouter) if you want the all-in-one package

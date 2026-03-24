@@ -1,40 +1,39 @@
-# unrouter_core
+# Unrouter Core
 
-Shared routing primitives for building Unrouter adapters.
+[![Test](https://github.com/medz/unrouter/actions/workflows/test.yml/badge.svg)](https://github.com/medz/unrouter/actions/workflows/test.yml)
+[![pub](https://img.shields.io/pub/v/unrouter_core.svg)](https://pub.dev/packages/unrouter_core)
+![dart](https://img.shields.io/badge/dart-%3E%3D3.10.0-0175C2?logo=dart&logoColor=white)
+[![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-`unrouter_core` is the platform-agnostic layer behind the Flutter and Nocterm
-adapters. It provides route matching, history-backed navigation, guards, named
-routes, route params, query helpers, and merged route metadata.
+Core routing primitives for matching, navigation, guards, params, query
+helpers, and route metadata.
 
-Use this package when you are integrating Unrouter into another renderer or
-building infrastructure on top of the routing engine itself.
+## Install
 
-## Features
+```bash
+dart pub add unrouter_core
+```
 
-- Generic `RouteNode<V>` declarations
-- History-backed `createRouter` for custom renderers
-- Named route navigation and alias resolution
-- Global and per-route guards
-- Route params and URL search param helpers
-- Parent-to-child metadata merging
-
-## Usage
+## Quick Start
 
 ```dart
 import 'package:unrouter_core/unrouter_core.dart';
 import 'package:unstory/unstory.dart';
 
-final Unrouter<String> router = createRouter<String>(
+final router = createRouter<String>(
   history: MemoryHistory(initialEntries: [HistoryLocation(Uri(path: '/'))]),
   routes: const [
-    RouteNode<String>(path: '/', view: _homeView),
-    RouteNode<String>(path: '/users/:id', name: 'user', view: _userView),
+    RouteNode<String>(path: '/', view: homeView),
+    RouteNode<String>(path: '/users/:id', name: 'user', view: userView),
   ],
 );
 
-String _homeView() => 'home';
-String _userView() => 'user';
+String homeView() => 'home';
+String userView() => 'user';
 ```
 
-The core package does not render views. Adapters such as Flutter and Nocterm
-decide how the matched view chain is turned into UI.
+Use this package when you are building on top of the routing engine itself.
+
+This package does not render UI. For Flutter and Nocterm packages, see
+[flutter_unrouter](https://pub.dev/packages/flutter_unrouter) and
+[nocterm_unrouter](https://pub.dev/packages/nocterm_unrouter).
