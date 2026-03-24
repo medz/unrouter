@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/brand.svg" width="120" alt="unrouter" />
+  <img src="../../assets/brand.svg" width="120" alt="unrouter" />
 </p>
 
 <p align="center">
