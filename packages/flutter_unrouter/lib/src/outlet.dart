@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 
 import 'inlet.dart';
+import 'view_host.dart';
 
 /// Renders the next matched view in the active nested route chain.
 ///
@@ -39,7 +40,7 @@ class Outlet extends StatelessWidget {
     return OutletScope(
       views: scope.views,
       depth: depth + 1,
-      child: _ViewHost(builder: scope.views[depth]),
+      child: ViewHost(builder: scope.views[depth]),
     );
   }
 }
@@ -80,31 +81,5 @@ class OutletScope extends InheritedWidget {
   @override
   bool updateShouldNotify(covariant OutletScope oldWidget) {
     return oldWidget.views != views || oldWidget.depth != depth;
-  }
-}
-
-class _ViewHost extends StatefulWidget {
-  const _ViewHost({required this.builder});
-
-  final ViewBuilder builder;
-
-  @override
-  State<_ViewHost> createState() => _ViewHostState();
-}
-
-class _ViewHostState extends State<_ViewHost> {
-  late Widget child = widget.builder.call();
-
-  @override
-  void didUpdateWidget(covariant _ViewHost oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.builder != widget.builder) {
-      child = widget.builder.call();
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return child;
   }
 }
