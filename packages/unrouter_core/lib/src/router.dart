@@ -579,7 +579,6 @@ final class _RouterImpl<V> implements Unrouter<V> {
   void _enqueueHistoryEvent(HistoryEvent event) {
     if (_disposed || event.action != HistoryAction.pop) return;
     _historyQueue = _historyQueue
-        .catchError((_, _) {})
         .then((_) => _processHistoryEvent(event))
         .catchError((Object error, StackTrace stackTrace) {
           errorReporter(error, stackTrace);
