@@ -64,6 +64,7 @@ class _RouterViewState extends State<RouterView> {
     }
 
     return RouteScopeProvider(
+      router: component.router,
       route: route,
       params: RouteParams(match.params ?? const <String, String>{}),
       location: location,

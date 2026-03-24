@@ -3,6 +3,17 @@ import 'package:unstory/unstory.dart';
 import 'package:unrouter_core/unrouter_core.dart'
     show RouteParams, RouteRecord, URLSearchParams;
 
+import 'router.dart';
+
+/// Returns the active [Unrouter] instance from the nearest route scope.
+Unrouter useRouter(BuildContext context) {
+  final scope = context
+      .dependOnInheritedComponentOfExactType<RouteScopeProvider>();
+  if (scope != null) return scope.router;
+
+  throw StateError('Unrouter router is unavailable in this context.');
+}
+
 /// Returns merged route metadata from the nearest route scope.
 Map<String, Object?> useRouteMeta(BuildContext context) {
   final route = RouteScopeProvider.of(context).route;
@@ -53,12 +64,16 @@ class RouteScopeProvider extends InheritedComponent {
   const RouteScopeProvider({
     super.key,
     required super.child,
+    required this.router,
     required this.route,
     required this.params,
     required this.location,
     required this.query,
     this.fromLocation,
   });
+
+  /// Active router instance for the current routed subtree.
+  final Unrouter router;
 
   /// Compiled route record for the current path.
   final RouteRecord<Component> route;
@@ -86,7 +101,8 @@ class RouteScopeProvider extends InheritedComponent {
 
   @override
   bool updateShouldNotify(covariant RouteScopeProvider oldComponent) {
-    return route != oldComponent.route ||
+    return router != oldComponent.router ||
+        route != oldComponent.route ||
         location.uri != oldComponent.location.uri ||
         location.state != oldComponent.location.state ||
         fromLocation != oldComponent.fromLocation ||
