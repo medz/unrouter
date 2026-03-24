@@ -1,0 +1,33 @@
+name: flutter_unrouter
+description: Declarative nested router for Flutter with guards and Router API integration.
+version: 0.1.0
+publish_to: none
+repository: https://github.com/medz/unrouter
+homepage: https://github.com/medz/unrouter
+issue_tracker: https://github.com/medz/unrouter/issues
+topics:
+  - router
+  - navigation
+  - flutter
+  - deep-linking
+  - url
+funding:
+  - https://github.com/sponsors/medz
+
+environment:
+  sdk: ^3.10.0
+
+resolution: workspace
+
+dependencies:
+  flutter:
+    sdk: flutter
+  ht: ^0.3.0
+  oref: ^2.8.0
+  unstory: ^0.1.1
+  unrouter_core: ^0.1.0
+
+dev_dependencies:
+  flutter_lints: ^6.0.0
+  flutter_test:
+    sdk: flutter
