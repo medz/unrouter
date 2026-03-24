@@ -12,7 +12,7 @@ class RouteNode<V> {
   const RouteNode({
     required this.view,
     this.name,
-    this.meta,
+    this.meta = const {},
     this.path = '/',
     this.children = const [],
     this.guards = const [],
@@ -25,7 +25,7 @@ class RouteNode<V> {
   final String path;
 
   /// Route metadata merged from parent to child.
-  final Map<String, Object?>? meta;
+  final Map<String, Object?> meta;
 
   /// View builder rendered when this route segment matches.
   final ViewBuilder<V> view;

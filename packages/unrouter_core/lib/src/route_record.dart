@@ -7,7 +7,11 @@ import 'route_node.dart';
 /// the final view chain, guard chain, and merged metadata used at runtime.
 final class RouteRecord<V> {
   /// Creates an immutable route record.
-  const RouteRecord({required this.views, required this.guards, this.meta});
+  const RouteRecord({
+    required this.views,
+    required this.guards,
+    this.meta = const {},
+  });
 
   /// Ordered view builders from parent to child for the matched path.
   final List<ViewBuilder<V>> views;
@@ -16,5 +20,5 @@ final class RouteRecord<V> {
   final List<Guard> guards;
 
   /// Merged metadata inherited from parent to child.
-  final Map<String, Object?>? meta;
+  final Map<String, Object?> meta;
 }

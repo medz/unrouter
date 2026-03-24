@@ -154,7 +154,7 @@ extension<V> on RouteNode<V> {
 
       final meta = Map<String, Object?>.unmodifiable({
         ...?parentMeta,
-        ...?route.meta,
+        ...route.meta,
       });
       routes[path] = RouteRecord<V>(views: views, guards: guards, meta: meta);
 

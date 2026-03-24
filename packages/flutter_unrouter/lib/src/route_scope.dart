@@ -37,7 +37,7 @@ enum RouteScope {
 /// current [BuildContext].
 Map<String, Object?> useRouteMeta(BuildContext context) {
   final route = RouteScopeProvider.of(context, RouteScope.meta).route;
-  return route.meta ?? const {};
+  return route.meta;
 }
 
 /// Returns matched route params from the nearest route scope.

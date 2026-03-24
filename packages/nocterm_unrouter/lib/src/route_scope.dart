@@ -17,7 +17,7 @@ Unrouter useRouter(BuildContext context) {
 /// Returns merged route metadata from the nearest route scope.
 Map<String, Object?> useRouteMeta(BuildContext context) {
   final route = RouteScopeProvider.of(context).route;
-  return route.meta ?? const {};
+  return route.meta;
 }
 
 /// Returns matched route params from the nearest route scope.
