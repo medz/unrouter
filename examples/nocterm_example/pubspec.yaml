@@ -1,5 +1,5 @@
 name: nocterm_example
-description: Runnable terminal example for the nocterm_unrouter package.
+description: Runnable terminal example for the unrouter package.
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -10,8 +10,7 @@ resolution: workspace
 
 dependencies:
   nocterm: ^0.6.0
-  nocterm_unrouter: ^0.1.0
-  unstory: ^0.1.1
+  unrouter: ^0.12.0
 
 dev_dependencies:
   lints: ^6.0.0

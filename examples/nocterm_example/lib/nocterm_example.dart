@@ -1,6 +1,5 @@
 import 'package:nocterm/nocterm.dart';
-import 'package:nocterm_unrouter/nocterm_unrouter.dart';
-import 'package:unstory/unstory.dart';
+import 'package:unrouter/nocterm.dart';
 
 Unrouter buildExampleRouter() {
   return createRouter(

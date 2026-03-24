@@ -15,15 +15,16 @@
 </p>
 
 `unrouter` is the primary package for the Unrouter family. It gives you one
-dependency with the lowest-friction import path for Flutter, plus explicit
-entrypoints for Nocterm and the shared routing core.
+dependency with Flutter and Nocterm entrypoints, plus shared core and history
+APIs from the package root.
 
-Start here if you want the smallest mental model: install `unrouter`, import
-`package:unrouter/unrouter.dart`, and build from there.
+Start here if you want one package for Flutter, Nocterm, and the shared routing
+building blocks.
 
 ## What You Get
 
 - Declarative route trees
+- Shared routing and history APIs from `package:unrouter/unrouter.dart`
 - Named navigation, params, and query helpers
 - Guards and redirects
 - Nested route rendering
@@ -41,30 +42,27 @@ dependencies:
 dart pub add unrouter
 ```
 
-## Default Import
+## Flutter Entry Point
 
 ```dart
-import 'package:unrouter/unrouter.dart';
+import 'package:unrouter/flutter.dart';
 ```
 
-Use this in Flutter apps when you want the default Unrouter API surface.
+Use this in Flutter apps.
 
 ## Other Entrypoints
 
 ```dart
-import 'package:unrouter/flutter.dart';
 import 'package:unrouter/nocterm.dart';
-import 'package:unrouter/core.dart';
+import 'package:unrouter/unrouter.dart';
 ```
 
-- `package:unrouter/unrouter.dart`
-  Default brand-level entrypoint for Flutter apps.
 - `package:unrouter/flutter.dart`
-  Explicit Flutter adapter import when you prefer platform-specific naming.
+  Flutter routing APIs.
 - `package:unrouter/nocterm.dart`
-  Nocterm adapter entrypoint for terminal apps.
-- `package:unrouter/core.dart`
-  Shared routing core for custom renderers and infrastructure code.
+  Nocterm routing APIs, including history exports.
+- `package:unrouter/unrouter.dart`
+  Shared core and history APIs.
 
 If you import more than one adapter library in the same file, use prefixes to
 avoid symbol collisions such as `Inlet`, `Outlet`, and `createRouter`.
@@ -73,7 +71,7 @@ avoid symbol collisions such as `Inlet`, `Outlet`, and `createRouter`.
 
 ```dart
 import 'package:flutter/material.dart';
-import 'package:unrouter/unrouter.dart';
+import 'package:unrouter/flutter.dart';
 
 final Unrouter router = createRouter(
   routes: [Inlet(path: '/', view: HomePage.new)],

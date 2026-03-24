@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_unrouter/flutter_unrouter.dart';
+import 'package:unrouter/flutter.dart';
 
 class QuickstartLayoutView extends StatelessWidget {
   const QuickstartLayoutView({super.key});

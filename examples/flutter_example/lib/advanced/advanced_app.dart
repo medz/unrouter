@@ -1,4 +1,4 @@
-import 'package:flutter_unrouter/flutter_unrouter.dart';
+import 'package:unrouter/flutter.dart';
 
 import 'advanced_views.dart';
 import 'data_loader_demo.dart';

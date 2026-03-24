@@ -1,7 +1,7 @@
 import 'package:nocterm/nocterm.dart';
 import 'package:nocterm_example/nocterm_example.dart';
-import 'package:nocterm_unrouter/nocterm_unrouter.dart';
 import 'package:test/test.dart';
+import 'package:unrouter/nocterm.dart';
 
 Future<void> pumpNavigation(NoctermTester tester) async {
   await tester.pump();
