@@ -21,7 +21,7 @@ resolution: workspace
 
 dependencies:
   flutter_unrouter: ^0.2.0
-  nocterm_unrouter: ^0.1.0
+  nocterm_unrouter: ^0.2.0
   unstory: ^0.1.1
   unrouter_core: ^0.1.0
 
