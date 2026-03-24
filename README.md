@@ -4,7 +4,7 @@ This repository now uses a Dart pub workspace.
 
 ## Packages
 
-- `packages/unrouter`: backward-compatible Flutter package facade
+- `packages/unrouter`: facade collection package for core, Flutter, and Nocterm entrypoints
 - `packages/flutter_unrouter`: Flutter adapter package
 - `packages/unrouter_core`: platform-agnostic routing core
 - `packages/nocterm_unrouter`: Nocterm adapter package

@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <strong>Declarative, composable router for Flutter.</strong>
+  <strong>Facade package for Unrouter core and platform adapters.</strong>
 </p>
 
 <p align="center">
@@ -18,14 +18,10 @@
 
 ## Features
 
-- Nested routes with `Inlet` and `Outlet`
-- Named routes with params, query, and state
-- Guards with allow, block, and redirect outcomes
-- Route meta inheritance
-- Dynamic params and wildcards
-- First-class query params support
-- Browser and memory history support
-- Reactive route hooks for Flutter widgets
+- Re-exported `flutter_unrouter` entrypoint
+- Re-exported `nocterm_unrouter` entrypoint
+- Re-exported `unrouter_core` entrypoint
+- Legacy `package:unrouter/unrouter.dart` support for existing Flutter users
 
 ## Install
 
@@ -35,8 +31,24 @@ dependencies:
 ```
 
 ```bash
-flutter pub add unrouter
+dart pub add unrouter
 ```
+
+## Entrypoints
+
+```dart
+import 'package:unrouter/flutter.dart';
+import 'package:unrouter/nocterm.dart';
+import 'package:unrouter/core.dart';
+```
+
+- `package:unrouter/unrouter.dart`: legacy Flutter-compatible export
+- `package:unrouter/flutter.dart`: Flutter adapter proxy
+- `package:unrouter/nocterm.dart`: Nocterm adapter proxy
+- `package:unrouter/core.dart`: platform-agnostic routing core proxy
+
+If you import more than one adapter library in the same file, use prefixes to
+avoid symbol collisions such as `Inlet`, `Outlet`, and `createRouter`.
 
 ## Example
 
@@ -47,4 +59,13 @@ The runnable Flutter example lives in the repository at
 cd examples/flutter_example
 flutter pub get
 flutter run -d chrome
+```
+
+The runnable Nocterm example lives at
+[`examples/nocterm_example/`](../../examples/nocterm_example).
+
+```bash
+cd examples/nocterm_example
+dart pub get
+dart run
 ```
