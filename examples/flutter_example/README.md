@@ -1,10 +1,11 @@
-# Unrouter Example App
+# Flutter Unrouter Example
 
-Runnable Flutter example app for `unrouter`, with two scenarios in one project.
+Runnable Flutter example app for `flutter_unrouter`, with two scenarios in one project.
 
 ## Run
 
 ```bash
+cd examples/flutter_example
 flutter pub get
 flutter run -d chrome
 ```

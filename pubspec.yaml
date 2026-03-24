@@ -6,4 +6,4 @@ environment:
 
 workspace:
   - packages/*
-  - packages/unrouter/example
+  - examples/*

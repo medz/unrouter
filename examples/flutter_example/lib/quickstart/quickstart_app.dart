@@ -1,4 +1,4 @@
-import 'package:unrouter/unrouter.dart';
+import 'package:flutter_unrouter/flutter_unrouter.dart';
 
 import 'quickstart_views.dart';
 

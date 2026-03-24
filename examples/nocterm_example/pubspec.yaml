@@ -1,0 +1,18 @@
+name: nocterm_example
+description: Runnable terminal example for the nocterm_unrouter package.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.10.8
+
+resolution: workspace
+
+dependencies:
+  nocterm: ^0.6.0
+  nocterm_unrouter: ^0.1.0
+  unstory: ^0.1.1
+
+dev_dependencies:
+  lints: ^6.0.0
+  test: ^1.25.6

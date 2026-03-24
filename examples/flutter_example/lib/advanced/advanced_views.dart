@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:unrouter/unrouter.dart';
+import 'package:flutter_unrouter/flutter_unrouter.dart';
 
 final ValueNotifier<int> linkTapCount = ValueNotifier<int>(0);
 

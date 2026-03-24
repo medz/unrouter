@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:unrouter/unrouter.dart';
+import 'package:flutter_unrouter/flutter_unrouter.dart';
 
 import 'advanced/advanced_app.dart';
 import 'quickstart/quickstart_app.dart';

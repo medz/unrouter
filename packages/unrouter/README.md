@@ -40,10 +40,11 @@ flutter pub add unrouter
 
 ## Example
 
-The package example lives in [`example/`](example).
+The runnable Flutter example lives in the repository at
+[`examples/flutter_example/`](../../examples/flutter_example).
 
 ```bash
-cd example
+cd examples/flutter_example
 flutter pub get
 flutter run -d chrome
 ```

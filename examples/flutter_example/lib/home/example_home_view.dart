@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:unrouter/unrouter.dart';
+import 'package:flutter_unrouter/flutter_unrouter.dart';
 
 class ExampleHomeView extends StatelessWidget {
   const ExampleHomeView({super.key});

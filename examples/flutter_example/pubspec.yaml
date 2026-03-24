@@ -1,5 +1,5 @@
-name: unrouter_example
-description: Runnable examples for the unrouter package.
+name: flutter_example
+description: Runnable Flutter examples for the flutter_unrouter package.
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -11,7 +11,7 @@ resolution: workspace
 dependencies:
   flutter:
     sdk: flutter
-  unrouter: ^0.12.0
+  flutter_unrouter: ^0.1.0
 
 dev_dependencies:
   flutter_test:

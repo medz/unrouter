@@ -1,6 +1,6 @@
 {
-    "name": "unrouter_example",
-    "short_name": "unrouter_example",
+    "name": "flutter_example",
+    "short_name": "flutter_example",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
