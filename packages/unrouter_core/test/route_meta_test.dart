@@ -36,7 +36,7 @@ void main() {
         );
 
         await router.push('/admin');
-        final match = router.matcher.match('/admin');
+        final match = router.matcher.find('/admin');
         expect(match?.data.meta['role'], 'admin');
         expect(match?.data.meta['layout'], 'default');
       },
@@ -50,7 +50,7 @@ void main() {
         ],
       );
 
-      final match = router.matcher.match('/plain');
+      final match = router.matcher.find('/plain');
       expect(match?.data.meta, isEmpty);
     });
   });

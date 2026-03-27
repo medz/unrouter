@@ -51,7 +51,7 @@ class _RouterViewState extends State<RouterView> {
   @override
   Component build(BuildContext context) {
     final location = component.router.history.location;
-    final match = component.router.matcher.match(location.path);
+    final match = component.router.matcher.find(location.path);
     if (match == null) {
       throw StateError('No route matched path "${location.path}".');
     }
@@ -66,7 +66,7 @@ class _RouterViewState extends State<RouterView> {
     return RouteScopeProvider(
       router: component.router,
       route: route,
-      params: RouteParams(match.params ?? const <String, String>{}),
+      params: RouteParams(match.params),
       location: location,
       query: URLSearchParams(location.query),
       fromLocation: fromLocation,
