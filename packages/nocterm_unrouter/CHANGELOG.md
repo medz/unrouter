@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.0
+
+### What's New
+
+- Add `useRouter(context)` helper to retrieve the active `Unrouter` instance
+  from the nearest route scope. (#40)
+- Bump `unrouter_core` dependency to `^0.2.0`.
+
 ## v0.2.0
 
 **Migration guide**: See Migration note below.

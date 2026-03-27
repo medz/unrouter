@@ -1,6 +1,6 @@
 name: unrouter_core
 description: Platform-agnostic routing core for matching, guards, params, and query helpers.
-version: 0.1.0
+version: 0.2.0
 repository: https://github.com/medz/unrouter
 homepage: https://github.com/medz/unrouter
 issue_tracker: https://github.com/medz/unrouter/issues

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.1
+
+### What's New
+
+- Internal refactor: extract `_ViewHost` as a shared stateful widget to reduce
+  duplication between the router delegate and outlet rendering paths.
+- Bump `unrouter_core` dependency to `^0.2.0`.
+
 ## v0.2.0
 
 **Migration guide**: See Migration note below.

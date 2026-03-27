@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.14.0
+
+### Highlights
+
+Picks up breaking changes from `unrouter_core` 0.2.0, the new `useRouter`
+helper in `nocterm_unrouter` 0.3.0, and the internal `flutter_unrouter` 0.2.1
+refactor.
+
+### Breaking Changes
+
+- `RouteNode.meta` and `RouteRecord.meta` are now non-nullable (`Map<String, Object?>`
+  defaulting to `const {}`). See `unrouter_core` 0.2.0 migration notes.
+- `Unrouter.matcher` and `Unrouter.aliases` expose `roux.Router<T>` which no
+  longer has `.match()`. Use `.find()` instead.
+
+### What's New
+
+- `useRouter(context)` is now available in the `nocterm.dart` entrypoint.
+
+### Migration Notes
+
+- Replace direct calls to `router.matcher.match(path)` with `.find(path)`.
+- Remove `?? const {}` guards on `meta` fields — the value is always non-null.
+
 ## v0.13.0
 
 **Migration guide**: See Migration note below.
