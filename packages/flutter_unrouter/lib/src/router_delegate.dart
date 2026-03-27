@@ -174,7 +174,7 @@ class _RouterDelegate extends RouterDelegate<HistoryLocation>
   @override
   Widget build(BuildContext context) {
     final location = router.history.location;
-    final match = router.matcher.match(location.path);
+    final match = router.matcher.find(location.path);
     if (match == null) {
       throw FlutterError('No route matched path "${location.path}".');
     }
@@ -189,7 +189,7 @@ class _RouterDelegate extends RouterDelegate<HistoryLocation>
 
     return RouteScopeProvider(
       route: route,
-      params: RouteParams(match.params ?? const <String, String>{}),
+      params: RouteParams(match.params),
       location: location,
       query: URLSearchParams(location.query),
       fromLocation: fromLocation,

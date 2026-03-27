@@ -82,8 +82,8 @@ Unrouter<V> createRouter<V>({
   history ??= createHistory(base: normalizePath([base]), strategy: strategy);
   final router = _RouterImpl<V>(
     history: history,
-    aliases: roux.Router<String>(),
-    matcher: roux.Router<RouteRecord<V>>(),
+    aliases: roux.Router<String>(caseSensitive: true),
+    matcher: roux.Router<RouteRecord<V>>(caseSensitive: true),
     maxRedirectDepth: maxRedirectDepth,
     errorReporter:
         errorReporter ??
@@ -92,8 +92,12 @@ Unrouter<V> createRouter<V>({
         },
   );
   for (final route in routes) {
-    router.aliases.addAll(route.makeAliasRoutes());
-    router.matcher.addAll(route.makeRouteRecords(guards));
+    for (final entry in route.makeAliasRoutes().entries) {
+      router.aliases.add(entry.key, entry.value);
+    }
+    for (final entry in route.makeRouteRecords(guards).entries) {
+      router.matcher.add(entry.key, entry.value);
+    }
   }
 
   return router;
@@ -340,7 +344,7 @@ final class _RouterImpl<V> implements Unrouter<V> {
 
     final parsed = Uri.parse(input);
     final aliasKey = normalizePath([parsed.path]);
-    final alias = aliases.match(aliasKey);
+    final alias = aliases.find(aliasKey);
     if (alias != null) {
       final resolvedPath = _fillRoutePattern(alias.data, params ?? const {});
       return _resolveByPath(
@@ -385,7 +389,7 @@ final class _RouterImpl<V> implements Unrouter<V> {
       query: mergedQuery.isEmpty ? null : mergedQuery,
       fragment: fragment.isEmpty ? null : fragment,
     );
-    final match = matcher.match(uri.path);
+    final match = matcher.find(uri.path);
     if (match == null) {
       throw StateError('No route matched path "${uri.path}".');
     }
@@ -394,7 +398,7 @@ final class _RouterImpl<V> implements Unrouter<V> {
       uri: uri,
       state: state,
       record: match.data,
-      params: RouteParams(match.params ?? const <String, String>{}),
+      params: RouteParams(match.params),
       query: URLSearchParams(mergedQuery),
     );
   }
@@ -617,7 +621,7 @@ final class _RouterImpl<V> implements Unrouter<V> {
   }
 
   _NavigationTarget<V>? _targetFromHistory(HistoryLocation location) {
-    final match = matcher.match(location.path);
+    final match = matcher.find(location.path);
     if (match == null) {
       return null;
     }
@@ -626,7 +630,7 @@ final class _RouterImpl<V> implements Unrouter<V> {
       uri: location.uri,
       state: location.state,
       record: match.data,
-      params: RouteParams(match.params ?? const <String, String>{}),
+      params: RouteParams(match.params),
       query: URLSearchParams(location.query),
     );
   }
