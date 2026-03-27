@@ -1,5 +1,5 @@
 name: unrouter
-version: 0.13.0
+version: 0.14.0
 description: Primary Unrouter package with Flutter, Nocterm, and shared core entrypoints.
 repository: https://github.com/medz/unrouter
 homepage: https://github.com/medz/unrouter
@@ -20,10 +20,10 @@ environment:
 resolution: workspace
 
 dependencies:
-  flutter_unrouter: ^0.2.0
-  nocterm_unrouter: ^0.2.0
+  flutter_unrouter: ^0.2.1
+  nocterm_unrouter: ^0.3.0
   unstory: ^0.1.1
-  unrouter_core: ^0.1.0
+  unrouter_core: ^0.2.0
 
 dev_dependencies:
   lints: ^6.0.0

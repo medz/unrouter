@@ -11,7 +11,7 @@ resolution: workspace
 dependencies:
   flutter:
     sdk: flutter
-  unrouter: ^0.13.0
+  unrouter: ^0.14.0
 
 dev_dependencies:
   flutter_test:

@@ -10,7 +10,7 @@ resolution: workspace
 
 dependencies:
   nocterm: ^0.6.0
-  unrouter: ^0.13.0
+  unrouter: ^0.14.0
 
 dev_dependencies:
   lints: ^6.0.0

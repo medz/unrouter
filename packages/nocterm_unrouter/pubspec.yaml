@@ -1,6 +1,6 @@
 name: nocterm_unrouter
 description: Declarative nested router for Nocterm apps with guards and nested outlets.
-version: 0.2.0
+version: 0.3.0
 repository: https://github.com/medz/unrouter
 homepage: https://github.com/medz/unrouter
 issue_tracker: https://github.com/medz/unrouter/issues
@@ -21,7 +21,7 @@ resolution: workspace
 dependencies:
   nocterm: ^0.6.0
   unstory: ^0.1.1
-  unrouter_core: ^0.1.0
+  unrouter_core: ^0.2.0
 
 dev_dependencies:
   lints: ^6.0.0
