@@ -169,19 +169,19 @@ extension<V> on RouteNode<V> {
 
   _SequenceRelation _relation<T>(List<T> previous, List<T> next) {
     if (next.length < previous.length) {
-      return _SequenceRelation.incompatible;
+      return .incompatible;
     }
 
     for (var i = 0; i < previous.length; i++) {
       if (previous[i] != next[i]) {
-        return _SequenceRelation.incompatible;
+        return .incompatible;
       }
     }
 
     if (next.length == previous.length) {
-      return _SequenceRelation.same;
+      return .same;
     }
-    return _SequenceRelation.strictPrefix;
+    return .strictPrefix;
   }
 }
 
@@ -254,7 +254,7 @@ final class _RouterImpl<V> implements Unrouter<V> {
     T? state,
   }) {
     return _navigate(
-      action: HistoryAction.push,
+      action: .push,
       pathOrName: pathOrName,
       params: params,
       query: query,
@@ -270,7 +270,7 @@ final class _RouterImpl<V> implements Unrouter<V> {
     T? state,
   }) {
     return _navigate(
-      action: HistoryAction.replace,
+      action: .replace,
       pathOrName: pathOrName,
       params: params,
       query: query,
@@ -311,11 +311,11 @@ final class _RouterImpl<V> implements Unrouter<V> {
     }
 
     switch (action) {
-      case HistoryAction.push:
+      case .push:
         history.push(next.uri, state: next.state);
-      case HistoryAction.replace:
+      case .replace:
         history.replace(next.uri, state: next.state);
-      case HistoryAction.pop:
+      case .pop:
         throw StateError(
           'Invalid navigation action "pop" for push/replace flow.',
         );
@@ -526,7 +526,7 @@ final class _RouterImpl<V> implements Unrouter<V> {
       final record = current.record;
       final guards = record?.guards ?? const <Guard>[];
       if (guards.isEmpty) {
-        return _GuardEvaluation<V>.allowed(current, redirected: redirects > 0);
+        return .allowed(current, redirected: redirects > 0);
       }
 
       final context = GuardContext(
@@ -546,7 +546,7 @@ final class _RouterImpl<V> implements Unrouter<V> {
           case GuardAllow():
             continue;
           case GuardBlock():
-            return _GuardEvaluation<V>.blocked();
+            return .blocked();
           case GuardRedirect(
             :final pathOrName,
             :final params,
@@ -571,13 +571,13 @@ final class _RouterImpl<V> implements Unrouter<V> {
       }
 
       if (!redirected) {
-        return _GuardEvaluation<V>.allowed(current, redirected: redirects > 0);
+        return .allowed(current, redirected: redirects > 0);
       }
     }
   }
 
   void _enqueueHistoryEvent(HistoryEvent event) {
-    if (_disposed || event.action != HistoryAction.pop) return;
+    if (_disposed || event.action != .pop) return;
     _historyQueue = _historyQueue
         .then((_) => _processHistoryEvent(event))
         .catchError((Object error, StackTrace stackTrace) {
@@ -600,11 +600,7 @@ final class _RouterImpl<V> implements Unrouter<V> {
       return;
     }
 
-    final result = await _runGuards(
-      action: HistoryAction.pop,
-      from: from,
-      target: target,
-    );
+    final result = await _runGuards(action: .pop, from: from, target: target);
     if (result.blocked) {
       history.replace(from.uri, state: from.state);
       return;
